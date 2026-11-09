@@ -169,6 +169,64 @@ class SurveyTest {
     }
 
     @Test
+    void aSheerLipFallsAwayToGentleGroundFarFromTheVoid() {
+        int side = 64, step = 8;
+        int[] h = new int[side * side];
+        byte[] kind = new byte[side * side];
+        for (int z = 0; z < side; z++) {
+            for (int x = 0; x < side; x++) {
+                int i = z * side + x;
+                if (x < 4) kind[i] = 2;
+                else if (x < 8) h[i] = 200 - 20 * (x - 4);
+                else h[i] = 120 - x;
+            }
+        }
+        com.google.gson.JsonObject rim = new Landforms(side, step, 0, 0, h, kind).voidRimJson();
+        assertTrue(rim.get("nearSteepPercent").getAsDouble() > 75, rim.toString());
+        assertEquals(0.0, rim.get("farSteepPercent").getAsDouble(), rim.toString());
+        assertTrue(rim.get("nearHeightP50").getAsDouble() > rim.get("farHeightP50").getAsDouble());
+        assertEquals(0, new Landforms(side, step, 0, 0, new int[side * side], new byte[side * side]).voidRimJson().get("nearCells").getAsInt());
+    }
+
+    @Test
+    void connectedRidgesAreOneRegionAndConesAreMany() {
+        int side = 64;
+        int[] ridges = new int[side * side], cones = new int[side * side];
+        for (int z = 0; z < side; z++) {
+            for (int x = 0; x < side; x++) {
+                ridges[z * side + x] = (x % 8 == 0 || z % 8 == 0) ? 200 : 40;
+                cones[z * side + x] = (x % 8 == 4 && z % 8 == 4) || (x % 8 == 5 && z % 8 == 4) ? 200 : 40;
+            }
+        }
+        byte[] kind = new byte[side * side];
+        com.google.gson.JsonObject web = new Landforms(side, 8, 0, 0, ridges, kind).highGroundJson();
+        assertEquals(1, web.get("count").getAsInt(), web.toString());
+        assertEquals(100.0, web.get("largestPercent").getAsDouble());
+        com.google.gson.JsonObject spots = new Landforms(side, 8, 0, 0, cones, kind).highGroundJson();
+        assertTrue(spots.get("count").getAsInt() == 1 || spots.get("largestPercent").getAsDouble() < 5, spots.toString());
+    }
+
+    @Test
+    void aCraterZoneSitsBelowItsRingWithOneTallSpire() {
+        int side = 64, step = 8;
+        int[] h = new int[side * side];
+        for (int z = 0; z < side; z++) {
+            for (int x = 0; x < side; x++) {
+                double d = Math.hypot(x * step - 256, z * step - 256);
+                h[z * side + x] = d < 2 ? 220 : d <= 128 ? 50 : 90;
+            }
+        }
+        com.customdimensions.core.zone.ZoneSpec zone = com.customdimensions.core.zone.ZoneSpec.read("the_x", 0,
+                com.google.gson.JsonParser.parseString("{\"shape\": \"circle\", \"centre\": [256, 256], \"radius\": 128}").getAsJsonObject(),
+                new com.customdimensions.core.BlockPos(0, 64, 0));
+        com.google.gson.JsonArray zones = new Landforms(side, step, 0, 0, h, new byte[side * side]).withZones(List.of(zone)).zonesJson();
+        com.google.gson.JsonObject z0 = zones.get(0).getAsJsonObject();
+        assertEquals(40.0, z0.get("depthBelowRing").getAsDouble(), z0.toString());
+        assertEquals(170.0, z0.get("tallestRise").getAsDouble(), z0.toString());
+        assertTrue(z0.get("risePercent").getAsDouble() < 1, z0.toString());
+    }
+
+    @Test
     void waterDepthIsMeasuredOverTheSurfaceBlock() {
         PatchAnalysis a = analyse(grid(0, false, (x, y, z) -> {
             int floor = x < 8 ? 59 : 50;

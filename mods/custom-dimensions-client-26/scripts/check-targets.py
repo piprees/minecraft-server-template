@@ -6,7 +6,8 @@ dimension's intent into numbers the survey measures (`/customdim survey <slug>` 
   {"slug": "the_x", "targets": [{"key": "surface.snowIcePercent", "op": ">=", "value": 70, "from": "why"}, ...]}
 `key` is a dossier key path, dot-separated (`terrain.surfaceHeight.p95`, `surface.biomesPercent.minecraft:plains`,
 `clusters.types.minecraft:magma_block.clusters`); several paths joined by ` + ` are summed. `op` is one of
->=, <=, >, <, == or `between` (value [low, high], inclusive). `from` is the sentence of intent the number comes from.
+>=, <=, >, <, == or `between` (value [low, high], inclusive). A list element is a number in the path (`landforms.zones.0.depthBelowRing`).
+An optional `per` key path divides the measure (`"per": "plan.hectares"` for a density). `from` is the sentence of intent the number comes from.
 Prints one PASS or FAIL line per target with the measured value; exit 0 when every target passes, 1 when any fails.
 
 Usage: check-targets.py <dossier.json> <targets.json> [--json OUT]
@@ -38,6 +39,9 @@ def resolve(dossier, path):
     for i, part in enumerate(parts):
         if isinstance(node, dict) and part in node:
             node = node[part]
+            continue
+        if isinstance(node, list) and part.isdigit() and int(part) < len(node):
+            node = node[int(part)]
             continue
         listed_id = ':' in part and i > 0 and isinstance(node, dict)
         if listed_id and i == len(parts) - 1 and (numeric_map(node) or node == {}):
@@ -72,6 +76,11 @@ def check(dossier, targets):
         if op == 'between' and not (isinstance(value, list) and len(value) == 2):
             raise TargetError('between needs [low, high] for %s' % t['key'])
         measured, note = measure(dossier, t['key'])
+        if t.get('per'):
+            per, _ = resolve(dossier, t['per'])
+            if per <= 0:
+                raise TargetError('per %s is %s for %s' % (t['per'], per, t['key']))
+            measured, note = measured / per, (note + '; ' if note else '') + 'per ' + t['per']
         results.append({'key': t['key'], 'op': op, 'value': value, 'measured': round(measured, 2),
                         'pass': bool(OPS[op](measured, value)), 'note': note, 'from': t.get('from', '')})
     return results

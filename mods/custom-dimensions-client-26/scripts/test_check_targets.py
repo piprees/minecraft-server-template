@@ -24,6 +24,9 @@ DOSSIER = {
     'vegetation': {'treesPerHectare': 9.7, 'species': {'minecraft:oak_log': {'count': 21, 'perHectare': 3.0}}},
     'clusters': {'types': {'minecraft:farmland': {'clusters': 3, 'sizeP50': 38.0}}},
     'structures': {},
+    'plan': {'hectares': 6.9},
+    'notable': {'surface': {'minecraft:glow_lichen': 69}},
+    'landforms': {'zones': [{'index': 0, 'depthBelowRing': 24.0}]},
     'kind': 'survey',
 }
 
@@ -66,6 +69,16 @@ class CheckTargetsTest(unittest.TestCase):
         self.assertEqual(ct.resolve(DOSSIER, 'structures.minecraft:village')[0], 0.0)
         with self.assertRaises(ct.TargetError):
             ct.resolve(DOSSIER, 'surface.topBlocksPercent.water')
+
+    def test_list_index_and_per(self):
+        r = ct.check(DOSSIER, [t('landforms.zones.0.depthBelowRing', '>=', 20),
+                               dict(t('notable.surface.minecraft:glow_lichen', '>=', 5), per='plan.hectares')])
+        self.assertEqual([x['measured'] for x in r], [24.0, 10.0])
+        self.assertIn('per plan.hectares', r[1]['note'])
+        with self.assertRaises(ct.TargetError):
+            ct.check(DOSSIER, [t('landforms.zones.1.depthBelowRing', '>=', 20)])
+        with self.assertRaises(ct.TargetError):
+            ct.check(DOSSIER, [dict(t('terrain.reliefMedian', '>=', 1), per='structures.minecraft:x')])
 
     def test_unknown_key_is_an_error(self):
         for key in ('surface.snowOrIce', 'trees.perHa', 'clusters.types.minecraft:farmland.bogus',

@@ -162,6 +162,7 @@ public final class SurveyJob {
             }
         }
         Landforms landforms = new Landforms(side, step, grid.x(0), grid.z(0), heights, kind);
+        if (definition != null) landforms.withZones(com.customdimensions.core.zone.ZoneQuery.of(slug, definition).zones());
         timings.put("coarse", (System.nanoTime() - start) / 1_000_000);
         double[] lh = land.stream().mapToDouble(Double::doubleValue).toArray();
         int p50 = lh.length == 0 ? sampler.seaLevel() : (int) com.customdimensions.core.survey.Stats.percentile(lh, 50);

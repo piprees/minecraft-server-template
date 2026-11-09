@@ -38,6 +38,8 @@ public final class Landforms {
     private final Map<Form, Integer> counts = new EnumMap<>(Form.class);
     private final double[] thresholds = new double[6];
     private final List<Integer> voidHoles = new ArrayList<>();
+    private final byte[] kind;
+    private List<com.customdimensions.core.zone.ZoneSpec> zones = List.of();
 
     /**
      * {@code heights} and {@code kind} are {@code side × side} (index {@code z * side + x});
@@ -49,6 +51,7 @@ public final class Landforms {
         this.originX = originX;
         this.originZ = originZ;
         this.heights = heights;
+        this.kind = kind;
         this.forms = new Form[side * side];
         int r16 = Math.max(1, Math.round(8f / step)), r64 = Math.max(1, Math.round(32f / step)), r256 = Math.max(1, Math.round(128f / step));
         double[] relief16 = relief(kind, r16);
@@ -209,6 +212,157 @@ public final class Landforms {
         return o;
     }
 
+    /** Zones whose areas {@link #toJson} describes. */
+    public Landforms withZones(List<com.customdimensions.core.zone.ZoneSpec> zones) {
+        this.zones = List.copyOf(zones);
+        return this;
+    }
+
+    /** Whether a land cell's ground falls more than one block per block to a land neighbour: steeper than 45 degrees. */
+    boolean steep(int i) {
+        int x = i % side, z = i / side, drop = 0;
+        int[][] n = {{x + 1, z}, {x - 1, z}, {x, z + 1}, {x, z - 1}};
+        for (int[] p : n) {
+            if (p[0] < 0 || p[1] < 0 || p[0] >= side || p[1] >= side) continue;
+            int j = p[1] * side + p[0];
+            if (kind[j] == 0) drop = Math.max(drop, Math.abs(heights[i] - heights[j]));
+        }
+        return drop > step;
+    }
+
+    /** Slope with distance from the void: steep share and median height of land within 48 blocks of a void cell and 150+ out. */
+    public JsonObject voidRimJson() {
+        int[] dist = new int[side * side];
+        java.util.Arrays.fill(dist, Integer.MAX_VALUE);
+        ArrayDeque<Integer> queue = new ArrayDeque<>();
+        for (int i = 0; i < kind.length; i++) {
+            if (kind[i] == 2) {
+                dist[i] = 0;
+                queue.add(i);
+            }
+        }
+        while (!queue.isEmpty()) {
+            int c = queue.poll(), x = c % side, z = c / side;
+            for (int dz = -1; dz <= 1; dz++) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    int nx = x + dx, nz = z + dz;
+                    if (nx < 0 || nz < 0 || nx >= side || nz >= side) continue;
+                    int j = nz * side + nx;
+                    if (dist[j] == Integer.MAX_VALUE) {
+                        dist[j] = dist[c] + 1;
+                        queue.add(j);
+                    }
+                }
+            }
+        }
+        List<Double> nearH = new ArrayList<>(), farH = new ArrayList<>();
+        int nearSteep = 0, farSteep = 0;
+        for (int i = 0; i < kind.length; i++) {
+            if (kind[i] != 0 || dist[i] == Integer.MAX_VALUE) continue;
+            double d = (double) dist[i] * step;
+            if (d <= 48) {
+                nearH.add((double) heights[i]);
+                if (steep(i)) nearSteep++;
+            } else if (d >= 150) {
+                farH.add((double) heights[i]);
+                if (steep(i)) farSteep++;
+            }
+        }
+        JsonObject o = new JsonObject();
+        o.addProperty("nearCells", nearH.size());
+        o.addProperty("nearSteepPercent", Stats.percent(nearSteep, nearH.size()));
+        o.addProperty("nearHeightP50", nearH.isEmpty() ? 0 : Stats.percentile(arr(nearH), 50));
+        o.addProperty("farCells", farH.size());
+        o.addProperty("farSteepPercent", Stats.percent(farSteep, farH.size()));
+        o.addProperty("farHeightP50", farH.isEmpty() ? 0 : Stats.percentile(arr(farH), 50));
+        return o;
+    }
+
+    /** The land at or above the land's 75th height percentile: its 8-connected regions, the largest's share, and how many. */
+    public JsonObject highGroundJson() {
+        List<Double> land = new ArrayList<>();
+        for (int i = 0; i < kind.length; i++) if (kind[i] == 0) land.add((double) heights[i]);
+        JsonObject o = new JsonObject();
+        if (land.isEmpty()) {
+            o.addProperty("count", 0);
+            o.addProperty("largestPercent", 0.0);
+            o.addProperty("top3Percent", 0.0);
+            return o;
+        }
+        double threshold = Stats.percentile(arr(land), 75);
+        boolean[] seen = new boolean[side * side];
+        List<Integer> sizes = new ArrayList<>();
+        for (int start = 0; start < side * side; start++) {
+            if (seen[start] || kind[start] != 0 || heights[start] < threshold) continue;
+            int size = 0;
+            ArrayDeque<Integer> queue = new ArrayDeque<>();
+            queue.add(start);
+            seen[start] = true;
+            while (!queue.isEmpty()) {
+                int c = queue.poll(), x = c % side, z = c / side;
+                size++;
+                for (int dz = -1; dz <= 1; dz++) {
+                    for (int dx = -1; dx <= 1; dx++) {
+                        int nx = x + dx, nz = z + dz;
+                        if (nx < 0 || nz < 0 || nx >= side || nz >= side) continue;
+                        int j = nz * side + nx;
+                        if (!seen[j] && kind[j] == 0 && heights[j] >= threshold) {
+                            seen[j] = true;
+                            queue.add(j);
+                        }
+                    }
+                }
+            }
+            sizes.add(size);
+        }
+        sizes.sort(java.util.Comparator.reverseOrder());
+        int total = sizes.stream().mapToInt(Integer::intValue).sum();
+        o.addProperty("thresholdY", threshold);
+        o.addProperty("count", sizes.size());
+        o.addProperty("countOver1Ha", sizes.stream().filter(c -> c * step * step >= 10000).count());
+        o.addProperty("largestPercent", Stats.percent(sizes.get(0), total));
+        o.addProperty("top3Percent", Stats.percent(sizes.stream().limit(3).mapToInt(Integer::intValue).sum(), total));
+        return o;
+    }
+
+    /**
+     * Per zone, the ground inside its shape against the ring 48 blocks beyond its edge: median heights, how far the
+     * inside sits below the ring, its tallest rise over its own median and the share of it 40+ blocks above that median.
+     */
+    public JsonArray zonesJson() {
+        JsonArray out = new JsonArray();
+        for (com.customdimensions.core.zone.ZoneSpec zone : zones) {
+            List<Double> in = new ArrayList<>(), ring = new ArrayList<>();
+            int inCells = 0, inVoid = 0;
+            for (int i = 0; i < kind.length; i++) {
+                double bx = originX + (i % side) * step, bz = originZ + (i / side) * step;
+                double outside = zone.mask().shape().outside(bx - zone.mask().centreX(), bz - zone.mask().centreZ());
+                if (outside <= 0) {
+                    inCells++;
+                    if (kind[i] == 2) inVoid++;
+                    else in.add((double) heights[i]);
+                } else if (outside <= 48 && kind[i] != 2) {
+                    ring.add((double) heights[i]);
+                }
+            }
+            JsonObject o = new JsonObject();
+            o.addProperty("index", zone.index());
+            o.addProperty("shape", zone.shapeName());
+            o.addProperty("cells", inCells);
+            o.addProperty("voidPercent", Stats.percent(inVoid, inCells));
+            double inP50 = in.isEmpty() ? 0 : Stats.percentile(arr(in), 50), ringP50 = ring.isEmpty() ? 0 : Stats.percentile(arr(ring), 50);
+            double max = in.stream().mapToDouble(Double::doubleValue).max().orElse(0);
+            o.addProperty("insideHeightP50", inP50);
+            o.addProperty("ringHeightP50", ringP50);
+            o.addProperty("depthBelowRing", in.isEmpty() || ring.isEmpty() ? 0 : ringP50 - inP50);
+            o.addProperty("insideMax", max);
+            o.addProperty("tallestRise", in.isEmpty() ? 0 : max - inP50);
+            o.addProperty("risePercent", Stats.percent(in.stream().filter(h -> h >= inP50 + 40).count(), in.size()));
+            out.add(o);
+        }
+        return out;
+    }
+
     public Form form(int x, int z) {
         return forms[z * side + x];
     }
@@ -330,6 +484,9 @@ public final class Landforms {
         for (Form f : Form.values()) shares.addProperty(f.name().toLowerCase(), share(f));
         o.add("sharesPercent", shares);
         o.add("voidHoles", voidHolesJson());
+        o.add("voidRim", voidRimJson());
+        o.add("highGround", highGroundJson());
+        if (!zones.isEmpty()) o.add("zones", zonesJson());
         JsonObject t = new JsonObject();
         t.addProperty("mountainRelief256", thresholds[0]);
         t.addProperty("plateauTpi", thresholds[1]);
