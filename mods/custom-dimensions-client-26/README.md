@@ -185,6 +185,14 @@ its row says so: a placed, unexpressed biome is present with a flag.
 `scripts/test_review_packet.py` tests the facts table:
 `python3 -m unittest discover -s scripts -p 'test_*.py'`.
 
+**Targets.** `scripts/check-targets.py <dossier.json> <targets.json>` checks a
+dossier against a dimension's measurable targets: each a dossier key path (or
+several joined by ` + `, summed), an operator (`>=`, `<=`, `>`, `<`, `==`,
+`between`) and a value, with the sentence of intent it comes from. It prints
+PASS or FAIL with the measured value per target and exits 1 on any fail; an
+unknown key is an error, and a registry id the dossier does not list measures 0.
+`scripts/test_check_targets.py` tests it.
+
 ```bash
 scripts/rig.sh --definitions ../custom-dimensions-26/definitions --dh --render-distance 12 biomes shots.json
 ```
