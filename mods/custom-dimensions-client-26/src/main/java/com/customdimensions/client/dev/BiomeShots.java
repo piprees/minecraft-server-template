@@ -39,8 +39,9 @@ import net.minecraft.world.level.levelgen.Heightmap;
  * 3×3×3 box round the eye block has an empty collision shape (fluids are clear). A camera that is not is lifted a block
  * at a time, up to {@link #LIFT}, logging {@code rig: <name> camera lifted N} at each step; one still not clear is
  * skipped with {@code rig: <name> camera inside terrain at x y z}. {@code check: true} on an entry only teleports,
- * waits for the chunks round the camera, logs {@code rig: <name> camera clear}, {@code camera clear after lift N} or the inside-terrain line, and takes no
- * screenshot.
+ * waits for the chunks within its radius, logs {@code rig: <name> camera clear}, {@code camera clear after lift N} (and re-places the
+ * camera there) or the inside-terrain line, takes the {@link FrameCensus} and no screenshot. Every screenshot is preceded by its
+ * census, written to {@code <shots>/screenshots/<name>.frame.json} with a one-line caption made only from its shares.
  */
 public final class BiomeShots {
     /** Chunks round the camera that must be on the client before a shot. */
@@ -68,6 +69,7 @@ public final class BiomeShots {
     private double feet;
     private float yaw;
     private float pitch;
+    private int lifted;
 
     private BiomeShots(List<Shot> shots, File out) {
         this.shots = shots;
@@ -196,29 +198,33 @@ public final class BiomeShots {
                 }
                 Shot shot = shots.get(index);
                 if (readyAt < 0) {
-                    boolean ready = shot.check() ? loaded(mc, 1) : loaded(mc, shot.radius()) && mc.levelRenderer.hasRenderedAllSections();
+                    boolean ready = shot.check() ? loaded(mc, shot.radius()) : loaded(mc, shot.radius()) && mc.levelRenderer.hasRenderedAllSections();
                     if (ready || wait > CAP + shot.hold() * 20) {
                         if (!ready) {
                             CompanionClient.LOG.warn("rig: {} shot before every section was drawn", shot.name());
                         }
                         int lift = lift(mc, shot);
-                        if (lift == 0 && shot.check()) {
-                            CompanionClient.LOG.info("rig: {} camera clear", shot.name());
-                        }
-                        if (lift > 0 && shot.check()) {
-                            CompanionClient.LOG.info("rig: {} camera clear after lift {}", shot.name(), lift);
-                        }
                         if (lift < 0) {
                             CompanionClient.LOG.warn("rig: {} camera inside terrain at {} {} {}", shot.name(), shot.x(), feet, shot.z());
+                            go(Phase.NEXT);
+                            return;
                         }
-                        if (lift != 0 || shot.check()) {
-                            if (lift > 0 && !shot.check()) {
-                                feet += lift;
-                                place(mc, shot);
-                                go(Phase.WAIT);
-                            } else {
-                                go(Phase.NEXT);
+                        if (lift > 0) {
+                            if (shot.check()) {
+                                CompanionClient.LOG.info("rig: {} camera clear after lift {}", shot.name(), lift);
                             }
+                            lifted += lift;
+                            feet += lift;
+                            place(mc, shot);
+                            go(Phase.WAIT);
+                            return;
+                        }
+                        if (shot.check()) {
+                            if (lifted == 0) {
+                                CompanionClient.LOG.info("rig: {} camera clear", shot.name());
+                            }
+                            census(mc, shot);
+                            go(Phase.NEXT);
                             return;
                         }
                         readyAt = wait;
@@ -235,6 +241,7 @@ public final class BiomeShots {
                     return;
                 }
                 String name = shots.get(index).name();
+                census(mc, shots.get(index));
                 Screenshot.grab(out, name + ".png", mc.gameRenderer.mainRenderTarget(), 1,
                         message -> CompanionClient.LOG.info("rig: screenshot {} -> {}", name, message.getString()));
                 go(Phase.NEXT);
@@ -244,6 +251,7 @@ public final class BiomeShots {
                     return;
                 }
                 index++;
+                lifted = 0;
                 if (index >= shots.size()) {
                     finish(mc);
                 } else {
@@ -252,6 +260,15 @@ public final class BiomeShots {
             }
             default -> {
             }
+        }
+    }
+
+    private void census(Minecraft mc, Shot shot) {
+        try {
+            String caption = FrameCensus.write(mc, new File(out, "screenshots"), shot.name(), shot.dimension());
+            CompanionClient.LOG.info("rig: {} census {}", shot.name(), caption);
+        } catch (IOException | RuntimeException e) {
+            CompanionClient.LOG.warn("rig: {} census failed: {}", shot.name(), e.toString());
         }
     }
 
