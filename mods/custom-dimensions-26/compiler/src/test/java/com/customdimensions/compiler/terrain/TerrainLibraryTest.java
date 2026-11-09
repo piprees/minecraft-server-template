@@ -280,6 +280,31 @@ class TerrainLibraryTest {
     }
 
     @Test
+    void ridgesCrestLiftsTheFlanksAndErosionFalloffKeepsErodedRangesHigh() {
+        JsonElement plain = ridgesHeight("{}");
+        JsonElement lifted = ridgesHeight("{\"crest\": 0.5}");
+        JsonElement kept = ridgesHeight("{\"erosionFalloff\": 0}");
+        double land = landAt(plain, 1.5, 0, -1);
+        assertEquals(land, landAt(lifted, 1.5, 0, -1), 1e-6, "off the ranges the land is unchanged");
+        double low = landAt(plain, 1.5, -1, -1), worn = landAt(plain, 1.5, 1, -1);
+        double crestPlain = landAt(plain, 1.5, -1, 1), crestLifted = landAt(lifted, 1.5, -1, 1);
+        assertEquals(crestPlain, crestLifted, 1e-6, "the crest keeps its height");
+        double flankPlain = landAt(plain, 1.5, -1, 0.6) - low, flankLifted = landAt(lifted, 1.5, -1, 0.6) - low;
+        assertTrue(flankLifted > 1.2 * flankPlain, flankPlain + " -> " + flankLifted);
+        assertEquals(crestPlain, landAt(kept, 1.5, -1, 1), 1e-6, "least eroded ranges are whole either way");
+        double gained = landAt(kept, 1.5, 1, 1) - landAt(plain, 1.5, 1, 1);
+        assertEquals(70 * (1 - 0.25 * 0.25 * (3 - 2 * 0.25)), gained, 1e-3, "erosionFalloff 0 restores what erosion takes off a 70-block range");
+        assertEquals(worn, landAt(kept, 1.5, 1, -1), 1e-6, "off the ranges erosion is untouched");
+        assertEquals(text(compile("{\"base\": \"ridges\"}").files().get(P + "height.json")),
+                text(compile("{\"base\": \"ridges\", \"params\": {\"crest\": 1, \"erosionFalloff\": 1}}").files().get(P + "height.json")));
+    }
+
+    private static JsonElement ridgesHeight(String params) {
+        Ctx ctx = new Ctx(spec("{\"base\": \"ridges\", \"params\": " + params + "}"), "adventure", "adventure:terrain/t", 63, -64, 320);
+        return spec("{\"base\": \"ridges\", \"params\": " + params + "}").family().build(ctx).height();
+    }
+
+    @Test
     void terracesFloorTheHeightIntoSteps() {
         String h = text(compile("{\"base\": \"terraces\", \"params\": {\"stepHeight\": 8, \"plateauHeight\": 150}}").files().get(P + "height.json"));
         assertTrue(h.contains("\"type\":\"minecraft:floor\""));

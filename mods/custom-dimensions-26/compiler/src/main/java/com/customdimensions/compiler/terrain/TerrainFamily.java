@@ -51,9 +51,11 @@ public enum TerrainFamily {
             false, TerrainFamily::erosion),
 
     RIDGES("ridges", "Mountain ranges along the ridges noise, with jagged peaks.",
-            List.of(new TerrainParam("peakHeight", 0, 200, 70, "Blocks a range rises above the land"),
+            List.of(new TerrainParam("peakHeight", 0, 240, 70, "Blocks a range rises above the land"),
                     new TerrainParam("jaggedness", 0, 1.5, 0.35, "Spikiness of the peaks (vanilla's jaggedness)"),
-                    new TerrainParam("rangeWidth", 0.05, 1, 0.4, "Share of the ridges range that is mountain")),
+                    new TerrainParam("rangeWidth", 0.05, 1, 0.4, "Share of the ridges range that is mountain"),
+                    new TerrainParam("crest", 0.25, 1, 1, "Profile of a range: 1 rises evenly from foot to crest; lower lifts the flanks so the range stands tall from a steep foot"),
+                    new TerrainParam("erosionFalloff", 0, 1, 1, "How far high erosion lowers the ranges: 1 to a quarter, 0 not at all")),
             Map.of(),
             Map.of("peakHeight", 45.0, "jaggedness", 0.15, "rangeWidth", 0.35),
             Map.of("peakHeight", 150.0, "jaggedness", 1.2, "rangeWidth", 0.55),
@@ -318,10 +320,19 @@ public enum TerrainFamily {
         double w = ctx.p("rangeWidth");
         JsonElement onRidge = ramp(ctx.peaksValleys(), 1 - 2 * w, 1);
         JsonElement inland = ramp(ctx.continents(), ctx.p("coast") + 0.05, ctx.p("coast") + 0.3);
-        JsonElement rugged = spline(ctx.erosion(), -1, 1, 0, 0.8, 0.5, 0.45, 1, 0.25);
+        double f = ctx.p("erosionFalloff");
+        JsonElement rugged = f >= 1 ? spline(ctx.erosion(), -1, 1, 0, 0.8, 0.5, 0.45, 1, 0.25)
+                : spline(ctx.erosion(), -1, 1, 0, 1 - 0.2 * f, 0.5, 1 - 0.55 * f, 1, 1 - 0.75 * f);
         JsonElement mountain = Df.cache(mul(mul(onRidge, inland), rugged));
-        JsonElement h = add(land.height(), mul(spline(mountain, 0, 0, 1, 1), ctx.p("peakHeight")));
+        JsonElement h = add(land.height(), mul(profile(mountain, ctx.p("crest")), ctx.p("peakHeight")));
         return new Shape(h, land.factor(), mul(mountain, ctx.p("jaggedness")), null, null, land.continents(), 1);
+    }
+
+    /** {@code x} to the power {@code crest} on 0..1, as a spline through quarter points; the plain ramp at crest 1. */
+    static JsonElement profile(JsonElement x, double crest) {
+        if (crest >= 1) return spline(x, 0, 0, 1, 1);
+        return spline(x, 0, 0, 0.125, Math.pow(0.125, crest), 0.25, Math.pow(0.25, crest), 0.5, Math.pow(0.5, crest), 0.75,
+                Math.pow(0.75, crest), 1, 1);
     }
 
     private static Shape terraces(Ctx ctx) {

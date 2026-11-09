@@ -1086,7 +1086,7 @@
         "landHeight": {
           "description": "Height of the land far inland",
           "type": "number",
-          "minimum": 64,
+          "minimum": 0,
           "maximum": 200,
           "default": 80
         },
@@ -1128,7 +1128,7 @@
         "landHeight": {
           "description": "Height of the land far inland",
           "type": "number",
-          "minimum": 64,
+          "minimum": 0,
           "maximum": 200,
           "default": 70
         },
@@ -1191,7 +1191,7 @@
         "landHeight": {
           "description": "Height of the land far inland",
           "type": "number",
-          "minimum": 64,
+          "minimum": 0,
           "maximum": 200,
           "default": 80
         },
@@ -1213,7 +1213,7 @@
           "description": "Blocks a range rises above the land",
           "type": "number",
           "minimum": 0,
-          "maximum": 200,
+          "maximum": 240,
           "default": 70
         },
         "jaggedness": {
@@ -1229,6 +1229,20 @@
           "minimum": 0.05,
           "maximum": 1,
           "default": 0.4
+        },
+        "crest": {
+          "description": "Profile of a range: 1 rises evenly from foot to crest; lower lifts the flanks so the range stands tall from a steep foot",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 1,
+          "default": 1
+        },
+        "erosionFalloff": {
+          "description": "How far high erosion lowers the ranges: 1 to a quarter, 0 not at all",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
         }
       }
     },
@@ -1254,7 +1268,7 @@
         "landHeight": {
           "description": "Height of the land far inland",
           "type": "number",
-          "minimum": 64,
+          "minimum": 0,
           "maximum": 200,
           "default": 96
         },
@@ -1317,7 +1331,7 @@
         "landHeight": {
           "description": "Height of the land far inland",
           "type": "number",
-          "minimum": 64,
+          "minimum": 0,
           "maximum": 200,
           "default": 112
         },
@@ -1401,7 +1415,7 @@
         "landHeight": {
           "description": "Height of the land far inland",
           "type": "number",
-          "minimum": 64,
+          "minimum": 0,
           "maximum": 200,
           "default": 80
         },
@@ -1471,7 +1485,7 @@
         "landHeight": {
           "description": "Height of the land far inland",
           "type": "number",
-          "minimum": 64,
+          "minimum": 0,
           "maximum": 200,
           "default": 80
         },
@@ -1555,7 +1569,7 @@
         "landHeight": {
           "description": "Height of the land far inland",
           "type": "number",
-          "minimum": 64,
+          "minimum": 0,
           "maximum": 200,
           "default": 80
         },
@@ -1688,7 +1702,7 @@
         "landHeight": {
           "description": "Height of the land far inland",
           "type": "number",
-          "minimum": 64,
+          "minimum": 0,
           "maximum": 200,
           "default": 80
         },
@@ -1758,7 +1772,7 @@
         "landHeight": {
           "description": "Height of the land far inland",
           "type": "number",
-          "minimum": 64,
+          "minimum": 0,
           "maximum": 200,
           "default": 80
         },
@@ -1828,7 +1842,7 @@
         "landHeight": {
           "description": "Height of the land far inland",
           "type": "number",
-          "minimum": 64,
+          "minimum": 0,
           "maximum": 200,
           "default": 88
         },
@@ -1912,7 +1926,7 @@
         "landHeight": {
           "description": "Height of the land far inland",
           "type": "number",
-          "minimum": 64,
+          "minimum": 0,
           "maximum": 200,
           "default": 80
         },

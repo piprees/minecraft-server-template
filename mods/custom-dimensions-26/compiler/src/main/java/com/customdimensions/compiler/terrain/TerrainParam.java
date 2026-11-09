@@ -9,7 +9,7 @@ public record TerrainParam(String name, double min, double max, double defaultVa
     public static final List<TerrainParam> SHARED = List.of(
             new TerrainParam("coast", -0.6, 0.4, -0.15, "Continentalness at the shoreline; higher is more ocean"),
             new TerrainParam("seaFloor", -40, 60, 36, "Height of the open ocean floor"),
-            new TerrainParam("landHeight", 64, 200, 80, "Height of the land far inland"),
+            new TerrainParam("landHeight", 0, 200, 80, "Height of the land far inland"),
             new TerrainParam("relief", 0, 120, 24, "Blocks of hills where erosion is low"),
             new TerrainParam("roughness", 0, 1, 0.5, "How far 3D noise breaks the surface; 0 smooth, 1 overhangs"));
 
