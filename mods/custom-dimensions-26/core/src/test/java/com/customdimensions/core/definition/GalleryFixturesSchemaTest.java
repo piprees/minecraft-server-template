@@ -34,7 +34,7 @@ class GalleryFixturesSchemaTest {
         try (Stream<Path> list = Files.list(GALLERY)) {
             files = list.filter(p -> p.toString().endsWith(".json")).sorted().toList();
         }
-        assertEquals(41, files.size(), "twelve terrains and scale at three settings each, and continents as v1's wide and compressed");
+        assertEquals(42, files.size(), "twelve terrains and scale at three settings each, continents as v1's wide and compressed, and ridges thin");
         for (Path file : files) {
             String text = Files.readString(file);
             schema.validate(text, InputFormat.JSON).forEach(e -> failures.add(file.getFileName() + ": " + e));

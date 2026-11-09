@@ -6,7 +6,7 @@ dimension's intent into numbers the survey measures (`/customdim survey <slug>` 
   {"slug": "the_x", "targets": [{"key": "surface.snowIcePercent", "op": ">=", "value": 70, "from": "why"}, ...]}
 `key` is a dossier key path, dot-separated (`terrain.surfaceHeight.p95`, `surface.biomesPercent.minecraft:plains`,
 `clusters.types.minecraft:magma_block.clusters`); several paths joined by ` + ` are summed. `op` is one of
->=, <=, >, <, == or `between` (value [low, high], inclusive). A list element is a number in the path (`landforms.zones.0.depthBelowRing`).
+>=, <=, >, <, == or `between` (value [low, high], inclusive). A path ending in `?` is optional: missing anywhere, it measures 0 ("not present"). A list element is a number in the path (`landforms.zones.0.depthBelowRing`).
 An optional `per` key path divides the measure (`"per": "plan.hectares"` for a density). `from` is the sentence of intent the number comes from.
 Prints one PASS or FAIL line per target with the measured value; exit 0 when every target passes, 1 when any fails.
 
@@ -34,6 +34,11 @@ def numeric_map(node):
 
 def resolve(dossier, path):
     """The number at a dot path, and a note; a missing entry in a numeric map is 0, anything else unknown raises."""
+    if path.endswith('?'):
+        try:
+            return resolve(dossier, path[:-1])
+        except TargetError:
+            return 0.0, 'not present'
     node = dossier
     parts = path.split('.')
     for i, part in enumerate(parts):

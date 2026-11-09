@@ -278,8 +278,21 @@ public final class Landforms {
         return o;
     }
 
-    /** The land at or above the land's 75th height percentile: its 8-connected regions, the largest's share, and how many. */
+    /**
+     * The land at or above the land's 75th and 90th height percentiles, and above the middle of its median and 99th
+     * percentile (the upper half of its relief, for ranges too thin to fill a tenth of the land): for each, its
+     * 8-connected regions and the largest's share.
+     */
     public JsonObject highGroundJson() {
+        JsonObject o = new JsonObject();
+        o.add("p75", highGroundJson(75));
+        o.add("p90", highGroundJson(90));
+        o.add("upperHalf", highGroundJson(-1));
+        return o;
+    }
+
+    /** High ground above the land's {@code percentile} height, or above the upper half of its relief for -1. */
+    JsonObject highGroundJson(double percentile) {
         List<Double> land = new ArrayList<>();
         for (int i = 0; i < kind.length; i++) if (kind[i] == 0) land.add((double) heights[i]);
         JsonObject o = new JsonObject();
@@ -289,7 +302,8 @@ public final class Landforms {
             o.addProperty("top3Percent", 0.0);
             return o;
         }
-        double threshold = Stats.percentile(arr(land), 75);
+        double threshold = percentile >= 0 ? Stats.percentile(arr(land), percentile)
+                : (Stats.percentile(arr(land), 50) + Stats.percentile(arr(land), 99)) / 2;
         boolean[] seen = new boolean[side * side];
         List<Integer> sizes = new ArrayList<>();
         for (int start = 0; start < side * side; start++) {

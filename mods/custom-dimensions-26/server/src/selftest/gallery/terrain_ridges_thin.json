@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: ridges as thin ranges over a low floor, crest 0.5 and no erosion falloff.",
+  "seed": 20261025,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "ridges",
+    "params": {"coast": -0.6, "seaFloor": 8, "landHeight": 16, "peakHeight": 240, "rangeWidth": 0.2, "crest": 0.5, "erosionFalloff": 0, "jaggedness": 0.9}
+  },
+  "liquids": {
+    "seaLevel": -60,
+    "aquifers": "dry"
+  },
+  "borders": {
+    "player": 2048
+  }
+}

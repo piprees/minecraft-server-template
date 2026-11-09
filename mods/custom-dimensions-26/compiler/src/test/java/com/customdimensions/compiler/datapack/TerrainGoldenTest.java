@@ -1,6 +1,7 @@
 package com.customdimensions.compiler.datapack;
 
 import com.customdimensions.compiler.terrain.TerrainFamily;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -17,16 +18,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Each library terrain at its default setting, compiled as the only
  * definition, against {@code src/test/resources/golden/26.3/terrain_<name>/}
- * in {@link GoldenForm}. Regenerate with {@code -PupdateGolden=true}.
+ * in {@link GoldenForm}, and the variants in {@link #variantsMatchTheCommittedOutput}. Regenerate with {@code -PupdateGolden=true}.
  */
 class TerrainGoldenTest {
 
     @ParameterizedTest
     @EnumSource(TerrainFamily.class)
     void matchesTheCommittedOutput(TerrainFamily family) throws IOException {
-        String slug = "terrain_" + family.id();
+        matches("terrain_" + family.id(), "{\"base\": \"" + family.id() + "\"}");
+    }
+
+    /** Parameter variants that change a terrain's shape beyond its settings. */
+    @Test
+    void variantsMatchTheCommittedOutput() throws IOException {
+        matches("terrain_ridges_thin", "{\"base\": \"ridges\", \"params\": {\"coast\": -0.6, \"seaFloor\": 8, \"landHeight\": 16, "
+                + "\"peakHeight\": 240, \"rangeWidth\": 0.2, \"crest\": 0.5, \"erosionFalloff\": 0}}");
+    }
+
+    private static void matches(String slug, String terrain) throws IOException {
         DatapackCompiler.Output out = Fixtures.compile(slug, "\"generator\": {\"type\": \"noise\", \"preset\": \"overworld\"}, "
-                + "\"terrain\": {\"base\": \"" + family.id() + "\"}");
+                + "\"terrain\": " + terrain);
         Set<String> emitted = new TreeSet<>(out.report().entry(slug).emitted());
         Path dir = Path.of(System.getProperty("customdimensions.golden")).resolve("26.3").resolve(slug);
         if (Boolean.getBoolean("customdimensions.updateGolden")) {

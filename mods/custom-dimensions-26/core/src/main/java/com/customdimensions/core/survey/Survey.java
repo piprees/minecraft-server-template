@@ -252,6 +252,12 @@ public final class Survey {
         }
         o.addProperty("trees", total);
         o.addProperty("treesPerHectare", Stats.round1(total / Math.max(1e-9, hectares)));
+        JsonObject byLayer = new JsonObject();
+        for (Layer layer : Layer.values()) {
+            long n = patches.stream().flatMap(p -> p.trees.stream()).filter(t -> t.layer() == layer).count();
+            byLayer.addProperty(layer.name().toLowerCase(Locale.ROOT), Stats.round1(n / Math.max(1e-9, hectares)));
+        }
+        o.add("treesPerHectareByLayer", byLayer);
         o.add("species", species);
         return o;
     }

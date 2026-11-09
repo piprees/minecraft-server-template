@@ -70,6 +70,11 @@ class CheckTargetsTest(unittest.TestCase):
         with self.assertRaises(ct.TargetError):
             ct.resolve(DOSSIER, 'surface.topBlocksPercent.water')
 
+    def test_optional_path_measures_zero(self):
+        r = ct.check(DOSSIER, [t('clusters.types.minecraft:farmland.layerBlocks.surface? + terrain.reliefMedian', '>=', 15)])
+        self.assertEqual(r[0]['measured'], 15.0)
+        self.assertIn('not present', r[0]['note'])
+
     def test_list_index_and_per(self):
         r = ct.check(DOSSIER, [t('landforms.zones.0.depthBelowRing', '>=', 20),
                                dict(t('notable.surface.minecraft:glow_lichen', '>=', 5), per='plan.hectares')])

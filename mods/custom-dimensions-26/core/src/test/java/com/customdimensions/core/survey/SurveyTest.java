@@ -199,11 +199,15 @@ class SurveyTest {
             }
         }
         byte[] kind = new byte[side * side];
-        com.google.gson.JsonObject web = new Landforms(side, 8, 0, 0, ridges, kind).highGroundJson();
+        com.google.gson.JsonObject web = new Landforms(side, 8, 0, 0, ridges, kind).highGroundJson().getAsJsonObject("p75");
         assertEquals(1, web.get("count").getAsInt(), web.toString());
         assertEquals(100.0, web.get("largestPercent").getAsDouble());
-        com.google.gson.JsonObject spots = new Landforms(side, 8, 0, 0, cones, kind).highGroundJson();
-        assertTrue(spots.get("count").getAsInt() == 1 || spots.get("largestPercent").getAsDouble() < 5, spots.toString());
+        com.google.gson.JsonObject spots = new Landforms(side, 8, 0, 0, cones, kind).highGroundJson(99);
+        assertEquals(64, spots.get("count").getAsInt(), spots.toString());
+        assertTrue(spots.get("largestPercent").getAsDouble() < 5, spots.toString());
+        com.google.gson.JsonObject upper = new Landforms(side, 8, 0, 0, cones, kind).highGroundJson().getAsJsonObject("upperHalf");
+        assertEquals(120.0, upper.get("thresholdY").getAsDouble(), upper.toString());
+        assertEquals(64, upper.get("count").getAsInt(), upper.toString());
     }
 
     @Test
@@ -398,6 +402,11 @@ class SurveyTest {
         assertEquals(75.0, d.getAsJsonObject("surface").getAsJsonObject("fluidCoverPercent").get("water").getAsDouble());
         assertEquals(0.0, d.getAsJsonObject("surface").get("snowIcePercent").getAsDouble());
         assertEquals(100.0, d.getAsJsonObject("crossCheck").get("heightWithin2Percent").getAsDouble());
+        JsonObject byLayer = d.getAsJsonObject("vegetation").getAsJsonObject("treesPerHectareByLayer");
+        assertEquals(0.0, byLayer.get("surface").getAsDouble(), byLayer.toString());
+        assertEquals(4, byLayer.size());
+        JsonObject depth = d.getAsJsonObject("surface").getAsJsonObject("waterDepth");
+        assertEquals(13.0, depth.get("p50").getAsDouble(), depth.toString());
         Path json = Survey.write(dir, d, patches, null);
         String md = Files.readString(dir.resolve("dossier.md"));
         assertTrue(md.contains("## Summary") && md.contains("## Places") && md.contains("## Biome expression"), md);
