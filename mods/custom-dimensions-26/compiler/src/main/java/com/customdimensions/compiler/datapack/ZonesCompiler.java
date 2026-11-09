@@ -274,6 +274,20 @@ public final class ZonesCompiler {
         return source;
     }
 
+    /** {@code source} with {@code regions} on our source, wrapping it when it is not ours yet. */
+    static JsonObject withRegions(JsonObject source, JsonObject regions) {
+        JsonObject out;
+        if (SOURCE_TYPE.equals(source.get("type").getAsString())) {
+            out = source.deepCopy();
+        } else {
+            out = new JsonObject();
+            out.addProperty("type", SOURCE_TYPE);
+            out.add("base", source);
+        }
+        out.add("regions", regions);
+        return out;
+    }
+
     /** {@code zone} with only the biomes and swaps the game has; the rest are reported. */
     static ZoneSpec known(ZoneSpec zone, BiomeLibrary.Known known, CompileReport.Entry entry) {
         List<BiomeEntry> biomes = new ArrayList<>();

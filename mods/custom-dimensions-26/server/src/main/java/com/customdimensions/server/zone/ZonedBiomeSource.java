@@ -24,6 +24,8 @@ import java.util.stream.Stream;
  * {@code ZonesCompiler}). Channel 0 is the base; channel {@code c} takes
  * {@code zones[c - 1]}'s layout at the base temperature, or the base's when the
  * zone only swaps, then that zone's swaps. The global swaps apply last.
+ * With {@code regions}, a lookup in the base layout first maps the region axes
+ * to rank space ({@link ClimateRegions}).
  */
 public final class ZonedBiomeSource extends BiomeSource {
     /** One channel's quantised temperature step: {@code Climate.quantizeCoord(16)}. */
@@ -38,17 +40,22 @@ public final class ZonedBiomeSource extends BiomeSource {
     public static final MapCodec<ZonedBiomeSource> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
             BiomeSource.CODEC.fieldOf("base").forGetter(s -> s.base),
             ZONE.listOf().optionalFieldOf("zones", List.of()).forGetter(s -> s.zones),
-            SWAP.optionalFieldOf("swap", Map.of()).forGetter(s -> s.swap)).apply(i, ZonedBiomeSource::new));
+            SWAP.optionalFieldOf("swap", Map.of()).forGetter(s -> s.swap),
+            ClimateRegions.CODEC.optionalFieldOf("regions").forGetter(s -> s.regions)).apply(i, ZonedBiomeSource::new));
 
     private final BiomeSource base;
     private final List<Zone> zones;
     private final Map<ResourceKey<Biome>, Holder<Biome>> swap;
+    private final Optional<ClimateRegions> regions;
 
-    public ZonedBiomeSource(BiomeSource base, List<Zone> zones, Map<ResourceKey<Biome>, Holder<Biome>> swap) {
+    public ZonedBiomeSource(BiomeSource base, List<Zone> zones, Map<ResourceKey<Biome>, Holder<Biome>> swap,
+                            Optional<ClimateRegions> regions) {
         this.base = base;
         this.zones = List.copyOf(zones);
         this.swap = Map.copyOf(swap);
+        this.regions = regions;
     }
+
 
     public BiomeSource base() {
         return base;
@@ -80,20 +87,22 @@ public final class ZonedBiomeSource extends BiomeSource {
     public BiomeResolver createResolver(Climate.Sampler sampler) {
         BiomeResolver baseResolver = base.createResolver(sampler);
         MultiNoiseBiomeSource multi = base instanceof MultiNoiseBiomeSource m ? m : null;
+        ClimateRegions layout = multi != null ? regions.orElse(null) : null;
+        ClimateRegions.Ranks ranks = layout != null ? layout.ranks(sampler, t -> t - channel(t) * STEP) : null;
         return (x, y, z) -> {
             Climate.TargetPoint point = sampler.sample(x, y, z);
             int c = channel(point.temperature());
             Holder<Biome> biome;
             if (c <= 0 || c > zones.size()) {
                 Climate.TargetPoint at = c == 0 ? point : shifted(point, c);
-                biome = multi != null ? multi.getNoiseBiome(at) : baseResolver.getNoiseBiome(x, y, z);
+                biome = multi != null ? multi.getNoiseBiome(ranks != null ? layout.ranked(at, ranks) : at) : baseResolver.getNoiseBiome(x, y, z);
             } else {
                 Zone zone = zones.get(c - 1);
                 Climate.TargetPoint at = shifted(point, c);
                 if (zone.biomes().isPresent()) {
                     biome = zone.biomes().get().findValue(at);
                 } else {
-                    biome = multi != null ? multi.getNoiseBiome(at) : baseResolver.getNoiseBiome(x, y, z);
+                    biome = multi != null ? multi.getNoiseBiome(ranks != null ? layout.ranked(at, ranks) : at) : baseResolver.getNoiseBiome(x, y, z);
                 }
                 biome = swapped(zone.swap(), biome);
             }

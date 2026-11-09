@@ -147,14 +147,14 @@ public final class BiomeLayout {
         return p;
     }
 
-    private static JsonObject entry(String biome, JsonObject parameters) {
+    static JsonObject entry(String biome, JsonObject parameters) {
         JsonObject e = new JsonObject();
         e.addProperty("biome", biome);
         e.add("parameters", parameters);
         return e;
     }
 
-    private static JsonArray range(double lo, double hi) {
+    static JsonArray range(double lo, double hi) {
         JsonArray a = new JsonArray();
         a.add(lo);
         a.add(hi);

@@ -25,6 +25,7 @@ switch (RB-35). At the switch the v2 set moves to
   "generator": { "type": "noise", "preset": "overworld" },
   "terrain": { "base": "canyons", "setting": "extreme", "params": { "depth": 80 }, "scale": 1.5 },  // null base = the preset's own
   "biomes": ["minecraft:plains", { "id": "…", "climate": { … } }],
+  "biomeLayout": { "mode": "regions", "axes": ["temperature", "humidity"], "weights": { "minecraft:plains": 2 } },  // placeness.md § Biome regions
   "liquids": { "seaLevel": 63, "lavaLevel": -54, "defaultFluid": "minecraft:water", "aquifers": "on" },
   "materials": { "defaultBlock": "minecraft:stone", "top": "minecraft:moss_block", "biomes": { "#minecraft:is_badlands": { "top": "minecraft:red_sand" } } },
   "ores": { "veins": true, "add": [ { "id": "gilded", "block": "minecraft:gold_ore", "count": 8, "minY": -32, "maxY": 32 } ], "remove": ["minecraft:ore_diamond"] },

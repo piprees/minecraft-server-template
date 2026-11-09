@@ -39,8 +39,12 @@ class TerrainGoldenTest {
     }
 
     private static void matches(String slug, String terrain) throws IOException {
-        DatapackCompiler.Output out = Fixtures.compile(slug, "\"generator\": {\"type\": \"noise\", \"preset\": \"overworld\"}, "
-                + "\"terrain\": " + terrain);
+        matchesBody(slug, "\"generator\": {\"type\": \"noise\", \"preset\": \"overworld\"}, \"terrain\": " + terrain);
+    }
+
+    /** The definition with JSON body {@code body} against {@code golden/26.3/<slug>/}. */
+    static void matchesBody(String slug, String body) throws IOException {
+        DatapackCompiler.Output out = Fixtures.compile(slug, body);
         Set<String> emitted = new TreeSet<>(out.report().entry(slug).emitted());
         Path dir = Path.of(System.getProperty("customdimensions.golden")).resolve("26.3").resolve(slug);
         if (Boolean.getBoolean("customdimensions.updateGolden")) {

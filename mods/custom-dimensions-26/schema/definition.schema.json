@@ -337,6 +337,29 @@
         ]
       }
     },
+    "biomeLayout": {
+      "description": "How a noise generator lays out the biome list. regions: every listed biome without a climate takes one large region on the region axes, a share of the generation border equal to its weight over the sum, whatever the seed; consecutive biomes in the list share a border. A listed biome with a climate is bound to the land: it keeps its box, which wins over every region (oceans on continentalness, caves on depth, peaks on erosion). The axes are in rank space: -1 is the lowest value the seed reaches inside the generation border, 1 the highest; a bound box on a region axis reads it the same way. Stretch the region axes with terrain.scales (climate for temperature and humidity) for fewer, larger regions.",
+      "type": "object",
+      "required": ["mode"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": { "const": "regions" },
+        "axes": {
+          "description": "One or two slow axes the regions are cut on; default [temperature, humidity]. With two, the regional biomes fill columns along the first in list order and rows along the second.",
+          "type": "array",
+          "items": { "enum": ["temperature", "humidity", "continentalness", "erosion", "weirdness"] },
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "weights": {
+          "description": "A regional biome's weight; 1 when absent. Its share of the border is its weight over the sum of the regional biomes' weights.",
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      }
+    },
     "liquids": {
       "description": "Sea level, the lava level, the fluid below sea level and the aquifer mode.",
       "type": "object",

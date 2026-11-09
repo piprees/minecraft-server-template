@@ -74,6 +74,7 @@ public final class DefinitionReader {
                 generator(ctx, ctx.object(root, "generator")),
                 ctx.object(root, "terrain"),
                 biomes(ctx, root.get("biomes")),
+                ctx.object(root, "biomeLayout"),
                 ctx.closed(root, "liquids", LIQUIDS_FIELDS, (c, o) -> new Liquids(
                         c.integer(o, "seaLevel"), c.integer(o, "lavaLevel"), c.string(o, "defaultFluid"),
                         c.string(o, "aquifers"), c.closed(o, "basins", Liquids.BASINS_FIELDS,

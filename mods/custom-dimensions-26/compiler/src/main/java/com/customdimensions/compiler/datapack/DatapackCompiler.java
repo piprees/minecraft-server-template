@@ -386,12 +386,13 @@ public final class DatapackCompiler {
 
     /**
      * The clone with its source's generator and terrain; its own biome list
-     * when it has one, else its source's; its own seed, dimension type,
+     * and layout when it has a list, else its source's; its own seed, dimension type,
      * atmosphere and rules; its own liquids, default block, ores and carvers over the
      * source's, field by field.
      */
     private static Definition cloned(Definition clone, Definition source) {
         List<BiomeEntry> biomes = clone.biomes().isEmpty() ? source.biomes() : clone.biomes();
+        JsonObject biomeLayout = clone.biomes().isEmpty() ? source.biomeLayout() : clone.biomeLayout();
         Liquids own = clone.liquids();
         Liquids theirs = source.liquids();
         Liquids liquids = own == null ? theirs : theirs == null ? own : new Liquids(
@@ -404,7 +405,7 @@ public final class DatapackCompiler {
         JsonObject ores = overlay(source.ores(), clone.ores());
         JsonObject carvers = overlay(source.carvers(), clone.carvers());
         return new Definition(clone.schemaVersion(), clone.description(), clone.seed(), clone.spawn(), source.generator(),
-                source.terrain(), biomes, liquids, materials, ores, carvers, clone.zones(), clone.dimensionType(),
+                source.terrain(), biomes, biomeLayout, liquids, materials, ores, carvers, clone.zones(), clone.dimensionType(),
                 clone.atmosphere(), clone.rules(), clone.borders(), clone.difficulty(), clone.structures(), clone.portals(),
                 clone.exitPortal(), clone.exits(), clone.exitShrines(), clone.deaths(), clone.wins(), clone.roll());
     }
@@ -559,10 +560,20 @@ public final class DatapackCompiler {
 
     private JsonObject generator(String slug, Definition def, CompileReport.Entry entry) {
         Generator g = def.generator();
+        if (def.biomeLayout() != null && (!Generator.NOISE.equals(g.type()) || def.biomes().isEmpty())) {
+            throw new IllegalArgumentException(slug + ": biomeLayout lays out the biome list of a noise generator; this definition has "
+                    + (def.biomes().isEmpty() ? "no biome list" : "a " + g.type() + " generator"));
+        }
         return switch (g.type()) {
-            case Generator.NOISE -> noiseGenerator(slug, def, g.preset(), noiseBiomeSource(def, entry), entry);
-            case Generator.CHECKERBOARD -> noiseGenerator(slug, def, "overworld", checkerboard(def, entry), entry);
-            case Generator.SINGLE_BIOME -> noiseGenerator(slug, def, g.noisePreset(), fixed(g.biome(), entry), entry);
+            case Generator.NOISE -> {
+                RegionLayout.Plan regions = def.biomeLayout() == null ? null : RegionLayout.plan(slug, def.biomes(), def.biomeLayout(),
+                        def.borders() != null && def.borders().generation() != null ? def.borders().generation() : RegionLayout.DEFAULT_RADIUS,
+                        known, entry);
+                yield noiseGenerator(slug, def, g.preset(), regions == null ? noiseBiomeSource(def, entry) : multiNoise(regions.entries()),
+                        regions, entry);
+            }
+            case Generator.CHECKERBOARD -> noiseGenerator(slug, def, "overworld", checkerboard(def, entry), null, entry);
+            case Generator.SINGLE_BIOME -> noiseGenerator(slug, def, g.noisePreset(), fixed(g.biome(), entry), null, entry);
             case Generator.FLAT -> flat(flatBiome(g.biome(), "minecraft:plains", entry), layers(g.layers()), def, entry);
             case Generator.VOID -> flat(voidBiome(def, entry), new JsonArray(), def, entry);
             default -> throw new IllegalStateException("generator type " + g.type());
@@ -570,12 +581,13 @@ public final class DatapackCompiler {
     }
 
     private JsonObject noiseGenerator(String slug, Definition def, String preset, JsonObject biomeSource,
-                                      CompileReport.Entry entry) {
+                                      RegionLayout.Plan regions, CompileReport.Entry entry) {
         ZonesCompiler.Plan zones = ZonesCompiler.plan(slug, namespace, def, known, entry);
         JsonObject generator = new JsonObject();
         generator.addProperty("type", "minecraft:noise");
-        generator.add("biome_source", zones == null ? biomeSource : ZonesCompiler.biomeSource(zones, biomeSource,
-                "nether".equals(preset) ? "nether" : "overworld", vanilla, known, version, entry));
+        JsonObject source = zones == null ? biomeSource : ZonesCompiler.biomeSource(zones, biomeSource,
+                "nether".equals(preset) ? "nether" : "overworld", vanilla, known, version, entry);
+        generator.add("biome_source", regions == null ? source : ZonesCompiler.withRegions(source, regions.regions()));
         generator.addProperty("settings", noiseSettings(slug, def, preset, zones, entry));
         if (zones != null) {
             zones.files().forEach((path, json) -> put(path, sorted(json), entry));
@@ -796,6 +808,13 @@ public final class DatapackCompiler {
         JsonObject source = new JsonObject();
         source.addProperty("type", "minecraft:multi_noise");
         source.addProperty("preset", "minecraft:" + list);
+        return source;
+    }
+
+    private static JsonObject multiNoise(JsonArray entries) {
+        JsonObject source = new JsonObject();
+        source.addProperty("type", "minecraft:multi_noise");
+        source.add("biomes", entries);
         return source;
     }
 
