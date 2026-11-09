@@ -1596,6 +1596,27 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t203"></a>
+### T203 — A layout that lowers the centre of a land terrain floods it
+
+- **Symptom:** `layout` `ring` on an `erosion` terrain at its default `coast` (−0.15) turns the hollow at the centre into sea and lowers `placeness.landformRegions.largestPercent` (the_verdant_hollow 20.5 → 12.0).
+- **Cause:** the layout adds to continentalness, which the land spline reads; −1 times the strength pushes the centre below `coast`.
+- **Fix:** lower the centre only where the terrain's `coast` sits far below the shifted value (−0.6), or use `radial` to raise land instead; re-survey after any layout.
+
+<a id="t202"></a>
+### T202 — A scale on a climate axis no biome box names changes no biome
+
+- **Symptom:** `terrain.scales.climate` set to 1.5 leaves `placeness.biomeRegions` identical to the last decimal (the_crimson_nexus, the_crystal_vale, the_stonemantle, the_twisted_groves).
+- **Cause:** those biome lists are cut on weirdness bands (and depth) only (T168); temperature and vegetation choose nothing there.
+- **Fix:** stretch the noise the boxes are cut on: `scales.ridges` for weirdness bands, `scales.climate` for a temperature-by-humidity grid, `scales.continents`/`erosion` for boxes on those. Check which axes the list cuts before choosing.
+
+<a id="t201"></a>
+### T201 — A badlands mineshaft that cuts the surface counts as surface trees
+
+- **Symptom:** a treeless mesa's survey reports `vegetation.treesPerHectareByLayer.surface` above 0 (the_scorched_mesa 1.3–1.4/ha), all `minecraft:dark_oak_log`, beside `minecraft:dark_oak_fence` in the surface blocks.
+- **Cause:** badlands mineshafts are built of dark oak; where one breaks the surface its logs sit in the surface layer and the survey counts every log column as a tree.
+- **Fix:** read a surface tree count next to the surface fence count before changing a definition; dark oak logs with dark oak fences on a badlands surface are mineshaft timber, not trees.
+
 <a id="t200"></a>
 ### T200 — Carvers are a small share of steep slopes
 
