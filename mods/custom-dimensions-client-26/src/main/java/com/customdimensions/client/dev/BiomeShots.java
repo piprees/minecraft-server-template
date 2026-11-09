@@ -148,7 +148,7 @@ public final class BiomeShots {
 
     /** The entry being taken: the listed shot, or its alternate for the current try. */
     private Shot current() {
-        Shot shot = current();
+        Shot shot = shots.get(index);
         return attempt == 0 ? shot : shot.alternates().get(attempt - 1);
     }
 
