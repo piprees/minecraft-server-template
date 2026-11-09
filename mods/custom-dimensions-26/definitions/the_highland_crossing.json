@@ -22,6 +22,9 @@
       "jaggedness": 0.9,
       "relief": 0,
       "roughness": 0.3
+    },
+    "scales": {
+      "climate": 2.0
     }
   },
   "biomes": [

@@ -9,7 +9,10 @@
   },
   "terrain": {
     "base": "spires",
-    "setting": "default"
+    "setting": "default",
+    "scales": {
+      "ridges": 1.5
+    }
   },
   "biomes": [
     {

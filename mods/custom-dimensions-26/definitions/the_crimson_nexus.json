@@ -20,6 +20,9 @@
       "cascadeStep": 2,
       "pools": 0,
       "roughness": 0.5
+    },
+    "scales": {
+      "ridges": 1.4
     }
   },
   "biomes": [

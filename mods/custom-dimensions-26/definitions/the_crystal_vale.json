@@ -13,6 +13,9 @@
     "params": {
       "coast": -0.6,
       "peakHeight": 110
+    },
+    "scales": {
+      "ridges": 1.3
     }
   },
   "biomes": [

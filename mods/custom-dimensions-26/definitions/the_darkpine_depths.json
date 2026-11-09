@@ -12,6 +12,10 @@
     "setting": "default",
     "params": {
       "steepness": 0.8
+    },
+    "scales": {
+      "erosion": 1.3,
+      "ridges": 1.5
     }
   },
   "biomes": [

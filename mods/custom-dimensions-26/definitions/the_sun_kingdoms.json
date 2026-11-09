@@ -9,7 +9,14 @@
   },
   "terrain": {
     "base": "erosion",
-    "setting": "extreme"
+    "setting": "extreme",
+    "layout": {
+      "type": "radial",
+      "centre": [0, 0],
+      "radius": 900,
+      "falloff": 1200,
+      "strength": 0.3
+    }
   },
   "biomes": [
     {

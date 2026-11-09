@@ -9,7 +9,20 @@
   },
   "terrain": {
     "base": "terraces",
-    "setting": "gentle"
+    "setting": "gentle",
+    "scales": {
+      "continents": 1.3,
+      "erosion": 2.0,
+      "ridges": 1.4,
+      "climate": 1.5
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [768, 640],
+      "radius": 700,
+      "falloff": 900,
+      "strength": 0.35
+    }
   },
   "biomes": [
     {

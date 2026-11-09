@@ -13,6 +13,13 @@
     "params": {
       "coast": 0.1,
       "landHeight": 64
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 0],
+      "radius": 500,
+      "falloff": 900,
+      "strength": 0.3
     }
   },
   "biomes": [

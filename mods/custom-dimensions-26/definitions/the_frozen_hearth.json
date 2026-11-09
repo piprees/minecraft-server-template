@@ -12,6 +12,12 @@
     "setting": "gentle",
     "params": {
       "coast": -0.6
+    },
+    "scales": {
+      "continents": 1.3,
+      "erosion": 2.0,
+      "ridges": 1.8,
+      "climate": 1.5
     }
   },
   "biomes": [

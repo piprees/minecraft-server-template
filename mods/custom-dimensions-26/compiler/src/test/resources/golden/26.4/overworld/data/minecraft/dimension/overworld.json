@@ -6,6 +6,6 @@
       "type": "minecraft:multi_noise",
       "preset": "minecraft:overworld"
     },
-    "settings": "minecraft:overworld"
+    "settings": "adventure:overworld"
   }
 }

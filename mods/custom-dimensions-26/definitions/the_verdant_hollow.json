@@ -10,7 +10,11 @@
   "terrain": {
     "base": "erosion",
     "setting": "default",
-    "scale": 1.5
+    "scale": 1.5,
+    "scales": {
+      "erosion": 1.3,
+      "ridges": 1.5
+    }
   },
   "biomes": [
     {
