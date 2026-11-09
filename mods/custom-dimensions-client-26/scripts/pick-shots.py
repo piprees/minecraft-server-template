@@ -14,7 +14,8 @@ Every camera is checked again by the rig's clear-camera guard before its screens
 
 Usage: pick-shots.py <dossier.json> <out.json> [--features N] [--landmarks N] [--max-per-layer N]
   --max-per-layer keeps each layer's N highest-scoring types (default all).
-Gotchas: night vision lights underground and roof shots, and every shot of a dimension without skylight, unless the
+Gotchas: night vision lights underground and roof shots, and every shot of a dimension without skylight or held at
+night (a definition fixedTime of 13000-23000), unless the
 dimension is fog-bound: its registered type's visual attributes or skybox name the nether, its visual attributes fix a
 fog end distance, or its definition's effects are minecraft:the_nether (that fog turns to a white wall under night
 vision, T180); a ceiling dimension's far view
@@ -34,7 +35,8 @@ def pick(d, features=6, landmarks=3, per_layer=None):
     slug = dim.split(':', 1)[-1]
     ceiling = bool(d.get('dimensionType', {}).get('ceiling'))
     atmosphere = d.get('atmosphere', {})
-    dark = not atmosphere.get('hasSkyLight', True)
+    fixed = atmosphere.get('definitionAtmosphere', {}).get('fixedTime')
+    dark = not atmosphere.get('hasSkyLight', True) or (fixed is not None and 13000 <= fixed % 24000 <= 23000)
     registered = atmosphere.get('registeredType', {})
     visual = {k: v for k, v in registered.get('attributes', {}).items() if k.startswith('minecraft:visual/')}
     nether_fog = ('nether' in json.dumps([visual, registered.get('skybox')]) or 'minecraft:visual/fog_end_distance' in visual
