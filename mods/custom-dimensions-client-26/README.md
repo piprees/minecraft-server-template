@@ -137,7 +137,7 @@ Three scripts turn the census and the server's survey into a review:
 ```bash
 scripts/census-list.py /tmp/w8m/shots.json census.json --only the_greenreach   # accepted shots -> check entries
 scripts/pick-shots.py <run>/customdim-survey/<slug>/dossier.json shots.json     # a survey -> a shot list
-scripts/review-packet.py <slug> dossier.json shots.json <out>/screenshots review.md [--notes notes.md]
+scripts/review-packet.py <slug> dossier.json shots.json <out>/screenshots review.md [--notes notes.md] [--facts facts.json]
 ```
 
 `census-list.py` reads either accepted-shot record (the terrain picks'
@@ -149,15 +149,41 @@ far view from the coarse map's summit, one shot for every place type of each
 layer (surface, sky islands, underground, roof) at its representative camera,
 every landmark, and one shot per notable cluster type, rarest first.
 `review-packet.py` sets the 1.21.1 definition (read only), the v2
-definition, optional owner notes, the dossier's summary and every shot with
-its census caption side by side in `review.md`, ending with the review
-questions, which the reviewer answers:
+definition, optional owner notes, the dossier's summary, a facts table and
+every shot with its census caption side by side in `review.md`, ending with
+the review questions, which the reviewer answers. The facts table is computed,
+not judged (`--facts FILE` also writes it as JSON):
+
+- **O rows**, one per 1.21.1 biome: its v2 id through
+  `definitions/id-mapping.csv` (a vanilla id with no row maps to itself), its
+  placed surface share and columns, its state (`expressed`, `placed, not
+  expressed`, `listed, not found`, `not in v2 definition`, `no v2 id`) and the
+  reason for a flag;
+- **V rows**, one per placed v2 biome no 1.21.1 biome maps to;
+- **M rows**, the dossier's top surface biomes, snow, water, lava, void,
+  canopy, relief, layer and column-class numbers beside the 1.21.1 type,
+  `noiseSettings`, `settingsOverrides` and `environment`;
+- **the scorecard**: S:a the share of the surface whose biome traces to the
+  1.21.1 list, S:b the share of the 1.21.1 biomes expressed, S:c the number of
+  v2 biomes placed but not expressed, S:d each layer the 1.21.1 type implies
+  (`sky_islands`, `nether_islands` and `end` a sky layer; `nether` a surface
+  and a roof; `cave` underground and a roof; the rest a surface and
+  underground) and whether it is present (5% of columns or more). A base world
+  has no 1.21.1 biome list, so S:a and S:b are n/a there.
+
+**The rule:** every factual statement in an answer cites a facts row (`O3`,
+`V1`, `M:snow`, `S:a`) or a dossier key (`surface.snowIcePercent`); a
+statement nothing backs is left out, not guessed. A biome is absent only when
+its row says so: a placed, unexpressed biome is present with a flag.
 
 1. Taken together, do the shots show the world's dominant character as the dossier measures it?
 2. Is every claim in the captions and descriptions supported by the frame census or the dossier? List the unsupported ones.
-3. Which elements of the 1.21.1 description or biome list are absent from the dossier?
+3. Which elements of the 1.21.1 description or biome list are absent from the dossier? Quote the O rows that are not expressed.
 4. Which measured elements contradict the intent (for example, snow expected but snow cover under 5%)?
-5. Fidelity to the 1.21.1 intent, 0–5, with one line why.
+5. Fidelity to the 1.21.1 intent, 0–5, with one line why, citing the scorecard.
+
+`scripts/test_review_packet.py` tests the facts table:
+`python3 -m unittest discover -s scripts -p 'test_*.py'`.
 
 ```bash
 scripts/rig.sh --definitions ../custom-dimensions-26/definitions --dh --render-distance 12 biomes shots.json
