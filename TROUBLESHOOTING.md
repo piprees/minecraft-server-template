@@ -1596,6 +1596,34 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t186"></a>
+### T186 — A biome "listed, not found" by the survey may still generate
+
+- **Symptom:** a dossier lists a biome under "listed in the definition, found in no sampled column", yet a screenshot of the same dimension is mostly that biome (the_crimson_nexus's ashen_woodland: missing from 29 patches, 68% of one frame).
+- **Cause:** the survey samples patches; a biome confined to a few regions can fall between them.
+- **Fix:** read the line as "not in the sample". Confirm with a frame census or more patches before calling a biome absent.
+
+<a id="t185"></a>
+### T185 — A frame census can undercount sky
+
+- **Symptom:** a census reports 0% sky over open ice spikes, or a large "unloaded" share on a far view.
+- **Cause:** a missed ray that later crosses a chunk the client does not hold was counted as unloaded even far above the terrain; a check entry's census also sees only its `radius`.
+- **Fix:** a miss above the loaded chunks' skyline counts as sky (`FrameCensus`). Give far-view check entries a radius of 24 chunks or more.
+
+<a id="t184"></a>
+### T184 — Every 26.x dimension type mentions "nether"
+
+- **Symptom:** a tool that detects nether fog by searching a dimension type's JSON for "nether" treats every dimension as fog-bound (the picker blocked night vision everywhere).
+- **Cause:** the attribute `minecraft:gameplay/nether_portal_spawns_piglin` is present in every 26.x dimension type.
+- **Fix:** read the `minecraft:visual/*` attributes and the skybox only.
+
+<a id="t183"></a>
+### T183 — Caves and wide islands confuse a column-layer split
+
+- **Symptom:** a survey reports lush caves at y −20 as part of the surface, or a wide sky island as ground.
+- **Cause:** a solid–air–solid column is not enough to call two layers.
+- **Fix:** `PatchAnalysis` splits a column into layers only across a gap of 16+ blocks that is open to the sky, between two separate terrain masses, where the upper mass is not ground spanning the patch over terrain that reaches the world floor.
+
 <a id="t182"></a>
 ### T182 — A spectator camera inside terrain shows the inside of the ground
 
