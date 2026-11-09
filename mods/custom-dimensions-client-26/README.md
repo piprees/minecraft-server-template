@@ -126,7 +126,8 @@ Every screenshot and every `check` entry writes a frame census,
 across the view (the options' field of view, the window's aspect), clipped
 against block outlines and any fluid out to the render distance. Each hit
 records its block, the biome there and its distance; a miss is sky, or
-`unloaded` when the ray passed a chunk the client does not hold. It gives
+`unloaded` when the ray passed a chunk the client does not hold below the
+skyline (the highest motion-blocking height of the loaded chunks). It gives
 shares by block, by biome (of the rays that hit) and by distance band (under
 32, 32–128, over 128 blocks), and a one-line `caption` built only from those
 shares, which the client log repeats as `rig: <name> census <caption>`.

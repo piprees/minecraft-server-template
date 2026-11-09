@@ -26,7 +26,7 @@ import net.minecraft.world.phys.Vec3;
  * options, the window's aspect), each clipped against block outlines and any
  * fluid out to the render distance. A ray that hits records its block, the
  * biome there and its distance; one that misses is sky, or {@code unloaded}
- * when it passed a chunk the client does not hold. Shares are of all rays,
+ * when it passed a chunk the client does not hold below the loaded chunks' skyline. Shares are of all rays,
  * except biome shares, which are of the rays that hit.
  */
 final class FrameCensus {
@@ -52,6 +52,7 @@ final class FrameCensus {
         List<Map<String, Integer>> bands = List.of(new HashMap<>(), new HashMap<>(), new HashMap<>());
         int[] bandRays = new int[3];
         int sky = 0, unloaded = 0, hits = 0, rays = COLUMNS * ROWS;
+        int skyline = skyline(mc, max);
         for (int r = 0; r < ROWS; r++) {
             for (int c = 0; c < COLUMNS; c++) {
                 double u = ((c + 0.5) / COLUMNS * 2 - 1) * tx, v = (1 - (r + 0.5) / ROWS * 2) * ty;
@@ -59,7 +60,7 @@ final class FrameCensus {
                 Vec3 to = eye.add(ray.scale(max));
                 BlockHitResult hit = mc.level.clip(new ClipContext(eye, to, ClipContext.Block.OUTLINE, ClipContext.Fluid.ANY, mc.player));
                 if (hit.getType() == HitResult.Type.MISS) {
-                    if (passesUnloaded(mc, eye, ray, max)) unloaded++;
+                    if (passesUnloaded(mc, eye, ray, max, skyline)) unloaded++;
                     else sky++;
                     continue;
                 }
@@ -112,13 +113,31 @@ final class FrameCensus {
         return caption;
     }
 
-    private static boolean passesUnloaded(Minecraft mc, Vec3 eye, Vec3 dir, double max) {
+    /**
+     * Whether a missed ray passed a chunk the client does not hold below the
+     * skyline (the highest motion-blocking height in the loaded chunks, sampled
+     * every 8 blocks): above it the ray could only have met sky.
+     */
+    private static boolean passesUnloaded(Minecraft mc, Vec3 eye, Vec3 dir, double max, int skyline) {
         for (double s = 8; s <= max; s += 8) {
             Vec3 p = eye.add(dir.scale(s));
             if (p.y < mc.level.getMinY() || p.y > mc.level.getMaxY()) return false;
-            if (!mc.level.getChunkSource().hasChunk(((int) Math.floor(p.x)) >> 4, ((int) Math.floor(p.z)) >> 4)) return true;
+            if (!mc.level.getChunkSource().hasChunk(((int) Math.floor(p.x)) >> 4, ((int) Math.floor(p.z)) >> 4)) return p.y <= skyline;
         }
         return false;
+    }
+
+    private static int skyline(Minecraft mc, double max) {
+        int top = mc.level.getMinY();
+        int cx = (int) Math.floor(mc.player.getX()), cz = (int) Math.floor(mc.player.getZ());
+        for (int dx = -(int) max; dx <= max; dx += 8) {
+            for (int dz = -(int) max; dz <= max; dz += 8) {
+                int x = cx + dx, z = cz + dz;
+                if (!mc.level.getChunkSource().hasChunk(x >> 4, z >> 4)) continue;
+                top = Math.max(top, mc.level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, x, z));
+            }
+        }
+        return top;
     }
 
     static String caption(double sky, double unloaded, List<Map<String, Integer>> bands, int rays, Map<String, Integer> biomes, int hits) {
