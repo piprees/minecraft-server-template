@@ -37,6 +37,7 @@ public final class Landforms {
     private final double[] relief64;
     private final Map<Form, Integer> counts = new EnumMap<>(Form.class);
     private final double[] thresholds = new double[6];
+    private final List<Integer> voidHoles = new ArrayList<>();
 
     /**
      * {@code heights} and {@code kind} are {@code side × side} (index {@code z * side + x});
@@ -84,6 +85,7 @@ public final class Landforms {
             else forms[i] = Form.PLAINS;
         }
         markIslands(kind);
+        measureVoidHoles(kind);
         for (Form f : forms) counts.merge(f, 1, Integer::sum);
     }
 
@@ -164,6 +166,47 @@ public final class Landforms {
             }
             if (!edge && component.size() < limit) for (int c : component) forms[c] = Form.ISLANDS;
         }
+    }
+
+    /** Sizes in cells of the 4-connected void regions, largest first. */
+    private void measureVoidHoles(byte[] kind) {
+        boolean[] seen = new boolean[side * side];
+        for (int start = 0; start < side * side; start++) {
+            if (seen[start] || kind[start] != 2) continue;
+            int size = 0;
+            ArrayDeque<Integer> queue = new ArrayDeque<>();
+            queue.add(start);
+            seen[start] = true;
+            while (!queue.isEmpty()) {
+                int c = queue.poll();
+                size++;
+                int x = c % side, z = c / side;
+                int[][] n = {{x + 1, z}, {x - 1, z}, {x, z + 1}, {x, z - 1}};
+                for (int[] p : n) {
+                    if (p[0] < 0 || p[1] < 0 || p[0] >= side || p[1] >= side) continue;
+                    int i = p[1] * side + p[0];
+                    if (!seen[i] && kind[i] == 2) {
+                        seen[i] = true;
+                        queue.add(i);
+                    }
+                }
+            }
+            voidHoles.add(size);
+        }
+        voidHoles.sort(java.util.Comparator.reverseOrder());
+    }
+
+    /** Void regions: how many, the largest's share of all void and its size as the diameter of a disc of equal area. */
+    public JsonObject voidHolesJson() {
+        JsonObject o = new JsonObject();
+        int total = voidHoles.stream().mapToInt(Integer::intValue).sum();
+        int largest = voidHoles.isEmpty() ? 0 : voidHoles.get(0);
+        o.addProperty("count", voidHoles.size());
+        o.addProperty("countOver1Ha", voidHoles.stream().filter(c -> c * step * step >= 10000).count());
+        o.addProperty("largestPercentOfVoid", Stats.percent(largest, total));
+        o.addProperty("largestDiameterBlocks", Math.round(2 * Math.sqrt(largest * (double) step * step / Math.PI)));
+        o.addProperty("top3PercentOfVoid", Stats.percent(voidHoles.stream().limit(3).mapToInt(Integer::intValue).sum(), total));
+        return o;
     }
 
     public Form form(int x, int z) {
@@ -286,6 +329,7 @@ public final class Landforms {
         JsonObject shares = new JsonObject();
         for (Form f : Form.values()) shares.addProperty(f.name().toLowerCase(), share(f));
         o.add("sharesPercent", shares);
+        o.add("voidHoles", voidHolesJson());
         JsonObject t = new JsonObject();
         t.addProperty("mountainRelief256", thresholds[0]);
         t.addProperty("plateauTpi", thresholds[1]);

@@ -150,6 +150,46 @@ class SurveyTest {
         assertEquals(Landforms.Form.WATER, l.form(0, 0));
     }
 
+    @Test
+    void voidHolesAreCountedAndSized() {
+        int side = 64;
+        int[] h = new int[side * side];
+        byte[] kind = new byte[side * side];
+        java.util.Arrays.fill(h, 80);
+        for (int z = 10; z < 30; z++) for (int x = 10; x < 30; x++) kind[z * side + x] = 2;
+        for (int z = 50; z < 52; z++) for (int x = 50; x < 52; x++) kind[z * side + x] = 2;
+        com.google.gson.JsonObject v = new Landforms(side, 8, 0, 0, h, kind).voidHolesJson();
+        assertEquals(2, v.get("count").getAsInt());
+        assertEquals(1, v.get("countOver1Ha").getAsInt());
+        assertEquals(99.0, v.get("largestPercentOfVoid").getAsDouble());
+        assertEquals(181, v.get("largestDiameterBlocks").getAsInt());
+        com.google.gson.JsonObject none = new Landforms(side, 8, 0, 0, h, new byte[side * side]).voidHolesJson();
+        assertEquals(0, none.get("count").getAsInt());
+        assertEquals(0.0, none.get("largestPercentOfVoid").getAsDouble());
+    }
+
+    @Test
+    void waterDepthIsMeasuredOverTheSurfaceBlock() {
+        PatchAnalysis a = analyse(grid(0, false, (x, y, z) -> {
+            int floor = x < 8 ? 59 : 50;
+            if (y <= floor) return STONE;
+            if (y <= 62) return WATER;
+            return null;
+        }));
+        assertEquals(3, a.fluidDepth[a.column(2, 2)]);
+        assertEquals(12, a.fluidDepth[a.column(12, 2)]);
+        java.util.List<Integer> depths = new ArrayList<>();
+        for (int i = 0; i < 9; i++) depths.add(2);
+        depths.add(20);
+        com.google.gson.JsonObject d = Survey.waterDepth(depths);
+        assertEquals(10, d.get("columns").getAsInt());
+        assertEquals(2.0, d.get("p50").getAsDouble());
+        assertEquals(20, d.get("max").getAsInt());
+        assertEquals(90.0, d.get("shallow1To4Percent").getAsDouble());
+        assertEquals(10.0, d.get("over12Percent").getAsDouble());
+        assertEquals(0, Survey.waterDepth(java.util.List.of()).get("columns").getAsInt());
+    }
+
     // ---- patches --------------------------------------------------------------------------------
 
     /** A 16×16-column patch, 128 high from y 0, filled by {@code fill(x, y, z)} returning a block or null for air. */

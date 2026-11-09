@@ -69,6 +69,8 @@ public final class PatchAnalysis {
     public final String[] biome;
     public final String[] renderBiome;
     public final String[] fluid;
+    /** Blocks of fluid over the surface block where the top is a fluid, else -1. */
+    public final int[] fluidDepth;
     public final boolean[] snow;
     public final boolean[] canopy;
     public final boolean[] bare;
@@ -129,6 +131,8 @@ public final class PatchAnalysis {
         biome = new String[n];
         renderBiome = new String[n];
         fluid = new String[n];
+        fluidDepth = new int[n];
+        java.util.Arrays.fill(fluidDepth, -1);
         snow = new boolean[n];
         canopy = new boolean[n];
         bare = new boolean[n];
@@ -377,7 +381,10 @@ public final class PatchAnalysis {
         }
         PatchGrid.BlockInfo topInfo = t < 0 ? groundInfo : g.info(x, t, z);
         topBlock[c] = topInfo.id();
-        if (topInfo.kind() == Kind.FLUID) fluid[c] = topInfo.fluid() == null ? "other" : topInfo.fluid();
+        if (topInfo.kind() == Kind.FLUID) {
+            fluid[c] = topInfo.fluid() == null ? "other" : topInfo.fluid();
+            fluidDepth[c] = t - s;
+        }
         PatchGrid.BlockInfo above = s + 1 < height ? g.info(x, s + 1, z) : null;
         snow[c] = topInfo.snowIce() || groundInfo.snowIce() || (above != null && above.snowIce());
         for (int yy = s + 1; yy <= Math.min(rangeTop, height - 1); yy++) {

@@ -165,9 +165,23 @@ public final class Survey {
         return o;
     }
 
+    /** Depth in blocks of the water over the surface block, across water-topped columns. */
+    static JsonObject waterDepth(List<Integer> depths) {
+        JsonObject o = new JsonObject();
+        int[] d = depths.stream().mapToInt(Integer::intValue).toArray();
+        o.addProperty("columns", d.length);
+        long shallow = depths.stream().filter(x -> x >= 1 && x <= 4).count(), deep = depths.stream().filter(x -> x > 12).count();
+        for (int p : new int[] {25, 50, 75, 95}) o.addProperty("p" + p, d.length == 0 ? 0 : Stats.percentile(d, p));
+        o.addProperty("max", d.length == 0 ? 0 : java.util.Arrays.stream(d).max().getAsInt());
+        o.addProperty("shallow1To4Percent", Stats.percent(shallow, d.length));
+        o.addProperty("over12Percent", Stats.percent(deep, d.length));
+        return o;
+    }
+
     private static JsonObject surface(List<PatchAnalysis> patches, long columns) {
         Map<String, Long> biomes = new HashMap<>(), tops = new HashMap<>(), grounds = new HashMap<>(), fluids = new HashMap<>(), plants = new HashMap<>();
         long snow = 0, canopy = 0, bare = 0, none = 0, exposed = 0, rain = 0, snowy = 0, dry = 0, surfaced = 0;
+        List<Integer> waterDepths = new ArrayList<>();
         for (PatchAnalysis p : patches) {
             for (int c = 0; c < p.surface.length; c++) {
                 if (p.surface[c] == PatchAnalysis.NONE) {
@@ -179,6 +193,7 @@ public final class Survey {
                 tops.merge(p.topBlock[c], 1L, Long::sum);
                 grounds.merge(p.ground[c], 1L, Long::sum);
                 if (p.fluid[c] != null) fluids.merge(p.fluid[c], 1L, Long::sum);
+                if ("water".equals(p.fluid[c])) waterDepths.add(p.fluidDepth[c]);
                 if (p.plant[c] != null) plants.merge(p.plant[c], 1L, Long::sum);
                 if (p.snow[c]) snow++;
                 if (p.canopy[c]) canopy++;
@@ -199,6 +214,7 @@ public final class Survey {
         JsonObject f = new JsonObject();
         for (String k : List.of("water", "lava", "other")) f.addProperty(k, Stats.percent(fluids.getOrDefault(k, 0L), columns));
         o.add("fluidCoverPercent", f);
+        o.add("waterDepth", waterDepth(waterDepths));
         o.addProperty("snowIcePercent", Stats.percent(snow, columns));
         o.addProperty("canopyPercent", Stats.percent(canopy, columns));
         o.addProperty("bareRockPercent", Stats.percent(bare, columns));
