@@ -147,6 +147,12 @@ public final class SurveyText {
                     + "%, biome match " + num(x, "biomeMatchPercent") + "%.");
         }
         if (d.has("landforms")) out.add("Landforms over the border (noise render): " + list(d.getAsJsonObject("landforms").getAsJsonObject("sharesPercent"), 8, "%", false) + ".");
+        if (d.has("placeness")) {
+            JsonObject pl = d.getAsJsonObject("placeness"), b = pl.getAsJsonObject("biomeRegions"), l = pl.getAsJsonObject("landformRegions");
+            out.add("Placeness: biome regions " + b.get("perKm2") + "/km² (" + b.get("major") + " major, largest " + b.get("largestPercent")
+                    + "%), landform regions " + l.get("perKm2") + "/km² (largest " + l.get("largestPercent") + "%), dominant place "
+                    + pl.getAsJsonObject("dominant").get("percent") + "% of the border.");
+        }
         return out;
     }
 

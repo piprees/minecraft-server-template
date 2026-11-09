@@ -5,6 +5,7 @@ import com.customdimensions.core.definition.Definition;
 import com.customdimensions.core.render.ColumnSamples;
 import com.customdimensions.core.render.RenderGrid;
 import com.customdimensions.core.survey.Landforms;
+import com.customdimensions.core.survey.Placeness;
 import com.customdimensions.core.survey.PatchAnalysis;
 import com.customdimensions.core.survey.PatchGrid;
 import com.customdimensions.core.survey.Survey;
@@ -231,6 +232,7 @@ public final class SurveyJob {
         long t3 = System.nanoTime();
         JsonObject dossier = Survey.dossier(meta, landforms, analysed, checks);
         dossier.addProperty("dimension", level.dimension().identifier().toString());
+        dossier.add("placeness", placeness(sampler, coarse, landforms, grid, kind, definition));
         timings.put("dossier", (System.nanoTime() - t3) / 1_000_000);
         long total = (System.nanoTime() - start) / 1_000_000;
         timings.put("total", total);
@@ -245,6 +247,31 @@ public final class SurveyJob {
         CustomDimensions.LOG.info("surveyed {}: {} patches, {} columns in {} ms (coarse {} ms) -> {}", slug, analysed.size(), columns, total,
                 timings.get("coarse"), path);
         return new Result(slug, path, analysed.size(), columns, total, types, landmarks);
+    }
+
+    /** {@link Placeness} over the coarse map: its biomes, landform classes, surface heights and the router's continentalness. */
+    static JsonObject placeness(Sampler sampler, ColumnSamples coarse, Landforms landforms, RenderGrid grid, byte[] kind, Definition definition) {
+        int side = grid.side();
+        int[] biomes = new int[side * side], forms = new int[side * side];
+        double[] heights = new double[side * side], continentalness = new double[side * side];
+        Map<String, Integer> ids = new LinkedHashMap<>();
+        List<String> names = new ArrayList<>();
+        for (int pz = 0; pz < side; pz++) {
+            for (int px = 0; px < side; px++) {
+                int i = pz * side + px;
+                String b = coarse.biome(px, pz);
+                biomes[i] = kind[i] == 2 || b == null ? -1 : ids.computeIfAbsent(b, k -> {
+                    names.add(k);
+                    return names.size() - 1;
+                });
+                forms[i] = landforms.form(px, pz).ordinal();
+                heights[i] = kind[i] == 2 ? Double.NaN : coarse.height(px, pz);
+                continentalness[i] = sampler.continentalness(grid.x(px), grid.z(pz));
+            }
+        }
+        int[] spawn = definition != null && definition.spawn() != null ? new int[]{definition.spawn().x(), definition.spawn().z()} : null;
+        return new Placeness(side, grid.step(), grid.x(0), grid.z(0)).toJson(biomes, names::get, forms,
+                k -> Landforms.Form.values()[k].name().toLowerCase(java.util.Locale.ROOT), heights, continentalness, spawn);
     }
 
     /** A generated chunk's copied sections and structure starts, taken on the server thread. */

@@ -79,6 +79,7 @@ public final class Sampler {
     private final String seedSource;
     private final int noiseTop;
     private final ThreadLocal<BiomeResolver> resolvers;
+    private final ThreadLocal<net.minecraft.world.level.biome.Climate.Sampler> climate;
     private final List<DensitySampler> zoneMasks;
     private final RegistryAccess access;
     private final ResourceKey<Level> levelKey;
@@ -108,6 +109,7 @@ public final class Sampler {
             this.noiseTop = minY + height - 1;
         }
         this.resolvers = ThreadLocal.withInitial(() -> generator.getBiomeSource().createUncachedResolver(random));
+        this.climate = ThreadLocal.withInitial(() -> random.createClimateSampler(SamplerContext.EMPTY_UNCACHED));
         this.zoneMasks = LevelZones.compiledMasks(access, dimension).values().stream().map(random::getSampler).toList();
     }
 
@@ -179,6 +181,12 @@ public final class Sampler {
     /** The generator's noise column at {@code (x, z)}: every block the noise stage fills, before surface rules, carvers and features. */
     public NoiseColumn noiseColumn(int x, int z) {
         return generator.getBaseColumn(x, z, heights, random);
+    }
+
+    /** The router's continentalness at {@code (x, z)}, as the biome source reads it. */
+    public double continentalness(int x, int z) {
+        return net.minecraft.world.level.biome.Climate.unquantizeCoord(
+                climate.get().sample(QuartPos.fromBlock(x), QuartPos.fromBlock(seaLevel()), QuartPos.fromBlock(z)).continentalness());
     }
 
     public Column sample(int x, int z) {
