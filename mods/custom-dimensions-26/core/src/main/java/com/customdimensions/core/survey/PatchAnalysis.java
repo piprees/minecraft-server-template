@@ -17,7 +17,8 @@ import java.util.Set;
  *
  * <p>A column's terrain is its runs of {@link Kind#SOLID} cells. Under a
  * dimension ceiling the topmost run is the roof. Runs closer than
- * {@link #GAP} blocks, or across a gap that is not open to the sky (a cave), form one block; the lowest block's top is the surface,
+ * {@link #GAP} blocks, or across a gap that is not open to the sky or whose two sides are one connected mass of
+ * terrain (a cave), form one block; the lowest block's top is the surface,
  * the tops of blocks above it are sky surfaces. An air pocket in the top block
  * whose ceiling is within {@link #GAP} of that block's top is an overhang; a
  * pocket of three or more deeper in the surface block is cave space.
@@ -96,6 +97,7 @@ public final class PatchAnalysis {
     private final int[] surfLow;
     private final int[] blockBottom;
     private BitSet skyAir;
+    private int[] mass;
 
     /** Analyses {@code grid}; {@code sliceYs} are the absolute y levels of the occupancy slices. */
     public static PatchAnalysis of(PatchGrid grid, Set<String> common, int[] sliceYs) {
@@ -144,6 +146,7 @@ public final class PatchAnalysis {
         structures = new LinkedHashMap<>(g.structures);
         for (Layer l : Layer.values()) notable.put(l, new LinkedHashMap<>());
         skyAir = skyConnected();
+        mass = masses();
         for (int z = 0; z < side; z++) for (int x = 0; x < side; x++) profile(x, z);
         cellsPass(common);
         trees();
@@ -217,7 +220,7 @@ public final class PatchAnalysis {
             }
             List<int[]> last = blocks.get(blocks.size() - 1);
             int gapTop = last.get(last.size() - 1)[0] - 1, gapBottom = r[1] + 1;
-            if (gapTop - gapBottom + 1 < GAP || !openToSky(x, z, gapBottom, gapTop)) last.add(r);
+            if (gapTop - gapBottom + 1 < GAP || !openToSky(x, z, gapBottom, gapTop) || mass[(r[1] * side + z) * side + x] == mass[((gapTop + 1) * side + z) * side + x]) last.add(r);
             else blocks.add(new ArrayList<>(List.of(r)));
         }
         List<int[]> lowest = blocks.get(blocks.size() - 1);
@@ -299,6 +302,33 @@ public final class PatchAnalysis {
             }
         }
         return open;
+    }
+
+    /** Labels each 6-connected mass of terrain cells; a cave's floor and roof share one, a floating island has its own. */
+    private int[] masses() {
+        int[] label = new int[g.kinds.length];
+        int next = 0;
+        int[] stack = new int[1024];
+        for (int start = 0; start < label.length; start++) {
+            if (label[start] != 0 || g.kinds[start] != Kind.SOLID.ordinal()) continue;
+            next++;
+            int top = 0;
+            stack[top++] = start;
+            label[start] = next;
+            while (top > 0) {
+                int c = stack[--top];
+                int x = c % side, z = (c / side) % side, y = c / (side * side);
+                int[] n = {x + 1 < side ? c + 1 : -1, x > 0 ? c - 1 : -1, z + 1 < side ? c + side : -1, z > 0 ? c - side : -1,
+                        y + 1 < height ? c + side * side : -1, y > 0 ? c - side * side : -1};
+                for (int ni : n) {
+                    if (ni < 0 || label[ni] != 0 || g.kinds[ni] != Kind.SOLID.ordinal()) continue;
+                    label[ni] = next;
+                    if (top == stack.length) stack = java.util.Arrays.copyOf(stack, stack.length * 2);
+                    stack[top++] = ni;
+                }
+            }
+        }
+        return label;
     }
 
     private void seed(BitSet open, java.util.ArrayDeque<Integer> q, int x, int y, int z) {

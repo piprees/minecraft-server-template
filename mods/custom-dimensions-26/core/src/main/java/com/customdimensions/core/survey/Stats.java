@@ -33,7 +33,7 @@ public final class Stats {
     }
 
     public static double round1(double v) {
-        return Math.round(v * 10.0) / 10.0;
+        return Double.isNaN(v) ? v : Math.round(v * 10.0) / 10.0;
     }
 
     /**

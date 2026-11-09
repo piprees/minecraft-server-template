@@ -241,6 +241,14 @@ class SurveyTest {
     }
 
     @Test
+    void aCaveOpenToTheSkyIsStillOneMassNotALayer() {
+        PatchAnalysis a = analyse(grid(0, false, (x, y, z) -> y <= 70 && !(y >= 20 && y <= 45 && x >= 2) && !(x >= 12 && y > 20) ? STONE : null));
+        int c = a.column(6, 6);
+        assertFalse(a.stacked[c]);
+        assertEquals(70, a.surface[c]);
+    }
+
+    @Test
     void notableClustersGetSpacingAndACamera() {
         PatchAnalysis a = analyse(grid(0, false, (x, y, z) -> {
             if (y <= 40) return STONE;

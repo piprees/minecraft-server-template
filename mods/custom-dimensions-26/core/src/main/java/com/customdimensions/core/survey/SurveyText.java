@@ -137,7 +137,7 @@ public final class SurveyText {
             c.add(Survey.short_(e.getKey()) + " " + o.get("clusters").getAsInt() + " clusters, spacing " + num(o, "meanSpacing"));
             if (c.size() >= 6) break;
         }
-        if (!c.isEmpty()) out.add("Rarest notable clusters (fewest first): " + String.join("; ", c) + ".");
+        if (!c.isEmpty()) out.add("Notable clusters, fewest first: " + String.join("; ", c) + ".");
         JsonObject be = d.getAsJsonObject("biomeExpression");
         out.add(be.get("expressed").getAsInt() + " of " + be.get("placed").getAsInt() + " placed biomes are expressed; "
                 + be.getAsJsonArray("listedNotFound").size() + " listed biomes were not found.");

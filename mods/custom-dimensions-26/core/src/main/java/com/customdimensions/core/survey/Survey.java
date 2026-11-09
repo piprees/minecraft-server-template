@@ -548,7 +548,7 @@ public final class Survey {
         double[][] d = KMedoids.gower(num, cat);
         KMedoids.Result r = KMedoids.cluster(d, MAX_TYPES);
         o.addProperty("k", r.k());
-        o.addProperty("silhouette", Stats.round1(r.silhouette() * 100) / 100.0);
+        o.addProperty("silhouette", Math.round(r.silhouette() * 1000) / 1000.0);
         JsonArray types = new JsonArray();
         List<Integer> order = new ArrayList<>();
         for (int k = 0; k < r.k(); k++) order.add(k);
