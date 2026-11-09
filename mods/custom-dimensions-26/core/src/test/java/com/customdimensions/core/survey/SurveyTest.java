@@ -199,7 +199,7 @@ class SurveyTest {
 
     @Test
     void anIslandOverGroundIsStackedWithASkyLayer() {
-        PatchAnalysis a = analyse(grid(0, false, (x, y, z) -> y <= 40 ? STONE : y >= 90 && y <= 95 && x < 8 ? GRASS_BLOCK : null));
+        PatchAnalysis a = analyse(grid(0, false, (x, y, z) -> y <= 40 ? STONE : y >= 90 && y <= 95 && x < 8 && z >= 1 && z < 10 ? GRASS_BLOCK : null));
         int island = a.column(2, 2), open = a.column(12, 2);
         assertEquals(ColumnClass.STACKED, ColumnClass.values()[a.columnClass[island]]);
         assertEquals(40, a.surface[island]);
@@ -238,6 +238,14 @@ class SurveyTest {
         assertEquals(70, a.surface[c]);
         assertTrue(a.cave[c]);
         assertEquals(ColumnClass.CAVE, ColumnClass.values()[a.columnClass[c]]);
+    }
+
+    @Test
+    void groundThatSpansThePatchOverACavernIsTheSurface() {
+        PatchAnalysis a = analyse(grid(0, false, (x, y, z) -> y <= 20 || (y >= 60 && y <= 70 && x < 12) ? STONE : null));
+        int c = a.column(4, 4);
+        assertFalse(a.stacked[c]);
+        assertEquals(70, a.surface[c]);
     }
 
     @Test

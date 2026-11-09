@@ -17,8 +17,8 @@ import java.util.Set;
  *
  * <p>A column's terrain is its runs of {@link Kind#SOLID} cells. Under a
  * dimension ceiling the topmost run is the roof. Runs closer than
- * {@link #GAP} blocks, or across a gap that is not open to the sky or whose two sides are one connected mass of
- * terrain (a cave), form one block; the lowest block's top is the surface,
+ * {@link #GAP} blocks, or across a gap that is not open to the sky, whose two sides are one connected mass of
+ * terrain (a cave), or whose upper mass spans the patch from edge to edge (ground over a cavern), form one block; the lowest block's top is the surface,
  * the tops of blocks above it are sky surfaces. An air pocket in the top block
  * whose ceiling is within {@link #GAP} of that block's top is an overhang; a
  * pocket of three or more deeper in the surface block is cave space.
@@ -98,6 +98,7 @@ public final class PatchAnalysis {
     private final int[] blockBottom;
     private BitSet skyAir;
     private int[] mass;
+    private boolean[] spansPatch;
 
     /** Analyses {@code grid}; {@code sliceYs} are the absolute y levels of the occupancy slices. */
     public static PatchAnalysis of(PatchGrid grid, Set<String> common, int[] sliceYs) {
@@ -220,7 +221,8 @@ public final class PatchAnalysis {
             }
             List<int[]> last = blocks.get(blocks.size() - 1);
             int gapTop = last.get(last.size() - 1)[0] - 1, gapBottom = r[1] + 1;
-            if (gapTop - gapBottom + 1 < GAP || !openToSky(x, z, gapBottom, gapTop) || mass[(r[1] * side + z) * side + x] == mass[((gapTop + 1) * side + z) * side + x]) last.add(r);
+            if (gapTop - gapBottom + 1 < GAP || !openToSky(x, z, gapBottom, gapTop) || mass[(r[1] * side + z) * side + x] == mass[((gapTop + 1) * side + z) * side + x]
+                    || spansPatch[mass[((gapTop + 1) * side + z) * side + x]]) last.add(r);
             else blocks.add(new ArrayList<>(List.of(r)));
         }
         List<int[]> lowest = blocks.get(blocks.size() - 1);
@@ -328,6 +330,22 @@ public final class PatchAnalysis {
                 }
             }
         }
+        int[] minX = new int[next + 1], maxX = new int[next + 1], minZ = new int[next + 1], maxZ = new int[next + 1];
+        java.util.Arrays.fill(minX, side);
+        java.util.Arrays.fill(minZ, side);
+        java.util.Arrays.fill(maxX, -1);
+        java.util.Arrays.fill(maxZ, -1);
+        for (int c = 0; c < label.length; c++) {
+            int l = label[c];
+            if (l == 0) continue;
+            int x = c % side, z = (c / side) % side;
+            minX[l] = Math.min(minX[l], x);
+            maxX[l] = Math.max(maxX[l], x);
+            minZ[l] = Math.min(minZ[l], z);
+            maxZ[l] = Math.max(maxZ[l], z);
+        }
+        spansPatch = new boolean[next + 1];
+        for (int l = 1; l <= next; l++) spansPatch[l] = (minX[l] == 0 && maxX[l] == side - 1) || (minZ[l] == 0 && maxZ[l] == side - 1);
         return label;
     }
 

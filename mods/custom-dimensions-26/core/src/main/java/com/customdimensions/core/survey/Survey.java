@@ -36,6 +36,8 @@ public final class Survey {
             "minecraft:end_stone");
     public static final int CLOUD_Y = 192;
     public static final int MAX_TYPES = 8;
+    /** Land columns (a quarter hectare) a tree biome must cover before having no trees flags it. */
+    public static final int TREELESS_COLUMNS = 2500;
 
     /** What the server knows that the patches do not. */
     public record Meta(String dimension, long seed, int minY, int height, int seaLevel, boolean ceiling, JsonObject atmosphere,
@@ -423,16 +425,10 @@ public final class Survey {
             for (PatchAnalysis.Tree t : p.trees) if (t.layer() == Layer.SURFACE || t.layer() == Layer.SKY) trees.merge(t.biome(), 1, Integer::sum);
         }
         Map<String, Long> cave = merge(patches, p -> p.undergroundBiomes);
-        List<Double> expectDensity = new ArrayList<>();
-        for (Map.Entry<String, long[]> e : s.entrySet()) {
-            if (!meta.treeBiomes().contains(e.getKey()) || e.getValue()[1] < 100) continue;
-            expectDensity.add(trees.getOrDefault(e.getKey(), 0) / (e.getValue()[1] / 10_000.0));
-        }
-        double median = Stats.percentile(expectDensity.stream().mapToDouble(Double::doubleValue).toArray(), 50);
         JsonObject o = new JsonObject();
         o.addProperty("method", "placement shares are % of the biome's own surface columns (plus sky-island tops); flags: mostly water, lava or "
-                + "void (50%+), mostly bare rock (50%+ of land), a snowing climate (50%+) under 5% snow cover, a tree biome (its features "
-                + "place trees) with no trees or under a tenth of the median tree biome's density; judged from 100+ columns");
+                + "void (50%+), mostly bare rock (50%+ of land), a snowing climate (50%+) under 5% snow cover, a biome whose placed features are named for trees with "
+                + "none on a quarter hectare or more of its land; judged from 100+ columns");
         JsonObject biomes = new JsonObject();
         int placed = 0, expressed = 0;
         List<Map.Entry<String, long[]>> sorted = new ArrayList<>(s.entrySet());
@@ -469,8 +465,8 @@ public final class Survey {
                 if (a[1] > 0 && a[10] * 2 >= a[1]) flags.add("mostly bare rock");
                 long wet = a[1] + a[2] + a[3];
                 if (wet > 0 && a[11] * 2 >= wet && a[7] * 20 < wet) flags.add("snowing climate but snow cover under 5%");
-                if (meta.treeBiomes().contains(e.getKey()) && a[1] >= 100 && (density == 0 || (median > 0 && density < median / 10))) {
-                    flags.add("tree biome without trees");
+                if (meta.treeBiomes().contains(e.getKey()) && a[1] >= TREELESS_COLUMNS && density == 0) {
+                    flags.add("features name trees, none on " + Stats.round1(a[1] / 10_000.0) + " ha of land");
                 }
             }
             b.add("flags", flags);
