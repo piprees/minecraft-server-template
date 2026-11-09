@@ -17,8 +17,9 @@ import java.util.Set;
  * to apply to that level's generator before it generates a chunk: the lava
  * level in place of the generator's -54, the fluid of the terrain's basins
  * ({@code level}, {@code fluid}, and the {@code basin} and {@code floor}
- * functions), ores added to every biome's underground-ores step, and placed
- * features removed from every biome.
+ * functions), ores added to every biome's underground-ores step, placed
+ * features removed from every biome, and vanilla carvers removed from or added
+ * to every biome's carver list ({@code carvers}: a carver name to false or true).
  * Vanilla ignores the folder, so the pack still loads without the mod.
  */
 public final class RuntimeWorldgen {
@@ -29,6 +30,8 @@ public final class RuntimeWorldgen {
     public static final String ADD_UNDERGROUND_ORES = "add_underground_ores";
     public static final String REMOVE_FEATURES = "remove_features";
     public static final String BASINS = "basins";
+    public static final String REMOVE_CARVERS = "remove_carvers";
+    public static final String ADD_CARVERS = "add_carvers";
 
     private RuntimeWorldgen() {
     }
@@ -61,7 +64,10 @@ public final class RuntimeWorldgen {
         remove.addAll(ores.remove());
         LiquidsCompiler.Basins basins = LiquidsCompiler.basins(slug, def.liquids(),
                 com.customdimensions.compiler.terrain.TerrainSpec.parse(slug, def.terrain()), namespace + ":terrain/" + slug);
-        if (lava == null && basins == null && add.isEmpty() && remove.isEmpty()) {
+        Map<String, Boolean> carvers = carvers(slug, def.carvers(), vanilla);
+        List<String> removeCarvers = new ArrayList<>(), addCarvers = new ArrayList<>();
+        carvers.forEach((id, on) -> (on ? addCarvers : removeCarvers).add(id));
+        if (lava == null && basins == null && add.isEmpty() && remove.isEmpty() && carvers.isEmpty()) {
             return out;
         }
         JsonObject file = new JsonObject();
@@ -83,7 +89,36 @@ public final class RuntimeWorldgen {
         if (!remove.isEmpty()) {
             file.add(REMOVE_FEATURES, array(new ArrayList<>(remove)));
         }
+        if (!removeCarvers.isEmpty()) {
+            file.add(REMOVE_CARVERS, array(removeCarvers));
+        }
+        if (!addCarvers.isEmpty()) {
+            file.add(ADD_CARVERS, array(addCarvers));
+        }
         out.put(path(slug), file);
+        return out;
+    }
+
+    /**
+     * The definition's {@code carvers} as full vanilla carver ids to on or off, in order; a bare name is a
+     * {@code minecraft:} one. Refuses a carver vanilla does not have and a value that is not a boolean.
+     */
+    static Map<String, Boolean> carvers(String slug, JsonObject carvers, VanillaData vanilla) {
+        Map<String, Boolean> out = new LinkedHashMap<>();
+        if (carvers == null) {
+            return out;
+        }
+        for (Map.Entry<String, com.google.gson.JsonElement> e : carvers.entrySet()) {
+            String id = e.getKey().contains(":") ? e.getKey() : "minecraft:" + e.getKey();
+            if (!vanilla.hasFile("worldgen/carver", id)) {
+                throw new IllegalArgumentException(slug + ": carvers." + e.getKey() + ": `" + id + "` is not a vanilla carver");
+            }
+            com.google.gson.JsonElement v = e.getValue();
+            if (!v.isJsonPrimitive() || !v.getAsJsonPrimitive().isBoolean()) {
+                throw new IllegalArgumentException(slug + ": carvers." + e.getKey() + ": is true or false");
+            }
+            out.put(id, v.getAsBoolean());
+        }
         return out;
     }
 

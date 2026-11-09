@@ -34,6 +34,7 @@ import net.minecraft.world.level.levelgen.Aquifer;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
+import net.minecraft.world.level.levelgen.carver.WorldCarver;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.densityfunction.DensityFunction;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
@@ -42,6 +43,7 @@ import net.minecraft.world.level.levelgen.synth.Noise;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +67,8 @@ import java.util.function.Supplier;
 public final class WorldgenRuntime {
 
     /** One level's runtime worldgen. */
-    public record Spec(String level, Integer lavaLevel, Basins basins, List<String> addUndergroundOres, Set<String> removeFeatures) {}
+    public record Spec(String level, Integer lavaLevel, Basins basins, List<String> addUndergroundOres, Set<String> removeFeatures,
+                       Set<String> removeCarvers, List<String> addCarvers) {}
 
     /** The fluid of a terrain's basins: its level, its block and the terrain's basin and floor functions by id. */
     public record Basins(int level, String fluid, String basin, String floor) {}
@@ -158,7 +161,8 @@ public final class WorldgenRuntime {
                         json.has(RuntimeWorldgen.LAVA_LEVEL) ? json.get(RuntimeWorldgen.LAVA_LEVEL).getAsInt() : null,
                         json.has(RuntimeWorldgen.BASINS) ? basins(json.getAsJsonObject(RuntimeWorldgen.BASINS)) : null,
                         strings(json, RuntimeWorldgen.ADD_UNDERGROUND_ORES),
-                        new LinkedHashSet<>(strings(json, RuntimeWorldgen.REMOVE_FEATURES)));
+                        new LinkedHashSet<>(strings(json, RuntimeWorldgen.REMOVE_FEATURES)),
+                        new LinkedHashSet<>(strings(json, RuntimeWorldgen.REMOVE_CARVERS)), strings(json, RuntimeWorldgen.ADD_CARVERS));
                 out.put(spec.level(), spec);
             } catch (Exception e) {
                 CustomDimensions.LOG.warn("worldgen runtime file {} is unreadable: {}", file.getKey(), e.toString());
@@ -189,7 +193,8 @@ public final class WorldgenRuntime {
                     access.lookupOrThrow(Registries.BLOCK).getValue(Identifier.parse(b.fluid())).defaultBlockState())));
             CustomDimensions.LOG.info("worldgen runtime applied to {}: {} fills its basins up to y {}", spec.level(), b.fluid(), b.level());
         }
-        if (!spec.addUndergroundOres().isEmpty() || !spec.removeFeatures().isEmpty()) {
+        if (!spec.addUndergroundOres().isEmpty() || !spec.removeFeatures().isEmpty() || !spec.removeCarvers().isEmpty()
+                || !spec.addCarvers().isEmpty()) {
             Registry<PlacedFeature> placed = server.registryAccess().lookupOrThrow(Registries.PLACED_FEATURE);
             List<Holder<PlacedFeature>> added = new ArrayList<>();
             for (String id : spec.addUndergroundOres()) {
@@ -204,14 +209,22 @@ public final class WorldgenRuntime {
             Function<Holder<Biome>, BiomeGenerationSettings> original = accessor.customdimensions$generationSettingsGetter();
             Map<Holder<Biome>, BiomeGenerationSettings> cache = new ConcurrentHashMap<>();
             Set<String> library = libraryBiomes();
-            Function<Holder<Biome>, BiomeGenerationSettings> getter = biome -> cache.computeIfAbsent(biome, b -> library.contains(id(b))
-                    ? original.apply(b) : filtered(original.apply(b), spec.removeFeatures(), added));
+            Registry<WorldCarver> carvers = server.registryAccess().lookupOrThrow(Registries.CARVER);
+            List<Holder<WorldCarver>> addCarvers = new ArrayList<>();
+            for (String id : spec.addCarvers()) {
+                carvers.get(ResourceKey.create(Registries.CARVER, Identifier.parse(id))).ifPresentOrElse(addCarvers::add,
+                        () -> CustomDimensions.LOG.warn("{}: added carver {} is not in the registry", spec.level(), id));
+            }
+            Function<Holder<Biome>, BiomeGenerationSettings> getter = biome -> cache.computeIfAbsent(biome, b -> filtered(original.apply(b),
+                    library.contains(id(b)) ? Set.of() : spec.removeFeatures(), library.contains(id(b)) ? List.of() : added,
+                    spec.removeCarvers(), addCarvers));
             accessor.customdimensions$setGenerationSettingsGetter(getter);
             accessor.customdimensions$setFeaturesPerStep(Suppliers.memoize(() -> FeatureSorter.buildFeaturesPerStep(
                     List.copyOf(generator.getBiomeSource().possibleBiomes()), b -> getter.apply(b).features(), true)));
         }
-        CustomDimensions.LOG.info("worldgen runtime applied to {}: lava level {}, {} ore(s) added, {} feature(s) removed",
-                spec.level(), spec.lavaLevel(), spec.addUndergroundOres().size(), spec.removeFeatures().size());
+        CustomDimensions.LOG.info("worldgen runtime applied to {}: lava level {}, {} ore(s) added, {} feature(s) removed, carvers off {} on {}",
+                spec.level(), spec.lavaLevel(), spec.addUndergroundOres().size(), spec.removeFeatures().size(), spec.removeCarvers(),
+                spec.addCarvers());
     }
 
     /**
@@ -240,10 +253,21 @@ public final class WorldgenRuntime {
         return (x, y, z) -> y < below ? lava : sea;
     }
 
-    private static BiomeGenerationSettings filtered(BiomeGenerationSettings settings, Set<String> remove,
-                                                    List<Holder<PlacedFeature>> add) {
+    static BiomeGenerationSettings filtered(BiomeGenerationSettings settings, Set<String> remove, List<Holder<PlacedFeature>> add,
+                                            Set<String> removeCarvers, List<Holder<WorldCarver>> addCarvers) {
         BiomeGenerationSettings.PlainBuilder builder = new BiomeGenerationSettings.PlainBuilder();
-        settings.getCarvers().forEach(builder::addCarver);
+        Set<String> kept = new HashSet<>();
+        for (Holder<WorldCarver> carver : settings.getCarvers()) {
+            String id = carver.unwrapKey().map(k -> k.identifier().toString()).orElse("");
+            if (!removeCarvers.contains(id) && kept.add(id)) {
+                builder.addCarver(carver);
+            }
+        }
+        for (Holder<WorldCarver> carver : addCarvers) {
+            if (kept.add(carver.unwrapKey().map(k -> k.identifier().toString()).orElse(""))) {
+                builder.addCarver(carver);
+            }
+        }
         List<HolderSet<PlacedFeature>> steps = settings.features();
         int ores = GenerationStep.Decoration.UNDERGROUND_ORES.ordinal();
         for (int step = 0; step < Math.max(steps.size(), add.isEmpty() ? 0 : ores + 1); step++) {

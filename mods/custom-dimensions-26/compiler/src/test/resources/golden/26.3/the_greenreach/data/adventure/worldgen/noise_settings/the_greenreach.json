@@ -1,0 +1,12 @@
+{
+  "base": "minecraft:overworld",
+  "changed": {
+    "aquifers": "sha1:644fa4faf153d640c22990c413a3b506e214185a",
+    "material_rule": "adventure:the_greenreach",
+    "noise_router": "sha1:7fc353d156ce1c0a46c6c8640aac1fdda1538cba",
+    "sea_level": 34
+  },
+  "removed": [
+    "debug_functions"
+  ]
+}

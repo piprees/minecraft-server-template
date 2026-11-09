@@ -87,6 +87,27 @@ class WorldgenLayersTest {
     }
 
     @Test
+    void carversTurnOffAndOnByName() {
+        JsonObject runtime = file(compile(OVERWORLD + ", \"carvers\": {\"canyon\": false, \"cave\": true, \"minecraft:cave_extra_underground\": false}"),
+                RUNTIME);
+        assertEquals("adventure:t", runtime.get("level").getAsString());
+        assertEquals("[\"minecraft:canyon\",\"minecraft:cave_extra_underground\"]", runtime.get("remove_carvers").toString());
+        assertEquals("[\"minecraft:cave\"]", runtime.get("add_carvers").toString());
+        assertFalse(runtime.has("remove_features"));
+    }
+
+    @Test
+    void anUnknownCarverOrANonBooleanIsAnError() {
+        assertEquals("t: carvers.ravine: `minecraft:ravine` is not a vanilla carver", failure(OVERWORLD + ", \"carvers\": {\"ravine\": false}"));
+        assertEquals("t: carvers.canyon: is true or false", failure(OVERWORLD + ", \"carvers\": {\"canyon\": \"off\"}"));
+    }
+
+    @Test
+    void noCarversWritesNoRuntimeFile() {
+        assertFalse(compile(OVERWORLD + ", \"carvers\": {}").files().containsKey(RUNTIME));
+    }
+
+    @Test
     void dryRefusesAnotherFluid() {
         assertTrue(failure(OVERWORLD + ", \"liquids\": {\"aquifers\": \"dry\", \"defaultFluid\": \"minecraft:water\"}")
                 .startsWith("t: liquids.defaultFluid: "));

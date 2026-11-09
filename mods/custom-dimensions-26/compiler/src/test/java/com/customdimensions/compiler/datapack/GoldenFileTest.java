@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class GoldenFileTest {
 
     private static final Map<VersionTable.Version, List<String>> SLUGS = Map.of(
-            VersionTable.V26_3, List.of("overworld", "the_nether", "the_end", "the_aviary", "the_wuthering_wisteria",
+            VersionTable.V26_3, List.of("overworld", "the_nether", "the_end", "the_aviary", "the_wuthering_wisteria", "the_greenreach",
                     "the_basalt_spires", "the_red_monument", "the_tiled_expanse", "the_canvas", "the_abyssal_shrine",
                     "the_violet_spire", "the_endless_expanse", "the_amplified_reaches", "the_underdark", "the_blighted_maw"),
             VersionTable.V26_4, List.of("overworld", "the_basalt_spires"));

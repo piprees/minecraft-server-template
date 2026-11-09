@@ -81,6 +81,10 @@
     "seaLevel": 61,
     "aquifers": "off"
   },
+  "carvers": {
+    "canyon": false,
+    "cave": false
+  },
   "borders": {
     "player": 512,
     "generation": 512

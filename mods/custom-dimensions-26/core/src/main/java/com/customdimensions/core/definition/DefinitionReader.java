@@ -80,6 +80,7 @@ public final class DefinitionReader {
                                 (b, bo) -> new Liquids.Basins(b.integer(bo, "level"), b.string(bo, "fluid"))))),
                 ctx.object(root, "materials"),
                 ctx.object(root, "ores"),
+                ctx.object(root, "carvers"),
                 ctx.objectList(root, "zones"),
                 ctx.closed(root, "dimensionType", DIMENSION_TYPE_FIELDS, (c, o) -> new DimensionTypeFields(
                         c.integer(o, "minY"), c.integer(o, "height"), c.integer(o, "logicalHeight"),

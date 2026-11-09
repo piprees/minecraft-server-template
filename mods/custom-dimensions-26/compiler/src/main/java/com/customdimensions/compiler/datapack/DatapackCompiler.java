@@ -387,7 +387,7 @@ public final class DatapackCompiler {
     /**
      * The clone with its source's generator and terrain; its own biome list
      * when it has one, else its source's; its own seed, dimension type,
-     * atmosphere and rules; its own liquids and default block over the
+     * atmosphere and rules; its own liquids, default block, ores and carvers over the
      * source's, field by field.
      */
     private static Definition cloned(Definition clone, Definition source) {
@@ -402,8 +402,9 @@ public final class DatapackCompiler {
                 own.basins() != null ? own.basins() : theirs.basins());
         JsonObject materials = overlay(source.materials(), clone.materials());
         JsonObject ores = overlay(source.ores(), clone.ores());
+        JsonObject carvers = overlay(source.carvers(), clone.carvers());
         return new Definition(clone.schemaVersion(), clone.description(), clone.seed(), clone.spawn(), source.generator(),
-                source.terrain(), biomes, liquids, materials, ores, clone.zones(), clone.dimensionType(),
+                source.terrain(), biomes, liquids, materials, ores, carvers, clone.zones(), clone.dimensionType(),
                 clone.atmosphere(), clone.rules(), clone.borders(), clone.difficulty(), clone.structures(), clone.portals(),
                 clone.exitPortal(), clone.exits(), clone.exitShrines(), clone.deaths(), clone.wins(), clone.roll());
     }

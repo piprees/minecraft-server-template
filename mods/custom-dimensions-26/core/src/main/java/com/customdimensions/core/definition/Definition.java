@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * A schema v2 dimension definition ({@code definitions/<slug>.json}). The
- * layers later work packages extend ({@code terrain}, {@code materials}, {@code ores},
+ * layers later work packages extend ({@code terrain}, {@code materials}, {@code ores}, {@code carvers},
  * {@code zones}, {@code structures}, {@code difficulty}, {@code portals},
  * the exits and {@code roll}) stay JSON here until those packages type them.
  * Absent fields are null; {@code biomes}, {@code zones}, {@code portals} and
@@ -24,6 +24,7 @@ public record Definition(
         Liquids liquids,
         JsonObject materials,
         JsonObject ores,
+        JsonObject carvers,
         List<JsonObject> zones,
         DimensionTypeFields dimensionType,
         Atmosphere atmosphere,
@@ -47,7 +48,7 @@ public record Definition(
     /** Top-level keys in the order the converter writes them. */
     public static final List<String> FIELD_ORDER = List.of(
             "schemaVersion", "description", "seed", "spawn", "generator", "terrain", "biomes",
-            "liquids", "materials", "ores", "zones", "dimensionType", "atmosphere", "rules", "borders",
+            "liquids", "materials", "ores", "carvers", "zones", "dimensionType", "atmosphere", "rules", "borders",
             "difficulty", "structures", "portals", "exitPortal", "exits", "exitShrines", "deaths", "wins", "roll");
 
     public Definition {

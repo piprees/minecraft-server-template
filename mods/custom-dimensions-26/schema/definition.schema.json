@@ -331,6 +331,12 @@
         }
       }
     },
+    "carvers": {
+      "description": "Vanilla carvers by name (canyon, cave, cave_extra_underground, nether_cave; a bare name is minecraft:): false removes it from every biome's carver list in this dimension, true adds it to every biome's.",
+      "type": "object",
+      "propertyNames": { "pattern": "^([a-z0-9_.-]+:)?[a-z0-9_/.-]+$" },
+      "additionalProperties": { "type": "boolean" }
+    },
     "ores": {
       "description": "Ore veins, ores added to the dimension and placed features removed from it.",
       "type": "object",
