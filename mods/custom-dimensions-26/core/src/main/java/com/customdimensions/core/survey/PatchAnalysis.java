@@ -18,7 +18,8 @@ import java.util.Set;
  * <p>A column's terrain is its runs of {@link Kind#SOLID} cells. Under a
  * dimension ceiling the topmost run is the roof. Runs closer than
  * {@link #GAP} blocks, or across a gap that is not open to the sky, whose two sides are one connected mass of
- * terrain (a cave), or whose upper mass spans the patch from edge to edge (ground over a cavern), form one block; the lowest block's top is the surface,
+ * terrain (a cave), or whose upper mass spans the patch from edge to edge over terrain that reaches the floor of the world (ground over a
+ * cavern), form one block; the lowest block's top is the surface,
  * the tops of blocks above it are sky surfaces. An air pocket in the top block
  * whose ceiling is within {@link #GAP} of that block's top is an overhang; a
  * pocket of three or more deeper in the surface block is cave space.
@@ -213,6 +214,7 @@ public final class PatchAnalysis {
             skyExposed[c] = !roofed;
             return;
         }
+        boolean floored = runs.get(runs.size() - 1)[0] == 0;
         List<List<int[]>> blocks = new ArrayList<>();
         for (int[] r : runs) {
             if (blocks.isEmpty()) {
@@ -222,7 +224,7 @@ public final class PatchAnalysis {
             List<int[]> last = blocks.get(blocks.size() - 1);
             int gapTop = last.get(last.size() - 1)[0] - 1, gapBottom = r[1] + 1;
             if (gapTop - gapBottom + 1 < GAP || !openToSky(x, z, gapBottom, gapTop) || mass[(r[1] * side + z) * side + x] == mass[((gapTop + 1) * side + z) * side + x]
-                    || spansPatch[mass[((gapTop + 1) * side + z) * side + x]]) last.add(r);
+                    || (spansPatch[mass[((gapTop + 1) * side + z) * side + x]] && floored)) last.add(r);
             else blocks.add(new ArrayList<>(List.of(r)));
         }
         List<int[]> lowest = blocks.get(blocks.size() - 1);

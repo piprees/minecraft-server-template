@@ -246,6 +246,9 @@ class SurveyTest {
         int c = a.column(4, 4);
         assertFalse(a.stacked[c]);
         assertEquals(70, a.surface[c]);
+        PatchAnalysis sky = analyse(grid(0, false, (x, y, z) -> (y >= 10 && y <= 20) || (y >= 60 && y <= 70 && x < 12) ? STONE : null));
+        assertTrue(sky.stacked[sky.column(4, 4)], "a wide island over another island, with void below both, is a sky layer");
+        assertEquals(20, sky.surface[sky.column(4, 4)]);
     }
 
     @Test
