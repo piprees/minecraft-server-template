@@ -12,9 +12,12 @@ Context: template-only rig tooling for mods/custom-dimensions-client-26 (stdlib 
                from the cluster and facing it.
 Every camera is checked again by the rig's clear-camera guard before its screenshot.
 
-Usage: pick-shots.py <dossier.json> <out.json> [--features N] [--landmarks N]
-Gotchas: night vision is set for underground shots unless the dimension has a ceiling (a ceiling's fog turns white
-under night vision); y is the feet height the survey measured, so give the rig the same world.
+Usage: pick-shots.py <dossier.json> <out.json> [--features N] [--landmarks N] [--max-per-layer N]
+  --max-per-layer keeps each layer's N highest-scoring types (default all).
+Gotchas: night vision lights underground and roof shots, and every shot of a dimension without skylight, unless its
+registered type names the nether (nether fog turns to a white wall under night vision); a ceiling dimension's far view
+is 12 over the summit, not over the client's heightmap (the roof). y is the feet height the survey measured, so give
+the rig the same world.
 """
 import json
 import sys
@@ -24,20 +27,24 @@ def short(block):
     return block.split(':', 1)[-1]
 
 
-def pick(d, features=6, landmarks=3):
+def pick(d, features=6, landmarks=3, per_layer=None):
     dim = d['dimension']
     slug = dim.split(':', 1)[-1]
     ceiling = bool(d.get('dimensionType', {}).get('ceiling'))
+    atmosphere = d.get('atmosphere', {})
+    dark = not atmosphere.get('hasSkyLight', True)
+    nether_fog = 'nether' in json.dumps(atmosphere.get('registeredType', {}))
     out = []
     vista = d.get('places', {}).get('vista')
     if vista:
         sx, sy, sz = vista['summit']
-        out.append({'dimension': dim, 'name': f'{slug}-far', 'x': sx + 0.5, 'y': 'surface+40', 'z': sz + 0.5,
+        out.append({'dimension': dim, 'name': f'{slug}-far', 'x': sx + 0.5, 'y': str(sy + 12) if ceiling else 'surface+40', 'z': sz + 0.5,
+                    'nightVision': dark and not nether_fog,
                     'at': vista['lookAt'], 'radius': 24, 'hold': 45, 'why': 'vista: summit of the coarse map, facing its largest drop'})
     for layer in ('surface', 'sky', 'underground', 'roof'):
         info = d.get('places', {}).get(layer) or {}
-        types = sorted(info.get('types', []), key=lambda t: -(t['sharePercent'] / 100 + t['distinctness']))
-        nv = layer == 'underground' and not ceiling
+        types = sorted(info.get('types', []), key=lambda t: -(t['sharePercent'] / 100 + t['distinctness']))[:per_layer]
+        nv = (dark or layer in ('underground', 'roof')) and not nether_fog
         for t in types:
             coords = t.get('coordinates') or []
             if not coords:
@@ -58,7 +65,7 @@ def pick(d, features=6, landmarks=3):
             continue
         p = places[0]
         cam = p['camera']
-        nvf = p['layer'] == 'underground' and not ceiling
+        nvf = (dark or p['layer'] in ('underground', 'roof')) and not nether_fog
         out.append({'dimension': dim, 'name': f'{slug}-feature-{short(block)}', 'x': cam[0], 'y': str(cam[1]), 'z': cam[2],
                     'at': p['at'], 'radius': 8, 'hold': 10, 'nightVision': nvf,
                     'why': f"{short(block)}: {t['clusters']} clusters in {t['patches']} patches, median {t['sizeP50']} blocks, {p['layer']} layer"})
@@ -76,20 +83,22 @@ def main(argv):
     if len(argv) < 3:
         print(__doc__)
         return 2
-    features, landmarks = 6, 3
+    features, landmarks, per_layer = 6, 3, None
     args = argv[3:]
     while args:
         if args[0] == '--features':
             features = int(args[1])
         elif args[0] == '--landmarks':
             landmarks = int(args[1])
+        elif args[0] == '--max-per-layer':
+            per_layer = int(args[1])
         else:
             print('unknown argument', args[0], file=sys.stderr)
             return 2
         args = args[2:]
     with open(argv[1]) as f:
         d = json.load(f)
-    out = pick(d, features, landmarks)
+    out = pick(d, features, landmarks, per_layer)
     with open(argv[2], 'w') as f:
         json.dump(out, f, indent=1)
     print(f"{len(out)} shots -> {argv[2]}")
