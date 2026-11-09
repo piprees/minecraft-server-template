@@ -64,6 +64,7 @@ public final class CustomDimCommands {
         CatalogueCommand.attach(root);
         RenderCommand.attach(root);
         RollCommand.attach(root);
+        SurveyCommand.attach(root);
         dispatcher.register(root);
     }
 

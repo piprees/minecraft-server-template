@@ -80,7 +80,7 @@ final class SelfTest {
     private static final String DEFINITIONS = "customdimensions.definitions";
     /** An extracted vanilla folder the runtime source is compared against; {@code -Dcustomdimensions.vanilla} also counts. */
     private static final String REFERENCE = "customdimensions.vanilla.reference";
-    /** {@code exits}, {@code commands}, {@code materials}, {@code biomes}, {@code render}, {@code firewall}, {@code terrain}, {@code zones}, {@code structures}, {@code roll}, {@code rollperf}, {@code generators}, {@code difficulty} or {@code mixins} runs the compiled-pack section and that one only, for iterating on it. */
+    /** {@code exits}, {@code commands}, {@code materials}, {@code biomes}, {@code render}, {@code firewall}, {@code terrain}, {@code zones}, {@code structures}, {@code roll}, {@code rollperf}, {@code generators}, {@code difficulty}, {@code survey} or {@code mixins} runs the compiled-pack section and that one only, for iterating on it. */
     private static final String ONLY = "customdimensions.selftest.only";
 
     private SelfTest() {}
@@ -112,7 +112,8 @@ final class SelfTest {
         boolean generatorsOnly = "generators".equals(only);
         boolean difficultyOnly = "difficulty".equals(only);
         boolean mixinsOnly = "mixins".equals(only);
-        boolean exitsOnly = "exits".equals(only) || mixinsOnly || commandsOnly || materialsOnly || biomesOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly
+        boolean surveyOnly = "survey".equals(only);
+        boolean exitsOnly = "exits".equals(only) || mixinsOnly || surveyOnly || commandsOnly || materialsOnly || biomesOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly
                 || generatorsOnly || difficultyOnly;
         CompletableFuture<List<String>> levels;
         try {
@@ -186,6 +187,16 @@ final class SelfTest {
             }
         }).handle((more, error) -> {
             lines.addAll(error == null ? more : List.of("FAIL render: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
+                return exitsOnly && !surveyOnly ? CompletableFuture.completedFuture(List.<String>of())
+                        : com.customdimensions.server.survey.SurveySelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL survey: " + t));
+            }
+        }).handle((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL survey: " + error));
             return null;
         }).thenCompose(v -> {
             try {

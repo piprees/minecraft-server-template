@@ -17,7 +17,7 @@ import java.util.Set;
  *
  * <p>A column's terrain is its runs of {@link Kind#SOLID} cells. Under a
  * dimension ceiling the topmost run is the roof. Runs closer than
- * {@link #GAP} blocks form one block; the lowest block's top is the surface,
+ * {@link #GAP} blocks, or across a gap that is not open to the sky (a cave), form one block; the lowest block's top is the surface,
  * the tops of blocks above it are sky surfaces. An air pocket in the top block
  * whose ceiling is within {@link #GAP} of that block's top is an overhang; a
  * pocket of three or more deeper in the surface block is cave space.
@@ -36,8 +36,8 @@ public final class PatchAnalysis {
 
     public static final int NONE = Integer.MIN_VALUE;
 
-    /** A tree: its species (the commonest log id), base column and layer. */
-    public record Tree(String species, int x, int y, int z, int logs, Layer layer, String biome) {}
+    /** A tree: its species (the commonest log id), base column and layer; log components on one base column (within a block, 8 high) are one tree. */
+    public record Tree(String species, int x, int y, int z, int logs, Layer layer, String biome, int patch) {}
 
     /** A notable cluster: block id, size in blocks, centre (block coordinates), layer, and a clear camera when one was found. */
     public record Found(String id, int size, double x, double y, double z, Layer layer, int patch, double[] camera) {}
@@ -95,6 +95,7 @@ public final class PatchAnalysis {
     private final int[] skyLow;
     private final int[] surfLow;
     private final int[] blockBottom;
+    private BitSet skyAir;
 
     /** Analyses {@code grid}; {@code sliceYs} are the absolute y levels of the occupancy slices. */
     public static PatchAnalysis of(PatchGrid grid, Set<String> common, int[] sliceYs) {
@@ -142,6 +143,7 @@ public final class PatchAnalysis {
         bands = new long[(height + 15) / 16][4];
         structures = new LinkedHashMap<>(g.structures);
         for (Layer l : Layer.values()) notable.put(l, new LinkedHashMap<>());
+        skyAir = skyConnected();
         for (int z = 0; z < side; z++) for (int x = 0; x < side; x++) profile(x, z);
         cellsPass(common);
         trees();
@@ -214,8 +216,8 @@ public final class PatchAnalysis {
                 continue;
             }
             List<int[]> last = blocks.get(blocks.size() - 1);
-            int gap = last.get(last.size() - 1)[0] - r[1] - 1;
-            if (gap < GAP) last.add(r);
+            int gapTop = last.get(last.size() - 1)[0] - 1, gapBottom = r[1] + 1;
+            if (gapTop - gapBottom + 1 < GAP || !openToSky(x, z, gapBottom, gapTop)) last.add(r);
             else blocks.add(new ArrayList<>(List.of(r)));
         }
         List<int[]> lowest = blocks.get(blocks.size() - 1);
@@ -263,6 +265,54 @@ public final class PatchAnalysis {
             if (k == Kind.AIR.ordinal() || k == Kind.PLANT.ordinal()) undergroundAir[c]++;
             else if (k == Kind.FLUID.ordinal()) undergroundFluid[c]++;
         }
+    }
+
+    /**
+     * The open cells (air, plants, liquid, foliage) connected through open
+     * cells to the sky: from every cell above a column's highest terrain, or,
+     * under a ceiling, from the cell just below the roof. A large cave is not
+     * connected to them and so never splits the terrain into layers.
+     */
+    private BitSet skyConnected() {
+        BitSet open = new BitSet(g.kinds.length);
+        java.util.ArrayDeque<Integer> q = new java.util.ArrayDeque<>();
+        for (int z = 0; z < side; z++) {
+            for (int x = 0; x < side; x++) {
+                int y = height - 1;
+                if (g.ceiling) {
+                    while (y >= 0 && !solid(x, y, z)) y--;
+                    while (y >= 0 && solid(x, y, z)) y--;
+                    if (y >= 0) seed(open, q, x, y, z);
+                    continue;
+                }
+                for (; y >= 0 && !solid(x, y, z); y--) seed(open, q, x, y, z);
+            }
+        }
+        while (!q.isEmpty()) {
+            int c = q.poll();
+            int x = c % side, z = (c / side) % side, y = c / (side * side);
+            int[][] d = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+            for (int[] o : d) {
+                int nx = x + o[0], ny = y + o[1], nz = z + o[2];
+                if (nx < 0 || ny < 0 || nz < 0 || nx >= side || nz >= side || ny >= height || solid(nx, ny, nz)) continue;
+                seed(open, q, nx, ny, nz);
+            }
+        }
+        return open;
+    }
+
+    private void seed(BitSet open, java.util.ArrayDeque<Integer> q, int x, int y, int z) {
+        int i = (y * side + z) * side + x;
+        if (open.get(i)) return;
+        open.set(i);
+        q.add(i);
+    }
+
+    /** Whether at least half of a column's gap from {@code bottom} to {@code top} is sky-connected air. */
+    private boolean openToSky(int x, int z, int bottom, int top) {
+        int n = 0;
+        for (int y = bottom; y <= top; y++) if (skyAir.get((y * side + z) * side + x)) n++;
+        return n * 2 >= top - bottom + 1;
     }
 
     private void surfaceFacts(int c, int x, int z, int s, int rangeTop, boolean sky) {
@@ -382,8 +432,20 @@ public final class PatchAnalysis {
                 if (c / (side * side) < base / (side * side)) base = c;
             }
             int bx = base % side, bz = (base / side) % side, by = base / (side * side);
-            trees.add(new Tree(Stats.dominant(ids), patch.blockX() + bx, minY + by, patch.blockZ() + bz, comp.size(), layer(bx, by, bz),
-                    g.biomeAt(bx, by, bz)));
+            String species = Stats.dominant(ids);
+            boolean merged = false;
+            for (int i = 0; i < trees.size(); i++) {
+                Tree t = trees.get(i);
+                if (t.species().equals(species) && Math.abs(t.x() - patch.blockX() - bx) <= 1 && Math.abs(t.z() - patch.blockZ() - bz) <= 1
+                        && Math.abs(t.y() - minY - by) <= 8) {
+                    trees.set(i, new Tree(t.species(), t.x(), Math.min(t.y(), minY + by), t.z(), t.logs() + comp.size(), t.layer(), t.biome(), t.patch()));
+                    merged = true;
+                    break;
+                }
+            }
+            if (merged) continue;
+            trees.add(new Tree(species, patch.blockX() + bx, minY + by, patch.blockZ() + bz, comp.size(), layer(bx, by, bz),
+                    g.biomeAt(bx, by, bz), patch.index()));
         }
     }
 

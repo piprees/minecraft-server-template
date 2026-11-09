@@ -226,7 +226,7 @@ public final class Survey {
             JsonObject s = new JsonObject();
             s.addProperty("count", e.getValue().size());
             s.addProperty("perHectare", Stats.round1(e.getValue().size() / Math.max(1e-9, hectares)));
-            s.addProperty("meanSpacing", Stats.round1(spacing(e.getValue(), t -> new double[] {t.x(), t.z()}, t -> 0)));
+            s.addProperty("meanSpacing", Stats.round1(spacing(e.getValue(), t -> new double[] {t.x(), t.z()}, PatchAnalysis.Tree::patch)));
             Map<String, Long> layers = new HashMap<>();
             for (PatchAnalysis.Tree t : e.getValue()) layers.merge(t.layer().name().toLowerCase(Locale.ROOT), 1L, Long::sum);
             s.add("layers", toJson(layers));

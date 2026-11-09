@@ -72,6 +72,11 @@ public final class Messages {
             Map.entry("customdim.roll.skip", "{dimension} sets roll.skip, so it is not rolled."),
             Map.entry("customdim.roll.has_chunks", "{dimension} already has generated chunks in {path}. A seed only applies before a dimension is first created (D2): reset it by deleting that folder with the server stopped, then roll or pick."),
             Map.entry("customdim.roll.failed", "Could not roll {dimension}: {reason}"),
+            Map.entry("customdim.survey.started", "Surveying {dimension}: {patches} patches of {size}x{size} chunks, plus adaptive ones, one chunk at a time."),
+            Map.entry("customdim.survey.progress", "Surveying {dimension}: {percent}%."),
+            Map.entry("customdim.survey.done", "Surveyed {dimension}: {patches} patches, {columns} columns in {seconds} s; {types} surface place types, {landmarks} landmarks -> {path}"),
+            Map.entry("customdim.survey.range", "Patches {patches} or size {size} is outside 1 to {maxPatches} and 1 to {maxSize}."),
+            Map.entry("customdim.survey.failed", "Could not survey {dimension}: {reason}"),
             Map.entry("customdim.pick.done", "Wrote seed {seed} into {path}; {dimension} uses it after the next restart."),
             Map.entry("customdim.pick.no_rank", "The last roll of {dimension} has no rank {rank}; roll it first."),
             Map.entry("customdim.pick.no_file", "{dimension} has no definition file at {path} to write the seed into."));
