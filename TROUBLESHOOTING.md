@@ -1596,6 +1596,48 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t197"></a>
+### T197 — The survey's coarse map beads thin ranges
+
+- **Symptom:** `landforms.highGround` reports hundreds of high regions (the_highland_crossing: upper three quarters, top 3 = 5.2%) for ranges a render shows as one web.
+- **Cause:** the coarse map samples every 16 blocks at a 2048 border (`step = 2 × radius / 256`); a crest narrower than that breaks into beads.
+- **Fix:** judge connectivity of thin ranges on `/customdim render <slug> <seed> 512 2` (step 2): above y 73 the same web is one region holding 82% of the high ground.
+
+<a id="t196"></a>
+### T196 — A chasm below y -54 fills with lava
+
+- **Symptom:** 5.7% lava cover in a dimension with no lava in its biomes, all on canyon floors near y -60 (the_crimson_nexus r2).
+- **Cause:** the generator's lava level is -54: open cells below it are lava before any aquifer or `aquifers: "dry"` is consulted.
+- **Fix:** `liquids.lavaLevel: -64` (the dimension's floor) for a dry chasm.
+
+<a id="t195"></a>
+### T195 — Vanilla ridges ring the weirdness extremes; thin ranges never join
+
+- **Symptom:** a thin `ridges` range (low `rangeWidth`) forms isolated loops and cones, not a network (the_highland_crossing r4).
+- **Cause:** the ranges follow vanilla's folded peaks, highest where |weirdness| is 2/3, a contour round each weirdness extreme; seeds where weirdness rarely reaches 0.67 get scattered rings.
+- **Fix:** `web: 1` runs the ranges along the weirdness zero line, which crosses the whole map as one web.
+
+<a id="t194"></a>
+### T194 — Sea floor under sea level reads dry where aquifers decide
+
+- **Symptom:** an islands dimension whose floor sits three blocks under sea level shows 70% dry sand (the_shallows: floor y 58, sea 63, water on 30% of columns).
+- **Cause:** with the overworld preset's aquifers on, open cells below sea level take their aquifer's level, which near a shallow floor is often below it.
+- **Fix:** `liquids.aquifers: "off"` so every open cell below sea level holds the sea.
+
+<a id="t193"></a>
+### T193 — A dry sea pins the shore at seaFloor
+
+- **Symptom:** a definition with `liquids.seaLevel` far below the land keeps its canyon floors and lowlands at y 31–38 whatever `depth` says (the_crimson_nexus with seaLevel -60).
+- **Cause:** when the sea lies more than the basin depth below `seaFloor`, the terrain's shore is `seaFloor` (default 36); the land spline and canyon floors bottom out there.
+- **Fix:** set `terrain.params.seaFloor` to the floor wanted (crimson uses -10 to reach deepslate); `landHeight` may go to 0 for a low floor.
+
+<a id="t192"></a>
+### T192 — Survey tree counts include mineshaft timber
+
+- **Symptom:** a treeless desert dossier reports oak trees (the_scorched_mesa: 4.2 oak per hectare, every one underground, mean spacing 2.8).
+- **Cause:** `vegetation.treesPerHectare` counts every 26-connected log component, so mineshaft supports count as trees.
+- **Fix:** read `vegetation.treesPerHectareByLayer.surface` for what a player sees; `species.<log>.layers` says where each species stands.
+
 <a id="t191"></a>
 ### T191 — Gallery shot records come in three shapes
 
