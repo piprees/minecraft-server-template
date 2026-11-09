@@ -15,7 +15,7 @@ Every camera is checked again by the rig's clear-camera guard before its screens
 Usage: pick-shots.py <dossier.json> <out.json> [--features N] [--landmarks N] [--max-per-layer N]
   --max-per-layer keeps each layer's N highest-scoring types (default all).
 Gotchas: night vision lights underground and roof shots, and every shot of a dimension without skylight, unless its
-registered type names the nether (nether fog turns to a white wall under night vision); a ceiling dimension's far view
+registered type's visual attributes or skybox name the nether (nether fog turns to a white wall under night vision); a ceiling dimension's far view
 is 12 over the summit, not over the client's heightmap (the roof). y is the feet height the survey measured, so give
 the rig the same world.
 """
@@ -33,7 +33,9 @@ def pick(d, features=6, landmarks=3, per_layer=None):
     ceiling = bool(d.get('dimensionType', {}).get('ceiling'))
     atmosphere = d.get('atmosphere', {})
     dark = not atmosphere.get('hasSkyLight', True)
-    nether_fog = 'nether' in json.dumps(atmosphere.get('registeredType', {}))
+    registered = atmosphere.get('registeredType', {})
+    visual = {k: v for k, v in registered.get('attributes', {}).items() if k.startswith('minecraft:visual/')}
+    nether_fog = 'nether' in json.dumps([visual, registered.get('skybox')])
     out = []
     vista = d.get('places', {}).get('vista')
     if vista:
