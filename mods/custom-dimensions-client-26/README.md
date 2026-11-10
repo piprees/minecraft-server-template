@@ -24,6 +24,9 @@ For each opening the server frames within 24 blocks:
   tops are drawn with their still textures.
 - The destination's sky colour behind them, and its fog colour mixed in from
   55% of the depth.
+- The destination's mobs and projectiles the feed holds (within 48 blocks of
+  the far portal), each drawn by its own renderer with its model, texture,
+  armour and the destination's light at its feet.
 
 Every face is clipped on the CPU to the sightline cone through the opening
 (four planes through the eye and the opening's edges, and the surface itself),
@@ -35,8 +38,24 @@ fails the depth test wherever the far side is drawn. It all goes through one
 `submitCustomGeometry` per opening in vanilla's cutout block render type from
 Fabric's `LevelRenderEvents.COLLECT_SUBMITS`; no mixin is needed.
 
+Each fed entity is a client-side entity built as vanilla's packet handler
+builds one (`EntityType.create`, `recreateFromPacket`, the snapshot's synched
+data), never added to a level and never ticked. Every frame it is placed on its
+track, extracted by the entity render dispatcher and submitted into a collector
+that turns each model it submits into a `submitCustomGeometry` in the model's
+own render type; that callback poses and renders the model as vanilla's model
+feature renderer does, through a consumer that clips and squashes every quad
+exactly as the far side's blocks are and mixes in the same fog. Shadows, name
+tags, held items, the fire overlay, leashes and outlines are not drawn in the
+opening. Snapshots come at most every 4 ticks: a mob glides from where it was
+drawn to each new snapshot over 4 ticks, its limbs swinging by the distance it
+is drawn moving; a projectile flies on from its snapshot along its velocity
+with its own gravity and the arrow drag, for at most 8 ticks.
+
 Any exception in the renderer switches it off for the session with one
-`companion-off:` log line, and the portal draws as vanilla.
+`companion-off:` log line, and the portal draws as vanilla. One in the entity
+pass switches only that off (`companion-off: the entity pass failed`), and the
+far side's blocks keep drawing.
 
 ## The feed
 
@@ -52,7 +71,10 @@ On join the client sends `handshake/v2` with its version and
 `portal-view/v2` (`renderLocally` true, `keepSlab` false, the render distance,
 view depth 48). Every 10 seconds once the feed has sent anything it logs a
 `companion-feed:` line with the frames, chunks received and held, entity
-snapshots, handovers, entities held, clears, and openings and faces drawn.
+snapshots, handovers, entities held, clears, openings and faces drawn, and
+entities drawn (summed over frames). An entity type the client cannot make
+(a player) is logged once as `companion-entities: <type> cannot be made on the
+client, not drawn`.
 
 ## Compatibility
 
@@ -269,18 +291,20 @@ The checked-in set is `docs/screens/`, scaled to 960 px wide.
 end-to-end harness, every read on the client thread. `/health`, `/state`,
 `/screenshot` and `/input` (`look`, `walk`, `use`, `slot`) answer in the shapes
 `scripts/e2e/lib.sh` reads; `/portals` reports each fed portal (drawn in the
-last second or not, destination, chunks and entities held, sky and fog
-colours) and `/portal-census` casts `dev/ApertureCensus.java`'s rays through an
+last second or not, destination, chunks and entities held with each entity's
+fed and drawn position, sky and fog colours, and the entities drawn through it
+in the last second with their types) and `/portal-census` casts `dev/ApertureCensus.java`'s rays through an
 aperture into the fed chunks and counts the blocks and biomes they land on.
 Contract: [`scripts/e2e/README.md`](../../scripts/e2e/README.md) § The two
 instruments.
 
 ## Not ported
 
-- **Destination entities and projectiles are received, not drawn.** Snapshots
-  and handovers are decoded, held per destination and counted in the feed
-  line; drawing them needs the entity's model clipped to the opening, which
-  the submit path for entity models does not offer.
+- **Destination players, block entities, held items and entity effects.**
+  A player in the feed has no client-side entity to draw; the block entity
+  renderers (a chest's lid, a sign's text, a banner's cloth) are not run on
+  the far side; shadows, name tags, held items and the
+  fire overlay are dropped by the opening's collector.
 - **The second-world renderer** (a whole `ClientLevel` and level renderer for
   the destination, drawn offscreen and composited in screen space): the far
   side is meshed from the fed chunks instead, so there is no live block

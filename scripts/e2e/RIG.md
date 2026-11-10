@@ -18,6 +18,7 @@ answered from the data the far side is drawn from rather than from pixels:
 | Is the picture in the frame the far side? | `/portal-census`: rays from the eye through the aperture walked through the fed chunks, with block and biome counts per destination |
 | Which world, sky and fog does it show? | `/portals`: `destination`, `skyColor`, `fogColor` from the frame payload |
 | Does a change on the far side show? | a far-side `fill`, then a second census (`e2e-companion-portal.sh`) |
+| Are the far side's mobs and projectiles drawn, and moving? | `/portals`: `entitiesDrawn`, `entitiesDrawnTypes`, each fed entity's `drawnPos` read twice; `entity-pixels.py` on a with/without pair of a husk before a white wall (`e2e-companion-portal.sh`) |
 | Is a crossing measured, not assumed? | `e2e-state`: `lastTraversal` with `preloadedSent`, and the server's and client's pre-loaded lines |
 | What does a client without the companion see? | `e2e-state`: each cell's `clientSees`, the `particles` record and the approach `title`; `portal-colour.py` on a screenshot (`e2e-vanilla-portal.sh`) |
 

@@ -3,6 +3,7 @@ package com.customdimensions.client;
 import com.customdimensions.client.dev.DevBridge;
 import com.customdimensions.client.dev.Rig;
 import com.customdimensions.client.feed.Feed;
+import com.customdimensions.client.view.EntityPass;
 import com.customdimensions.client.view.PortalRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -98,6 +99,7 @@ public final class CompanionClient implements ClientModInitializer {
     }
 
     private static void tick(Minecraft client) {
+        EntityPass.tick();
         if (client.level == null || ++ticks % REPORT_TICKS != 0) {
             return;
         }
@@ -105,9 +107,9 @@ public final class CompanionClient implements ClientModInitializer {
             return;
         }
         LOG.info("companion-feed: frames={} received chunks={} held chunks={} entity snapshots={} handovers={} "
-                        + "held entities={} clears={} drawn openings={} drawn faces={} last faces={}",
+                        + "held entities={} clears={} drawn openings={} drawn faces={} last faces={} drawn entities={}",
                 Feed.frames().size(), Feed.chunksReceived, Feed.chunksHeld(), Feed.entitySnapshots, Feed.handovers,
                 Feed.entitiesHeld(), Feed.clears, PortalRenderer.openingsDrawn, PortalRenderer.facesDrawn,
-                PortalRenderer.lastFaces);
+                PortalRenderer.lastFaces, EntityPass.entitiesDrawn);
     }
 }

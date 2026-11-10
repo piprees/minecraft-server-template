@@ -3,9 +3,13 @@ package com.customdimensions.client.feed;
 import com.customdimensions.client.CompanionPayloads;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.ChunkPos;
 
@@ -15,11 +19,15 @@ import net.minecraft.world.level.ChunkPos;
  * reports. Read and written on the client thread only.
  */
 public final class Feed {
-    /** One destination entity in destination coordinates. */
-    public record Shown(int id, Identifier type, double x, double y, double z, float yRot, float xRot) {
-        static Shown of(ClientboundAddEntityPacket p) {
-            return new Shown(p.getId(), net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(p.getType()),
-                    p.getX(), p.getY(), p.getZ(), p.getYRot(), p.getXRot());
+    /**
+     * One destination entity in destination coordinates: the spawn packet it
+     * came in and its non-default synched data. Every snapshot makes a new one.
+     */
+    public record Shown(int id, Identifier type, double x, double y, double z, float yRot, float xRot,
+                        ClientboundAddEntityPacket packet, List<SynchedEntityData.DataValue<?>> data) {
+        static Shown of(ClientboundAddEntityPacket p, List<SynchedEntityData.DataValue<?>> data) {
+            return new Shown(p.getId(), BuiltInRegistries.ENTITY_TYPE.getKey(p.getType()),
+                    p.getX(), p.getY(), p.getZ(), p.getYRot(), p.getXRot(), p, data == null ? List.of() : data);
         }
     }
 
@@ -71,15 +79,22 @@ public final class Feed {
         for (int id : payload.departed()) {
             d.entities.remove(id);
         }
+        Map<Integer, List<SynchedEntityData.DataValue<?>>> data = new HashMap<>();
+        for (ClientboundSetEntityDataPacket t : payload.tracked()) {
+            data.put(t.id(), t.packedItems());
+        }
         for (ClientboundAddEntityPacket p : payload.present()) {
-            d.entities.put(p.getId(), Shown.of(p));
+            d.entities.put(p.getId(), Shown.of(p, data.get(p.getId())));
         }
     }
 
     public static void handover(CompanionPayloads.EntityHandover payload) {
         handovers++;
         Destination d = DESTINATIONS.computeIfAbsent(payload.destination(), k -> new Destination());
-        d.entities.put(payload.toId(), Shown.of(payload.arrival()));
+        List<SynchedEntityData.DataValue<?>> data = payload.tracked().stream()
+                .filter(t -> t.id() == payload.toId()).findFirst().map(ClientboundSetEntityDataPacket::packedItems)
+                .orElse(null);
+        d.entities.put(payload.toId(), Shown.of(payload.arrival(), data));
     }
 
     /** A cleared opening drops its frame; a destination no frame leads to any more drops everything. */

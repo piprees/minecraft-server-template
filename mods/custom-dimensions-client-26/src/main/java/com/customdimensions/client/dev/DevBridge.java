@@ -5,6 +5,7 @@ import com.customdimensions.client.CompanionPayloads;
 import com.customdimensions.client.ShaderGuard;
 import com.customdimensions.client.feed.DecodedChunk;
 import com.customdimensions.client.feed.Feed;
+import com.customdimensions.client.view.EntityPass;
 import com.customdimensions.client.view.PortalRenderer;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -64,7 +65,8 @@ import net.minecraft.world.phys.Vec3;
  * <li>{@code POST /input}: one of {@code look {yaw, pitch}}, {@code walk {blocks, timeoutMs}},
  * {@code use {}} (the main hand on the block in the crosshair, else in the air), {@code slot {index}}.</li>
  * <li>{@code GET /portals}: per fed portal, whether its far side is being drawn, where it leads, what of it is held,
- * and the sky and fog colours it is drawn with.</li>
+ * the sky and fog colours it is drawn with, and the fed entities drawn through it in the last second
+ * ({@code entitiesDrawn}, {@code entitiesDrawnTypes}).</li>
  * <li>{@code GET /portal-census[?origin=x,y,z]}: {@link ApertureCensus} through the nearest fed portal, or the one at
  * that aperture origin.</li>
  * </ul>
@@ -315,6 +317,8 @@ public final class DevBridge {
                     e.add("id", num(s.id()));
                     e.addProperty("type", s.type() == null ? null : s.type().toString());
                     e.add("pos", triple(s.x(), s.y(), s.z()));
+                    double[] at = EntityPass.drawnPosition(frame.destination(), s.id());
+                    e.add("drawnPos", at == null ? JsonNull.INSTANCE : triple(at[0], at[1], at[2]));
                     entities.add(e);
                 }
             }
@@ -324,8 +328,20 @@ public final class DevBridge {
             f.addProperty("drawing", drawing);
             f.add("lastDrawnMsAgo", drawn == null ? JsonNull.INSTANCE : num((now - drawn.nanos()) / 1.0e6));
             f.add("lastFaces", drawn == null ? JsonNull.INSTANCE : num(drawn.faces()));
-            f.add("entitiesDrawn", JsonNull.INSTANCE);
-            f.addProperty("entitiesDrawnReason", "the portal renderer draws the fed blocks and no fed entities");
+            EntityPass.Seen seen = EntityPass.drawn(origin);
+            boolean recent = seen != null && now - seen.nanos() < DRAWING_NANOS;
+            f.add("entitiesDrawn", num(recent ? seen.count() : 0));
+            JsonObject types = new JsonObject();
+            if (recent) {
+                seen.types().forEach((k, v) -> types.add(k, num(v)));
+            }
+            f.add("entitiesDrawnTypes", types);
+            f.add("entityQuadsDrawn", num(recent ? seen.quads() : 0));
+            f.addProperty("entitiesDrawnReason", EntityPass.failed() ? "the entity pass failed and is off"
+                    : !CompanionClient.drawing() ? "the far side is not drawn"
+                    : seen == null ? "no entity has been drawn through this opening"
+                    : !recent ? "no frame in the last second drew this opening's entities"
+                    : seen.count() == 0 ? "the fed entities lie outside the opening's view" : "drawn");
             list.add(f);
         }
         o.add("portals", list);

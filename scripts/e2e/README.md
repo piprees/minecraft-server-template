@@ -95,13 +95,13 @@ reads it (environment first, then the consumer's `.env`, then the checkout's
 `.minecraft-version`), and a linked farm's scripts resolve `lib.sh`'s
 `../.minecraft-version` through the `scripts` symlink, so they read the
 checkout's file. Java 25 for the client comes from `JAVA_HOME`.
-`portal-colour.py` needs Pillow (`PYTHON=<python with Pillow>`).
+`portal-colour.py` and `entity-pixels.py` need Pillow (`PYTHON=<python with Pillow>`).
 
 | Script | On 26.x |
 | --- | --- |
 | `build-e2e-portal.sh` | The rig portal: the link in `world/data/customdimensions/portal_links.json` and `customdimensions:portal` in all six opening cells |
 | `e2e-vanilla-portal.sh` | An unmodded client at an X, a Z and a flat frame: every cell sent as the vanilla block for its plane, the destination's dust particles reaching the player, the destination's name as the approach title, the screenshot's centre in the portal's colour (`portal-colour.py`), the crossing and a ten-second stay, and never a companion payload. `SERVER_PACK=accept` (with `vanilla-join.sh --server-pack accept`) is the second pass: a client that loaded the server resource pack is sent one tinted tripwire state per opening and the centre is the cell's tint (`hue:RRGGBB`), never the vanilla portal |
-| `e2e-companion-portal.sh` | The companion at frames into `e2e_two`, `e2e_three` and `e2e_four`: each far side drawn (`/portals`), the aperture census landing on that destination's own blocks and on nothing in the void, a husk and an arrow in both feeds and drawn (a miss while the renderer draws fed blocks only), a far-side block change in the next census, the frame rate above `FPS_FLOOR`, and the walk in on the pre-loaded transfer |
+| `e2e-companion-portal.sh` | The companion at frames into `e2e_two`, `e2e_three` and `e2e_four`: each far side drawn (`/portals`), the aperture census landing on that destination's own blocks and on nothing in the void, a husk and an arrow in both feeds and drawn, a moving arrow drawn moving, the husk's pixels in the opening against a white wall (`entity-pixels.py`), a far-side block change in the next census, the frame rate above `FPS_FLOOR`, and the walk in on the pre-loaded transfer |
 | `e2e-rig-companion.sh` | The three-way rig check from the logs (link, `companion-feed:start` to `e2e_two`, the client's `received chunks` at 20 or more), then the crossing: `companion-send:preloaded-transfer`, the client's `companion-feed: preloaded`, and arrival in `e2e_two` that holds ten seconds |
 | `e2e-portal-matrix.sh` | As on 1.21.1, from the v2 definitions (`portal-matrix-plan.py` reads `portals`); its render step adds the bay's `/portals` drawing and `/portal-census` hits |
 | `e2e-item2-stronghold.sh`, `e2e-item3-end-exit.sh`, `portal-aperture.sh` | As on 1.21.1, through `e2e-state`, `customdim use` and the bridge |
@@ -165,8 +165,11 @@ got and why it stopped. The 26.x bridge answers `/health`, `/state`,
 shapes the scripts read, and adds:
 
 - `/portals`: per fed portal, its destination, offset, `chunksHeld`, the fed
-  entities, the sky and fog colours it is drawn with, and `drawing` — the
-  renderer emitted it in the last second with faces;
+  entities (each with its fed `pos` and the `drawnPos` it is drawn at now), the
+  sky and fog colours it is drawn with, `drawing` — the renderer emitted it in
+  the last second with faces — and `entitiesDrawn`, `entitiesDrawnTypes` and
+  `entityQuadsDrawn`: the fed entities of which at least one model quad
+  survived the opening's clip in a frame of the last second;
 - `/portal-census[?origin=x,y,z]`: rays from the eye through the aperture,
   walked through the fed destination chunks from the far portal's own layer
   out to 40 blocks, counted as `hits` (with block and biome counts), `unfed`
@@ -232,6 +235,7 @@ contract — damageable igniters take damage, others are untouched),
 | `mc-version.sh` | Which Minecraft the stack runs, for the scripts that run on one version only: `e2e_is_26`, and `e2e_refuse_on_26`, which exits 3 with the reason |
 | `rig-frames-lib.sh` | The 26.x portal checks' frames: opens a rig level, stands an X, Z or flat frame of a rig destination in `e2e_one`, lights it through `customdim use`, and names where to stand, enter and retreat |
 | `portal-colour.py` | The share of a screenshot's centre painted as a vanilla Nether portal (violet) or End portal (near-black). `--self-test` proves the colour rules on synthetic images |
+| `entity-pixels.py` | The share of a screenshot's centre an entity covers, from a pair shot from one camera with and without it: pixels that are a white wall without it and are not with it. `--self-test` proves the rule on synthetic images |
 
 ## Before you restart anything: `stack-lock.sh`
 

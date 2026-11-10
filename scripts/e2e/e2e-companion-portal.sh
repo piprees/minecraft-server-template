@@ -8,6 +8,8 @@
 #          rays through the aperture that land on the destination's own blocks
 #          (and on none in the void); a husk and an arrow standing at the far
 #          side are in the server's feed and the client's, and are drawn; a
+#          moving arrow is drawn moving; the husk covers the opening's pixels
+#          against a white wall (entity-pixels.py on a with/without pair); a
 #          block changed on the far side shows in the next census; the frame
 #          rate stays above FPS_FLOOR; and walking in crosses on the pre-loaded
 #          transfer and stays.
@@ -25,9 +27,11 @@
 # Gotchas: `drawing` is the renderer's own record of an emit in the last
 #          second, so a portal that is fed but culled reads false. The census
 #          reads the FED chunks, not pixels: a ray that enters a chunk the
-#          client does not hold is `unfed`, never a miss. The renderer draws
-#          the fed blocks only; /portals says so in entitiesDrawnReason, and
-#          the entities-drawn assertion fails until it draws them.
+#          client does not hold is `unfed`, never a miss. `entitiesDrawn`
+#          counts fed entities with a model quad kept by the opening's clip in
+#          a frame of the last second; `entitiesDrawnReason` says why it is 0.
+#          entity-pixels.py needs Pillow (PYTHON=<python with Pillow>); the
+#          pair shares one camera, so nothing else may move between shots.
 
 # shellcheck disable=SC2034  # lib.sh reads it to name the run dir
 SCRIPT_NAME="companion-portal"
@@ -39,6 +43,9 @@ SCRIPT_NAME="companion-portal"
 . "$(cd "$(dirname "$0")" && pwd)/portal-matrix-lib.sh"
 
 FPS_FLOOR="${FPS_FLOOR:-10}"
+ENTITY_PIXEL_FLOOR="${ENTITY_PIXEL_FLOOR:-0.01}"
+PYTHON="${PYTHON:-python3}"
+HERE="$(cd "$(dirname "$0")" && pwd)"
 RESULTS="$RUN_DIR/results.md"
 POLL_SECONDS="${POLL_SECONDS:-60}"
 POLL_STEP="${POLL_STEP:-3}"
@@ -151,12 +158,66 @@ if bridge_portals entities; then
     "[.portals[] | select(.destination==\"$TWO\") | .entities[] | select(.type==\"minecraft:arrow\")] | length" 1
   DRAWN="$(portal_read "$TWO" '.entitiesDrawn')"
   if [ "$DRAWN" != "null" ] && [ "${DRAWN:-0}" -ge 2 ] 2>/dev/null; then
-    _record ok "the husk and the arrow are drawn in the opening" ">= 2" "$DRAWN"
+    _record ok "the husk and the arrow are drawn in the opening" ">= 2" \
+      "$DRAWN: $(portal_read "$TWO" '.entitiesDrawnTypes | to_entries | map("\(.key)=\(.value)") | join(" ")')"
   else
     _record fail "the husk and the arrow are drawn in the opening" ">= 2" \
       "$DRAWN — $(portal_read "$TWO" '.entitiesDrawnReason')"
   fi
+  assert_json_at_least "the drawn entities include the husk" "$BRIDGE_LAST" \
+    "[.portals[] | select(.destination==\"$TWO\") | .entitiesDrawnTypes[\"minecraft:husk\"] // 0] | max // 0" 1
+  assert_json_at_least "the drawn entities include the arrow" "$BRIDGE_LAST" \
+    "[.portals[] | select(.destination==\"$TWO\") | .entitiesDrawnTypes[\"minecraft:arrow\"] // 0] | max // 0" 1
 fi
+
+# The drawn x of the fed arrow past z 53 (the moving one), from one /portals reading.
+moving_arrow_x() { # portals-name
+  json_read "$RUN_DIR/portals-$1.json" \
+    "[.portals[] | select(.destination==\"$TWO\") | .entities[] | select(.type==\"minecraft:arrow\" and .pos[2] > 53) | .drawnPos[0]] | first"
+}
+
+say "sky-lit: an arrow crossing the far side is drawn moving"
+rcon "execute in $TWO run summon minecraft:arrow 19.5 -58.5 53.5 {NoGravity:1b,pickup:0b,Motion:[0.08d,0.0d,0.0d],Tags:[\"e2e\",\"e2e_moving\"]}" >/dev/null
+sleep 2
+if bridge_portals moving-a; then
+  sleep 1
+  if bridge_portals moving-b; then
+    XA="$(moving_arrow_x moving-a)"
+    XB="$(moving_arrow_x moving-b)"
+    if awk -v a="$XA" -v b="$XB" 'BEGIN { exit !(a ~ /^-?[0-9.]+$/ && b ~ /^-?[0-9.]+$/ && b - a > 0.3) }'; then
+      _record ok "the moving arrow's drawn position moves along its flight" "> 0.3 blocks in 1 s" "$XA -> $XB"
+    else
+      _record fail "the moving arrow's drawn position moves along its flight" "> 0.3 blocks in 1 s" \
+        "${XA:-unread} -> ${XB:-unread}"
+    fi
+  fi
+fi
+rcon "execute in $TWO run kill @e[tag=e2e_moving]" >/dev/null
+
+say "sky-lit: the husk's pixels in the opening, against a white wall"
+rcon "execute in $TWO run fill 15 -60 55 27 -54 55 minecraft:white_concrete" >/dev/null
+sleep 5
+assert_shot "sky-lit: the husk in front of the white wall" entity-with
+rcon "execute in $TWO run tp @e[type=minecraft:husk,tag=e2e] 29 -60 52" >/dev/null
+sleep 3
+assert_shot "sky-lit: the white wall without the husk" entity-without
+if [ -f "$RUN_DIR/entity-with.png" ] && [ -f "$RUN_DIR/entity-without.png" ] \
+  && "$PYTHON" "$HERE/entity-pixels.py" "$RUN_DIR/entity-with.png" "$RUN_DIR/entity-without.png" \
+    > "$RUN_DIR/entity-pixels.json" 2> "$RUN_DIR/entity-pixels.err"; then
+  share="$(json_read "$RUN_DIR/entity-pixels.json" '.share')"
+  if awk -v g="$share" -v m="$ENTITY_PIXEL_FLOOR" 'BEGIN { exit !(g ~ /^[0-9.]+$/ && g + 0 >= m + 0) }'; then
+    _record ok "the husk covers the white wall in the opening" ">= $ENTITY_PIXEL_FLOOR of the centre" "$share"
+  else
+    _record fail "the husk covers the white wall in the opening" ">= $ENTITY_PIXEL_FLOOR of the centre" "$share"
+  fi
+  report_metric "entity pixels: wall, changed, entity" \
+    "$(json_read "$RUN_DIR/entity-pixels.json" '"\(.wallPixels) \(.changed) \(.entityPixels) of \(.pixels)"')"
+else
+  _record fail "the husk covers the white wall in the opening" "an entity-pixels.py reading" \
+    "$(cat "$RUN_DIR/entity-pixels.err" 2>/dev/null || echo 'no screenshot pair')"
+fi
+rcon "execute in $TWO run fill 15 -60 55 27 -54 55 minecraft:air" >/dev/null
+rcon "execute in $TWO run tp @e[type=minecraft:husk,tag=e2e] 21 -60 52" >/dev/null
 
 say "sky-lit: a far-side change shows in the next census"
 rcon "execute in $TWO run fill 20 -60 51 21 -58 51 minecraft:gold_block" >/dev/null

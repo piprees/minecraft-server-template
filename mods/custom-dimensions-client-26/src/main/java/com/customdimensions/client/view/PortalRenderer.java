@@ -49,7 +49,8 @@ import org.joml.Vector3fc;
  * backed by the destination's sky colour. Everything goes through one
  * {@code submitCustomGeometry} call per opening in vanilla's cutout block
  * render type, so the frame's own depth test hides the pane behind the far
- * side and keeps whatever stands in front of the portal.
+ * side and keeps whatever stands in front of the portal. The destination's
+ * fed entities follow through {@link EntityPass}.
  *
  * <p>Any failure switches the renderer off for the session with one log line,
  * and the portal draws as vanilla.
@@ -91,6 +92,7 @@ public final class PortalRenderer {
     }
 
     public static void reset() {
+        EntityPass.reset();
         BUILT.clear();
         DRAWN.clear();
         factory = null;
@@ -112,6 +114,7 @@ public final class PortalRenderer {
     private static void draw(LevelRenderContext ctx) {
         Minecraft mc = Minecraft.getInstance();
         ClientLevel level = mc.level;
+        EntityPass.settle();
         if (level == null || Feed.frames().isEmpty()) {
             return;
         }
@@ -149,6 +152,11 @@ public final class PortalRenderer {
             ctx.submitNodeCollector().submitCustomGeometry(ctx.poseStack(), RenderTypes.cutoutMovingBlock(),
                     (pose, vc) -> DRAWN.put(o, new Drawn(System.nanoTime(),
                             emit(pose, vc, op, eye, d0, high, faces, planes, sky, fog, white))));
+            DimensionType type = level.registryAccess().lookupOrThrow(Registries.DIMENSION_TYPE)
+                    .getValue(frame.dimensionType());
+            if (type != null && factory != null) {
+                EntityPass.submit(ctx, level, frame, d, type, op, eye, d0, planes, fog);
+            }
         }
     }
 
@@ -362,7 +370,8 @@ public final class PortalRenderer {
         };
     }
 
-    private static int light(Feed.Destination d, DimensionType type, int x, int y, int z, int emission) {
+    /** Packed light at a destination block from its fed chunk; full sky when the chunk is not held. */
+    static int light(Feed.Destination d, DimensionType type, int x, int y, int z, int emission) {
         DecodedChunk c = chunk(d, type, x, z);
         if (c == null) {
             return LightCoordsUtil.pack(Math.max(emission, 0), 15);
