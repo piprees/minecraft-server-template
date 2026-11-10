@@ -180,6 +180,21 @@ final class E2eStateCommand {
         return out;
     }
 
+    /**
+     * What an online player with ({@code pack}) or without the server pack is sent for {@code state}:
+     * Polymer's own block mapper for that player, so a state Polymer maps back is reported as sent.
+     * With no such player online, {@code offered}: what the block itself returns.
+     */
+    static String seen(MinecraftServer server, BlockState state, boolean pack, String offered) {
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            if (!(p.connection instanceof PacketContextProvider provider)) continue;
+            var context = provider.getPacketContext();
+            if (PortalTintStates.tinting(context) != pack) continue;
+            return eu.pb4.polymer.core.api.block.BlockMapper.getFrom(p).toClientSideState(state, context).toString();
+        }
+        return offered;
+    }
+
     private static List<E2eState.Zone> zones(MinecraftServer server) {
         List<E2eState.Zone> out = new ArrayList<>();
         PortalRegistry registry = PortalRegistry.get();
@@ -201,9 +216,10 @@ final class E2eStateCommand {
                     all &= portal;
                     BlockState tinted = portal && PortalTintStates.armed()
                             ? PortalTintStates.tinted(state.getValue(PortalBlock.AXIS), state.getValue(PortalBlock.TINT)) : null;
+                    String offered = portal ? Portals.block().getPolymerBlockState(state, null).toString() : state.toString();
                     cells.add(new E2eState.Cell(core(p), state.toString(),
-                            portal ? Portals.block().getPolymerBlockState(state, null).toString() : state.toString(),
-                            tinted == null ? null : tinted.toString(),
+                            seen(server, state, false, offered),
+                            seen(server, state, true, tinted == null ? null : tinted.toString()),
                             portal ? String.format("#%06X", PortalTints.rgb(state.getValue(PortalBlock.TINT))) : null));
                 }
                 lit = all;

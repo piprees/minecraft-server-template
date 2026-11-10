@@ -78,7 +78,9 @@ final class E2eState {
     /**
      * One opening cell: the server's block, the block a client without this mod
      * is sent for it, the one a client that loaded the server pack is sent
-     * (null while tints are off or the state was not granted), and the dye
+     * (null while tints are off or the state was not granted), each through
+     * Polymer's block mapper of an online player of that kind when there is
+     * one, and the dye
      * colour its tint paints ({@code #RRGGBB}).
      */
     record Cell(BlockPos pos, String block, String clientSees, String packSees, String tint) {
