@@ -25,7 +25,7 @@
     },
     "params": {
       "coast": -0.45,
-      "relief": 12
+      "relief": 6
     }
   },
   "biomes": [

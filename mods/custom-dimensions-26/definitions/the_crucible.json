@@ -34,14 +34,14 @@
       "id": "minecraft:lush_caves",
       "climate": {
         "weirdness": [-2.0, -0.0155],
-        "depth": [0.6, 2.0]
+        "depth": [0.2, 2.0]
       }
     },
     {
       "id": "adventure:root_hollows",
       "climate": {
         "weirdness": [-0.0155, 2.0],
-        "depth": [0.6, 2.0]
+        "depth": [0.2, 2.0]
       }
     }
   ],
