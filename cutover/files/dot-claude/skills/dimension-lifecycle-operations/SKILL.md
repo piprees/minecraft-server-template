@@ -56,5 +56,5 @@ Reset it as above without step 5, then delete its definition file from `config/c
 - **An empty 26.x server stops ticking** ([T176](../../../TROUBLESHOOTING.md#t176)), and autopause freezes the JVM after 10 empty minutes: RCON silence on a healthy container is usually that, not an outage.
 - **A level held by our ticket never unloads** ([T118](../../../TROUBLESHOOTING.md#t118)); `unloading` that never ends is a held ticket.
 - **26.x has no always-loaded spawn chunks** ([T117](../../../TROUBLESHOOTING.md#t117)).
-- **Each dimension keeps its own clock on 26.x** ([T179](../../../TROUBLESHOOTING.md#t179)).
+- **Time lives in server-wide clocks on 26.x** ([T223](../../../TROUBLESHOOTING.md#t223)): dimensions with the same day length share one, and `time set` moves the clock of the dimension it runs in ([T179](../../../TROUBLESHOOTING.md#t179)).
 - **Never run a measurement that loads chunks on the server thread for long** ([T120](../../../TROUBLESHOOTING.md#t120)): `render`, `roll` and `survey` run off it; one at a time.

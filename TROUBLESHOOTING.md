@@ -1596,6 +1596,48 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t228"></a>
+### T228 — Vanilla's End is one biome within 1,024 blocks
+- **Symptom:** an End render or survey at radius 512 or 1,024 shows the central island and nothing else.
+- **Cause:** the End's biome source is `the_end` alone inside 1,024 blocks, and its density holds the ring out to there empty.
+- **Fix:** render and survey End terrains at radius 2,048 or more (`/customdim render <slug> <seed> 2048 8`).
+
+<a id="t227"></a>
+### T227 — Checkerboard void cells flood from the sea and the aquifers
+- **Symptom:** every column of a `voidBiomes` cell is water.
+- **Cause:** the density empties the cell, then the preset's sea and aquifers fill the open space below sea level.
+- **Fix:** a checkerboard with void cells compiles with no aquifers, air as its fluid and its sea at `min_y`; `liquids.seaLevel` there is reported as unsupported.
+
+<a id="t226"></a>
+### T226 — Reading blocks from an unloaded lazy level corrupts its chunk storage
+- **Symptom:** thousands of `Chunk found in invalid location` or `Chunk file … in the wrong location` errors, then a watchdog crash.
+- **Cause:** a block read on a level reference kept past its unload opens chunk storage the level has already closed.
+- **Fix:** read through `LevelManager` while the level is held (`hold`/`release`), never through a kept `ServerLevel`.
+
+<a id="t225"></a>
+### T225 — A sideways `block_column` longer than 16 reads outside a feature's reach
+- **Symptom:** `unsafe terrain read` errors by the tens of thousands in a survey (the_crucible: 15,340 to 37,777 per run).
+- **Cause:** a feature may touch its own chunk and its neighbours; a horizontal column of 64 runs past them.
+- **Fix:** the biome library refuses a horizontal `block_column` over 16 blocks; build longer strands from pieces.
+
+<a id="t224"></a>
+### T224 — A `block_column` tests the blocks after its start, never the start
+- **Symptom:** a column feature places nothing (bayou cypress knees: 0).
+- **Cause:** `allowed_placement` is checked for each block after the origin; a rule that accepts only the origin's own block (water) cuts every column to zero length.
+- **Fix:** let the column's `allowed_placement` accept what stands above the origin (air), and put the origin's condition in the placement modifiers.
+
+<a id="t223"></a>
+### T223 — World clocks belong to the server, and dimensions on one clock share its time
+- **Symptom:** `time set` in one dimension moves the sun in others, or fails to move it in the one being watched.
+- **Cause:** on 26.3 time lives in server-wide world clocks (`MinecraftServer.clockManager`); a dimension type names its `default_clock`, and `/time` acts on the clock of the dimension it runs in.
+- **Fix:** read a dimension's clock from its type before reasoning about its time. Dimensions with the same `atmosphere.dayLength` share `<ns>:day_length/<day>_<night>`; a fixed-time dimension stays on `minecraft:overworld`.
+
+<a id="t222"></a>
+### T222 — Two timelines on one clock cannot both define a time marker
+- **Symptom:** the server refuses the pack at load: a timeline repeats `minecraft:wake_up_from_sleep` on clock `minecraft:overworld`.
+- **Cause:** 26.3 requires each (clock, time marker) pair to be unique across every timeline (`Timeline.validateRegistry`); a warped copy of vanilla's day on the vanilla clock repeats its markers.
+- **Fix:** a day length gets its own world clock, set as the dimension type's `default_clock` (`DayLength`).
+
 <a id="t221"></a>
 ### T221 — A survey longer than the idle time loses its level unless it holds it
 - **Symptom:** `Could not survey the_blossom_gardens: ... chunk [151, 28] not generated after 6000 ticks`, after `unloading the_blossom_gardens: no players for 5 min` in the same log.
@@ -1874,10 +1916,10 @@ Bands and regions cut temperature, humidity and weirdness with no regard for the
 - **Fix:** expect no far view in those dimensions, and never light their screenshots with night vision. If a dimension needs vistas, give it overworld effects.
 
 <a id="t179"></a>
-### T179 — Each dimension keeps its own clock on 26.x
+### T179 — `time set` moves one clock, not every dimension
 
 - **Symptom:** a screenshot taken after `time set noon` shows dawn, dusk or night in a custom dimension.
-- **Cause:** on 26.x a bare `time set` changes only the dimension the command runs in.
+- **Cause:** a bare `time set` changes the clock of the dimension the command runs in; a dimension on another clock (a fixed time, another day length) keeps its own time ([T223](#t223)).
 - **Fix:** run `execute in <dim> run time set …` (and `weather clear`) in the dimension being shot; the rig's `BiomeShots` does this per shot.
 
 <a id="t178"></a>
