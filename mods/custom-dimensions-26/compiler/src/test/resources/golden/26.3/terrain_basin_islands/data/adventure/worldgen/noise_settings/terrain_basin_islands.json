@@ -1,7 +1,7 @@
 {
   "base": "minecraft:overworld",
   "changed": {
-    "noise_router": "sha1:60173f61728f3f76968d791a1ddf212659f66fa4",
+    "noise_router": "sha1:96a1b3c5970b4b9acc9569be5a5d2c784e4ef470",
     "sea_level": -64
   },
   "removed": [

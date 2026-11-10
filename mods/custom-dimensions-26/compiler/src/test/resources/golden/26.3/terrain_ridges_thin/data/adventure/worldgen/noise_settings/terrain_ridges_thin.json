@@ -2,7 +2,7 @@
   "base": "minecraft:overworld",
   "changed": {
     "aquifers": "sha1:421e99639d3cf2b9822ae0f7f38866c177e0578f",
-    "noise_router": "sha1:4f166d9cecf6e50474a92ce1cfdf1e39d31d0baf"
+    "noise_router": "sha1:051a887673230fbd1e23d2d9f9994f9b2751c3bd"
   },
   "removed": [
     "debug_functions"

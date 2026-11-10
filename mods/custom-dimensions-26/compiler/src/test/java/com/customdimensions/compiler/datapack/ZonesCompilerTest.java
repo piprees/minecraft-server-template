@@ -46,7 +46,7 @@ class ZonesCompilerTest {
             JsonObject lerp = router.getAsJsonObject(key);
             assertEquals("minecraft:lerp", lerp.get("type").getAsString(), key);
             assertTrue(lerp.get("alpha").toString().contains("adventure:zones/t/0/mask"), key);
-            assertEquals("adventure:terrain/t/zone_0/" + key, lerp.get("second").getAsString());
+            assertEquals("adventure:terrain/t/zone_0/" + (key.equals("depth") ? "biome_depth" : key), lerp.get("second").getAsString());
         }
         assertEquals("adventure:zones/t/temperature", router.get("temperature").getAsString());
         JsonObject aquifers = settings(out, "t").getAsJsonObject("aquifers");

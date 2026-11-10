@@ -51,6 +51,16 @@ class TerrainShapingTest {
     }
 
     @Test
+    void aShapedPresetsBiomesReadTheDepthBelowItsTop() {
+        TerrainLibrary.Compiled c = preset("{\"scales\": {\"climate\": 3}}", "overworld");
+        assertEquals("adventure:terrain/t/biome_depth", c.settings().getAsJsonObject("noise_router").get("depth").getAsString());
+        String top = c.files().get(P + "surface_top.json").toString();
+        assertTrue(top.contains("minecraft:find_top_surface") && top.contains("adventure:terrain/t/offset")
+                && top.contains("adventure:terrain/t/sloped_cheese") && !top.contains("interpolated"), top);
+        assertTrue(c.files().get(P + "sloped_cheese.json").toString().contains("adventure:terrain/t/depth"), "the shape keeps the nominal depth");
+    }
+
+    @Test
     void absentShapingChangesNothing() {
         TerrainLibrary.Compiled plain = TerrainLibraryTest.compile("{\"base\": \"ridges\"}");
         TerrainLibrary.Compiled ones = TerrainLibraryTest.compile("{\"base\": \"ridges\", \"scales\": {\"continents\": 1, \"erosion\": 1, "
@@ -108,7 +118,7 @@ class TerrainShapingTest {
         assertTrue(c.files().get(P + "offset.json").toString().contains("adventure:terrain/t/continents"));
         JsonObject router = c.settings().getAsJsonObject("noise_router");
         for (String key : List.of("continents", "erosion", "ridges", "temperature", "vegetation", "depth", "final_density", "chunk_surface_level")) {
-            assertEquals("adventure:terrain/t/" + key, router.get(key).getAsString(), key);
+            assertEquals("adventure:terrain/t/" + (key.equals("depth") ? "biome_depth" : key), router.get(key).getAsString(), key);
         }
         JsonObject vanilla = TerrainLibraryTest.vanilla().noiseSettings("overworld");
         for (String key : List.of("noise", "sea_level", "default_block", "surface_rule")) {

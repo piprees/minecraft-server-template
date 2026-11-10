@@ -3,7 +3,7 @@
   "changed": {
     "aquifers": "sha1:644fa4faf153d640c22990c413a3b506e214185a",
     "material_rule": "adventure:the_greenreach",
-    "noise_router": "sha1:7fc353d156ce1c0a46c6c8640aac1fdda1538cba",
+    "noise_router": "sha1:7a5e1276b54a8596c85f989a57ff95bf48711ba9",
     "sea_level": 34
   },
   "removed": [

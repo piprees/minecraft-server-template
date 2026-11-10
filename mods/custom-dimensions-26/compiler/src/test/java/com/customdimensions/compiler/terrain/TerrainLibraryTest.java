@@ -57,14 +57,24 @@ class TerrainLibraryTest {
     void everyTerrainEmitsItsRouterFunctionsAndWiresTheRouter(TerrainFamily family) {
         TerrainLibrary.Compiled c = compile("{\"base\": \"" + family.id() + "\"}");
         for (String name : List.of("continents", "erosion", "ridges", "ridges_folded", "temperature", "vegetation", "height",
-                "offset", "factor", "jaggedness", "depth", "sloped_cheese", "final_density", "preliminary_surface_level",
-                "chunk_surface_level")) {
+                "offset", "factor", "jaggedness", "depth", "sloped_cheese", "surface_top", "biome_depth", "final_density",
+                "preliminary_surface_level", "chunk_surface_level")) {
             assertTrue(c.files().containsKey(P + name + ".json"), name);
         }
         JsonObject router = c.settings().getAsJsonObject("noise_router");
-        for (String key : List.of("erosion", "ridges", "temperature", "vegetation", "depth", "final_density", "chunk_surface_level")) {
+        for (String key : List.of("erosion", "ridges", "temperature", "vegetation", "final_density", "chunk_surface_level")) {
             assertEquals("adventure:terrain/t/" + key, router.get(key).getAsString(), key);
         }
+        assertEquals("adventure:terrain/t/biome_depth", router.get("depth").getAsString(), "biomes read the depth below the terrain's top");
+        assertTrue(text(c.files().get(P + "sloped_cheese.json")).contains("adventure:terrain/t/depth"), "the shape keeps the nominal depth");
+        String top = text(c.files().get(P + "surface_top.json"));
+        assertTrue(top.contains("minecraft:find_top_surface") && top.contains("adventure:terrain/t/sloped_cheese")
+                && top.contains("minecraft:overworld/caves/entrances") && top.contains("\"upper_bound\":\"adventure:terrain/t/height\""), top);
+        assertFalse(top.contains("interpolated") || top.contains("blend_density") || top.contains("beardifier")
+                || top.contains("caves/noodle"), "the probe samples single points: " + top);
+        String biomeDepth = text(c.files().get(P + "biome_depth.json"));
+        assertTrue(biomeDepth.contains("\"type\":\"minecraft:min\",\"left\":\"adventure:terrain/t/offset\"")
+                && biomeDepth.contains("adventure:terrain/t/surface_top"), biomeDepth);
         String all = text(c.settings()) + c.files().values();
         assertFalse(all.contains("minecraft:overworld/sloped_cheese"), "vanilla's sloped cheese is replaced");
         assertFalse(all.contains("minecraft:overworld/offset"), "vanilla's offset is replaced");

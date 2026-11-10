@@ -18,6 +18,7 @@ import static com.customdimensions.compiler.terrain.Df.max;
 import static com.customdimensions.compiler.terrain.Df.min;
 import static com.customdimensions.compiler.terrain.Df.mul;
 import static com.customdimensions.compiler.terrain.Df.ref;
+import static com.customdimensions.compiler.terrain.Df.type;
 import static com.customdimensions.compiler.terrain.Df.unary;
 
 /**
@@ -113,6 +114,10 @@ public final class TerrainLibrary {
             openFloor(preliminary);
         }
         functions.put("final_density", shape.solid() == null ? finalDensity : max(finalDensity, shape.solid()));
+        JsonElement probe = pointwise(finalDensity);
+        functions.put("surface_top", cache(findTopSurface(shape.solid() == null ? probe : max(probe, shape.solid()),
+                ref(prefix + "/height"), minY)));
+        functions.put("biome_depth", biomeDepth(replace(vanilla.densityFunction("overworld/depth"), ids), prefix));
         functions.put("preliminary_surface_level", preliminary);
         functions.put("chunk_surface_level", replace(vanilla.densityFunction("overworld/chunk_surface_level"), ids));
 
@@ -123,10 +128,10 @@ public final class TerrainLibrary {
         }
         JsonObject outRouter = out.getAsJsonObject("noise_router");
         outRouter.add("continents", shape.continents());
-        for (String key : List.of("erosion", "ridges", "temperature", "vegetation", "depth", "final_density",
-                "chunk_surface_level")) {
+        for (String key : List.of("erosion", "ridges", "temperature", "vegetation", "final_density", "chunk_surface_level")) {
             outRouter.addProperty(key, prefix + "/" + key);
         }
+        outRouter.addProperty("depth", prefix + "/biome_depth");
         if (spec.family().airborne()) {
             out.remove("aquifers");
             out.addProperty("sea_level", minY);
@@ -174,11 +179,19 @@ public final class TerrainLibrary {
             JsonObject f = replace(vanilla.densityFunction(own + "/" + n), ids);
             functions.put(n, "sloped_cheese".equals(n) ? scaled(f, shaping.scale()) : f);
         }
+        functions.put("surface_top", cache(findTopSurface(pointwise(functions.get("final_density")), ref(prefix + "/offset"), settings)));
+        functions.put("biome_depth", biomeDepth(functions.get("depth"), prefix));
         JsonObject out = replace(settings, ids);
+        out.getAsJsonObject("noise_router").addProperty("depth", prefix + "/biome_depth");
         out.remove("debug_functions");
         Map<String, JsonObject> files = new TreeMap<>();
         functions.forEach((key, json) -> files.put(dataPath(prefix + "/" + key, "worldgen/density_function"), json));
         return new Compiled(out, files);
+    }
+
+    /** {@link #findTopSurface} below a preset's nominal height, which its {@code offset} gives as {@code height / 128 - 1}. */
+    private static JsonObject findTopSurface(JsonElement density, JsonElement offset, JsonObject settings) {
+        return findTopSurface(density, mul(add(offset, 1), 128), settings.getAsJsonObject("noise").get("min_y").getAsInt());
     }
 
     /** {@code continents} with the shaping's layout added (cached), or unchanged without one. */
@@ -202,6 +215,70 @@ public final class TerrainLibrary {
      * plus vanilla's 3D noise (weighed by the shape's), as vanilla's overworld writes it; then the
      * terrain's cut (a minimum) and addition (a maximum).
      */
+    /** Vertical step of the scan for the terrain's top below its nominal height. */
+    static final int SURFACE_TOP_STEP = 4;
+
+    /**
+     * The highest solid cell of {@code density} at or below {@code upper}, in
+     * {@link #SURFACE_TOP_STEP}-block steps; {@code minY} where there is none.
+     */
+    private static JsonObject findTopSurface(JsonElement density, JsonElement upper, int minY) {
+        JsonObject o = type("find_top_surface");
+        o.add("density", density);
+        o.add("upper_bound", upper);
+        o.addProperty("lower_bound", minY);
+        o.addProperty("cell_height", SURFACE_TOP_STEP);
+        return o;
+    }
+
+    /**
+     * {@code density} for single points: interpolation and blending give way to
+     * their input, structure beards to 0 and noodle caves to solid, so a probe
+     * costs one evaluation of the shape and the large caves, not a cell's corners.
+     */
+    static JsonElement pointwise(JsonElement e) {
+        if (e.isJsonPrimitive()) return NOODLES.equals(e.getAsString()) ? new JsonPrimitive(64.0) : e;
+        if (e.isJsonArray()) {
+            JsonArray out = new JsonArray();
+            e.getAsJsonArray().forEach(x -> out.add(pointwise(x)));
+            return out;
+        }
+        if (!e.isJsonObject()) return e;
+        JsonObject o = e.getAsJsonObject();
+        String type = o.has("type") && o.get("type").isJsonPrimitive() ? o.get("type").getAsString() : "";
+        switch (type) {
+            case "minecraft:interpolated", "minecraft:blend_density" -> {
+                return pointwise(o.get("input"));
+            }
+            case "minecraft:beardifier" -> {
+                return new JsonPrimitive(0.0);
+            }
+            default -> {
+                JsonObject out = new JsonObject();
+                o.entrySet().forEach(kv -> out.add(kv.getKey(), pointwise(kv.getValue())));
+                return out;
+            }
+        }
+    }
+
+    private static final String NOODLES = "minecraft:overworld/caves/noodle";
+
+    /**
+     * The depth biomes read: vanilla's, measured from the terrain's solid top
+     * where that lies below its nominal height, so a valley floor, a lake bed
+     * or a flooded cave mouth open to the sky is surface, not cave (T210).
+     * {@code depth} is vanilla's {@code gradient + offset}; the terrain's own
+     * shape keeps reading it.
+     */
+    private static JsonObject biomeDepth(JsonObject depth, String prefix) {
+        if (!"minecraft:add".equals(depth.get("type").getAsString()) || !depth.has("right")) {
+            throw new IllegalStateException("overworld/depth is not gradient + offset: " + depth);
+        }
+        JsonObject out = depth.deepCopy();
+        out.add("right", min(depth.get("right"), add(mul(ref(prefix + "/surface_top"), 1 / 128.0), -1)));
+        return out;
+    }
+
     private static JsonObject slopedCheese(String prefix, TerrainFamily.Shape shape, double scale) {
         JsonElement jagged = unary("half_negative", Df.noise("minecraft:jagged", 1500 / scale, 0, false));
         JsonElement depth = add(ref(prefix + "/depth"), mul(ref(prefix + "/jaggedness"), jagged));
