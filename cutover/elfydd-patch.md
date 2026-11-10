@@ -30,7 +30,7 @@ At the migration (`migration-notes.md` step 6), one commit:
 
 2. `.stack-version`: `v6.0.0`. First: the v6 `dev` that step 3 re-runs itself as reads the file before an exported `STACK_VERSION`, so step 1's pin left in place pulls v5 back.
 3. `./dev update --scaffold-only` with `STACK_VERSION=v6.0.0` exported (Elfydd's v5 `dev` resolves its pin from `.env` and the variable only), which pulls the v6 bundle and replaces the scaffold files its `update)` case names: `dev`, `ops`, `.env.example`, `.gitignore`, `AGENTS.md`, `commands.json`, `.github/workflows/{deploy,update,server-power}.yml` and `.github/dependabot.yml`. It leaves `.stack-version`, `README.md` and `overlay/` alone.
-4. `.github/workflows/deploy.yml` (as the v6 scaffold has it): `uses: piprees/minecraft-server-template/.github/workflows/deploy-reusable.yml@v6`, `with: stack_version_override: ${{ inputs.stack_version || '' }}` and the `workflow_dispatch` `stack_version` input, and two more secrets:
+4. `.github/workflows/deploy.yml`: step 3 brings the scaffold's, which already carries the `stack_version` input, `stack_version_override` and both secrets below; the one change is the reusable workflow's ref, as the v6 scaffold has it: `uses: piprees/minecraft-server-template/.github/workflows/deploy-reusable.yml@v6`, `with: stack_version_override: ${{ inputs.stack_version || '' }}` and the `workflow_dispatch` `stack_version` input, and two more secrets:
 
    ```yaml
          STACK_READ_TOKEN: ${{ secrets.STACK_READ_TOKEN }}
