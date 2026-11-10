@@ -140,4 +140,46 @@ class PlacenessTest {
         assertEquals("b0", s.get("biome").getAsString());
         assertEquals(50.0, s.get("landformRegionPercent").getAsDouble());
     }
+
+    @Test
+    void aCoastIsNoLandBiomeEdge() {
+        // west half land biome 0, east half the sea biome 1: one land region, the coast its only boundary
+        int[] all = fill((x, z) -> x < SIDE / 2 ? 0 : 1);
+        int[] land = fill((x, z) -> x < SIDE / 2 ? 0 : -1);
+        JsonObject o = p.toJson(all, k -> "b" + k, all, k -> "f" + k, null, null, null, land);
+        assertTrue(o.getAsJsonObject("biomeRegions").get("edgeKmPerKm2").getAsDouble() > 0, "the coast is an edge over all columns");
+        JsonObject l = o.getAsJsonObject("landBiomeRegions");
+        assertEquals(50.0, l.get("landPercent").getAsDouble());
+        assertEquals(1, l.get("count").getAsInt());
+        assertEquals(100.0, l.get("largestPercent").getAsDouble(), "of the land");
+        assertEquals(0.0, l.get("edgeKmPerKm2").getAsDouble());
+        assertEquals(0.0, l.get("nearEdgePercent").getAsDouble());
+        assertEquals(100.0, l.getAsJsonObject("biomesPercent").get("b0").getAsDouble());
+    }
+
+    @Test
+    void landRegionsAreMeasuredOverTheLand() {
+        // a quarter of the grid is land, split into two biomes; the rest is sea
+        int[] land = fill((x, z) -> z >= SIDE / 2 || x >= SIDE / 2 ? -1 : x < SIDE / 4 ? 0 : 1);
+        JsonObject l = p.toJson(land, k -> "b" + k, land, k -> "f" + k, null, null, null, land).getAsJsonObject("landBiomeRegions");
+        assertEquals(25.0, l.get("landPercent").getAsDouble());
+        assertEquals(2, l.get("count").getAsInt());
+        assertEquals(50.0, l.get("largestPercent").getAsDouble());
+        double landKm2 = SIDE * SIDE / 4.0 * STEP * STEP / 1e6;
+        assertEquals(Math.round(2 / landKm2 * 10) / 10.0, l.get("perKm2").getAsDouble());
+        // one straight boundary SIDE/2 cells long between the two land biomes
+        assertEquals(Math.round(SIDE / 2.0 * STEP / 1000.0 / landKm2 * 100) / 100.0, l.get("edgeKmPerKm2").getAsDouble());
+    }
+
+    @Test
+    void noLandMeasuresNothing() {
+        int[] sea = fill((x, z) -> 0);
+        int[] land = fill((x, z) -> -1);
+        JsonObject l = p.toJson(sea, k -> "b" + k, sea, k -> "f" + k, null, null, null, land).getAsJsonObject("landBiomeRegions");
+        assertEquals(0.0, l.get("landPercent").getAsDouble());
+        assertEquals(0, l.get("count").getAsInt());
+        assertEquals(0.0, l.get("largestPercent").getAsDouble());
+        assertEquals(0.0, l.get("edgeKmPerKm2").getAsDouble());
+        assertFalse(json(sea, sea, null, null, null).has("landBiomeRegions"), "absent unless asked for");
+    }
 }

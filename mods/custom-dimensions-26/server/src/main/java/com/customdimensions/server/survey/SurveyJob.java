@@ -244,7 +244,7 @@ public final class SurveyJob {
         long t3 = System.nanoTime();
         JsonObject dossier = Survey.dossier(meta, landforms, analysed, checks);
         dossier.addProperty("dimension", level.dimension().identifier().toString());
-        dossier.add("placeness", placeness(sampler, coarse, landforms, grid, kind, definition));
+        dossier.add("placeness", placeness(sampler, coarse, landforms, grid, kind, definition, roleBiomes(server, definition, false)));
         timings.put("dossier", (System.nanoTime() - t3) / 1_000_000);
         long total = (System.nanoTime() - start) / 1_000_000;
         timings.put("total", total);
@@ -261,10 +261,14 @@ public final class SurveyJob {
         return new Result(slug, path, analysed.size(), columns, total, types, landmarks);
     }
 
-    /** {@link Placeness} over the coarse map: its biomes, landform classes, surface heights and the router's continentalness. */
-    static JsonObject placeness(Sampler sampler, ColumnSamples coarse, Landforms landforms, RenderGrid grid, byte[] kind, Definition definition) {
+    /**
+     * {@link Placeness} over the coarse map: its biomes, landform classes, surface heights and the router's continentalness;
+     * land biome regions over the dry cells outside {@code seaBiomes}.
+     */
+    static JsonObject placeness(Sampler sampler, ColumnSamples coarse, Landforms landforms, RenderGrid grid, byte[] kind, Definition definition,
+                                Set<String> seaBiomes) {
         int side = grid.side();
-        int[] biomes = new int[side * side], forms = new int[side * side];
+        int[] biomes = new int[side * side], forms = new int[side * side], landBiomes = new int[side * side];
         double[] heights = new double[side * side], continentalness = new double[side * side];
         Map<String, Integer> ids = new LinkedHashMap<>();
         List<String> names = new ArrayList<>();
@@ -276,6 +280,7 @@ public final class SurveyJob {
                     names.add(k);
                     return names.size() - 1;
                 });
+                landBiomes[i] = kind[i] == 0 && b != null && !seaBiomes.contains(b) ? biomes[i] : -1;
                 forms[i] = landforms.form(px, pz).ordinal();
                 heights[i] = kind[i] == 2 ? Double.NaN : coarse.height(px, pz);
                 continentalness[i] = sampler.continentalness(grid.x(px), grid.z(pz));
@@ -283,7 +288,7 @@ public final class SurveyJob {
         }
         int[] spawn = definition != null && definition.spawn() != null ? new int[]{definition.spawn().x(), definition.spawn().z()} : null;
         return new Placeness(side, grid.step(), grid.x(0), grid.z(0)).toJson(biomes, names::get, forms,
-                k -> Landforms.Form.values()[k].name().toLowerCase(java.util.Locale.ROOT), heights, continentalness, spawn);
+                k -> Landforms.Form.values()[k].name().toLowerCase(java.util.Locale.ROOT), heights, continentalness, spawn, landBiomes);
     }
 
     /** A generated chunk's copied sections and structure starts, taken on the server thread. */
@@ -440,18 +445,23 @@ public final class SurveyJob {
 
     /** Biomes whose role is the sea or a river: vanilla's ocean and river tags, the library's roles, the definition's own. */
     private static Set<String> waterBiomes(MinecraftServer server, Definition definition) {
+        return roleBiomes(server, definition, true);
+    }
+
+    /** Biomes whose role is the sea ({@code rivers} false) or the sea or a river. */
+    static Set<String> roleBiomes(MinecraftServer server, Definition definition, boolean rivers) {
+        Set<String> roles = rivers ? Set.of(BiomeRoles.OCEAN, BiomeRoles.RIVER) : Set.of(BiomeRoles.OCEAN);
         Set<String> out = new HashSet<>();
         server.registryAccess().lookupOrThrow(Registries.BIOME).listElements().forEach(h -> {
-            if (h.is(BiomeTags.IS_OCEAN) || h.is(BiomeTags.IS_RIVER)) out.add(h.key().identifier().toString());
+            if (h.is(BiomeTags.IS_OCEAN) || rivers && h.is(BiomeTags.IS_RIVER)) out.add(h.key().identifier().toString());
         });
         BiomeLibrary.shipped().entries().values().forEach(e -> {
-            if (BiomeRoles.OCEAN.equals(e.role()) || BiomeRoles.RIVER.equals(e.role())) out.add("adventure:" + e.id());
+            if (e.role() != null && roles.contains(e.role())) out.add("adventure:" + e.id());
         });
         JsonObject layout = definition == null ? null : definition.biomeLayout();
         if (layout != null && layout.has("roles") && layout.get("roles").isJsonObject()) {
             layout.getAsJsonObject("roles").entrySet().forEach(kv -> {
-                String role = kv.getValue().getAsString();
-                if (BiomeRoles.OCEAN.equals(role) || BiomeRoles.RIVER.equals(role)) out.add(kv.getKey());
+                if (roles.contains(kv.getValue().getAsString())) out.add(kv.getKey());
                 else out.remove(kv.getKey());
             });
         }

@@ -53,10 +53,17 @@ public final class Placeness {
      * The placeness section: {@code biomes} and {@code landforms} label each cell
      * (a negative label is no surface and joins no region), {@code heights} and
      * {@code continentalness} are fields (NaN where absent; null skips that
-     * field); {@code spawn} is a block x, z or null.
+     * field); {@code spawn} is a block x, z or null. {@code landBiomes}, when
+     * given, labels only the land cells outside a sea biome (negative elsewhere)
+     * and adds {@code landBiomeRegions}, measured over those cells alone.
      */
     public JsonObject toJson(int[] biomes, IntFunction<String> biomeName, int[] landforms, IntFunction<String> landformName,
                              double[] heights, double[] continentalness, int[] spawn) {
+        return toJson(biomes, biomeName, landforms, landformName, heights, continentalness, spawn, null);
+    }
+
+    public JsonObject toJson(int[] biomes, IntFunction<String> biomeName, int[] landforms, IntFunction<String> landformName,
+                             double[] heights, double[] continentalness, int[] spawn, int[] landBiomes) {
         Regions b = regions(biomes);
         Regions l = regions(landforms);
         JsonObject o = new JsonObject();
@@ -66,6 +73,7 @@ public final class Placeness {
         o.add("biomesPercent", shares(biomes, biomeName));
         o.add("biomeRegions", regionJson(b, biomes));
         o.add("landformRegions", regionJson(l, landforms));
+        if (landBiomes != null) o.add("landBiomeRegions", landRegionJson(landBiomes, biomeName));
         JsonObject corr = new JsonObject();
         if (heights != null) corr.add("surfaceHeight", correlation(heights));
         if (continentalness != null) corr.add("continentalness", correlation(continentalness));
@@ -92,11 +100,15 @@ public final class Placeness {
 
     /** Every label's share of the grid, largest first, one decimal (at least 0.1 for a label present at all). */
     JsonObject shares(int[] labels, IntFunction<String> name) {
+        return shares(labels, name, labels.length);
+    }
+
+    private static JsonObject shares(int[] labels, IntFunction<String> name, int cells) {
         java.util.Map<Integer, Integer> counts = new java.util.HashMap<>();
         for (int l : labels) if (l >= 0) counts.merge(l, 1, Integer::sum);
         JsonObject o = new JsonObject();
         counts.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-                .forEach(e -> o.addProperty(name.apply(e.getKey()), Math.max(0.1, Stats.percent(e.getValue(), labels.length))));
+                .forEach(e -> o.addProperty(name.apply(e.getKey()), Math.max(0.1, Stats.percent(e.getValue(), cells))));
         return o;
     }
 
@@ -138,10 +150,30 @@ public final class Placeness {
     }
 
     JsonObject regionJson(Regions r, int[] labels) {
+        return regionJson(r, labels, side * side, false);
+    }
+
+    /**
+     * Biome regions over the labelled cells alone: densities, shares and the
+     * near-edge share are of those cells, and only a boundary between two
+     * labelled cells is an edge, so a coast is no biome edge.
+     */
+    JsonObject landRegionJson(int[] labels, IntFunction<String> name) {
+        int cells = 0;
+        for (int l : labels) if (l >= 0) cells++;
+        JsonObject o = new JsonObject();
+        o.addProperty("note", "regions of one biome over land cells outside a sea biome; shares and densities are of those cells, "
+                + "and only a boundary between two of them is an edge");
+        o.addProperty("landPercent", Stats.percent(cells, side * side));
+        o.add("biomesPercent", shares(labels, name, cells));
+        regionJson(regions(labels), labels, cells, true).entrySet().forEach(e -> o.add(e.getKey(), e.getValue()));
+        return o;
+    }
+
+    private JsonObject regionJson(Regions r, int[] labels, int cells, boolean labelledOnly) {
         JsonObject o = new JsonObject();
         double cellHa = (double) step * step / 10_000.0;
-        double gridKm2 = (double) side * side * step * step / 1_000_000.0;
-        int cells = side * side;
+        double gridKm2 = Math.max(1, cells) * (double) step * step / 1_000_000.0;
         int speckCells = speckCells();
         int major = 0, regions = 0;
         long sumSq = 0, labelled = 0, specks = 0;
@@ -160,31 +192,36 @@ public final class Placeness {
         Arrays.sort(sorted);
         o.addProperty("medianHa", round2(sorted.length == 0 ? 0 : Stats.percentile(sorted, 50) * cellHa));
         o.addProperty("largestHa", Stats.round1(sorted.length == 0 ? 0 : sorted[sorted.length - 1] * cellHa));
-        o.addProperty("largestPercent", topShare(r, 1));
-        o.addProperty("top3Percent", topShare(r, 3));
+        o.addProperty("largestPercent", topShare(r, 1, cells));
+        o.addProperty("top3Percent", topShare(r, 3, cells));
         o.addProperty("areaWeightedMeanHa", Stats.round1(labelled == 0 ? 0 : (double) sumSq / labelled * cellHa));
         long edges = 0;
         for (int z = 0; z < side; z++) {
             for (int x = 0; x < side; x++) {
                 int i = z * side + x;
-                if (x < side - 1 && labels[i] != labels[i + 1]) edges++;
-                if (z < side - 1 && labels[i] != labels[i + side]) edges++;
+                if (labelledOnly && labels[i] < 0) continue;
+                if (x < side - 1 && labels[i] != labels[i + 1] && (!labelledOnly || labels[i + 1] >= 0)) edges++;
+                if (z < side - 1 && labels[i] != labels[i + side] && (!labelledOnly || labels[i + side] >= 0)) edges++;
             }
         }
         o.addProperty("edgeKmPerKm2", round2(edges * step / 1000.0 / gridKm2));
         int[] dist = edgeDistance(r);
         int near = 0;
-        for (int d : dist) if (d <= EDGE_BLOCKS) near++;
+        for (int i = 0; i < dist.length; i++) if (dist[i] <= EDGE_BLOCKS && (!labelledOnly || labels[i] >= 0)) near++;
         o.addProperty("nearEdgePercent", Stats.percent(near, cells));
         return o;
     }
 
     /** The share of the grid in the {@code n} largest regions together. */
     double topShare(Regions r, int n) {
+        return topShare(r, n, side * side);
+    }
+
+    private static double topShare(Regions r, int n, int cells) {
         int[] top = largest(r);
         long sum = 0;
         for (int k = 0; k < Math.min(n, top.length); k++) sum += r.areas[top[k]];
-        return Stats.percent(sum, side * side);
+        return Stats.percent(sum, cells);
     }
 
     /** Region ids, largest first. */
