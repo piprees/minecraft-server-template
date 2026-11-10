@@ -36,22 +36,42 @@ class NightVisionTest(unittest.TestCase):
     def test_lit_overworld_lights_underground_only(self):
         self.assertEqual(nv(ps.pick(dossier())), {'far': False, 'surface-t1': False, 'underground-t2': True})
 
-    def test_dark_dimension_without_fog_lights_everything(self):
-        self.assertEqual(set(nv(ps.pick(dossier(skylight=False))).values()), {True})
+    def test_dark_dimension_pairs_every_shot(self):
+        shots = ps.pick(dossier(skylight=False))
+        self.assertEqual({(s.get('pair'), s['nightVision']) for s in shots}, {(True, False)})
+
+    def test_a_lit_dimension_takes_single_frames(self):
+        self.assertFalse(any(s.get('pair') for s in ps.pick(dossier())))
+        self.assertFalse(any(s.get('pair') for s in ps.pick(dossier(fixed=6000))))
 
     def test_the_piglin_attribute_alone_is_not_fog(self):
-        self.assertTrue(nv(ps.pick(dossier(skylight=False)))['far'])
+        self.assertFalse(any(s.get('pair') for s in ps.pick(dossier(skylight=True))))
 
-    def test_a_dimension_held_at_night_is_dark(self):
-        self.assertEqual(set(nv(ps.pick(dossier(fixed=18000))).values()), {True})
-        self.assertEqual(nv(ps.pick(dossier(fixed=6000)))['far'], False)
+    def test_a_dimension_held_at_night_is_paired(self):
+        self.assertTrue(all(s.get('pair') for s in ps.pick(dossier(fixed=18000))))
 
-    def test_fixed_fog_end_distance_is_fog_bound(self):
-        d = dossier(skylight=False, visual={'minecraft:visual/fog_end_distance': 96.0})
-        self.assertEqual(set(nv(ps.pick(d)).values()), {False})
+    def test_fixed_fog_end_distance_is_paired(self):
+        d = dossier(skylight=True, visual={'minecraft:visual/fog_end_distance': 96.0})
+        self.assertEqual({(s.get('pair'), s['nightVision']) for s in ps.pick(d)}, {(True, False)})
 
-    def test_nether_effects_in_the_definition_are_fog_bound(self):
-        self.assertEqual(set(nv(ps.pick(dossier(skylight=False, effects='minecraft:the_nether'))).values()), {False})
+    def test_nether_effects_in_the_definition_are_paired(self):
+        self.assertTrue(all(s.get('pair') for s in ps.pick(dossier(effects='minecraft:the_nether'))))
+
+
+class VoidFeatureTest(unittest.TestCase):
+    def test_no_hole_marks_nothing(self):
+        self.assertFalse(any(s.get('voidFeature') for s in ps.pick(dossier())))
+
+    def test_a_hole_marks_the_far_view_and_downward_shots(self):
+        d = dossier()
+        d['landforms'] = {'voidHoles': {'count': 1, 'countOver1Ha': 1}}
+        d['places']['vista']['lookAt'] = [50, 85, 0]
+        d['places']['surface']['types'][0]['coordinates'] = [{'camera': [0.5, 70, 0.5], 'pitch': 45}]
+        marked = {s['name'].split('the_x-', 1)[1] for s in ps.pick(d) if s.get('voidFeature')}
+        self.assertEqual(marked, {'far', 'surface-t1'})
+
+    def test_looks_down_reads_the_at_block(self):
+        self.assertAlmostEqual(ps.looks_down({'x': 0.5, 'y': '100', 'z': 0.5, 'at': [0, 0, 101]}), 45.0, delta=1.5)
 
 
 class AlternatesTest(unittest.TestCase):

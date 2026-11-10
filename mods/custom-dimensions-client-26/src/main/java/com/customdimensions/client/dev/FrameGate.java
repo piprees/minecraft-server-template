@@ -6,7 +6,8 @@ import java.util.Locale;
 
 /**
  * Whether a rig frame shows a place: a frame is rejected when it is occluded, empty, a fog wall, dark, or looks at the
- * world border. The ray measures come from {@link FrameCensus}, the image measures from the screenshot's pixels.
+ * world border. A shot of a void feature (a hole in the world) may be mostly void but must still hit blocks with
+ * {@link #VOID_HITS_MIN} of its rays. A frame pair (as seen, and with night vision) is kept when either frame passes. The ray measures come from {@link FrameCensus}, the image measures from the screenshot's pixels.
  * Thresholds are calibrated against the rig's own good and bad frames (README § Frame-quality gate).
  */
 public final class FrameGate {
@@ -16,8 +17,13 @@ public final class FrameGate {
     static final double MEDIAN_MIN = 4;
     /** Occluded: one block id covering more than this share of all rays within {@link #NEAR}. */
     static final double NEAR_BLOCK_MAX = 45;
-    /** Empty: sky, void and unloaded rays together over this share, unless the shot is meant to be a void or sky view. */
+    /**
+     * Empty: sky and unloaded rays together over this share, or sky, void and unloaded together over it on a shot that
+     * is not a void feature; spared on a shot meant to be a sky or void view.
+     */
     static final double EMPTY_MAX = 75;
+    /** Void feature: fewer than this share of rays hitting blocks. */
+    static final double VOID_HITS_MIN = 15;
     /** Fog wall: more than this share of pixels within {@link #FOG_DISTANCE} of the fog colour. */
     static final double FOG_MAX = 60;
     /** RGB distance (0-441) within which a pixel counts as fog. */
@@ -37,10 +43,19 @@ public final class FrameGate {
         double emptyPercent() {
             return skyPercent + voidPercent + unloadedPercent;
         }
+
+        double hitPercent() {
+            return 100 - emptyPercent();
+        }
     }
 
     /** The reasons a frame fails, empty when it passes; {@code emptyAllowed} for a shot meant to show sky or void. */
     public static List<String> reasons(Measures m, boolean emptyAllowed) {
+        return reasons(m, emptyAllowed, false);
+    }
+
+    /** As {@link #reasons(Measures, boolean)}, with {@code voidFeature} for a shot whose place is a hole in the world. */
+    public static List<String> reasons(Measures m, boolean emptyAllowed, boolean voidFeature) {
         List<String> out = new ArrayList<>();
         if (m.luma() < LUMA_MIN) {
             out.add(String.format(Locale.ROOT, "dark: mean luma %.1f < %.0f", m.luma(), LUMA_MIN));
@@ -50,7 +65,12 @@ public final class FrameGate {
         } else if (m.nearBlockPercent() > NEAR_BLOCK_MAX) {
             out.add(String.format(Locale.ROOT, "occluded: %s %.1f%% of rays within %.0f blocks", m.nearBlock(), m.nearBlockPercent(), NEAR));
         }
-        if (!emptyAllowed && m.emptyPercent() > EMPTY_MAX) {
+        if (!emptyAllowed && voidFeature && m.skyPercent() + m.unloadedPercent() > EMPTY_MAX) {
+            out.add(String.format(Locale.ROOT, "empty: sky %.1f%% + unloaded %.1f%% > %.0f%%", m.skyPercent(), m.unloadedPercent(), EMPTY_MAX));
+        } else if (!emptyAllowed && voidFeature && m.hitPercent() < VOID_HITS_MIN) {
+            out.add(String.format(Locale.ROOT, "void: %.1f%% of rays hit blocks < %.0f%% (void %.1f%%)", m.hitPercent(), VOID_HITS_MIN,
+                    m.voidPercent()));
+        } else if (!emptyAllowed && !voidFeature && m.emptyPercent() > EMPTY_MAX) {
             out.add(String.format(Locale.ROOT, "empty: sky %.1f%% + void %.1f%% + unloaded %.1f%% > %.0f%%", m.skyPercent(), m.voidPercent(),
                     m.unloadedPercent(), EMPTY_MAX));
         }
@@ -61,6 +81,11 @@ public final class FrameGate {
             out.add(String.format(Locale.ROOT, "border: %.1f%% of rays reach the world border", m.borderPercent()));
         }
         return out;
+    }
+
+    /** Whether a frame pair is kept: when either frame's reasons are empty. */
+    public static boolean keepsPair(List<String> asSeen, List<String> nightVision) {
+        return asSeen.isEmpty() || nightVision.isEmpty();
     }
 
     /**

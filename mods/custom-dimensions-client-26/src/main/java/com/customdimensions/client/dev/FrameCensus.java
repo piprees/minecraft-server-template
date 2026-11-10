@@ -27,9 +27,10 @@ import net.minecraft.world.phys.Vec3;
  * rays from the eye across the view (the vertical field of view from the
  * options, the window's aspect), each clipped against block outlines and any
  * fluid out to the render distance. A ray that hits records its block, the
- * biome there and its distance; one that misses is sky, or {@code unloaded}
- * when it passed a chunk the client does not hold below the loaded chunks' skyline, or {@code void} when it left the
- * bottom of the world. Shares are of all rays, except biome shares, which are of the rays that hit. It also gives
+ * biome there and its distance; one that misses is {@code unloaded} when it passed a chunk the client does not hold
+ * below the loaded chunks' skyline, {@code void} when it points below the horizon and left the bottom of the world or
+ * ends over a loaded column with no block in it (a void hole), and sky otherwise. Shares are of all rays, except biome
+ * shares, which are of the rays that hit. It also gives
  * {@link FrameGate} its ray measures: the median ray distance (a miss counts as the render distance), the block covering
  * most rays within {@link FrameGate#NEAR} blocks, the share of rays that reach the world border before any block, and
  * the fog colour at the camera.
@@ -96,8 +97,8 @@ final class FrameCensus {
                     border++;
                 }
                 if (hit.getType() == HitResult.Type.MISS) {
-                    if (ray.y < 0 && eye.y + ray.y * max < mc.level.getMinY()) voided++;
-                    else if (passesUnloaded(mc, eye, ray, max, skyline)) unloaded++;
+                    if (passesUnloaded(mc, eye, ray, max, skyline)) unloaded++;
+                    else if (ray.y < 0 && (eye.y + ray.y * max < mc.level.getMinY() || emptyColumn(mc, to))) voided++;
                     else sky++;
                     continue;
                 }
@@ -155,7 +156,7 @@ final class FrameCensus {
         }
         o.add("bands", b);
         o.addProperty("bandLimits", "near under " + (int) NEAR + ", mid " + (int) NEAR + "-" + (int) FAR + ", far over " + (int) FAR + " blocks");
-        String caption = caption(percent(sky, rays), percent(unloaded, rays), bands, rays, biomes, hits);
+        String caption = caption(percent(sky, rays), percent(unloaded, rays), percent(voided, rays), bands, rays, biomes, hits);
         o.addProperty("caption", caption);
         FrameGate.Measures measures = new FrameGate.Measures(median, nearTop.getKey(), percent(nearTop.getValue(), rays), percent(sky, rays),
                 percent(voided, rays), percent(unloaded, rays), percent(border, rays), 0, 0);
@@ -176,6 +177,13 @@ final class FrameCensus {
         return false;
     }
 
+    /** Whether {@code p} lies over a loaded column that holds no motion-blocking block: the open air of a void hole. */
+    private static boolean emptyColumn(Minecraft mc, Vec3 p) {
+        int x = (int) Math.floor(p.x), z = (int) Math.floor(p.z);
+        return mc.level.getChunkSource().hasChunk(x >> 4, z >> 4)
+                && mc.level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, x, z) <= mc.level.getMinY();
+    }
+
     private static int skyline(Minecraft mc, double max) {
         int top = mc.level.getMinY();
         int cx = (int) Math.floor(mc.player.getX()), cz = (int) Math.floor(mc.player.getZ());
@@ -189,9 +197,11 @@ final class FrameCensus {
         return top;
     }
 
-    static String caption(double sky, double unloaded, List<Map<String, Integer>> bands, int rays, Map<String, Integer> biomes, int hits) {
+    static String caption(double sky, double unloaded, double voided, List<Map<String, Integer>> bands, int rays, Map<String, Integer> biomes,
+            int hits) {
         List<String> parts = new ArrayList<>();
         parts.add("sky " + fmt(sky) + "%");
+        if (voided > 0) parts.add("void " + fmt(voided) + "%");
         if (unloaded > 0) parts.add("unloaded " + fmt(unloaded) + "%");
         String[] names = {"near", "mid", "far"};
         for (int i = 0; i < 3; i++) {

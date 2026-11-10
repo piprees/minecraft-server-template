@@ -50,7 +50,15 @@ import net.minecraft.world.level.levelgen.Heightmap;
  * {@code rig: <name> rejected <reason>, trying alt N}, keeps its census and image as {@code <name>.try<N>.frame.json}
  * and {@code <name>.try<N>.rejected.png}, and the next alternate is taken; a camera inside terrain is rejected the same
  * way. When every try fails, {@code <name>.rejected.json} lists the reasons and no {@code <name>.png} is written.
- * {@code empty: true} marks a shot meant to show sky or void, which the gate's empty rule then spares.
+ * {@code empty: true} marks a shot meant to show sky or void, which the gate's empty rule then spares;
+ * {@code voidFeature: true} marks a shot whose place is a hole in the world, which may be mostly void but must still hit
+ * blocks ({@link FrameGate#VOID_HITS_MIN}).
+ *
+ * <p>{@code pair: true} takes two frames from the same camera: {@code <name>.png} as a player sees it, without effects,
+ * then {@code <name>-nv.png} with night vision ({@link #NV_SETTLE} ticks after the effect). Each frame has its own census
+ * and gate result in its {@code .frame.json} ({@code nightVision}, {@code frame}, {@code gate.passed}, {@code gate.reasons});
+ * the pair is kept, both frames, when either passes, and otherwise rejected as one try, its frames kept as
+ * {@code <name>.try<N>.rejected.png} and {@code <name>-nv.try<N>.rejected.png}.
  */
 public final class BiomeShots {
     /** Chunks round the camera that must be on the client before a shot. */
@@ -61,9 +69,11 @@ public final class BiomeShots {
     static final int SETTLE = 80;
     /** Blocks the camera may be lifted out of terrain before the shot is skipped. */
     static final int LIFT = 8;
+    /** Ticks between night vision being given and the second frame of a pair. */
+    static final int NV_SETTLE = 40;
 
     record Shot(String dimension, double x, String y, double z, float yaw, float pitch, double[] at, String name, boolean nightVision,
-            int radius, int hold, boolean check, boolean empty, List<Shot> alternates) {
+            int radius, int hold, boolean check, boolean empty, boolean voidFeature, boolean pair, List<Shot> alternates) {
     }
 
     private enum Phase { START, ENTER, HIGH, PLACE, WAIT, SHOOT, NEXT, DONE }
@@ -83,6 +93,8 @@ public final class BiomeShots {
     private boolean requested;
     private FrameCensus.Census pending;
     private List<String> verdict;
+    private int frame;
+    private List<String> asSeen;
     private final List<String> tries = new ArrayList<>();
 
     private BiomeShots(List<Shot> shots, File out) {
@@ -143,7 +155,11 @@ public final class BiomeShots {
                 o.get("z").getAsDouble(), o.has("yaw") ? o.get("yaw").getAsFloat() : 0, o.has("pitch") ? o.get("pitch").getAsFloat() : 0,
                 at, o.get("name").getAsString(), o.has("nightVision") && o.get("nightVision").getAsBoolean(),
                 o.has("radius") ? o.get("radius").getAsInt() : RADIUS, o.has("hold") ? o.get("hold").getAsInt() : 0,
-                o.has("check") && o.get("check").getAsBoolean(), o.has("empty") && o.get("empty").getAsBoolean(), alternates);
+                flag(o, "check"), flag(o, "empty"), flag(o, "voidFeature"), flag(o, "pair"), alternates);
+    }
+
+    private static boolean flag(JsonObject o, String key) {
+        return o.has(key) && o.get(key).getAsBoolean();
     }
 
     /** The entry being taken: the listed shot, or its alternate for the current try. */
@@ -223,7 +239,7 @@ public final class BiomeShots {
                 // Each dimension keeps its own clock: noon and clear weather are set where the shot is taken.
                 command(mc, "execute in " + shot.dimension() + " run time set 6000");
                 command(mc, "execute in " + shot.dimension() + " run weather clear");
-                command(mc, shot.nightVision() ? "effect give @s minecraft:night_vision infinite 0 true" : "effect clear @s minecraft:night_vision");
+                command(mc, shot.nightVision() && !shot.pair() ? "effect give @s minecraft:night_vision infinite 0 true" : "effect clear @s minecraft:night_vision");
                 this.feet = y;
                 this.yaw = yaw;
                 this.pitch = pitch;
@@ -279,14 +295,14 @@ public final class BiomeShots {
                 }
             }
             case SHOOT -> {
-                if (wait < 10) {
+                if (wait < (frame == 1 ? NV_SETTLE : 10)) {
                     return;
                 }
                 Shot shot = current();
                 if (!requested) {
                     requested = true;
                     verdict = null;
-                    pending = FrameCensus.measure(mc, shot.name(), shot.dimension());
+                    pending = FrameCensus.measure(mc, frameName(shot), shot.dimension());
                     Screenshot.takeScreenshot(mc.gameRenderer.mainRenderTarget(), image -> judge(shot, image));
                     return;
                 }
@@ -294,6 +310,30 @@ public final class BiomeShots {
                     if (wait > CAP) {
                         CompanionClient.LOG.warn("rig: {} screenshot never arrived", shot.name());
                         go(Phase.NEXT);
+                    }
+                    return;
+                }
+                if (shot.pair() && frame == 0) {
+                    asSeen = verdict;
+                    frame = 1;
+                    wait = 0;
+                    requested = false;
+                    verdict = null;
+                    command(mc, "effect give @s minecraft:night_vision infinite 0 true");
+                    return;
+                }
+                if (shot.pair()) {
+                    List<String> nightVision = verdict;
+                    boolean kept = FrameGate.keepsPair(asSeen, nightVision);
+                    settle(shot, shot.name(), kept);
+                    settle(shot, shot.name() + "-nv", kept);
+                    command(mc, "effect clear @s minecraft:night_vision");
+                    if (kept) {
+                        CompanionClient.LOG.info("rig: pair {} kept on try {} (as seen: {}; night vision: {})", shot.name(), attempt,
+                                asSeen.isEmpty() ? "passed" : String.join("; ", asSeen), nightVision.isEmpty() ? "passed" : String.join("; ", nightVision));
+                        go(Phase.NEXT);
+                    } else {
+                        reject(shot, List.of("as seen: " + String.join("; ", asSeen), "night vision: " + String.join("; ", nightVision)));
                     }
                     return;
                 }
@@ -322,34 +362,68 @@ public final class BiomeShots {
         }
     }
 
-    /** Gates the screenshot against the census taken with it; saves it as the shot when it passes. */
+    /** The frame being taken: the shot's name, with {@code -nv} for a pair's night-vision frame. */
+    private String frameName(Shot shot) {
+        return frame == 1 ? shot.name() + "-nv" : shot.name();
+    }
+
+    /**
+     * Gates the screenshot against the census taken with it; saves it as the shot when it passes. A pair's frame is
+     * written as {@code <frame>.try<N>} whatever its verdict, and {@link #settle} names it once both are judged.
+     */
     private void judge(Shot shot, NativeImage image) {
         File dir = new File(out, "screenshots");
+        String name = frameName(shot);
         try (image) {
             int w = image.getWidth(), h = image.getHeight();
             int[] pixels = image.getPixels();
             FrameGate.Measures m = pending.with(FrameGate.image(pixels, w, h, pending.fogRgb()));
-            List<String> reasons = FrameGate.reasons(m, shot.empty());
+            List<String> reasons = FrameGate.reasons(m, shot.empty(), shot.voidFeature());
             JsonObject gate = new JsonObject();
             gate.addProperty("try", attempt);
             gate.addProperty("luma", Math.round(m.luma() * 10) / 10.0);
             gate.addProperty("fogPercent", Math.round(m.fogPercent() * 10) / 10.0);
+            gate.addProperty("passed", reasons.isEmpty());
             JsonArray why = new JsonArray();
             reasons.forEach(why::add);
             gate.add("reasons", why);
             pending.json().add("gate", gate);
-            String base = reasons.isEmpty() ? shot.name() : shot.name() + ".try" + attempt;
+            boolean nightVision = shot.pair() ? frame == 1 : shot.nightVision();
+            pending.json().addProperty("nightVision", nightVision);
+            if (shot.pair()) {
+                pending.json().addProperty("frame", nightVision ? "with night vision" : "as a player sees it");
+            }
+            pending.json().addProperty("voidFeature", shot.voidFeature());
+            String base = reasons.isEmpty() && !shot.pair() ? name : name + ".try" + attempt;
             FrameCensus.write(dir, base, pending.json());
-            image.writeToFile(new File(dir, base + (reasons.isEmpty() ? ".png" : ".rejected.png")));
+            image.writeToFile(new File(dir, base + (shot.pair() ? ".pending.png" : reasons.isEmpty() ? ".png" : ".rejected.png")));
             if (reasons.isEmpty()) {
-                CompanionClient.LOG.info("rig: {} census {}", shot.name(), pending.caption());
-                CompanionClient.LOG.info("rig: screenshot {} passed the gate on try {} (luma {}, fog {}%)", shot.name(), attempt,
+                CompanionClient.LOG.info("rig: {} census {}", name, pending.caption());
+                CompanionClient.LOG.info("rig: screenshot {} passed the gate on try {} (luma {}, fog {}%)", name, attempt,
                         Math.round(m.luma()), Math.round(m.fogPercent()));
             }
             verdict = reasons;
         } catch (IOException | RuntimeException e) {
             CompanionClient.LOG.warn("rig: {} gate failed: {}", shot.name(), e.toString());
             verdict = List.of("gate failed: " + e);
+        }
+    }
+
+    /** Names a judged pair frame: {@code <frame>.png} and its census when the pair is kept, {@code .try<N>.rejected.png} when not. */
+    private void settle(Shot shot, String name, boolean kept) {
+        File dir = new File(out, "screenshots");
+        String tried = name + ".try" + attempt;
+        try {
+            java.nio.file.Path png = new File(dir, tried + ".pending.png").toPath();
+            if (kept) {
+                Files.move(new File(dir, tried + ".frame.json").toPath(), new File(dir, name + ".frame.json").toPath(),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                Files.move(png, new File(dir, name + ".png").toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            } else {
+                Files.move(png, new File(dir, tried + ".rejected.png").toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            CompanionClient.LOG.warn("rig: {} cannot name the pair frame {}: {}", shot.name(), name, e.toString());
         }
     }
 
@@ -427,6 +501,7 @@ public final class BiomeShots {
 
     private void go(Phase next) {
         phase = next;
+        frame = 0;
         wait = 0;
         readyAt = -1;
         requested = false;

@@ -18,13 +18,15 @@ then 90 degrees either side. Every camera is checked again by the rig's clear-ca
 
 Usage: pick-shots.py <dossier.json> <out.json> [--features N] [--landmarks N] [--max-per-layer N]
   --max-per-layer keeps each layer's N highest-scoring types (default all).
-Gotchas: night vision lights underground and roof shots, and every shot of a dimension without skylight or held at
-night (a definition fixedTime of 13000-23000), unless the
-dimension is fog-bound: its registered type's visual attributes or skybox name the nether, its visual attributes fix a
-fog end distance, or its definition's effects are minecraft:the_nether (that fog turns to a white wall under night
-vision, T180); a ceiling dimension's far view
-is 12 over the summit, not over the client's heightmap (the roof). y is the feet height the survey measured, so give
-the rig the same world.
+Gotchas: night vision lights underground and roof shots. A dimension that is dark (no skylight, or held at night by a
+definition fixedTime of 13000-23000) or fog-bound (its registered type's visual attributes or skybox name the nether,
+its visual attributes fix a fog end distance, or its definition's effects are minecraft:the_nether; T180, T189) gets a
+frame pair on every shot instead (`pair: true`, `nightVision: false`): the rig takes the frame a player sees and one
+with night vision from the same camera, and keeps both when either passes the gate. A dimension with a void hole of a
+hectare or more (landforms.voidHoles) marks its far view and every shot looking down more than VOID_PITCH degrees
+`voidFeature: true`, which lets the gate take a mostly void frame that still hits blocks. A ceiling dimension's far
+view is 12 over the summit, not over the client's heightmap (the roof). y is the feet height the survey measured, so
+give the rig the same world.
 """
 import json
 import math
@@ -33,6 +35,7 @@ import sys
 
 CRAFTED = re.compile(r'waxed_|cut_|_bricks?$|chiseled_|polished_|chain|lantern|_planks$|_slab$|_stairs$|trial_|vault|spawner|copper_(bulb|grate|door|trapdoor)')
 ALTERNATES = 3
+VOID_PITCH = 20
 
 
 def short(block):
@@ -50,18 +53,20 @@ def pick(d, features=6, landmarks=3, per_layer=None):
     visual = {k: v for k, v in registered.get('attributes', {}).items() if k.startswith('minecraft:visual/')}
     nether_fog = ('nether' in json.dumps([visual, registered.get('skybox')]) or 'minecraft:visual/fog_end_distance' in visual
                   or atmosphere.get('definitionAtmosphere', {}).get('effects') == 'minecraft:the_nether')
+    paired = dark or nether_fog
+    holes = (d.get('landforms', {}).get('voidHoles') or {}).get('countOver1Ha', 0) > 0
     out = []
     vista = d.get('places', {}).get('vista')
     if vista:
         sx, sy, sz = vista['summit']
         out.append({'dimension': dim, 'name': f'{slug}-far', 'x': sx + 0.5, 'y': str(sy + 12) if ceiling else 'surface+40', 'z': sz + 0.5,
-                    'nightVision': dark and not nether_fog,
+                    'nightVision': False,
                     'at': vista['lookAt'], 'radius': 24, 'hold': 45, 'why': 'vista: summit of the coarse map, facing its largest drop',
                     'alternates': inward(vista)})
     for layer in ('surface', 'sky', 'underground', 'roof'):
         info = d.get('places', {}).get(layer) or {}
         types = sorted(info.get('types', []), key=lambda t: -(t['sharePercent'] / 100 + t['distinctness']))[:per_layer]
-        nv = (dark or layer in ('underground', 'roof')) and not nether_fog
+        nv = layer in ('underground', 'roof') and not paired
         for t in types:
             coords = t.get('coordinates') or []
             if not coords:
@@ -86,7 +91,7 @@ def pick(d, features=6, landmarks=3, per_layer=None):
             continue
         p = places[0]
         cam = p['camera']
-        nvf = (dark or p['layer'] in ('underground', 'roof')) and not nether_fog
+        nvf = p['layer'] in ('underground', 'roof') and not paired
         kind = 'structure' if CRAFTED.search(short(block)) else 'feature'
         s = {'dimension': dim, 'name': f'{slug}-{kind}-{short(block)}', 'x': cam[0], 'y': str(cam[1]), 'z': cam[2],
              'at': p['at'], 'radius': 8, 'hold': 10, 'nightVision': nvf,
@@ -96,7 +101,25 @@ def pick(d, features=6, landmarks=3, per_layer=None):
         s['alternates'] = alternates(s, others)
         out.append(s)
         n += 1
+    for s in out:
+        if paired:
+            s['pair'] = True
+            s['nightVision'] = False
+        if holes and (s['name'].endswith('-far') or looks_down(s) > VOID_PITCH):
+            s['voidFeature'] = True
     return out
+
+
+def looks_down(s):
+    """Degrees below the horizon the shot's camera looks: its pitch, or the angle down to its `at` block."""
+    if not s.get('at'):
+        return s.get('pitch', 0)
+    try:
+        y = float(s['y'])
+    except ValueError:
+        return 0
+    ax, ay, az = s['at']
+    return math.degrees(math.atan2(y + 1.6 - ay - 0.5, math.hypot(ax + 0.5 - s['x'], az + 0.5 - s['z'])))
 
 
 def camera(place):

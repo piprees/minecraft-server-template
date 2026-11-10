@@ -48,6 +48,42 @@ class FrameGateTest {
     }
 
     @Test
+    void aVoidFeatureMayBeMostlyVoidButMustHitBlocks() {
+        FrameGate.Measures crater = new FrameGate.Measures(400, "none", 0, 20, 60, 0, 0, 100, 0);
+        assertTrue(only(crater, false).startsWith("empty: sky 20.0% + void 60.0%"));
+        assertTrue(FrameGate.reasons(crater, false, true).isEmpty());
+        List<String> bare = FrameGate.reasons(new FrameGate.Measures(500, "none", 0, 10, 80, 0, 0, 100, 0), false, true);
+        assertEquals(List.of("void: 10.0% of rays hit blocks < 15% (void 80.0%)"), bare);
+        assertTrue(FrameGate.reasons(new FrameGate.Measures(500, "none", 0, 5, 80, 0, 0, 100, 0), false, true).isEmpty());
+    }
+
+    @Test
+    void aVoidFeatureStillCountsSkyAndUnloadedAsEmpty() {
+        List<String> r = FrameGate.reasons(new FrameGate.Measures(512, "none", 0, 70, 10, 10, 0, 100, 0), false, true);
+        assertEquals(List.of("empty: sky 70.0% + unloaded 10.0% > 75%"), r);
+    }
+
+    @Test
+    void aPairIsKeptWhenEitherFramePasses() {
+        assertTrue(FrameGate.keepsPair(List.of("dark: mean luma 9.0 < 30"), List.of()));
+        assertTrue(FrameGate.keepsPair(List.of(), List.of("fog wall: 82.0% of pixels within 24 of the fog colour")));
+        assertTrue(FrameGate.keepsPair(List.of(), List.of()));
+        assertTrue(!FrameGate.keepsPair(List.of("dark: mean luma 9.0 < 30"), List.of("fog wall: 82.0%")));
+    }
+
+    @Test
+    void pairAndVoidFeatureAreReadAndInherited(@TempDir File dir) throws Exception {
+        File list = new File(dir, "list.json");
+        Files.writeString(list.toPath(), "[{\"dimension\":\"adventure:a\",\"name\":\"a-t1\",\"x\":1,\"y\":\"70\",\"z\":2,"
+                + "\"pair\":true,\"voidFeature\":true,\"alternates\":[{\"yaw\":90}]},"
+                + "{\"dimension\":\"adventure:a\",\"name\":\"a-t2\",\"x\":1,\"y\":\"70\",\"z\":2}]");
+        List<BiomeShots.Shot> shots = BiomeShots.read(list);
+        assertTrue(shots.get(0).pair() && shots.get(0).voidFeature());
+        assertTrue(shots.get(0).alternates().get(0).pair() && shots.get(0).alternates().get(0).voidFeature());
+        assertTrue(!shots.get(1).pair() && !shots.get(1).voidFeature());
+    }
+
+    @Test
     void imageMeasuresLumaAndFogShare() {
         int w = 320, h = 180;
         int[] px = new int[w * h];

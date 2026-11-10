@@ -101,7 +101,12 @@ the ground under trees and plants); `at: [x, y, z]` in place of `yaw` and
 `pitch` faces that block. A cavern or Nether shot gives `y` as a number, since
 the motion-blocking height there is the surface or the roof, and
 `nightVision: true` lights it with night vision, which every other shot
-clears. In spectator mode with the HUD hidden, at noon in clear
+clears. `pair: true` takes two frames from the same camera instead:
+`<name>.png` as a player sees it, without effects, then `<name>-nv.png` two
+seconds after night vision is given; each frame's census records
+`nightVision`, `frame` ("as a player sees it", "with night vision") and its
+own gate result. `pick-shots.py` pairs every shot of a dimension that is
+dark (no skylight, or held at night: T188) or fog-bound (T180, T184, T189). In spectator mode with the HUD hidden, at noon in clear
 weather, the client enters each dimension with `/customdim tp`, teleports
 over the spot, reads the surface once that chunk arrives, teleports to the
 shot, waits until every chunk within six of the camera is loaded and every
@@ -125,10 +130,12 @@ Every screenshot and every `check` entry writes a frame census,
 `<out>/screenshots/<name>.frame.json`: a 64×36 grid of rays from the eye
 across the view (the options' field of view, the window's aspect), clipped
 against block outlines and any fluid out to the render distance. Each hit
-records its block, the biome there and its distance; a miss is sky, `void`
-when it left the bottom of the world, or `unloaded` when the ray passed a
-chunk the client does not hold below the skyline (the highest motion-blocking
-height of the loaded chunks). It gives shares by block, by biome (of the rays
+records its block, the biome there and its distance. A miss is `unloaded`
+when the ray passed a chunk the client does not hold below the skyline (the
+highest motion-blocking height of the loaded chunks); `void` when it points
+below the horizon and left the bottom of the world or ends over a loaded
+column with no block in it (the open air of a void hole); and sky otherwise.
+The caption reports void apart from sky. It gives shares by block, by biome (of the rays
 that hit) and by distance band (under 32, 32–128, over 128 blocks), and a
 one-line `caption` built only from those shares, which the client log repeats
 as `rig: <name> census <caption>`. It also records the gate's ray measures:
@@ -147,18 +154,25 @@ census and the image (sampled on a 160×90 grid). A frame is rejected when:
 | --- | --- |
 | dark | mean Rec. 709 luma under 30 (0–255) |
 | occluded | median ray distance under 4 blocks, or one block covers over 45% of all rays within 4 blocks (cobweb, a wall, leaves on the lens) |
-| empty | sky, void and unloaded rays over 75% together, unless the entry says `empty: true` (a shot meant to show sky or void) |
+| empty | sky, void and unloaded rays over 75% together; on a `voidFeature: true` entry (a shot of a hole in the world), sky and unloaded over 75%; spared when the entry says `empty: true` (a shot meant to show sky or void) |
+| void | on a `voidFeature: true` entry, fewer than 15% of rays hit blocks |
 | fog wall | over 60% of pixels within RGB distance 24 of the camera's fog colour |
 | border | over 2% of rays reach the world border before any block, within the render distance |
 
 The luma line sits between the darkest readable frames (luma 37 and up: lit
 caves, dark-oak floors) and the unreadable ones (7–25: unlit forests, a red
 fog wall at night, a cave in shadow). The passing frame carries a `gate`
-block in its census (`try`, `luma`, `fogPercent`, `reasons`). A rejected try
+block in its census (`try`, `luma`, `fogPercent`, `passed`, `reasons`). A
+pair is kept, both frames under their names, when either frame passes, so a
+dark frame as a player sees it stands beside its lit twin and a night-vision
+fog wall beside the plain frame; when neither passes the pair is one rejected
+try (`<name>.try<N>.rejected.png` and `<name>-nv.try<N>.rejected.png`). A rejected try
 keeps `<name>.try<N>.frame.json` and `<name>.try<N>.rejected.png`, logs
 `rig: <name> rejected <reason>, trying alt N`, and the entry's next
 `alternates` element replaces its `x y z yaw pitch at nightVision` for
-another try. When every try fails, `<name>.rejected.json` lists the reasons
+another try. `pick-shots.py` marks `voidFeature` on the far view and every
+shot looking down more than 20 degrees in a dimension with a void hole of a
+hectare or more. When every try fails, `<name>.rejected.json` lists the reasons
 and no `<name>.png` is written. `pick-shots.py` writes two or three
 alternates per shot: other cells of the place type or other places of the
 cluster, then the camera turned 90, 180 and 270 degrees; the far view's face
