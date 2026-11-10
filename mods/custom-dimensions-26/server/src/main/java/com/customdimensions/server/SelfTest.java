@@ -91,8 +91,24 @@ final class SelfTest {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> run(server, Path.of(report)));
     }
 
+    /**
+     * The self-test runs on server ticks with no player online for long stretches, and a 26.x
+     * server stops ticking once empty for {@code pause-when-empty-seconds} (60 by default).
+     */
+    static String holdAwake(MinecraftServer server) {
+        if (!(server instanceof net.minecraft.server.dedicated.DedicatedServer dedicated)) {
+            return "PASS the server does not pause while the self-test runs: not a dedicated server";
+        }
+        int was = dedicated.pauseWhenEmptySeconds();
+        if (was > 0) dedicated.setPauseWhenEmptySeconds(0);
+        int now = dedicated.pauseWhenEmptySeconds();
+        return (now <= 0 ? "PASS" : "FAIL") + " the server does not pause while the self-test runs: pause-when-empty-seconds "
+                + was + " -> " + now;
+    }
+
     private static void run(MinecraftServer server, Path report) {
         List<String> lines = new ArrayList<>();
+        lines.add(holdAwake(server));
         lines.add(check("zone mask parses and samples like core", () -> zoneMask(server)));
         lines.add(check("pack installed at start-up by the mod", SelfTest::packInstall));
         lines.add(equivalence());
