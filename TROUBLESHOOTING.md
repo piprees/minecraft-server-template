@@ -1596,6 +1596,26 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t211"></a>
+### T211 — "Mostly bare rock" is the normal ground of a rock biome
+
+nether_wastes, blackstone_basin, ash_barrens and stony_peaks are rock by their surface rule; the survey reads each biome's open-land top block from the level's material rule (`core/.../SurfaceGround.java`) and flags bare rock only where the rule lays something else.
+
+<a id="t210"></a>
+### T210 — Cave biomes show at the surface in valley lakes
+
+Depth is measured from the terrain's nominal height, so where 3D noise carves a valley well below it, a lake surface reads depth ≥ 0.2 and takes the cave biome (crystal_vale: crystal_hollows 708 columns, 96 % water). Bounding caves to the land does not reach it. Open.
+
+<a id="t209"></a>
+### T209 — Library terrains put sea level at continentalness −0.11, not vanilla's −0.19
+
+`Ctx.land()` shifts every coast so the shoreline sits at −0.11 (`islands` near −0.16, depending on `islandHeight`); vanilla's coast band [−0.19, −0.11] is 0–9 blocks under water there, so a beach bound to it is mostly water. Read the shore from the terrain's height profile (`TerrainFamily.shore`, three blocks either side of sea level), never from vanilla's band.
+
+<a id="t208"></a>
+### T208 — A climate layout puts a biome where the terrain cannot hold it
+
+Bands and regions cut temperature, humidity and weirdness with no regard for the coast: land biomes fill the sea ("a pale garden in water is a big grey water area"), oceans and beaches land on dry ground, and a river box on weirdness 0 sits on the `ridges` family's crests when `web` is 1. On a terrain with a coastline `biomeLayout` regions lay each biome out in its role's area (`compiler/.../BiomeRoles.java`, `RegionLayout.plan`): land above the coast, oceans below, shores on the shore, rivers where weirdness 0 crosses the coast, caves under land. Check `biomeExpression` for "mostly water" on a non-ocean biome; give a misread biome its role with `biomeLayout.roles`.
+
 <a id="t207"></a>
 ### T207 — Biome regions on continentalness follow the noise, not a weak layout
 
