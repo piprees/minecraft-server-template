@@ -1596,6 +1596,30 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t215"></a>
+### T215 — A shore biome's survey water share is a patch's
+- **Symptom:** a shore-role biome flagged "mostly water" (the_sun_kingdoms: tropical_shores 66.2 %).
+- **Cause:** 1,968 sampled columns sit in one or two patches; over the whole border (`/customdim render <slug> <seed> 4096 16`) the same biome is 32.1 % water, all of it the dimension's shallowest.
+- **Fix:** judge a shore's water on a whole-border render before moving its band or role.
+
+<a id="t214"></a>
+### T214 — A pointwise probe of `final_density` is cheap; the interpolated one is not
+- **Symptom:** chunk generation 1.8× slower (the_crystal_vale survey 140 s against 76 s) after a router function referenced `final_density`.
+- **Cause:** sampled at single points, `interpolated` evaluates its cell's corners.
+- **Fix:** probe a copy with `interpolated` and `blend_density` replaced by their input, `beardifier` by 0 and noodle caves by solid (`TerrainLibrary.pointwise`): 83.6 s, +10 %.
+
+<a id="t213"></a>
+### T213 — Bound boxes can shadow a regional biome
+- **Symptom:** a biome listed in `biomeLayout.weights` is in no column and no cave quart (the_souldrift: deep_dark).
+- **Cause:** bound boxes are carved first; the_souldrift's crystal_hollows and cinnabar_veins together covered depth 0.2–2.0 at every humidity, the whole cave area deep_dark was laid in.
+- **Fix:** the compile report notes "Regional biome(s) [...] are never placed"; narrow the bound boxes (souldrift's to depth 0.2–0.7).
+
+<a id="t212"></a>
+### T212 — A plain-preset dimension keeps vanilla's depth
+- **Symptom:** cave biomes flagged "mostly water" on a dimension with no `terrain` (the_tidepools: lush_caves 913 columns, 100 % water).
+- **Cause:** only library terrains and shaped presets carry `biome_depth` (T210); a plain preset reads vanilla's noise settings, whose depth is measured from the nominal height.
+- **Fix:** give the dimension a terrain (or `terrain.scales` of ones is no shaping: use a real scale), or bind its cave biomes deeper than the flooded floors.
+
 <a id="t211"></a>
 ### T211 — "Mostly bare rock" is the normal ground of a rock biome
 
@@ -1603,8 +1627,9 @@ nether_wastes, blackstone_basin, ash_barrens and stony_peaks are rock by their s
 
 <a id="t210"></a>
 ### T210 — Cave biomes show at the surface in valley lakes
-
-Depth is measured from the terrain's nominal height, so where 3D noise carves a valley well below it, a lake surface reads depth ≥ 0.2 and takes the cave biome (crystal_vale: crystal_hollows 708 columns, 96 % water). Bounding caves to the land does not reach it. Open.
+- **Symptom:** a cave biome flagged "mostly water" in `biomeExpression` (the_crystal_vale: crystal_hollows 688 columns, 97.7 % water).
+- **Cause:** the survey reads a column's biome one above its solid floor, so under a lake it is the bed's; vanilla depth is measured from the terrain's nominal height, and lake beds and flooded cave mouths lie 26+ blocks under it.
+- **Fix:** library terrains and shaped presets give the router a `biome_depth`: vanilla's depth measured from the lower of the nominal height and `surface_top`, the first solid cell found scanning down from the nominal height through a pointwise copy of `final_density` (`TerrainLibrary.biomeDepth`). The terrain's shape keeps the nominal `depth`.
 
 <a id="t209"></a>
 ### T209 — Library terrains put sea level at continentalness −0.11, not vanilla's −0.19
