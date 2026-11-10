@@ -55,6 +55,9 @@
       "minecraft:jagged_peaks": 2.8,
       "minecraft:windswept_forest": 3.5,
       "adventure:lavender_fields": 37.8
+    },
+    "roles": {
+      "minecraft:stony_shore": "land"
     }
   },
   "atmosphere": {

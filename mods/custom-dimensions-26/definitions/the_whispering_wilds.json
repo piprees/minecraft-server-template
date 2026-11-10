@@ -8,15 +8,7 @@
     "preset": "overworld"
   },
   "biomes": [
-    {
-      "id": "minecraft:river",
-      "climate": {
-        "temperature": [-2.0, 2.0],
-        "continentalness": [-0.11, 2.0],
-        "erosion": [0.05, 2.0],
-        "weirdness": [-0.05, 0.05]
-      }
-    },
+    "minecraft:river",
     "adventure:aspen_forest",
     "minecraft:taiga",
     "adventure:redwood_grove",
@@ -56,7 +48,8 @@
       "minecraft:sparse_jungle": 12.8,
       "minecraft:swamp": 14.1,
       "minecraft:mangrove_swamp": 18.1,
-      "minecraft:jungle": 20.2
+      "minecraft:jungle": 20.2,
+      "minecraft:river": 1.8
     }
   },
   "atmosphere": {

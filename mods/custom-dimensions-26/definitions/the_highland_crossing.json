@@ -28,21 +28,8 @@
     }
   },
   "biomes": [
-    {
-      "id": "minecraft:river",
-      "climate": {
-        "continentalness": [-0.11, 2.0],
-        "erosion": [0.05, 2.0],
-        "weirdness": [-0.05, 0.05]
-      }
-    },
-    {
-      "id": "minecraft:stony_shore",
-      "climate": {
-        "continentalness": [-0.2, -0.11],
-        "erosion": [-2.0, 0.05]
-      }
-    },
+    "minecraft:river",
+    "minecraft:stony_shore",
     {
       "id": "adventure:chalk_cliffs",
       "climate": {
@@ -141,7 +128,9 @@
       "minecraft:forest": 5.3,
       "minecraft:taiga": 1.3,
       "adventure:redwood_grove": 8.5,
-      "minecraft:swamp": 2.1
+      "minecraft:swamp": 2.1,
+      "minecraft:river": 5.2,
+      "minecraft:stony_shore": 1
     }
   },
   "liquids": {

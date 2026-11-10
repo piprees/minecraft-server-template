@@ -8,49 +8,11 @@
     "preset": "overworld"
   },
   "biomes": [
-    {
-      "id": "minecraft:warm_ocean",
-      "climate": {
-        "weirdness": [-2.0, -0.6496],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:beach",
-      "climate": {
-        "weirdness": [-0.6496, -0.5067],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:stony_shore",
-      "climate": {
-        "weirdness": [-0.5067, -0.358],
-        "depth": [-2.0, 0.1]
-      }
-    },
+    "minecraft:warm_ocean",
+    "minecraft:beach",
+    "minecraft:stony_shore",
     "minecraft:windswept_gravelly_hills",
-    {
-      "id": "minecraft:stony_shore",
-      "climate": {
-        "weirdness": [-0.1741, 0.023],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:lukewarm_ocean",
-      "climate": {
-        "weirdness": [0.023, 0.2443],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:beach",
-      "climate": {
-        "weirdness": [0.2443, 2.0],
-        "depth": [-2.0, 0.1]
-      }
-    },
+    "minecraft:lukewarm_ocean",
     {
       "id": "minecraft:lush_caves",
       "climate": {
@@ -69,7 +31,11 @@
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "minecraft:windswept_gravelly_hills": 24.2
+      "minecraft:windswept_gravelly_hills": 24.2,
+      "minecraft:warm_ocean": 2.7,
+      "minecraft:beach": 21.2,
+      "minecraft:stony_shore": 43.4,
+      "minecraft:lukewarm_ocean": 6.6
     }
   },
   "borders": {

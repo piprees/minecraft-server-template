@@ -444,7 +444,7 @@ public final class Survey {
                     if (p.snow[c]) a[7]++;
                     if (p.canopy[c]) a[8]++;
                     if (p.plant[c] != null) a[9]++;
-                    if (p.bare[c]) a[10]++;
+                    if (p.bare[c] && p.fluid[c] == null) a[10]++;
                     if (p.precipitation[c] == 2) a[11]++;
                     tops.computeIfAbsent(p.biome[c], k -> new HashMap<>()).merge(p.topBlock[c], 1L, Long::sum);
                 }

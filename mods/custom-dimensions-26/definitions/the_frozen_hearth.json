@@ -21,23 +21,11 @@
     }
   },
   "biomes": [
-    {
-      "id": "minecraft:snowy_beach",
-      "climate": {
-        "weirdness": [-2.0, -0.5732],
-        "depth": [-2.0, 0.2]
-      }
-    },
+    "minecraft:snowy_beach",
     "minecraft:snowy_plains",
     "minecraft:ice_spikes",
     "minecraft:snowy_taiga",
-    {
-      "id": "minecraft:frozen_river",
-      "climate": {
-        "weirdness": [0.1132, 0.1505],
-        "depth": [-2.0, 0.2]
-      }
-    },
+    "minecraft:frozen_river",
     "adventure:dying_forest",
     "minecraft:grove",
     "minecraft:snowy_slopes",
@@ -64,7 +52,9 @@
       "minecraft:snowy_taiga": 24.8,
       "adventure:dying_forest": 8.2,
       "minecraft:grove": 10,
-      "minecraft:snowy_slopes": 8.2
+      "minecraft:snowy_slopes": 8.2,
+      "minecraft:snowy_beach": 3.6,
+      "minecraft:frozen_river": 3.9
     }
   },
   "borders": {

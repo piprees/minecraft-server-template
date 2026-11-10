@@ -13,14 +13,7 @@
     "minecraft:mangrove_swamp",
     "minecraft:bamboo_jungle",
     "minecraft:river",
-    {
-      "id": "minecraft:beach",
-      "climate": {
-        "continentalness": [-0.6, -0.05],
-        "weirdness": [-0.0582, -0.0318],
-        "depth": [-2.0, 0.1]
-      }
-    },
+    "minecraft:beach",
     "minecraft:dark_forest",
     "minecraft:old_growth_birch_forest",
     "adventure:muddy_river",
@@ -51,7 +44,8 @@
       "minecraft:dark_forest": 3.8,
       "minecraft:old_growth_birch_forest": 2.7,
       "adventure:muddy_river": 2.3,
-      "adventure:cypress_wetland": 47.4
+      "adventure:cypress_wetland": 47.4,
+      "minecraft:beach": 1
     }
   },
   "borders": {

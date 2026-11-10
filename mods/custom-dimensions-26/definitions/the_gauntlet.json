@@ -20,15 +20,7 @@
     }
   },
   "biomes": [
-    {
-      "id": "minecraft:river",
-      "climate": {
-        "temperature": [-2.0, 2.0],
-        "continentalness": [-0.11, 2.0],
-        "erosion": [0.05, 2.0],
-        "weirdness": [-0.05, 0.05]
-      }
-    },
+    "minecraft:river",
     {
       "id": "minecraft:frozen_peaks",
       "climate": {
@@ -98,7 +90,8 @@
       "adventure:maple_woodland": 5.2,
       "minecraft:eroded_badlands": 3.9,
       "adventure:ashen_woodland": 4.2,
-      "minecraft:basalt_deltas": 10.5
+      "minecraft:basalt_deltas": 10.5,
+      "minecraft:river": 7.1
     }
   },
   "zones": [

@@ -22,20 +22,8 @@
     }
   },
   "biomes": [
-    {
-      "id": "adventure:muddy_river",
-      "climate": {
-        "continentalness": [-0.11, 2.0],
-        "erosion": [0.05, 2.0],
-        "weirdness": [-0.05, 0.05]
-      }
-    },
-    {
-      "id": "adventure:tropical_shores",
-      "climate": {
-        "continentalness": [-0.2, -0.11]
-      }
-    },
+    "adventure:muddy_river",
+    "adventure:tropical_shores",
     {
       "id": "minecraft:eroded_badlands",
       "climate": {
@@ -90,7 +78,9 @@
       "minecraft:sunflower_plains": 5.5,
       "adventure:lavender_fields": 1.4,
       "adventure:ashen_woodland": 2.6,
-      "adventure:carnation_fields": 2.8
+      "adventure:carnation_fields": 2.8,
+      "adventure:muddy_river": 2,
+      "adventure:tropical_shores": 7.5
     }
   },
   "borders": {

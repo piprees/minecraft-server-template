@@ -25,21 +25,8 @@
     }
   },
   "biomes": [
-    {
-      "id": "minecraft:river",
-      "climate": {
-        "continentalness": [-0.11, 2.0],
-        "erosion": [0.05, 2.0],
-        "weirdness": [-0.05, 0.05]
-      }
-    },
-    {
-      "id": "minecraft:beach",
-      "climate": {
-        "continentalness": [-0.19, -0.11],
-        "erosion": [0.1, 2.0]
-      }
-    },
+    "minecraft:river",
+    "minecraft:beach",
     {
       "id": "adventure:alpine_meadow",
       "climate": {
@@ -101,7 +88,9 @@
       "adventure:magnolia_woodland": 5.8,
       "adventure:sugi_forest": 6.7,
       "adventure:wisteria_grove": 5.5,
-      "minecraft:pale_garden": 4.5
+      "minecraft:pale_garden": 4.5,
+      "minecraft:river": 1.8,
+      "minecraft:beach": 3.2
     }
   },
   "borders": {
