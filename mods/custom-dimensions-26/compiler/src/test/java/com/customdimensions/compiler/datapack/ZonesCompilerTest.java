@@ -89,9 +89,9 @@ class ZonesCompilerTest {
                 + "\"mass\": {\"bottom\": 120, \"top\": 250, \"taper\": 0.5}}]");
         JsonObject fd = settings(out, "t").getAsJsonObject("noise_router").getAsJsonObject("final_density");
         assertEquals("minecraft:max", fd.get("type").getAsString());
-        String mass = fd.get("argument2").toString();
+        String mass = fd.get("right").toString();
         assertTrue(mass.contains("adventure:zones/t/0/mask"), mass);
-        for (String part : new String[] {"\"from_y\":56", "\"to_y\":314", "\"from_y\":120", "\"to_y\":250", "\"to_value\":-0.25", "16.0"}) {
+        for (String part : new String[] {"\"from_coordinate\":56", "\"to_coordinate\":314", "\"from_coordinate\":120", "\"to_coordinate\":250", "\"to_value\":-0.25", "16.0"}) {
             assertTrue(mass.contains(part), part + " in " + mass);
         }
     }

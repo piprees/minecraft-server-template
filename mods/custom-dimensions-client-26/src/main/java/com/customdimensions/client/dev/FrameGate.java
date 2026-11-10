@@ -7,7 +7,8 @@ import java.util.Locale;
 /**
  * Whether a rig frame shows a place: a frame is rejected when it is occluded, empty, a fog wall, dark, or looks at the
  * world border. A shot of a void feature (a hole in the world) may be mostly void but must still hit blocks with
- * {@link #VOID_HITS_MIN} of its rays. A frame pair (as seen, and with night vision) is kept when either frame passes. The ray measures come from {@link FrameCensus}, the image measures from the screenshot's pixels.
+ * {@link #VOID_HITS_MIN} of its rays; the void draws in the fog colour, so its fog-wall rule counts only the fog
+ * pixels beyond the void's share of rays. A frame pair (as seen, and with night vision) is kept when either frame passes. The ray measures come from {@link FrameCensus}, the image measures from the screenshot's pixels.
  * Thresholds are calibrated against the rig's own good and bad frames (README § Frame-quality gate).
  */
 public final class FrameGate {
@@ -74,7 +75,10 @@ public final class FrameGate {
             out.add(String.format(Locale.ROOT, "empty: sky %.1f%% + void %.1f%% + unloaded %.1f%% > %.0f%%", m.skyPercent(), m.voidPercent(),
                     m.unloadedPercent(), EMPTY_MAX));
         }
-        if (m.fogPercent() > FOG_MAX) {
+        if (voidFeature && m.fogPercent() - m.voidPercent() > FOG_MAX) {
+            out.add(String.format(Locale.ROOT, "fog wall: %.1f%% of pixels within %.0f of the fog colour, %.1f%% beyond the void's %.1f%%",
+                    m.fogPercent(), FOG_DISTANCE, m.fogPercent() - m.voidPercent(), m.voidPercent()));
+        } else if (!voidFeature && m.fogPercent() > FOG_MAX) {
             out.add(String.format(Locale.ROOT, "fog wall: %.1f%% of pixels within %.0f of the fog colour", m.fogPercent(), FOG_DISTANCE));
         }
         if (m.borderPercent() > BORDER_MAX) {

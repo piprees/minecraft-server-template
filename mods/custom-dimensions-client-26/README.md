@@ -156,7 +156,7 @@ census and the image (sampled on a 160×90 grid). A frame is rejected when:
 | occluded | median ray distance under 4 blocks, or one block covers over 45% of all rays within 4 blocks (cobweb, a wall, leaves on the lens) |
 | empty | sky, void and unloaded rays over 75% together; on a `voidFeature: true` entry (a shot of a hole in the world), sky and unloaded over 75%; spared when the entry says `empty: true` (a shot meant to show sky or void) |
 | void | on a `voidFeature: true` entry, fewer than 15% of rays hit blocks |
-| fog wall | over 60% of pixels within RGB distance 24 of the camera's fog colour |
+| fog wall | over 60% of pixels within RGB distance 24 of the camera's fog colour; on a `voidFeature: true` entry, whose void draws in the fog colour, over 60% beyond the void's share of rays |
 | border | over 2% of rays reach the world border before any block, within the render distance |
 
 The luma line sits between the darkest readable frames (luma 37 and up: lit

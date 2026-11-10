@@ -58,6 +58,14 @@ class FrameGateTest {
     }
 
     @Test
+    void aVoidFeatureCountsOnlyFogBeyondItsVoid() {
+        assertTrue(FrameGate.reasons(new FrameGate.Measures(400, "none", 0, 10, 60, 0, 0, 100, 86), false, true).isEmpty());
+        assertTrue(only(new FrameGate.Measures(400, "none", 0, 10, 20, 0, 0, 100, 86), false).startsWith("fog wall: 86.0%"));
+        List<String> r = FrameGate.reasons(new FrameGate.Measures(400, "none", 0, 10, 20, 0, 0, 100, 86), false, true);
+        assertEquals(List.of("fog wall: 86.0% of pixels within 24 of the fog colour, 66.0% beyond the void's 20.0%"), r);
+    }
+
+    @Test
     void aVoidFeatureStillCountsSkyAndUnloadedAsEmpty() {
         List<String> r = FrameGate.reasons(new FrameGate.Measures(512, "none", 0, 70, 10, 10, 0, 100, 0), false, true);
         assertEquals(List.of("empty: sky 70.0% + unloaded 10.0% > 75%"), r);

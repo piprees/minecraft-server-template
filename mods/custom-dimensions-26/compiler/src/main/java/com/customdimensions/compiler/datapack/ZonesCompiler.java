@@ -103,9 +103,10 @@ public final class ZonesCompiler {
 
     private static JsonObject gradient(double fromY, double toY, double fromValue, double toValue) {
         JsonObject o = new JsonObject();
-        o.addProperty("type", "minecraft:y_clamped_gradient");
-        o.addProperty("from_y", (int) Math.round(fromY));
-        o.addProperty("to_y", (int) Math.round(toY));
+        o.addProperty("type", "minecraft:gradient");
+        o.addProperty("axis", "y");
+        o.addProperty("from_coordinate", (int) Math.round(fromY));
+        o.addProperty("to_coordinate", (int) Math.round(toY));
         o.addProperty("from_value", fromValue);
         o.addProperty("to_value", toValue);
         return o;
@@ -114,8 +115,8 @@ public final class ZonesCompiler {
     private static JsonObject binary(String type, JsonElement a, JsonElement b) {
         JsonObject o = new JsonObject();
         o.addProperty("type", type);
-        o.add("argument1", a);
-        o.add("argument2", b);
+        o.add("left", a);
+        o.add("right", b);
         return o;
     }
 
