@@ -205,13 +205,44 @@ public enum TerrainFamily {
         return id;
     }
 
-    /** The router continentalness at sea level ({@link Ctx#land()} shifts every coast to -0.11), or null for a terrain with no sea. */
-    public Double coastline() {
+    /** Blocks under and over sea level a shore spans. */
+    public static final double SHORE_BELOW = 3, SHORE_ABOVE = 3;
+
+    /**
+     * Router continentalness at sea level and at the ends of the shore ({@link #SHORE_BELOW} under it to
+     * {@link #SHORE_ABOVE} over it on the base height profile), or null for a terrain with no sea.
+     * {@link Ctx#land()} puts every land family's sea level at -0.11.
+     */
+    public double[] shore(TerrainSpec spec) {
+        double m = spec.heightMultiplier();
         return switch (this) {
             case FLOATING_ISLANDS, BASIN_ISLANDS -> null;
-            case ISLANDS -> -0.16;
-            default -> -0.11;
+            case ISLANDS -> {
+                // islands(): height over sea and continentalness along the island noise, in sigmas from the coverage threshold.
+                double peak = spec.param("islandHeight") * m;
+                double[] u = {-0.6, -0.06, 0, 0.3, 1.2}, h = {-1000, -3 * m, m, 0.4 * peak, peak};
+                double[] cu = {-0.6, -0.2, 0, 0.4, 1.2}, cv = {-0.6, -0.3, -0.15, 0.05, 0.4};
+                yield new double[]{at(cu, cv, at(h, u, 0)), at(cu, cv, at(h, u, -SHORE_BELOW)), at(cu, cv, at(h, u, SHORE_ABOVE))};
+            }
+            default -> {
+                // Ctx.land(): sea - 5 at -0.15, sea at -0.11, sea + 4 at -0.05.
+                double[] c = {-0.36, -0.15, -0.11, -0.05}, h = {-1000, -5 * m, 0, 4 * m};
+                yield new double[]{-0.11, at(h, c, -SHORE_BELOW), at(h, c, SHORE_ABOVE)};
+            }
         };
+    }
+
+    /** {@code ys} at {@code x}, linear between the points {@code xs} (ascending), held at the ends; rounded to 4 places. */
+    static double at(double[] xs, double[] ys, double x) {
+        double v;
+        if (x <= xs[0]) v = ys[0];
+        else if (x >= xs[xs.length - 1]) v = ys[ys.length - 1];
+        else {
+            int i = 1;
+            while (x > xs[i]) i++;
+            v = ys[i - 1] + (ys[i] - ys[i - 1]) * (x - xs[i - 1]) / (xs[i] - xs[i - 1]);
+        }
+        return Math.round(v * 10000) / 10000.0;
     }
 
     public String purpose() {

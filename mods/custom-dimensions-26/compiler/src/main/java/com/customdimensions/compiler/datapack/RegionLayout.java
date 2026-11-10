@@ -110,11 +110,11 @@ public final class RegionLayout {
                 BiomeRoles.COAST_HIGH, BiomeLayout.HIGH, true);
 
         /**
-         * A library terrain whose sea level sits at {@code line}: the shore from 3 blocks under sea level to
-         * 4 over, and no river valleys, so a river takes its mouth, where weirdness 0 crosses the shore.
+         * A library terrain whose sea level sits at {@code shore[0]} and whose shore runs from {@code shore[1]} to
+         * {@code shore[2]}; it has no river valleys, so a river takes its mouth, where weirdness 0 crosses the coast.
          */
-        static Coast terrain(double line) {
-            return new Coast(line, r(line - 0.03), r(line + 0.07), r(line - 0.08), r(line + 0.02), true);
+        static Coast terrain(double[] shore) {
+            return new Coast(shore[0], shore[1], shore[2], r(shore[0] - 0.08), r(shore[0] + 0.02), true);
         }
 
         Coast dry() {
@@ -141,8 +141,8 @@ public final class RegionLayout {
         var spec = com.customdimensions.compiler.terrain.TerrainSpec.parse(slug, def.terrain());
         Coast coast;
         if (spec != null) {
-            Double line = spec.family().coastline();
-            coast = line == null ? null : Coast.terrain(line);
+            double[] shore = spec.family().shore(spec);
+            coast = shore == null ? null : Coast.terrain(shore);
         } else {
             coast = List.of("overworld", "large_biomes", "amplified").contains(def.generator().preset()) ? Coast.VANILLA : null;
         }

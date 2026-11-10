@@ -232,6 +232,7 @@ class RegionLayoutTest {
         assertEquals(BiomeRoles.LAND, roles.role("minecraft:plains", none));
         assertEquals(BiomeRoles.LAND, roles.role("minecraft:mushroom_fields", none));
         assertEquals(BiomeRoles.SHORE, roles.role("adventure:tropical_shores", none));
+        assertEquals(BiomeRoles.LAND, roles.role("adventure:chalk_cliffs", none));
         assertEquals(BiomeRoles.RIVER, roles.role("adventure:muddy_river", none));
         assertEquals(BiomeRoles.WETLAND, roles.role("adventure:orchid_marsh", none));
         assertEquals(BiomeRoles.CAVE, roles.role("adventure:crystal_hollows", none));
@@ -291,16 +292,16 @@ class RegionLayoutTest {
             assertFalse(cells.isEmpty(), id);
             for (JsonObject p : cells) {
                 JsonArray c = p.getAsJsonArray("continentalness");
-                assertTrue(c.get(0).getAsDouble() >= -0.19 - 1e-9 && c.get(1).getAsDouble() <= -0.09 + 1e-9, id + " " + c);
+                assertTrue(c.get(0).getAsDouble() >= -0.195 - 1e-9 && c.get(1).getAsDouble() <= -0.1206 + 1e-9, id + " " + c);
             }
         }
         Map<String, Double> s = shares(entries, "temperature", "humidity");
         assertEquals(s.get("minecraft:beach"), s.get("adventure:tropical_shores"), 1e-3, "shores divide their band by weight");
         for (JsonObject p : of(entries, "minecraft:river")) {
             assertEquals("[-0.05,0.05]", p.get("weirdness").toString());
-            assertEquals("[-0.24,-0.14]", p.get("continentalness").toString());
+            assertEquals("[-0.2412,-0.1412]", p.get("continentalness").toString());
         }
-        for (JsonObject p : of(entries, "minecraft:plains")) assertTrue(p.getAsJsonArray("continentalness").get(0).getAsDouble() >= -0.16);
+        for (JsonObject p : of(entries, "minecraft:plains")) assertTrue(p.getAsJsonArray("continentalness").get(0).getAsDouble() >= -0.1612);
         JsonArray areas = source.getAsJsonObject("regions").getAsJsonArray("areas");
         assertEquals("river", areas.get(0).getAsJsonObject().get("role").getAsString());
         assertEquals("shore", areas.get(1).getAsJsonObject().get("role").getAsString());
@@ -345,5 +346,16 @@ class RegionLayoutTest {
             assertEquals("[-2.0,2.0]", e.getAsJsonObject().getAsJsonObject("parameters").get("continentalness").toString());
         }
         assertNull(source.getAsJsonObject("regions").get("areas"));
+    }
+
+    @Test
+    void theShoreSpansThreeBlocksEitherSideOfSeaLevel() {
+        var land = com.customdimensions.compiler.terrain.TerrainSpec.parse("t", JsonParser.parseString("{\"base\": \"continents\"}").getAsJsonObject());
+        assertArrayEquals(new double[]{-0.11, -0.134, -0.065}, land.family().shore(land), 1e-9);
+        var low = com.customdimensions.compiler.terrain.TerrainSpec.parse("t", JsonParser.parseString(
+                "{\"base\": \"islands\", \"params\": {\"islandHeight\": 4}}").getAsJsonObject());
+        assertArrayEquals(new double[]{-0.1612, -0.195, 0.2359}, low.family().shore(low), 1e-3);
+        var sky = com.customdimensions.compiler.terrain.TerrainSpec.parse("t", JsonParser.parseString("{\"base\": \"floating_islands\"}").getAsJsonObject());
+        assertNull(sky.family().shore(sky));
     }
 }
