@@ -24,7 +24,7 @@
             "parameters": {
               "temperature": [-2.0, 2.0],
               "humidity": [-2.0, 2.0],
-              "continentalness": [-0.19, 2.0],
+              "continentalness": [-0.2, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
               "depth": [0.2, 2.0],

@@ -359,7 +359,7 @@
           "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
         },
         "roles": {
-          "description": "A listed biome's role, over the one its tags or library entry give. On a terrain with a coastline, regional land, peak and wetland biomes take regions on land only, ocean biomes in the sea only, cave biomes under land at depth only; shore and river biomes listed without a climate take the terrain's shore and river bands, divided among them by weight.",
+          "description": "A listed biome's role, over the one its tags or library entry give. On a terrain with a coastline, regional land, peak and wetland biomes take regions on land only, ocean biomes in the sea only, cave biomes at depth only; shore and river biomes listed without a climate take the terrain's shore and river bands, divided among them by weight.",
           "type": "object",
           "propertyNames": { "$ref": "#/$defs/id" },
           "additionalProperties": { "enum": ["land", "ocean", "shore", "river", "peak", "cave", "wetland"] }

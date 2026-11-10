@@ -308,16 +308,15 @@ class RegionLayoutTest {
     }
 
     @Test
-    void cavesStayUnderLandAtDepth() {
+    void cavesStayAtDepth() {
         JsonObject source = source("r", GENERATOR + ", \"biomes\": [\"minecraft:plains\", \"minecraft:dripstone_caves\", "
                 + "{\"id\": \"minecraft:lush_caves\", \"climate\": {\"depth\": [0.3, 2]}}], \"biomeLayout\": {\"mode\": \"regions\"}");
         JsonArray entries = source.getAsJsonObject("base").getAsJsonArray("biomes");
         for (JsonObject p : of(entries, "minecraft:dripstone_caves")) {
             assertEquals(0.2, p.getAsJsonArray("depth").get(0).getAsDouble(), 1e-9);
-            assertEquals(-0.19, p.getAsJsonArray("continentalness").get(0).getAsDouble(), 1e-9);
         }
         for (JsonObject p : of(entries, "minecraft:plains")) assertEquals("[-2.0,0.2]", p.get("depth").toString());
-        for (JsonObject p : of(entries, "minecraft:lush_caves")) assertEquals(-0.19, p.getAsJsonArray("continentalness").get(0).getAsDouble(), 1e-9);
+        for (JsonObject p : of(entries, "minecraft:lush_caves")) assertEquals("[0.3,2.0]", p.get("depth").toString());
     }
 
     @Test

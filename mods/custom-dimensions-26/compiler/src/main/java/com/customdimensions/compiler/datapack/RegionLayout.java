@@ -181,11 +181,7 @@ public final class RegionLayout {
                 continue;
             }
             if (b.climate() != null) {
-                JsonObject p = BiomeLayout.climate(b.id(), b.climate());
-                if (coast != null && BiomeRoles.CAVE.equals(roles.role(b.id(), overrides)) && !b.climate().has("continentalness")) {
-                    p.add("continentalness", BiomeLayout.range(coast.line(), BiomeLayout.HIGH));
-                }
-                bound.add(BiomeLayout.entry(b.id(), p));
+                bound.add(BiomeLayout.entry(b.id(), BiomeLayout.climate(b.id(), b.climate())));
                 if (!boundIds.contains(b.id())) boundIds.add(b.id());
             } else if (!regional.contains(b.id())) {
                 regional.add(b.id());
@@ -242,7 +238,7 @@ public final class RegionLayout {
                     }
                     case BiomeRoles.SHORE -> cont = new double[]{coast.shoreLow(), coast.shoreHigh()};
                     case BiomeRoles.CAVE -> {
-                        cont = new double[]{coast.line(), BiomeLayout.HIGH};
+                        cont = new double[]{BiomeLayout.LOW, BiomeLayout.HIGH};
                         depth = new double[]{CAVE_DEPTH, BiomeLayout.HIGH};
                     }
                     case BiomeRoles.LAND -> cont = new double[]{sealess ? BiomeLayout.LOW : coast.line(), BiomeLayout.HIGH};
