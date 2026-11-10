@@ -1,6 +1,7 @@
 {
   "$schema": "../../../../../../schema/biome.schema.json",
   "realm": "overworld",
+  "role": "wetland",
   "inspiredBy": "Regions Unexplored, Fungal Fen.",
   "differs": "Mushroom fields are dry islands; this is a swamp of them: giant red and brown mushrooms stand in broad, level, shallow pools of dark water over mud and clay, on mycelium and mud ground broken by grassy tussocks of short grass and ferns, tall grass and large ferns crowd the pool edges with sugar cane reeds in the shallows' margins, muddy mangrove roots fringe the ground, fallen dark oak logs carry shelf fungi, glow lichen climbs the stems, lily pads float on the water, and spores drift in the gloom.",
   "climate": {

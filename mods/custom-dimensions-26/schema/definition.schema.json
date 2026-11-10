@@ -353,10 +353,20 @@
           "uniqueItems": true
         },
         "weights": {
-          "description": "A regional biome's weight; 1 when absent. Its share of the border is its weight over the sum of the regional biomes' weights.",
+          "description": "A regional biome's weight; 1 when absent. On a terrain with a coastline its share of its role's area is its weight over the sum of the weights in that area; otherwise its share of the border is its weight over the sum of the regional biomes' weights.",
           "type": "object",
           "propertyNames": { "$ref": "#/$defs/id" },
           "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
+        },
+        "roles": {
+          "description": "A listed biome's role, over the one its tags or library entry give. On a terrain with a coastline, regional land, peak and wetland biomes take regions on land only, ocean biomes in the sea only, cave biomes under land at depth only; shore and river biomes listed without a climate take the terrain's shore and river bands, divided among them by weight.",
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "enum": ["land", "ocean", "shore", "river", "peak", "cave", "wetland"] }
+        },
+        "sea": {
+          "description": "The biome of the sea when no ocean biome is listed, on a terrain with a coastline; absent: the vanilla ocean that suits the land biomes' mean temperature.",
+          "$ref": "#/$defs/id"
         }
       }
     },

@@ -32,7 +32,8 @@ import java.util.regex.Pattern;
  * <p>A file holds {@code realm}, {@code inspiredBy} and {@code differs}, the
  * {@code biome} as a 26.3 biome file, and optionally {@code features} (name to
  * {@code {feature, placement}}), {@code palette} (a surface palette) and
- * {@code climate} (the box a definition's layout uses when it gives none).
+ * {@code climate} (the box a definition's layout uses when it gives none) and
+ * {@code role} (the ground it belongs to, {@link BiomeRoles}).
  * In {@code biome.features} and inside the features, {@code "~<name>"} names
  * one of the biome's own features. Schema: {@code schema/biome.schema.json}.
  */
@@ -43,7 +44,7 @@ public final class BiomeLibrary {
     public static final List<String> REALMS = List.of("overworld", "caves", "nether", "end", "sky");
     /** The folder a library biome's features live under: {@code <namespace>:biome/<id>/<name>}. */
     public static final String FEATURE_FOLDER = "biome";
-    static final List<String> FIELDS = List.of("$schema", "realm", "inspiredBy", "differs", "biome", "features", "palette", "climate");
+    static final List<String> FIELDS = List.of("$schema", "realm", "inspiredBy", "differs", "biome", "features", "palette", "climate", "role");
     /** The keys of a 26.3 biome file; the last is optional. */
     static final List<String> BIOME_FIELDS = List.of("attributes", "carvers", "downfall", "effects", "features",
             "has_precipitation", "temperature", "temperature_modifier");
@@ -56,7 +57,7 @@ public final class BiomeLibrary {
 
     /** One library biome; {@code features} maps each name to its {@code {feature, placement}} object. */
     public record Entry(String id, String realm, String inspiredBy, String differs, JsonObject biome,
-                        Map<String, JsonObject> features, MaterialsCompiler.Palette palette, JsonObject climate) {
+                        Map<String, JsonObject> features, MaterialsCompiler.Palette palette, JsonObject climate, String role) {
     }
 
     /** The biome ids a compile accepts, vanilla's and the library's, with each library biome's default climate. */
@@ -213,7 +214,12 @@ public final class BiomeLibrary {
             }
             climate = c.getAsJsonObject();
         }
-        return new Entry(id, realm, inspiredBy, differs, biome, features, new MaterialsCompiler.Palette(palette), climate);
+        String role = null;
+        if (o.has("role")) {
+            role = text(id, o, "role");
+            if (!BiomeRoles.ROLES.contains(role)) throw error(id, "role `" + role + "` is not one of " + BiomeRoles.ROLES);
+        }
+        return new Entry(id, realm, inspiredBy, differs, biome, features, new MaterialsCompiler.Palette(palette), climate, role);
     }
 
     private static String text(String id, JsonObject o, String key) {

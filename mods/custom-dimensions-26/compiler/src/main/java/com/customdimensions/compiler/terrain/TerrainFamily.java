@@ -205,6 +205,15 @@ public enum TerrainFamily {
         return id;
     }
 
+    /** The router continentalness at sea level ({@link Ctx#land()} shifts every coast to -0.11), or null for a terrain with no sea. */
+    public Double coastline() {
+        return switch (this) {
+            case FLOATING_ISLANDS, BASIN_ISLANDS -> null;
+            case ISLANDS -> -0.16;
+            default -> -0.11;
+        };
+    }
+
     public String purpose() {
         return purpose;
     }

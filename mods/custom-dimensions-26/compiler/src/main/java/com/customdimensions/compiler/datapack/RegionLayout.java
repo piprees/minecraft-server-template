@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public final class RegionLayout {
     public static final String MODE = "regions";
-    public static final List<String> FIELDS = List.of("mode", "axes", "weights");
+    public static final List<String> FIELDS = List.of("mode", "axes", "weights", "roles", "sea");
     /** Axes a region may be cut on; depth varies down a column, so it stays with bound biomes. */
     public static final List<String> REGION_AXES = List.of("temperature", "humidity", "continentalness", "erosion", "weirdness");
     public static final List<String> DEFAULT_AXES = List.of("temperature", "humidity");
@@ -98,14 +98,80 @@ public final class RegionLayout {
     }
 
     /**
-     * The entries for {@code biomes} under {@code layout}: bound boxes first, then the regional cells, carved
-     * disjoint. {@code radius} is the border the runtime measures the climate over.
+     * Where a terrain's sea meets its land on router continentalness, and the bands its shore and river biomes
+     * take: a river band is {@link #RIVER_WEIRDNESS} either side of weirdness 0 and {@code riverLow} to
+     * {@code riverHigh} on continentalness. {@code water}: the sea is water, so it may take a default ocean.
      */
+    public record Coast(double line, double shoreLow, double shoreHigh, double riverLow, double riverHigh, boolean water) {
+        static final double RIVER_WEIRDNESS = 0.05;
+
+        /** Vanilla's router: its coast band holds the beaches, rivers run inland along weirdness 0. */
+        static final Coast VANILLA = new Coast(BiomeRoles.COAST_LOW, BiomeRoles.COAST_LOW, BiomeRoles.COAST_HIGH,
+                BiomeRoles.COAST_HIGH, BiomeLayout.HIGH, true);
+
+        /**
+         * A library terrain whose sea level sits at {@code line}: the shore from 3 blocks under sea level to
+         * 4 over, and no river valleys, so a river takes its mouth, where weirdness 0 crosses the shore.
+         */
+        static Coast terrain(double line) {
+            return new Coast(line, r(line - 0.03), r(line + 0.07), r(line - 0.08), r(line + 0.02), true);
+        }
+
+        Coast dry() {
+            return new Coast(line, shoreLow, shoreHigh, riverLow, riverHigh, false);
+        }
+
+        private static double r(double v) {
+            return Math.round(v * 10000) / 10000.0;
+        }
+    }
+
+    /** Depth a cave area starts at: vanilla's cave biomes' lowest. */
+    static final double CAVE_DEPTH = 0.2;
+    /** Role groups in carving order: the first wins where areas overlap. */
+    static final List<String> GROUPS = List.of(BiomeRoles.RIVER, BiomeRoles.SHORE, BiomeRoles.CAVE, BiomeRoles.LAND, BiomeRoles.OCEAN);
+
+    /**
+     * The coast of {@code def}'s terrain, or null when it has no sea or the region axes include continentalness
+     * or weirdness, which the role areas are cut on: a library terrain's {@link
+     * com.customdimensions.compiler.terrain.TerrainFamily#coastline()}, else vanilla's for the overworld presets.
+     */
+    static Coast coast(String slug, com.customdimensions.core.definition.Definition def, List<String> axes) {
+        if (axes.contains("continentalness") || axes.contains("weirdness")) return null;
+        var spec = com.customdimensions.compiler.terrain.TerrainSpec.parse(slug, def.terrain());
+        Coast coast;
+        if (spec != null) {
+            Double line = spec.family().coastline();
+            coast = line == null ? null : Coast.terrain(line);
+        } else {
+            coast = List.of("overworld", "large_biomes", "amplified").contains(def.generator().preset()) ? Coast.VANILLA : null;
+        }
+        var l = def.liquids();
+        boolean water = l == null || ((l.defaultFluid() == null || "minecraft:water".equals(l.defaultFluid())) && !"dry".equals(l.aquifers()));
+        return coast == null || water ? coast : coast.dry();
+    }
+
+    /** As {@link #plan(String, List, JsonObject, int, BiomeLibrary.Known, CompileReport.Entry, Coast, BiomeRoles)} with no coast. */
     static Plan plan(String slug, List<BiomeEntry> biomes, JsonObject layout, int radius, BiomeLibrary.Known known,
                      CompileReport.Entry entry) {
+        return plan(slug, biomes, layout, radius, known, entry, null, null);
+    }
+
+    /**
+     * The entries for {@code biomes} under {@code layout}: bound boxes first, then the regional cells, carved
+     * disjoint. {@code radius} is the border the runtime measures the climate over. With a {@code coast}, each
+     * regional biome is laid out in its role's area (see {@link #GROUPS}), weights normalised per area.
+     */
+    static Plan plan(String slug, List<BiomeEntry> biomes, JsonObject layout, int radius, BiomeLibrary.Known known,
+                     CompileReport.Entry entry, Coast coast, BiomeRoles roles) {
         validate(slug, layout);
         List<String> axes = axes(slug, layout);
         Map<String, Double> weights = weights(slug, layout);
+        Map<String, String> overrides = roles(slug, layout, biomes);
+        if (coast != null && !coast.water() && biomes.stream().allMatch(b -> b.climate() != null
+                || BiomeRoles.LAND.equals(group(roles.role(b.id(), overrides))))) {
+            coast = null;
+        }
         JsonArray bound = new JsonArray();
         List<String> regional = new ArrayList<>();
         List<String> boundIds = new ArrayList<>();
@@ -115,7 +181,11 @@ public final class RegionLayout {
                 continue;
             }
             if (b.climate() != null) {
-                bound.add(BiomeLayout.entry(b.id(), BiomeLayout.climate(b.id(), b.climate())));
+                JsonObject p = BiomeLayout.climate(b.id(), b.climate());
+                if (coast != null && BiomeRoles.CAVE.equals(roles.role(b.id(), overrides)) && !b.climate().has("continentalness")) {
+                    p.add("continentalness", BiomeLayout.range(coast.line(), BiomeLayout.HIGH));
+                }
+                bound.add(BiomeLayout.entry(b.id(), p));
                 if (!boundIds.contains(b.id())) boundIds.add(b.id());
             } else if (!regional.contains(b.id())) {
                 regional.add(b.id());
@@ -126,53 +196,76 @@ public final class RegionLayout {
                 throw error(slug, "biomeLayout.weights." + id + " names no listed biome without a climate");
             }
         }
-        double[] w = new double[regional.size()];
-        double total = 0;
-        for (int i = 0; i < w.length; i++) {
-            w[i] = weights.getOrDefault(regional.get(i), 1.0);
-            total += w[i];
+        JsonElement seaField = layout.get("sea");
+        if (seaField != null && (coast == null || !coast.water() || !seaField.isJsonPrimitive() || !known.contains(seaField.getAsString()))) {
+            throw error(slug, coast == null || !coast.water() ? "biomeLayout.sea needs a terrain with a water sea"
+                    : "biomeLayout.sea must name a biome the game has, not " + seaField);
         }
-        for (int i = 0; i < w.length; i++) w[i] /= total;
 
         JsonArray kept = new JsonArray();
         bound.forEach(kept::add);
-        List<Double> columnCuts = new ArrayList<>();
-        List<List<String>> columns = new ArrayList<>();
-        if (!regional.isEmpty()) {
-            int[] groups = axes.size() == 1 ? new int[]{regional.size()} : columns(w, Math.max(1, (int) Math.round(Math.sqrt(w.length))));
-            int start = 0;
-            double x = 0;
-            for (int c = 0; c < groups.length; c++) {
-                int end = start + groups[c];
-                double width = 0;
-                for (int i = start; i < end; i++) width += w[i];
-                double x1 = c == groups.length - 1 ? 1 : x + width;
-                List<String> column = new ArrayList<>();
-                List<Integer> order = new ArrayList<>();
-                for (int i = start; i < end; i++) order.add(i);
-                if (c % 2 == 1) java.util.Collections.reverse(order);
-                double y = 0;
-                for (int k = 0; k < order.size(); k++) {
-                    int i = order.get(k);
-                    double y1 = k == order.size() - 1 ? 1 : y + w[i] / width;
-                    JsonObject p = new JsonObject();
-                    for (String axis : MultiNoise.AXES) p.add(axis, BiomeLayout.range(BiomeLayout.LOW, BiomeLayout.HIGH));
-                    if (axes.size() == 1) {
-                        p.add(axes.get(0), rankRange(y, y1));
-                    } else {
-                        p.add(axes.get(0), rankRange(x, x1));
-                        p.add(axes.get(1), rankRange(y, y1));
-                    }
-                    p.addProperty("offset", 0.0);
-                    kept.add(BiomeLayout.entry(regional.get(i), p));
-                    column.add(regional.get(i));
-                    y = y1;
-                }
-                columns.add(column);
-                if (c < groups.length - 1) columnCuts.add(rank(x1));
-                x = x1;
-                start = end;
+        JsonObject regions = new JsonObject();
+        JsonArray axesJson = new JsonArray();
+        axes.forEach(axesJson::add);
+        regions.add("axes", axesJson);
+        String note;
+        if (coast == null) {
+            Cells cells = cells(regional, weights, axes, area(null, null, null));
+            cells.entries().forEach(kept::add);
+            if (!cells.cuts().isEmpty()) regions.add("columns", cuts(cells.cuts()));
+            note = "Biome regions on " + String.join(" × ", axes) + " over a " + radius + "-block radius: "
+                    + regional.size() + " regional biome(s) in " + cells.columns().size() + " column(s) " + cells.columns();
+        } else {
+            Map<String, List<String>> groups = new LinkedHashMap<>();
+            GROUPS.forEach(g -> groups.put(g, new ArrayList<>()));
+            for (String id : regional) groups.get(group(roles.role(id, overrides))).add(id);
+            Map<String, Double> w = new LinkedHashMap<>(weights);
+            String sea = null;
+            boolean boundOcean = boundIds.stream().anyMatch(id -> BiomeRoles.OCEAN.equals(roles.role(id, overrides)));
+            if (groups.get(BiomeRoles.OCEAN).isEmpty() && !groups.get(BiomeRoles.LAND).isEmpty() && coast.water() && !boundOcean) {
+                sea = seaField != null ? seaField.getAsString() : BiomeRoles.sea(meanTemperature(groups.get(BiomeRoles.LAND), weights, roles));
+                groups.get(BiomeRoles.OCEAN).add(sea);
             }
+            boolean caves = !groups.get(BiomeRoles.CAVE).isEmpty();
+            boolean landless = groups.get(BiomeRoles.LAND).isEmpty();
+            boolean sealess = groups.get(BiomeRoles.OCEAN).isEmpty() && !boundOcean;
+            JsonArray areas = new JsonArray();
+            StringBuilder parts = new StringBuilder();
+            for (String g : GROUPS) {
+                List<String> ids = groups.get(g);
+                if (ids.isEmpty()) continue;
+                double[] cont, weird = null, depth = null;
+                switch (g) {
+                    case BiomeRoles.RIVER -> {
+                        cont = new double[]{coast.riverLow(), coast.riverHigh()};
+                        weird = new double[]{-Coast.RIVER_WEIRDNESS, Coast.RIVER_WEIRDNESS};
+                    }
+                    case BiomeRoles.SHORE -> cont = new double[]{coast.shoreLow(), coast.shoreHigh()};
+                    case BiomeRoles.CAVE -> {
+                        cont = new double[]{coast.line(), BiomeLayout.HIGH};
+                        depth = new double[]{CAVE_DEPTH, BiomeLayout.HIGH};
+                    }
+                    case BiomeRoles.LAND -> cont = new double[]{sealess ? BiomeLayout.LOW : coast.line(), BiomeLayout.HIGH};
+                    default -> cont = new double[]{BiomeLayout.LOW, landless ? BiomeLayout.HIGH : coast.line()};
+                }
+                if (caves && (g.equals(BiomeRoles.LAND) || g.equals(BiomeRoles.OCEAN))) depth = new double[]{BiomeLayout.LOW, CAVE_DEPTH};
+                Cells cells = cells(ids, w, axes, area(cont, weird, depth));
+                cells.entries().forEach(kept::add);
+                JsonObject a = new JsonObject();
+                a.addProperty("role", g);
+                a.add("continentalness", BiomeLayout.range(cont[0], cont[1]));
+                if (weird != null) a.add("weirdness", BiomeLayout.range(weird[0], weird[1]));
+                if (depth != null) a.add("depth", BiomeLayout.range(depth[0], depth[1]));
+                if (!cells.cuts().isEmpty()) a.add("columns", cuts(cells.cuts()));
+                areas.add(a);
+                parts.append(parts.isEmpty() ? "" : "; ").append(g).append(' ').append(cells.columns());
+            }
+            regions.add("areas", areas);
+            note = "Biome regions on " + String.join(" × ", axes) + " over a " + radius + "-block radius, by role (coast at continentalness "
+                    + coast.line() + "): " + parts
+                    + (sea == null ? "" : "; the sea takes `" + sea + "`, no ocean biome being listed")
+                    + (sealess && !landless ? "; the land biomes take the sea too, which is not water" : "")
+                    + (overrides.isEmpty() ? "" : "; roles given: " + overrides);
         }
         if (kept.isEmpty()) {
             kept.add(MultiNoise.fullRange("minecraft:plains"));
@@ -183,20 +276,116 @@ public final class RegionLayout {
         if (pair != null) {
             throw new IllegalStateException("multi-noise entries " + pair[0] + " and " + pair[1] + " still overlap");
         }
-        JsonObject regions = new JsonObject();
-        JsonArray axesJson = new JsonArray();
-        axes.forEach(axesJson::add);
-        regions.add("axes", axesJson);
-        if (!columnCuts.isEmpty()) {
-            JsonArray cuts = new JsonArray();
-            columnCuts.forEach(cuts::add);
-            regions.add("columns", cuts);
-        }
         regions.addProperty("radius", radius);
-        entry.note("Biome regions on " + String.join(" × ", axes) + " over a " + radius + "-block radius: "
-                + regional.size() + " regional biome(s) in " + columns.size() + " column(s) " + columns
-                + (boundIds.isEmpty() ? "" : "; bound by their climate: " + boundIds));
+        entry.note(note + (boundIds.isEmpty() ? "" : "; bound by their climate: " + boundIds));
         return new Plan(carved, regions);
+    }
+
+    /** The layout group a role's regional biomes share: peaks and wetlands are land. */
+    static String group(String role) {
+        return switch (role) {
+            case BiomeRoles.PEAK, BiomeRoles.WETLAND -> BiomeRoles.LAND;
+            default -> role;
+        };
+    }
+
+    /** {@code biomeLayout.roles}, each naming a listed biome and a role. */
+    static Map<String, String> roles(String slug, JsonObject layout, List<BiomeEntry> biomes) {
+        Map<String, String> out = new LinkedHashMap<>();
+        JsonElement e = layout.get("roles");
+        if (e == null) return out;
+        if (!e.isJsonObject()) throw error(slug, "biomeLayout.roles must be an object of biome id to role");
+        for (Map.Entry<String, JsonElement> kv : e.getAsJsonObject().entrySet()) {
+            JsonElement v = kv.getValue();
+            if (!v.isJsonPrimitive() || !BiomeRoles.ROLES.contains(v.getAsString())) {
+                throw error(slug, "biomeLayout.roles." + kv.getKey() + " must be one of " + BiomeRoles.ROLES);
+            }
+            if (biomes.stream().noneMatch(b -> b.id().equals(kv.getKey()))) {
+                throw error(slug, "biomeLayout.roles." + kv.getKey() + " names no listed biome");
+            }
+            out.put(kv.getKey(), v.getAsString());
+        }
+        return out;
+    }
+
+    private static double meanTemperature(List<String> ids, Map<String, Double> weights, BiomeRoles roles) {
+        double sum = 0, total = 0;
+        for (String id : ids) {
+            var t = roles.temperature(id);
+            if (t.isEmpty()) continue;
+            double w = weights.getOrDefault(id, 1.0);
+            sum += t.get() * w;
+            total += w;
+        }
+        return total == 0 ? 0.8 : sum / total;
+    }
+
+    /** One group's cells, the first axis's column cuts in rank space, and its biomes by column. */
+    private record Cells(List<JsonObject> entries, List<Double> cuts, List<List<String>> columns) {}
+
+    /** Every axis full, but continentalness, weirdness and depth bounded where given. */
+    private static JsonObject area(double[] cont, double[] weird, double[] depth) {
+        JsonObject p = new JsonObject();
+        for (String axis : MultiNoise.AXES) p.add(axis, BiomeLayout.range(BiomeLayout.LOW, BiomeLayout.HIGH));
+        if (cont != null) p.add("continentalness", BiomeLayout.range(cont[0], cont[1]));
+        if (weird != null) p.add("weirdness", BiomeLayout.range(weird[0], weird[1]));
+        if (depth != null) p.add("depth", BiomeLayout.range(depth[0], depth[1]));
+        return p;
+    }
+
+    private static JsonArray cuts(List<Double> cuts) {
+        JsonArray out = new JsonArray();
+        cuts.forEach(out::add);
+        return out;
+    }
+
+    /** {@code ids} cut into rank cells of {@code area} on {@code axes}, each a share of its weight over the group's sum. */
+    private static Cells cells(List<String> ids, Map<String, Double> weights, List<String> axes, JsonObject area) {
+        List<JsonObject> out = new ArrayList<>();
+        List<Double> columnCuts = new ArrayList<>();
+        List<List<String>> columns = new ArrayList<>();
+        if (ids.isEmpty()) return new Cells(out, columnCuts, columns);
+        double[] w = new double[ids.size()];
+        double total = 0;
+        for (int i = 0; i < w.length; i++) {
+            w[i] = weights.getOrDefault(ids.get(i), 1.0);
+            total += w[i];
+        }
+        for (int i = 0; i < w.length; i++) w[i] /= total;
+        int[] groups = axes.size() == 1 ? new int[]{ids.size()} : columns(w, Math.max(1, (int) Math.round(Math.sqrt(w.length))));
+        int start = 0;
+        double x = 0;
+        for (int c = 0; c < groups.length; c++) {
+            int end = start + groups[c];
+            double width = 0;
+            for (int i = start; i < end; i++) width += w[i];
+            double x1 = c == groups.length - 1 ? 1 : x + width;
+            List<String> column = new ArrayList<>();
+            List<Integer> order = new ArrayList<>();
+            for (int i = start; i < end; i++) order.add(i);
+            if (c % 2 == 1) java.util.Collections.reverse(order);
+            double y = 0;
+            for (int k = 0; k < order.size(); k++) {
+                int i = order.get(k);
+                double y1 = k == order.size() - 1 ? 1 : y + w[i] / width;
+                JsonObject p = area.deepCopy();
+                if (axes.size() == 1) {
+                    p.add(axes.get(0), rankRange(y, y1));
+                } else {
+                    p.add(axes.get(0), rankRange(x, x1));
+                    p.add(axes.get(1), rankRange(y, y1));
+                }
+                p.addProperty("offset", 0.0);
+                out.add(BiomeLayout.entry(ids.get(i), p));
+                column.add(ids.get(i));
+                y = y1;
+            }
+            columns.add(column);
+            if (c < groups.length - 1) columnCuts.add(rank(x1));
+            x = x1;
+            start = end;
+        }
+        return new Cells(out, columnCuts, columns);
     }
 
     /**

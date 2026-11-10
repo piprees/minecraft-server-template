@@ -1,6 +1,7 @@
 {
   "$schema": "../../../../../../schema/biome.schema.json",
   "realm": "overworld",
+  "role": "wetland",
   "inspiredBy": "Wilder Wild's and Nature's Spirit's cypress swamps: open shallow water with tall trees standing in it.",
   "differs": "A mangrove swamp is a root tangle and a swamp a mire of oaks; this is open shallow water over clay you can boat through, tall straight cypresses with flat crowns rooted in it, lily pads, cane and fireflies in a low green mist.",
   "climate": {

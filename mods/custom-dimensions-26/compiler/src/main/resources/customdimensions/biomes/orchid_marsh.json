@@ -1,6 +1,7 @@
 {
   "$schema": "../../../../../../schema/biome.schema.json",
   "realm": "overworld",
+  "role": "wetland",
   "inspiredBy": "Nature's Spirit's marsh: open reed marsh studded with blue orchids.",
   "differs": "A swamp has trees and murk, and a cypress wetland tall trees in its water; this is open, bright and treeless: green-blue pools on clay among grass and mud, thick sugar cane reeds round them, blue orchids everywhere, lily pads only on the water, and frogs.",
   "climate": {

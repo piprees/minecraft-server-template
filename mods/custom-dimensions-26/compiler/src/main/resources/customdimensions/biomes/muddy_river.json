@@ -1,6 +1,7 @@
 {
   "$schema": "../../../../../../schema/biome.schema.json",
   "realm": "overworld",
+  "role": "river",
   "inspiredBy": "Regions Unexplored's muddy river: slow brown rivers between mud banks.",
   "differs": "Vanilla rivers all run the same clear blue over sand and gravel; this river runs brown and murky over clay and mud, between banks of mud and packed mud a few blocks either side of the water, thick with sugar cane reeds and mangrove roots.",
   "climate": {

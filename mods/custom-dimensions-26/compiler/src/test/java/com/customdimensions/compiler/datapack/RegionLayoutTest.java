@@ -23,6 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RegionLayoutTest {
 
     private static final String GENERATOR = "\"generator\": {\"type\": \"noise\", \"preset\": \"overworld\"}";
+    /** A terrain with no sea, so roles take no part. */
+    private static final String SKY = "\"terrain\": {\"base\": \"floating_islands\"}";
+    private static final String ISLANDS = "\"terrain\": {\"base\": \"islands\"}";
     private static final List<String> NINE = List.of("minecraft:plains", "minecraft:forest", "minecraft:taiga", "minecraft:savanna",
             "minecraft:desert", "minecraft:jungle", "minecraft:swamp", "minecraft:meadow", "minecraft:grove");
 
@@ -74,7 +77,7 @@ class RegionLayoutTest {
 
     @Test
     void equalWeightsTakeEqualSharesOfRankSpace() {
-        JsonObject source = source("r", GENERATOR + ", " + list(NINE) + ", \"biomeLayout\": {\"mode\": \"regions\"}");
+        JsonObject source = source("r", GENERATOR + ", " + SKY + ", " + list(NINE) + ", \"biomeLayout\": {\"mode\": \"regions\"}");
         assertEquals("customdimensions:zoned", source.get("type").getAsString());
         JsonArray entries = source.getAsJsonObject("base").getAsJsonArray("biomes");
         assertEquals(9, entries.size());
@@ -202,5 +205,145 @@ class RegionLayoutTest {
                 .replace("]", "") + ", {\"id\": \"minecraft:dripstone_caves\", \"climate\": {\"depth\": [0.2, 2]}}], "
                 + "\"borders\": {\"player\": 4096, \"generation\": 2048}, \"biomeLayout\": {\"mode\": \"regions\", "
                 + "\"weights\": {\"minecraft:plains\": 3, \"minecraft:desert\": 2}}");
+    }
+
+    // ---- roles ---------------------------------------------------------------------------------
+
+    private static List<JsonObject> of(JsonArray entries, String biome) {
+        List<JsonObject> out = new ArrayList<>();
+        for (JsonElement e : entries) {
+            if (e.getAsJsonObject().get("biome").getAsString().equals(biome)) out.add(e.getAsJsonObject().getAsJsonObject("parameters"));
+        }
+        return out;
+    }
+
+    @Test
+    void rolesComeFromVanillaTagsPlacementsAndTheLibrary() {
+        BiomeRoles roles = BiomeRoles.of(Fixtures.vanilla(), BiomeLibrary.shipped(), "adventure");
+        Map<String, String> none = Map.of();
+        assertEquals(BiomeRoles.OCEAN, roles.role("minecraft:warm_ocean", none));
+        assertEquals(BiomeRoles.OCEAN, roles.role("minecraft:deep_cold_ocean", none));
+        assertEquals(BiomeRoles.RIVER, roles.role("minecraft:frozen_river", none));
+        assertEquals(BiomeRoles.SHORE, roles.role("minecraft:beach", none));
+        assertEquals(BiomeRoles.SHORE, roles.role("minecraft:stony_shore", none));
+        assertEquals(BiomeRoles.PEAK, roles.role("minecraft:jagged_peaks", none));
+        assertEquals(BiomeRoles.CAVE, roles.role("minecraft:lush_caves", none));
+        assertEquals(BiomeRoles.CAVE, roles.role("minecraft:deep_dark", none));
+        assertEquals(BiomeRoles.LAND, roles.role("minecraft:plains", none));
+        assertEquals(BiomeRoles.LAND, roles.role("minecraft:mushroom_fields", none));
+        assertEquals(BiomeRoles.SHORE, roles.role("adventure:tropical_shores", none));
+        assertEquals(BiomeRoles.RIVER, roles.role("adventure:muddy_river", none));
+        assertEquals(BiomeRoles.WETLAND, roles.role("adventure:orchid_marsh", none));
+        assertEquals(BiomeRoles.CAVE, roles.role("adventure:crystal_hollows", none));
+        assertEquals(BiomeRoles.LAND, roles.role("adventure:lavender_fields", none));
+        assertEquals(BiomeRoles.OCEAN, roles.role("minecraft:plains", Map.of("minecraft:plains", BiomeRoles.OCEAN)));
+        assertEquals("minecraft:frozen_ocean", BiomeRoles.sea(0.0));
+        assertEquals("minecraft:ocean", BiomeRoles.sea(0.8));
+        assertEquals("minecraft:warm_ocean", BiomeRoles.sea(2.0));
+    }
+
+    @Test
+    void landRegionsStayOnLandAndTheSeaTakesAnOcean() {
+        JsonObject source = source("r", GENERATOR + ", " + list(NINE) + ", \"biomeLayout\": {\"mode\": \"regions\"}");
+        JsonArray entries = source.getAsJsonObject("base").getAsJsonArray("biomes");
+        for (String id : NINE) {
+            for (JsonObject p : of(entries, id)) assertEquals(-0.19, p.getAsJsonArray("continentalness").get(0).getAsDouble(), 1e-9, id);
+        }
+        List<JsonObject> sea = of(entries, "minecraft:ocean");
+        assertEquals(1, sea.size(), entries.toString());
+        assertEquals("[-2.0,-0.19]", sea.get(0).get("continentalness").toString());
+        assertEquals("[-2.0,2.0]", sea.get(0).get("temperature").toString());
+        JsonArray areas = source.getAsJsonObject("regions").getAsJsonArray("areas");
+        assertEquals(2, areas.size());
+        assertEquals("land", areas.get(0).getAsJsonObject().get("role").getAsString());
+        assertEquals("[-0.3333,0.3333]", areas.get(0).getAsJsonObject().get("columns").toString());
+        assertEquals("ocean", areas.get(1).getAsJsonObject().get("role").getAsString());
+        assertNull(source.getAsJsonObject("regions").get("columns"));
+        Map<String, Double> land = shares(entries, "temperature", "humidity");
+        land.remove("minecraft:ocean");
+        land.forEach((id, share) -> assertEquals(1 / 9.0, share, 1e-3, id));
+    }
+
+    @Test
+    void oceanBiomesTakeTheSeaAndWeightsHoldPerRole() {
+        JsonObject source = source("r", GENERATOR + ", " + list(List.of("minecraft:warm_ocean", "minecraft:plains", "minecraft:lukewarm_ocean",
+                "minecraft:desert")) + ", \"biomeLayout\": {\"mode\": \"regions\", \"weights\": {\"minecraft:warm_ocean\": 3, "
+                + "\"minecraft:plains\": 1, \"minecraft:desert\": 3}}");
+        JsonArray entries = source.getAsJsonObject("base").getAsJsonArray("biomes");
+        assertTrue(of(entries, "minecraft:ocean").isEmpty(), "a listed ocean leaves no room for a default sea");
+        for (String id : List.of("minecraft:warm_ocean", "minecraft:lukewarm_ocean")) {
+            for (JsonObject p : of(entries, id)) assertEquals(-0.19, p.getAsJsonArray("continentalness").get(1).getAsDouble(), 1e-9, id);
+        }
+        Map<String, Double> s = shares(entries, "temperature", "humidity");
+        assertEquals(0.75, s.get("minecraft:warm_ocean"), 1e-3);
+        assertEquals(0.25, s.get("minecraft:lukewarm_ocean"), 1e-3);
+        assertEquals(0.75, s.get("minecraft:desert"), 1e-3);
+        assertEquals(0.25, s.get("minecraft:plains"), 1e-3);
+    }
+
+    @Test
+    void shoresAndRiversTakeTheTerrainsBands() {
+        JsonObject source = source("r", GENERATOR + ", " + ISLANDS + ", " + list(List.of("minecraft:plains", "minecraft:beach",
+                "adventure:tropical_shores", "minecraft:river", "minecraft:warm_ocean")) + ", \"biomeLayout\": {\"mode\": \"regions\"}");
+        JsonArray entries = source.getAsJsonObject("base").getAsJsonArray("biomes");
+        for (String id : List.of("minecraft:beach", "adventure:tropical_shores")) {
+            List<JsonObject> cells = of(entries, id);
+            assertFalse(cells.isEmpty(), id);
+            for (JsonObject p : cells) {
+                JsonArray c = p.getAsJsonArray("continentalness");
+                assertTrue(c.get(0).getAsDouble() >= -0.19 - 1e-9 && c.get(1).getAsDouble() <= -0.09 + 1e-9, id + " " + c);
+            }
+        }
+        Map<String, Double> s = shares(entries, "temperature", "humidity");
+        assertEquals(s.get("minecraft:beach"), s.get("adventure:tropical_shores"), 1e-3, "shores divide their band by weight");
+        for (JsonObject p : of(entries, "minecraft:river")) {
+            assertEquals("[-0.05,0.05]", p.get("weirdness").toString());
+            assertEquals("[-0.24,-0.14]", p.get("continentalness").toString());
+        }
+        for (JsonObject p : of(entries, "minecraft:plains")) assertTrue(p.getAsJsonArray("continentalness").get(0).getAsDouble() >= -0.16);
+        JsonArray areas = source.getAsJsonObject("regions").getAsJsonArray("areas");
+        assertEquals("river", areas.get(0).getAsJsonObject().get("role").getAsString());
+        assertEquals("shore", areas.get(1).getAsJsonObject().get("role").getAsString());
+    }
+
+    @Test
+    void cavesStayUnderLandAtDepth() {
+        JsonObject source = source("r", GENERATOR + ", \"biomes\": [\"minecraft:plains\", \"minecraft:dripstone_caves\", "
+                + "{\"id\": \"minecraft:lush_caves\", \"climate\": {\"depth\": [0.3, 2]}}], \"biomeLayout\": {\"mode\": \"regions\"}");
+        JsonArray entries = source.getAsJsonObject("base").getAsJsonArray("biomes");
+        for (JsonObject p : of(entries, "minecraft:dripstone_caves")) {
+            assertEquals(0.2, p.getAsJsonArray("depth").get(0).getAsDouble(), 1e-9);
+            assertEquals(-0.19, p.getAsJsonArray("continentalness").get(0).getAsDouble(), 1e-9);
+        }
+        for (JsonObject p : of(entries, "minecraft:plains")) assertEquals("[-2.0,0.2]", p.get("depth").toString());
+        for (JsonObject p : of(entries, "minecraft:lush_caves")) assertEquals(-0.19, p.getAsJsonArray("continentalness").get(0).getAsDouble(), 1e-9);
+    }
+
+    @Test
+    void rolesAndTheSeaCanBeGiven() {
+        JsonObject source = source("r", GENERATOR + ", " + list(List.of("minecraft:plains", "minecraft:swamp")) + ", \"biomeLayout\": "
+                + "{\"mode\": \"regions\", \"roles\": {\"minecraft:swamp\": \"ocean\"}}");
+        JsonArray entries = source.getAsJsonObject("base").getAsJsonArray("biomes");
+        for (JsonObject p : of(entries, "minecraft:swamp")) assertEquals(-0.19, p.getAsJsonArray("continentalness").get(1).getAsDouble(), 1e-9);
+        JsonObject sea = source("s", GENERATOR + ", " + list(List.of("minecraft:plains")) + ", \"biomeLayout\": "
+                + "{\"mode\": \"regions\", \"sea\": \"minecraft:deep_ocean\"}");
+        assertEquals(1, of(sea.getAsJsonObject("base").getAsJsonArray("biomes"), "minecraft:deep_ocean").size());
+        for (String bad : List.of("\"roles\": {\"minecraft:plains\": \"lake\"}", "\"roles\": {\"minecraft:desert\": \"land\"}",
+                "\"sea\": \"minecraft:nowhere\"")) {
+            assertThrows(IllegalArgumentException.class, () -> Fixtures.compile("b", GENERATOR + ", " + list(List.of("minecraft:plains"))
+                    + ", \"biomeLayout\": {\"mode\": \"regions\", " + bad + "}"), bad);
+        }
+        assertThrows(IllegalArgumentException.class, () -> Fixtures.compile("b", GENERATOR + ", " + SKY + ", " + list(List.of("minecraft:plains"))
+                + ", \"biomeLayout\": {\"mode\": \"regions\", \"sea\": \"minecraft:ocean\"}"));
+    }
+
+    @Test
+    void withoutACoastRolesTakeNoPart() {
+        JsonObject source = source("r", GENERATOR + ", " + SKY + ", " + list(List.of("minecraft:plains", "minecraft:warm_ocean", "minecraft:beach"))
+                + ", \"biomeLayout\": {\"mode\": \"regions\"}");
+        for (JsonElement e : source.getAsJsonObject("base").getAsJsonArray("biomes")) {
+            assertEquals("[-2.0,2.0]", e.getAsJsonObject().getAsJsonObject("parameters").get("continentalness").toString());
+        }
+        assertNull(source.getAsJsonObject("regions").get("areas"));
     }
 }

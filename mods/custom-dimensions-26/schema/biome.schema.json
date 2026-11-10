@@ -89,6 +89,10 @@
         "ceilings": { "$ref": "#/$defs/block" }
       }
     },
+    "role": {
+      "description": "The ground the biome belongs to, which decides where a biomeLayout of regions may put it; absent: cave for the caves realm, else land.",
+      "enum": ["land", "ocean", "shore", "river", "peak", "cave", "wetland"]
+    },
     "climate": {
       "description": "The multi-noise box a definition's layout uses when it lists the biome without one: a point or [min, max] per axis, absent axes everything.",
       "type": "object",

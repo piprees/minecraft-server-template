@@ -102,6 +102,7 @@ public final class DatapackCompiler {
     private StructuresCompiler.Catalogue structureCatalogue;
     private BiomeLibrary.Known known;
     private BiomeLibrary library;
+    private BiomeRoles roles;
 
     private DatapackCompiler(VanillaData vanilla, VersionTable.Version version, String namespace) {
         this.vanilla = vanilla;
@@ -558,6 +559,11 @@ public final class DatapackCompiler {
 
     // ---- generator --------------------------------------------------------------------------
 
+    private BiomeRoles roles() {
+        if (roles == null) roles = BiomeRoles.of(vanilla, library, namespace);
+        return roles;
+    }
+
     private JsonObject generator(String slug, Definition def, CompileReport.Entry entry) {
         Generator g = def.generator();
         if (def.biomeLayout() != null && (!Generator.NOISE.equals(g.type()) || def.biomes().isEmpty())) {
@@ -567,7 +573,8 @@ public final class DatapackCompiler {
         return switch (g.type()) {
             case Generator.NOISE -> {
                 RegionLayout.Plan regions = def.biomeLayout() == null ? null : RegionLayout.plan(slug, def.biomes(), def.biomeLayout(),
-                        RegionLayout.radius(def.borders()), known, entry);
+                        RegionLayout.radius(def.borders()), known, entry,
+                        RegionLayout.coast(slug, def, RegionLayout.axes(slug, def.biomeLayout())), roles());
                 yield noiseGenerator(slug, def, g.preset(), regions == null ? noiseBiomeSource(def, entry) : multiNoise(regions.entries()),
                         regions, entry);
             }

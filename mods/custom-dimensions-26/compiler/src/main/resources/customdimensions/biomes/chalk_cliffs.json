@@ -1,6 +1,7 @@
 {
   "$schema": "../../../../../../schema/biome.schema.json",
   "realm": "overworld",
+  "role": "shore",
   "inspiredBy": "Regions Unexplored's chalk cliffs: white sea cliffs where high downland meets the coast.",
   "differs": "Vanilla stony shores are low and grey; here the ground under a short pale turf is white calcite seamed with diorite, so every cut and steep face shows white, with calcite boulders, wind-bent oaks, gravel coves and sea pickles in bright shallows.",
   "climate": {

@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.WeakHashMap;
 import java.util.function.LongUnaryOperator;
 
@@ -24,18 +25,48 @@ import java.util.function.LongUnaryOperator;
  * {@link #GRID}-square grid over the world border ({@code radius} round the origin);
  * a value maps to its interpolated rank among the samples, from −1 to 1. With
  * {@code columns}, the second axis is ranked among the samples in the same
- * column of the first, so every cell holds its share exactly.
+ * column of the first, so every cell holds its share exactly. With
+ * {@code areas}, a point is ranked among the samples of the first area it
+ * falls in (each a box on continentalness, weirdness and depth, with its own
+ * columns), so each role's biomes hold their shares of their own ground.
  */
-public record ClimateRegions(List<String> axes, List<Float> columns, int radius) {
+public record ClimateRegions(List<String> axes, List<Float> columns, int radius, List<Area> areas) {
     /** Samples per side of the measuring grid. */
     static final int GRID = 96;
     /** A column with fewer samples ranks its second axis among all of them. */
     static final int MIN_COLUMN_SAMPLES = 16;
+    /** An area with fewer samples ranks among all of them. */
+    static final int MIN_AREA_SAMPLES = 16;
+
+    /** One role's ground; an absent bound is everything. Depth bounds a lookup only: the samples are surface climate. */
+    public record Area(String role, Optional<List<Float>> continentalness, Optional<List<Float>> weirdness,
+                       Optional<List<Float>> depth, List<Float> columns) {
+        public static final Codec<Area> CODEC = RecordCodecBuilder.create(i -> i.group(
+                Codec.STRING.optionalFieldOf("role", "").forGetter(Area::role),
+                Codec.FLOAT.listOf(2, 2).optionalFieldOf("continentalness").forGetter(Area::continentalness),
+                Codec.FLOAT.listOf(2, 2).optionalFieldOf("weirdness").forGetter(Area::weirdness),
+                Codec.FLOAT.listOf(2, 2).optionalFieldOf("depth").forGetter(Area::depth),
+                Codec.FLOAT.listOf().optionalFieldOf("columns", List.of()).forGetter(Area::columns)).apply(i, Area::new));
+
+        /** Whether quantised continentalness {@code c}, weirdness {@code w} and depth {@code d} lie inside. */
+        boolean contains(long c, long w, long d) {
+            return within(continentalness, c) && within(weirdness, w) && within(depth, d);
+        }
+
+        boolean containsSample(long c, long w) {
+            return within(continentalness, c) && within(weirdness, w);
+        }
+
+        private static boolean within(Optional<List<Float>> range, long v) {
+            return range.isEmpty() || (v >= Climate.quantizeCoord(range.get().get(0)) && v <= Climate.quantizeCoord(range.get().get(1)));
+        }
+    }
 
     public static final Codec<ClimateRegions> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.STRING.listOf(1, 2).fieldOf("axes").forGetter(ClimateRegions::axes),
             Codec.FLOAT.listOf().optionalFieldOf("columns", List.of()).forGetter(ClimateRegions::columns),
-            Codec.intRange(16, 30_000_000).fieldOf("radius").forGetter(ClimateRegions::radius)).apply(i, ClimateRegions::new));
+            Codec.intRange(16, 30_000_000).fieldOf("radius").forGetter(ClimateRegions::radius),
+            Area.CODEC.listOf().optionalFieldOf("areas", List.of()).forGetter(ClimateRegions::areas)).apply(i, ClimateRegions::new));
 
     public ClimateRegions {
         for (String axis : axes) {
@@ -45,18 +76,37 @@ public record ClimateRegions(List<String> axes, List<Float> columns, int radius)
         }
         axes = List.copyOf(axes);
         columns = List.copyOf(columns);
+        areas = List.copyOf(areas);
     }
 
-    /** One level's measured ranks. */
-    public static final class Ranks {
+    public ClimateRegions(List<String> axes, List<Float> columns, int radius) {
+        this(axes, columns, radius, List.of());
+    }
+
+    /** The areas a point is ranked in, in order; one covering everything without {@code areas}. */
+    List<Area> effectiveAreas() {
+        return areas.isEmpty() ? List.of(new Area("", Optional.empty(), Optional.empty(), Optional.empty(), columns)) : areas;
+    }
+
+    /** One area's measured ranks. */
+    static final class AreaRanks {
         final long[][] marginal;
         final long[] cuts;
         final long[][] conditional;
 
-        Ranks(long[][] marginal, long[] cuts, long[][] conditional) {
+        AreaRanks(long[][] marginal, long[] cuts, long[][] conditional) {
             this.marginal = marginal;
             this.cuts = cuts;
             this.conditional = conditional;
+        }
+    }
+
+    /** One level's measured ranks, per area. */
+    public static final class Ranks {
+        final List<AreaRanks> areas;
+
+        Ranks(List<AreaRanks> areas) {
+            this.areas = areas;
         }
     }
 
@@ -65,14 +115,23 @@ public record ClimateRegions(List<String> axes, List<Float> columns, int radius)
 
     /** {@code point}, its zone channel already removed, with the region axes in rank space. */
     Climate.TargetPoint ranked(Climate.TargetPoint point, Ranks ranks) {
+        List<Area> list = effectiveAreas();
+        int index = list.size() - 1;
+        for (int k = 0; k < list.size(); k++) {
+            if (list.get(k).contains(point.continentalness(), point.weirdness(), point.depth())) {
+                index = k;
+                break;
+            }
+        }
+        AreaRanks area = ranks.areas.get(index);
         long[] v = values(point);
-        long first = rank(v[0], ranks.marginal[0]);
+        long first = rank(v[0], area.marginal[0]);
         long second = 0;
         if (axes.size() == 2) {
-            long[] among = ranks.marginal[1];
-            if (ranks.conditional != null) {
-                int column = column(first, ranks.cuts);
-                if (ranks.conditional[column] != null) among = ranks.conditional[column];
+            long[] among = area.marginal[1];
+            if (area.conditional != null) {
+                int column = column(first, area.cuts);
+                if (area.conditional[column] != null) among = area.conditional[column];
             }
             second = rank(v[1], among);
         }
@@ -100,8 +159,12 @@ public record ClimateRegions(List<String> axes, List<Float> columns, int radius)
         long start = System.nanoTime();
         List<DensitySampler.Bound> bounds = new ArrayList<>();
         for (String axis : axes) bounds.add(new DensitySampler.Bound(bound(sampler, axis).sampler(), SamplerContext.EMPTY_UNCACHED));
+        DensitySampler.Bound cont = new DensitySampler.Bound(sampler.continentalness().sampler(), SamplerContext.EMPTY_UNCACHED);
+        DensitySampler.Bound weird = new DensitySampler.Bound(sampler.weirdness().sampler(), SamplerContext.EMPTY_UNCACHED);
+        boolean placed = !areas.isEmpty();
         int n = GRID * GRID;
         long[][] samples = new long[axes.size()][n];
+        long[] conts = new long[placed ? n : 0], weirds = new long[placed ? n : 0];
         double step = 2.0 * radius / (GRID - 1);
         int y = QuartPos.toBlock(QuartPos.fromBlock(64));
         for (int i = 0; i < GRID; i++) {
@@ -112,17 +175,45 @@ public record ClimateRegions(List<String> axes, List<Float> columns, int radius)
                     long q = Climate.quantizeCoord(bounds.get(a).sampleValue(x, y, z));
                     samples[a][i * GRID + j] = "temperature".equals(axes.get(a)) ? unchannel.applyAsLong(q) : q;
                 }
+                if (placed) {
+                    conts[i * GRID + j] = Climate.quantizeCoord(cont.sampleValue(x, y, z));
+                    weirds[i * GRID + j] = Climate.quantizeCoord(weird.sampleValue(x, y, z));
+                }
             }
         }
-        long[][] marginal = new long[axes.size()][];
-        for (int a = 0; a < axes.size(); a++) {
+        List<AreaRanks> out = new ArrayList<>();
+        StringBuilder counts = new StringBuilder();
+        for (Area area : effectiveAreas()) {
+            int m = 0;
+            int[] in = new int[n];
+            for (int s = 0; s < n; s++) if (!placed || area.containsSample(conts[s], weirds[s])) in[m++] = s;
+            if (m < MIN_AREA_SAMPLES) {
+                for (int s = 0; s < n; s++) in[s] = s;
+                m = n;
+            }
+            long[][] own = new long[axes.size()][m];
+            for (int a = 0; a < axes.size(); a++) for (int k = 0; k < m; k++) own[a][k] = samples[a][in[k]];
+            out.add(measureArea(own, area.columns()));
+            if (placed) counts.append(counts.isEmpty() ? "" : ", ").append(area.role().isEmpty() ? "area" : area.role()).append(' ').append(m);
+        }
+        CustomDimensions.LOG.info("biome regions: measured {} over a {}-block radius from {} samples in {} ms{}", axes, radius, n,
+                (System.nanoTime() - start) / 1_000_000, placed ? " (" + counts + ")" : "");
+        return new Ranks(out);
+    }
+
+    /** The marginal and per-column ranks of {@code samples} (one array per region axis). */
+    static AreaRanks measureArea(long[][] samples, List<Float> columnCuts) {
+        int n = samples[0].length;
+        int dims = samples.length;
+        long[][] marginal = new long[dims][];
+        for (int a = 0; a < dims; a++) {
             marginal[a] = samples[a].clone();
             Arrays.sort(marginal[a]);
         }
-        long[] cuts = new long[columns.size()];
-        for (int k = 0; k < cuts.length; k++) cuts[k] = Climate.quantizeCoord(columns.get(k));
+        long[] cuts = new long[columnCuts.size()];
+        for (int k = 0; k < cuts.length; k++) cuts[k] = Climate.quantizeCoord(columnCuts.get(k));
         long[][] conditional = null;
-        if (axes.size() == 2 && cuts.length > 0) {
+        if (dims == 2 && cuts.length > 0) {
             List<List<Long>> byColumn = new ArrayList<>();
             for (int k = 0; k <= cuts.length; k++) byColumn.add(new ArrayList<>());
             for (int s = 0; s < n; s++) {
@@ -135,9 +226,7 @@ public record ClimateRegions(List<String> axes, List<Float> columns, int radius)
                 conditional[k] = c.stream().mapToLong(Long::longValue).sorted().toArray();
             }
         }
-        CustomDimensions.LOG.info("biome regions: measured {} over a {}-block radius from {} samples in {} ms", axes, radius, n,
-                (System.nanoTime() - start) / 1_000_000);
-        return new Ranks(marginal, cuts, conditional);
+        return new AreaRanks(marginal, cuts, conditional);
     }
 
     private long[] values(Climate.TargetPoint p) {

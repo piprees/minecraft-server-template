@@ -1,6 +1,7 @@
 {
   "$schema": "../../../../../../schema/biome.schema.json",
   "realm": "overworld",
+  "role": "shore",
   "inspiredBy": "Nature's Spirit's tropical shores and Regions Unexplored's tropics: wide white beaches under leaning palms.",
   "differs": "A vanilla beach is a strip of sand; this is a whole coast of sand and sandstone running into turquoise shallows, with leaning palms bearing cocoa, melons, parrots, coral and sea pickles at the water's edge.",
   "climate": {

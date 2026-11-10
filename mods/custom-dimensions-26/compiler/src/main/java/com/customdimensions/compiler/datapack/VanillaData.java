@@ -141,6 +141,22 @@ public final class VanillaData {
         return TAG_FOLDERS.stream().anyMatch(folder -> hasFile("tags/" + folder, id));
     }
 
+    /** A vanilla biome file by id ({@code minecraft:plains}). */
+    public JsonObject biome(String id) {
+        return object("data/minecraft/worldgen/biome/" + path(id) + ".json");
+    }
+
+    /** The biome ids of the vanilla biome tag {@code id} ({@code minecraft:is_ocean}), nested tags expanded in order. */
+    public List<String> biomeTag(String id) {
+        Set<String> out = new LinkedHashSet<>();
+        for (JsonElement e : object("data/minecraft/tags/worldgen/biome/" + path(id) + ".json").getAsJsonArray("values")) {
+            String v = e.isJsonObject() ? e.getAsJsonObject().get("id").getAsString() : e.getAsString();
+            if (v.startsWith("#")) out.addAll(biomeTag(v.substring(1)));
+            else out.add(v);
+        }
+        return new ArrayList<>(out);
+    }
+
     /** A vanilla timeline by id ({@code minecraft:day}). */
     public JsonObject timeline(String id) {
         return object("data/minecraft/timeline/" + path(id) + ".json");
