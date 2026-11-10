@@ -190,27 +190,6 @@ check_orientation() {
   wait_for_dimension "$RIG_WORLD" 30 >/dev/null || note "did not get back to $RIG_WORLD: $DIM_NOTE"
 }
 
-# A share is a decimal; the shell compares it through awk, never inside jq.
-assert_json_at_least_float() { # label file filter minimum
-  local got
-  got="$(json_read "$2" "$3")"
-  if awk -v g="$got" -v m="$4" 'BEGIN { exit !(g + 0 >= m + 0 && g ~ /^[0-9.]+$/) }'; then
-    _record ok "$1" ">= $4" "$got"
-  else
-    _record fail "$1" ">= $4" "$got"
-  fi
-}
-
-assert_json_at_most_float() { # label file filter maximum
-  local got
-  got="$(json_read "$2" "$3")"
-  if awk -v g="$got" -v m="$4" 'BEGIN { exit !(g + 0 <= m + 0 && g ~ /^[0-9.]+$/) }'; then
-    _record ok "$1" "<= $4" "$got"
-  else
-    _record fail "$1" "<= $4" "$got"
-  fi
-}
-
 check_orientation X 20 24 minecraft:magenta_concrete "$RIG_NS:e2e_two" "minecraft:nether_portal}[axis=x]" nether
 check_orientation Z 32 24 minecraft:magenta_concrete "$RIG_NS:e2e_two" "minecraft:nether_portal}[axis=z]" nether
 check_orientation Y 44 24 minecraft:red_concrete "$RIG_NS:e2e_three" "minecraft:end_portal}" end

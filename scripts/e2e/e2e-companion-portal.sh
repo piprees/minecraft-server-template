@@ -45,6 +45,9 @@ SCRIPT_NAME="companion-portal"
 FPS_FLOOR="${FPS_FLOOR:-10}"
 ENTITY_PIXEL_FLOOR="${ENTITY_PIXEL_FLOOR:-0.01}"
 PYTHON="${PYTHON:-python3}"
+# e2e_one's portal colour: the world the walk-in leaves.
+ORIGIN_HUE="${ORIGIN_HUE:-7FCC19}"
+ARRIVAL_CEILING="${ARRIVAL_CEILING:-0.005}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 RESULTS="$RUN_DIR/results.md"
 POLL_SECONDS="${POLL_SECONDS:-60}"
@@ -273,7 +276,20 @@ if walk_to_dimension "$TWO" 3 8; then
 else
   _record fail "the player walked in and crossed" "$TWO" "$WALK_NOTE"
 fi
-sleep 10
+# The arrival is shot six times over three seconds: nothing of the world left
+# behind (e2e_one's colour, its dust and its floor) may cover the view.
+worst=0
+for i in 0 1 2 3 4 5; do
+  if _capture_shot "arrival-$i" && "$PYTHON" "$HERE/portal-colour.py" "$RUN_DIR/arrival-$i.png" "hue:$ORIGIN_HUE" --crop 1.0 \
+      > "$RUN_DIR/arrival-$i.json" 2>>"$RUN_DIR/arrival.err"; then
+    worst="$(jq -n --argjson a "$worst" --argjson b "$(jq .share "$RUN_DIR/arrival-$i.json")" '[$a, $b] | max')"
+  fi
+  sleep 0.5
+done
+printf '{"share": %s}\n' "$worst" > "$RUN_DIR/arrival-worst.json"
+assert_json_at_most_float "the arrival frames carry none of the origin world's colour" \
+  "$RUN_DIR/arrival-worst.json" '.share' "$ARRIVAL_CEILING"
+sleep 7
 state_refresh
 assert_player_dimension "still in e2e_two ten seconds on" "$TWO"
 assert_state "the crossing is journalled with the pre-loaded transfer told" \

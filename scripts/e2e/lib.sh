@@ -179,6 +179,27 @@ assert_json_at_least() { # label file jq-filter minimum
   fi
 }
 
+# A share is a decimal; the shell compares it through awk, never inside jq.
+assert_json_at_least_float() { # label file filter minimum
+  local got
+  got="$(json_read "$2" "$3")"
+  if awk -v g="$got" -v m="$4" 'BEGIN { exit !(g + 0 >= m + 0 && g ~ /^[0-9.]+$/) }'; then
+    _record ok "$1" ">= $4" "$got"
+  else
+    _record fail "$1" ">= $4" "$got"
+  fi
+}
+
+assert_json_at_most_float() { # label file filter maximum
+  local got
+  got="$(json_read "$2" "$3")"
+  if awk -v g="$got" -v m="$4" 'BEGIN { exit !(g + 0 <= m + 0 && g ~ /^[0-9.]+$/) }'; then
+    _record ok "$1" "<= $4" "$got"
+  else
+    _record fail "$1" "<= $4" "$got"
+  fi
+}
+
 assert_file_contains() { # label file expected-substring
   if [ ! -f "$2" ]; then _record fail "$1" "contains '$3'" "no such file: $2"; return; fi
   if grep -q -- "$3" "$2"; then

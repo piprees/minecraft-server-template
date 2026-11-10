@@ -322,12 +322,18 @@ public final class Portals {
             }
         }
         ParticleOptions effect = particle(type, color);
-        for (BlockPos p : zone.interior) {
-            level.sendParticles(effect, p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5, 1, 0.3, 0.3, 0.3, 0.01);
-        }
         BlockPos at = zone.landingCell();
         Set<String> inRange = new HashSet<>();
         for (net.minecraft.server.level.ServerPlayer player : level.players()) {
+            net.minecraft.world.phys.Vec3 eye = player.getEyePosition();
+            for (BlockPos p : zone.interior) {
+                double x = p.getX() + 0.5;
+                double y = p.getY() + 0.5;
+                double z = p.getZ() + 0.5;
+                if (!nearEye(eye.x, eye.y, eye.z, x, y, z)) {
+                    level.sendParticles(player, effect, false, false, x, y, z, 1, 0.3, 0.3, 0.3, 0.01);
+                }
+            }
             if (player.blockPosition().closerThan(at, PARTICLE_RANGE)) {
                 inRange.add(player.getName().getString());
             }
@@ -335,6 +341,16 @@ public final class Portals {
         PortalJournal.particles(PortalJournal.key(level.dimension().identifier().toString(), Pos.core(at)),
                 level.getServer().getTickCount(), BuiltInRegistries.PARTICLE_TYPE.getKey(effect.getType()).toString(),
                 color, inRange);
+    }
+
+    /** A burst this close to an eye fills the view: a player standing in the opening, as on every arrival. */
+    static final double EYE_CLEARANCE = 1.5;
+
+    static boolean nearEye(double ex, double ey, double ez, double x, double y, double z) {
+        double dx = x - ex;
+        double dy = y - ey;
+        double dz = z - ez;
+        return dx * dx + dy * dy + dz * dz < EYE_CLEARANCE * EYE_CLEARANCE;
     }
 
     /** A zone's colour: its definition's, or for an arrival the recorded way back's. */
