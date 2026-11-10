@@ -1596,6 +1596,42 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t221"></a>
+### T221 — A survey longer than the idle time loses its level unless it holds it
+- **Symptom:** `Could not survey the_blossom_gardens: ... chunk [151, 28] not generated after 6000 ticks`, after `unloading the_blossom_gardens: no players for 5 min` in the same log.
+- **Cause:** the idle unload counted only players; a survey longer than the idle time lost its level.
+- **Fix:** `LevelManager.hold`/`release`; a survey holds its level for its length.
+
+<a id="t220"></a>
+### T220 — Noise caves break a rolling land into pits and ledges
+- **Symptom:** the_greenreach (relief 5, roughness 0) has 8.3% of its surface over 45 degrees and overhangs on 28.6% of its columns; scale 4 changes nothing.
+- **Cause:** spaghetti, noodle and cheese caves are part of the final density and open within a few blocks of the surface.
+- **Fix:** `terrain.params.crust` (continents, islands): ground no cave cuts from 3 to `crust` blocks under the surface. Crust 24: 8.3 → 4.7%; the_shallows crust 16: relief 10 → 4, slopes 5.3 → 2.6%. Cave biomes then no longer reach the surface, so a placeness target for a cave biome reads 0: judge cave biomes underground (W9h's rule).
+
+<a id="t219"></a>
+### T219 — The survey's canopy counts wood, leaves and wart only
+- **Symptom:** moss on every cliff of the_crucible leaves `surface.canopyPercent` unchanged (61.0 → 61.4).
+- **Cause:** a column has canopy when a log, leaf or wart block stands over its ground; moss, vines and plants are not canopy, and a vertical face holds no tree.
+- **Fix:** raise canopy with trees (biome shares, flatter ground under them), not ground cover.
+
+<a id="t218"></a>
+### T218 — Nether biomes on the overworld preset lay grass
+- **Symptom:** warped_forest grows no fungi (0 trees per hectare, 93.9% grass_block), basalt_spires' ground is 43% grass and dirt.
+- **Cause:** the overworld surface rule gives every biome it does not name grass over dirt; warped fungi need warped nylium, and a library Nether biome without its own `top` falls through to the same rule.
+- **Fix:** a per-biome palette (`materials.biomes`) for each vanilla or library Nether biome on an overworld preset: nylium, netherrack, soul soil, basalt.
+
+<a id="t217"></a>
+### T217 — A compiled density function the tests pass can still fail the pack at load
+- **Symptom:** the server stops at "Failed to load datapacks" with `Failed to parse either. First: Not a number: {"argument1": ...` or `Unknown registry key ... minecraft:y_clamped_gradient`.
+- **Cause:** 26.x binary density functions take `left` and `right` (not 1.21's `argument1`/`argument2`), and the y gradient is `minecraft:gradient` with `axis: y`; the compiler's unit tests check the JSON's shape, not the game's codecs.
+- **Fix:** build density functions with the `Df` helpers (or copy their field names), and boot a server once after any new density-function shape.
+
+<a id="t216"></a>
+### T216 — A ray into a void hole reads as sky
+- **Symptom:** every frame looking down into the_gritlands' hole is rejected as "empty" (sky 74–85%), and the hole's interior is a flat field of fog colour.
+- **Cause:** the frame census counted a missed ray as `void` only when it left the bottom of the world within the render distance; a ray that ends in the hole's open air above the floor of the world counted as sky. The void also draws in the fog colour, so the fog-wall rule fired on the same pixels.
+- **Fix:** a missed ray below the horizon that leaves the world, or ends over a loaded column with no block in it, is `void` (`FrameCensus.emptyColumn`); a shot marked `voidFeature` may be mostly void but must hit blocks with 15% of its rays, and its fog-wall rule counts only fog beyond the void's share (`FrameGate.reasons`).
+
 <a id="t215"></a>
 ### T215 — A shore biome's survey water share is a patch's
 - **Symptom:** a shore-role biome flagged "mostly water" (the_sun_kingdoms: tropical_shores 66.2 %).
