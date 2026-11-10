@@ -1596,6 +1596,42 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t234"></a>
+### T234 — A void world that places biomes still runs their features
+- **Symptom:** blocks stand in a void world or a void cell: obsidian spikes, village pieces reaching over a cell edge.
+- **Cause:** features and structures belong to the biome, not to the terrain; a biome placed over a void decorates it.
+- **Fix:** count terrain and feature blocks apart (`VoidCellBlocks`); pick void biomes whose features need ground, or accept the pieces.
+
+<a id="t233"></a>
+### T233 — `materials.defaultBlock` on the End or Nether preset needs the preset's last fill swapped
+- **Symptom:** an End-preset dimension with a Nether `defaultBlock` is still end stone (the_blighted_maw: 11.5 %).
+- **Cause:** both presets' surface rules end in an unconditional fill of their own default block.
+- **Fix:** the compiler swaps that fill for the definition's block; check the compiled rule's last entry.
+
+<a id="t232"></a>
+### T232 — A roofed floor below sea level floods with the preset's fluid
+- **Symptom:** lava lakes cover a roofed world's low floor.
+- **Cause:** the nether and caves presets have no aquifers, so everything open under `sea_level` fills.
+- **Fix:** read the compile report's under-the-sea list; raise `floorHeight` or lower `liquids.seaLevel`.
+
+<a id="t231"></a>
+### T231 — A caves-preset world lays grass on every dry cave floor
+- **Symptom:** grass_block on 27.5 % of the_underdark's ground.
+- **Cause:** `overworld_caves` runs `overworld/surface` ungated, and a biome without a clause falls to `biome_surface/default`.
+- **Fix:** the compiler lays `moss_block` on caves-preset floors unless the dimension sets `materials.top`.
+
+<a id="t230"></a>
+### T230 — A `waterlogged_vegetation_patch` pool is one block deep and rimmed by its own ground block
+- **Symptom:** rock_pools: rim moss 0, seagrass 2.
+- **Cause:** the patch lays its own ground (gravel, sand, clay) under and round one block of water; a rim feature that accepts only stone, or a plant that asks for water two deep, never places. Pools form only on flat ground in the patch's height range.
+- **Fix:** rim and pool features stand on the patch's ground block and in one-deep water; a showcase for the biome sits on flats inside the range.
+
+<a id="t229"></a>
+### T229 — An End spike is obsidian from the world's bottom with bedrock and fire on top
+- **Symptom:** a void-cell check counts terrain in cells that hold none (3 of 20,480 columns).
+- **Cause:** the `the_end` biome's `end_spike` stands from `min_y` to a bedrock block; a count that takes any bedrock for the world's floor reads it as terrain.
+- **Fix:** bedrock is terrain only within 5 blocks of the bottom (`VoidCellBlocks`).
+
 <a id="t228"></a>
 ### T228 — Vanilla's End is one biome within 1,024 blocks
 - **Symptom:** an End render or survey at radius 512 or 1,024 shows the central island and nothing else.
@@ -1660,7 +1696,7 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
 ### T218 — Nether biomes on the overworld preset lay grass
 - **Symptom:** warped_forest grows no fungi (0 trees per hectare, 93.9% grass_block), basalt_spires' ground is 43% grass and dirt.
 - **Cause:** the overworld surface rule gives every biome it does not name grass over dirt; warped fungi need warped nylium, and a library Nether biome without its own `top` falls through to the same rule.
-- **Fix:** a per-biome palette (`materials.biomes`) for each vanilla or library Nether biome on an overworld preset: nylium, netherrack, soul soil, basalt.
+- **Fix:** the compiler gives a vanilla or library Nether biome off the Nether preset its own ground (nylium, netherrack, soul soil, basalt); a per-biome palette (`materials.biomes`) overrides it.
 
 <a id="t217"></a>
 ### T217 — A compiled density function the tests pass can still fail the pack at load
