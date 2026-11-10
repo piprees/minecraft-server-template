@@ -1,0 +1,68 @@
+{
+ "slug": "the_nether",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:netherrack + surface.groundBlocksPercent.minecraft:crimson_nylium + surface.groundBlocksPercent.minecraft:warped_nylium + surface.groundBlocksPercent.minecraft:soul_sand + surface.groundBlocksPercent.minecraft:soul_soil + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:magma_block + surface.groundBlocksPercent.minecraft:gravel",
+   "op": ">=",
+   "value": 85,
+   "from": "\"The nether\": vanilla Nether ground throughout"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:warped_forest",
+   "op": ">=",
+   "value": 3,
+   "from": "\"The nether\": all five vanilla Nether biomes, warped forest included (v2 lists none, so the preset's five)"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:crimson_forest + surface.biomesPercent.minecraft:warped_forest",
+   "op": ">=",
+   "value": 15,
+   "from": "\"piglin heartland\": the fungal forests piglins and hoglins live in carry a real share"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:nether_wastes",
+   "op": "<=",
+   "value": 55,
+   "from": "\"The nether\": a meeting of the five biomes, not one waste"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 90,
+   "from": "\"The nether\": a ceiling over every column"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "between",
+   "value": [
+    8,
+    30
+   ],
+   "from": "\"The nether\": the lava sea is present but does not drown the floor"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": ">=",
+   "value": 15,
+   "from": "\"piglin heartland\": huge fungi stand in the forests"
+  },
+  {
+   "key": "terrain.reliefMedian",
+   "op": ">=",
+   "value": 40,
+   "from": "\"The nether\": cliffs and lava-sea basins, not a flat floor"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting: five Nether biomes in a few large regions"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of biome specks"
+  }
+ ]
+}

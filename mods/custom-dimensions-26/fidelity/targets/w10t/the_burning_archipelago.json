@@ -1,0 +1,68 @@
+{
+ "slug": "the_burning_archipelago",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:netherrack + surface.groundBlocksPercent.minecraft:crimson_nylium + surface.groundBlocksPercent.minecraft:warped_nylium + surface.groundBlocksPercent.minecraft:soul_sand + surface.groundBlocksPercent.minecraft:soul_soil + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:magma_block + surface.groundBlocksPercent.minecraft:nether_wart_block + surface.groundBlocksPercent.minecraft:gravel + surface.groundBlocksPercent.minecraft:tuff + surface.groundBlocksPercent.minecraft:smooth_basalt + surface.groundBlocksPercent.minecraft:moss_block + surface.groundBlocksPercent.minecraft:slime_block",
+   "op": ">=",
+   "value": 20,
+   "from": "\"nether terrain on end-island bones\"; 1.21.1 defaultBlock netherrack"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:end_stone",
+   "op": "<=",
+   "value": 5,
+   "from": "\"nether terrain\": the bones show only underneath"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava + surface.topBlocksPercent.minecraft:fire + surface.topBlocksPercent.minecraft:magma_block",
+   "op": ">=",
+   "value": 3,
+   "from": "\"the islands that survived still smoulder\""
+  },
+  {
+   "key": "surface.voidPercent",
+   "op": "between",
+   "value": [
+    40,
+    75
+   ],
+   "from": "\"Burning islands in a void sea\", \"across these straits\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:crimson_forest + surface.biomesPercent.minecraft:warped_forest + surface.biomesPercent.minecraft:basalt_deltas + surface.biomesPercent.minecraft:nether_wastes + surface.biomesPercent.adventure:magma_land + surface.biomesPercent.adventure:ash_barrens",
+   "op": ">=",
+   "value": 25,
+   "from": "1.21.1 lists crimson_forest, warped_forest, basalt_deltas, nether_wastes, volcanic_deltas, ash_barrens first"
+  },
+  {
+   "key": "biomeExpression.expressed",
+   "op": ">=",
+   "value": 6,
+   "from": "1.21.1 lists 16 biomes: each placed one shows on its island"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": "<=",
+   "value": 0,
+   "from": "open sky"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting (islands and straits): the largest three regions hold most of the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": "<=",
+   "value": 8,
+   "from": "place kind meeting: a few places, not many"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of biome specks"
+  }
+ ]
+}

@@ -1,0 +1,35 @@
+{
+  "reason": "Flats hugging the lava line: a floor at 33 \u00b1 6 with 60% worn flat, so hollows dip under the lava sea at 32, and 8-deep corridors as lava runs between the flats (G1 flats+corridors).",
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 33,
+      "floorRelief": 6,
+      "ceilingGap": 48,
+      "roughness": 0.1,
+      "flats": 0.6,
+      "corridors": 0.05,
+      "corridorDepth": 8
+    },
+    "scales": {
+      "climate": 1.5
+    }
+  },
+  "biomes": [
+    "adventure:magma_land",
+    "adventure:ash_barrens",
+    "minecraft:basalt_deltas",
+    "adventure:gravel_desert",
+    "minecraft:nether_wastes"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:magma_land": 45,
+      "adventure:ash_barrens": 25,
+      "minecraft:basalt_deltas": 15,
+      "adventure:gravel_desert": 10,
+      "minecraft:nether_wastes": 5
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+ "slug": "the_dripping_pines",
+ "targets": [
+  {
+   "key": "surface.snowIcePercent",
+   "op": "<=",
+   "value": 5,
+   "from": "\"Rain-soaked taiga\": rain, not snow"
+  },
+  {
+   "key": "surface.precipitationPercent.rain",
+   "op": ">=",
+   "value": 85,
+   "from": "\"Rain-soaked\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:moss_block + surface.groundBlocksPercent.minecraft:mossy_cobblestone + surface.groundBlocksPercent.minecraft:podzol + surface.topBlocksPercent.minecraft:moss_carpet + surface.topBlocksPercent.minecraft:fern + surface.topBlocksPercent.minecraft:large_fern",
+   "op": ">=",
+   "value": 30,
+   "from": "\"moss on everything\""
+  },
+  {
+   "key": "vegetation.species.minecraft:spruce_log.perHectare?",
+   "op": ">=",
+   "value": 80,
+   "from": "\"taiga ... under the pines\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:snowy_taiga",
+   "op": "<=",
+   "value": 5,
+   "from": "1.21.1 lists no snowy biome"
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 10,
+   "from": "\"taiga\": land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one wet pine forest): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

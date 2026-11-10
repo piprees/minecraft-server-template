@@ -1,0 +1,50 @@
+{
+ "slug": "the_frozen_hearth",
+ "targets": [
+  {
+   "key": "surface.snowIcePercent",
+   "op": ">=",
+   "value": 70,
+   "from": "owner: \"there is no snow here at all?\"; 1.21.1: \"a frozen world\""
+  },
+  {
+   "key": "surface.precipitationPercent.snow",
+   "op": ">=",
+   "value": 90,
+   "from": "\"a frozen world\": it snows nearly everywhere"
+  },
+  {
+   "key": "surface.topBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 8,
+   "from": "a frozen world shows no bare green grass"
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 10,
+   "from": "\"frozen world\": open water is frozen over"
+  },
+  {
+   "key": "vegetation.species.minecraft:spruce_log.perHectare",
+   "op": ">=",
+   "value": 5,
+   "from": "1.21.1: \"snowy villages and taigas\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:snowy_plains + surface.biomesPercent.minecraft:ice_spikes",
+   "op": ">=",
+   "value": 10,
+   "from": "1.21.1: \"out in the ice\" (snowy plains and ice spikes are listed)"
+  },
+  {
+   "key": "terrain.reliefMedian",
+   "op": "between",
+   "value": [
+    6,
+    40
+   ],
+   "from": "1.21.1 adventure:wide: broad, open land"
+  }
+ ]
+}

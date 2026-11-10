@@ -1,0 +1,56 @@
+{
+ "slug": "the_furnace_halls",
+ "targets": [
+  {
+   "key": "surface.biomesPercent.minecraft:nether_wastes + surface.biomesPercent.minecraft:basalt_deltas + surface.biomesPercent.minecraft:crimson_forest + surface.biomesPercent.minecraft:soul_sand_valley",
+   "op": ">=",
+   "value": 70,
+   "from": "\"Classic nether halls\"; 1.21.1 lists four vanilla Nether biomes and volcanic_deltas"
+  },
+  {
+   "key": "biomeExpression.expressed",
+   "op": ">=",
+   "value": 5,
+   "from": "\"Classic\": every listed biome expressed"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:nether_bricks + surface.topBlocksPercent.minecraft:nether_bricks",
+   "op": ">=",
+   "value": 1,
+   "from": "\"Brick and fire all the way down\": fortress brick on the surface"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "between",
+   "value": [
+    10,
+    30
+   ],
+   "from": "\"fire\": the lava sea present, not drowning the halls"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 85,
+   "from": "1.21.1 type nether: a roof over the world"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting (the classic biomes): the largest three regions hold most of the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": "<=",
+   "value": 8,
+   "from": "place kind meeting: a few places, not many"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of biome specks"
+  }
+ ]
+}

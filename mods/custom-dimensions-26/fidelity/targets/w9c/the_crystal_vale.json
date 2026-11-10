@@ -1,0 +1,66 @@
+{
+ "slug": "the_crystal_vale",
+ "targets": [
+  {
+   "key": "surface.topBlocksPercent.minecraft:amethyst_block + surface.topBlocksPercent.minecraft:budding_amethyst + surface.topBlocksPercent.minecraft:amethyst_cluster + surface.topBlocksPercent.minecraft:large_amethyst_bud + surface.topBlocksPercent.minecraft:medium_amethyst_bud + surface.topBlocksPercent.minecraft:small_amethyst_bud + surface.topBlocksPercent.minecraft:purple_wool + surface.topBlocksPercent.minecraft:purple_carpet + surface.topBlocksPercent.minecraft:allium + surface.topBlocksPercent.minecraft:lilac + surface.topBlocksPercent.minecraft:purple_concrete_powder + surface.topBlocksPercent.minecraft:crying_obsidian",
+   "op": ">=",
+   "value": 4,
+   "from": "owner: \"not seeing any crystals or purple elements\"; 1.21.1: \"amethyst rainforest\""
+  },
+  {
+   "key": "notable.surface.minecraft:amethyst_cluster + notable.surface.minecraft:amethyst_block + notable.surface.minecraft:budding_amethyst",
+   "op": ">=",
+   "value": 300,
+   "from": "\"crystals\": amethyst blocks and clusters in reach on the surface"
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 15,
+   "from": "a vale of groves, not an ocean"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:deep_lukewarm_ocean",
+   "op": "<=",
+   "value": 3,
+   "from": "a vale of groves, not an ocean"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "between",
+   "value": [
+    20,
+    160
+   ],
+   "from": "owner: \"moonlight groves\"; 1.21.1: \"amethyst rainforest\""
+  },
+  {
+   "key": "terrain.surfaceHeight.p95",
+   "op": ">=",
+   "value": 130,
+   "from": "1.21.1: \"emerald peaks\""
+  },
+  {
+   "key": "surface.snowIcePercent",
+   "op": "<=",
+   "value": 5,
+   "from": "\"too beautiful to ruin\": a mild vale, not snowfields"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.fixedTime",
+   "op": "between",
+   "value": [
+    12000,
+    23000
+   ],
+   "from": "owner: \"moonlight groves\", \"mystical\": held at dusk or night"
+  },
+  {
+   "key": "clusters.types.minecraft:glow_lichen.layerBlocks.surface? + clusters.types.minecraft:glow_berries.layerBlocks.surface? + clusters.types.minecraft:cave_vines.layerBlocks.surface? + clusters.types.minecraft:cave_vines_plant.layerBlocks.surface? + clusters.types.minecraft:amethyst_cluster.layerBlocks.surface? + clusters.types.minecraft:large_amethyst_bud.layerBlocks.surface? + clusters.types.minecraft:ochre_froglight.layerBlocks.surface? + clusters.types.minecraft:verdant_froglight.layerBlocks.surface? + clusters.types.minecraft:pearlescent_froglight.layerBlocks.surface? + clusters.types.minecraft:shroomlight.layerBlocks.surface? + clusters.types.minecraft:end_rod.layerBlocks.surface? + clusters.types.minecraft:sea_lantern.layerBlocks.surface? + clusters.types.minecraft:lantern.layerBlocks.surface? + clusters.types.minecraft:soul_lantern.layerBlocks.surface? + clusters.types.minecraft:glowstone.layerBlocks.surface? + clusters.types.minecraft:firefly_bush.layerBlocks.surface?",
+   "op": ">=",
+   "value": 20,
+   "from": "\"magical\": glowing blocks in the groves (surface light sources), per hectare",
+   "per": "plan.hectares"
+  }
+ ]
+}

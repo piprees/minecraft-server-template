@@ -1,0 +1,38 @@
+{
+  "reason": "Route 1-2 as a clone with terrain (G9): basin_islands extreme set round a ring 300 out (G10 ring) so the plateaus hold one hollow; basins hold water and the two deep oceans take them (G11 basin under over land); calcite highlands on the rim; deep_dark dropped (no depth to bind it to over a void); sea level 90 dropped.",
+  "terrain": {
+    "base": "basin_islands",
+    "setting": "extreme",
+    "layout": {
+      "type": "ring",
+      "centre": [
+        0,
+        0
+      ],
+      "radius": 300,
+      "falloff": 160,
+      "strength": 0.9
+    }
+  },
+  "liquids": {
+    "basins": {}
+  },
+  "biomes": [
+    "minecraft:deep_cold_ocean",
+    "minecraft:deep_ocean",
+    "adventure:sky_highlands",
+    "adventure:chalk_cliffs",
+    "adventure:umbral_wastes"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:deep_cold_ocean": 30,
+      "minecraft:deep_ocean": 20,
+      "adventure:sky_highlands": 25,
+      "adventure:chalk_cliffs": 15,
+      "adventure:umbral_wastes": 10
+    },
+    "over": "land"
+  }
+}

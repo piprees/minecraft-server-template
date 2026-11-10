@@ -1,0 +1,52 @@
+{
+  "reason": "Route 2-4: plateaus with open sky between (coverage 0.35, spread 40, size 1.5); the 14 climate-bound biomes become regions over land with the route's leading five highest (G3); hanging_gardens takes the undersides (G11); climate 2x for larger groves.",
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "coverage": 0.35,
+      "spread": 40,
+      "size": 1.5
+    },
+    "scales": {
+      "climate": 2
+    }
+  },
+  "biomes": [
+    "adventure:sky_highlands",
+    "adventure:wisteria_grove",
+    "adventure:golden_skygrove",
+    "minecraft:cherry_grove",
+    "minecraft:meadow",
+    "minecraft:flower_forest",
+    "minecraft:plains",
+    "minecraft:forest",
+    "minecraft:birch_forest",
+    "adventure:cloud_reef",
+    "adventure:windswept_isles",
+    "minecraft:snowy_slopes",
+    "minecraft:dark_forest",
+    "adventure:hanging_gardens"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:sky_highlands": 18,
+      "adventure:wisteria_grove": 14,
+      "adventure:golden_skygrove": 14,
+      "minecraft:cherry_grove": 12,
+      "minecraft:meadow": 12,
+      "minecraft:flower_forest": 6,
+      "minecraft:plains": 5,
+      "minecraft:forest": 5,
+      "minecraft:birch_forest": 4,
+      "adventure:cloud_reef": 4,
+      "adventure:windswept_isles": 3,
+      "minecraft:snowy_slopes": 2,
+      "minecraft:dark_forest": 1
+    },
+    "over": "land",
+    "roles": {
+      "adventure:hanging_gardens": "underside"
+    }
+  }
+}

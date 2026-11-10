@@ -1,0 +1,62 @@
+{
+ "slug": "the_soulfields",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:soul_sand + surface.groundBlocksPercent.minecraft:soul_soil + surface.groundBlocksPercent.minecraft:tuff + surface.groundBlocksPercent.minecraft:bone_block + surface.groundBlocksPercent.minecraft:gravel + surface.groundBlocksPercent.minecraft:netherrack",
+   "op": ">=",
+   "value": 60,
+   "from": "\"Soul-sand meadows and grave fields\"; 1.21.1 defaultBlock soul_soil"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 3,
+   "from": "\"Nothing living is welcome\""
+  },
+  {
+   "key": "terrain.slopes.flatUnder15Percent",
+   "op": ">=",
+   "value": 65,
+   "from": "\"You arrive in an empty plain\""
+  },
+  {
+   "key": "terrain.reliefMedian",
+   "op": "<=",
+   "value": 12,
+   "from": "\"meadows ... without end\": a plain"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:ocean + surface.biomesPercent.minecraft:warm_ocean + surface.biomesPercent.minecraft:lukewarm_ocean + surface.biomesPercent.minecraft:cold_ocean + surface.biomesPercent.minecraft:deep_ocean + surface.biomesPercent.minecraft:deep_lukewarm_ocean + surface.biomesPercent.minecraft:deep_cold_ocean + surface.biomesPercent.minecraft:frozen_ocean",
+   "op": "<=",
+   "value": 2,
+   "from": "1.21.1 seaLevel -60: no sea, so no ocean biome"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "<=",
+   "value": 10,
+   "from": "\"Nothing living is welcome\""
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.fixedTime?",
+   "op": "between",
+   "value": [
+    17000,
+    19000
+   ],
+   "from": "\"always at midnight\"; 1.21.1 fixedTime 18000"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one memorial plain): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

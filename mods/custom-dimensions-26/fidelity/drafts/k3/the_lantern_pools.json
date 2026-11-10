@@ -1,0 +1,6 @@
+{
+  "reason": "G8: landShare 0.92 holds oasis country whose pools are its biomes' (warm_ocean 27.6%, water 42.7%) for any seed.",
+  "terrain": {
+    "landShare": 0.92
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "reason": "Route 1: drop the list so the End's own source binds highlands, midlands and barrens to the island shape; the end terrain grows and raises the islands so the highlands are taller and wider (G4), and the source follows the shaped density (router erosion).",
+  "terrain": {
+    "base": "end",
+    "params": {
+      "coverage": 0.08,
+      "islandHeight": 24,
+      "peaks": 0.3
+    }
+  },
+  "biomes": null,
+  "biomeLayout": null
+}

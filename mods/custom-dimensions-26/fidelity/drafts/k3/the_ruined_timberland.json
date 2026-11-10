@@ -1,0 +1,6 @@
+{
+  "reason": "G7/G8: the sea at 44 lies above the vanilla basins (wet deep oceans), so the dry rule does not fire; one autumn wood holds 97% of the border to land for any seed, leaving the deep basins as a few lakes (ocean was 60.2% with water 14.5%).",
+  "terrain": {
+    "landShare": 0.97
+  }
+}

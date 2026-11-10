@@ -1,0 +1,62 @@
+{
+ "slug": "the_chalk_meadows",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:calcite + surface.groundBlocksPercent.minecraft:diorite",
+   "op": ">=",
+   "value": 6,
+   "from": "\"Rolling chalk downs\""
+  },
+  {
+   "key": "surface.biomesPercent.adventure:highland_fells + surface.biomesPercent.adventure:carnation_fields",
+   "op": ">=",
+   "value": 30,
+   "from": "\"in heather and carnation\"; 1.21.1 lists heather_fields, carnation_fields first"
+  },
+  {
+   "key": "terrain.reliefMedian",
+   "op": "between",
+   "value": [
+    8,
+    30
+   ],
+   "from": "\"Rolling ... downs\""
+  },
+  {
+   "key": "terrain.slopes.cliffPercent",
+   "op": "<=",
+   "value": 3,
+   "from": "\"Rolling\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 10,
+   "from": "\"Villager country \u2014 settlements in the hollows\": land"
+  },
+  {
+   "key": "surface.groundPlantsPercent.flower",
+   "op": ">=",
+   "value": 4,
+   "from": "\"in heather and carnation\""
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "<=",
+   "value": 20,
+   "from": "\"downs\": open country"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one down country): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

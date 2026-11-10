@@ -1,0 +1,77 @@
+{
+ "slug": "the_basalt_spires",
+ "targets": [
+  {
+   "key": "placeness.landformRegions.largestPercent",
+   "op": ">=",
+   "value": 59.9,
+   "from": "place: \"a bastion anchoring the centre: one basalt land in lava\" (measured 66.6)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:ash_barrens",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:blackstone_basin",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:magma_land",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:quartz_flats",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:basalt_deltas",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:nether_wastes",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:soul_sand_valley",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomeRegions.largestPercent",
+   "op": ">=",
+   "value": 15.2,
+   "from": "place: biome regions (W9f, measured 16.9)"
+  },
+  {
+   "key": "placeness.biomeRegions.specksPercent",
+   "op": "<=",
+   "value": 0.8,
+   "from": "place: biome regions (W9f, measured 0.2)"
+  },
+  {
+   "key": "placeness.biomeRegions.perKm2",
+   "op": "<=",
+   "value": 1.7,
+   "from": "place: biome regions (W9f, measured 1.4)"
+  },
+  {
+   "key": "placeness.biomeRegions.top3Percent",
+   "op": ">=",
+   "value": 38.2,
+   "from": "place: biome regions (W9f, measured 42.5)"
+  }
+ ]
+}

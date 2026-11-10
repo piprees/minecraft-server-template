@@ -1,0 +1,37 @@
+{
+  "reason": "Route 1-3: floating-island crags (coverage 0.25) with open sky between, the white weights, chalk_cliffs topped with calcite; ranked over land (G3); the pale_garden zone kept.",
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "coverage": 0.25
+    }
+  },
+  "materials": {
+    "defaultBlock": "minecraft:stone",
+    "biomes": {
+      "adventure:chalk_cliffs": {
+        "top": "minecraft:calcite"
+      }
+    }
+  },
+  "biomes": [
+    "adventure:chalk_cliffs",
+    "minecraft:snowy_slopes",
+    "minecraft:ice_spikes",
+    "minecraft:frozen_peaks",
+    "minecraft:snowy_plains",
+    "adventure:windswept_isles"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:chalk_cliffs": 30,
+      "minecraft:snowy_slopes": 20,
+      "minecraft:ice_spikes": 15,
+      "minecraft:frozen_peaks": 15,
+      "minecraft:snowy_plains": 10,
+      "adventure:windswept_isles": 10
+    },
+    "over": "land"
+  }
+}

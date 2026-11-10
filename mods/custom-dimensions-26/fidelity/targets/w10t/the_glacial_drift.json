@@ -1,0 +1,56 @@
+{
+ "slug": "the_glacial_drift",
+ "targets": [
+  {
+   "key": "surface.snowIcePercent",
+   "op": ">=",
+   "value": 60,
+   "from": "\"glacial drift\", \"frozen paradise islands\""
+  },
+  {
+   "key": "surface.voidPercent",
+   "op": "between",
+   "value": [
+    25,
+    70
+   ],
+   "from": "\"calving into the void\""
+  },
+  {
+   "key": "vegetation.species.minecraft:oak_log.perHectare? + vegetation.species.minecraft:poplar_log.perHectare?",
+   "op": "<=",
+   "value": 3,
+   "from": "\"tundra\": no oak or poplar groves"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:golden_skygrove + surface.biomesPercent.minecraft:end_barrens",
+   "op": "<=",
+   "value": 8,
+   "from": "1.21.1 list: tundra and ice; void_barrens is void, not ground"
+  },
+  {
+   "key": "surface.bareRockPercent",
+   "op": "<=",
+   "value": 12,
+   "from": "\"frozen\": snow and ice, not bare stone"
+  },
+  {
+   "key": "surface.precipitationPercent.snow",
+   "op": ">=",
+   "value": 80,
+   "from": "\"glacial\""
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one frozen drift): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

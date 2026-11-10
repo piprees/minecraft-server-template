@@ -1,0 +1,68 @@
+{
+ "slug": "the_fractured_halls",
+ "targets": [
+  {
+   "key": "terrain.surfaceHeight.p95",
+   "op": ">=",
+   "value": 90,
+   "from": "\"broken crystal country\", \"between the ridges\": ridges above the End's island height"
+  },
+  {
+   "key": "landforms.sharesPercent.mountains + landforms.sharesPercent.hills",
+   "op": ">=",
+   "value": 15,
+   "from": "\"the ridges\""
+  },
+  {
+   "key": "surface.topBlocksPercent.minecraft:amethyst_block + surface.topBlocksPercent.minecraft:amethyst_cluster + surface.topBlocksPercent.minecraft:budding_amethyst + surface.topBlocksPercent.minecraft:large_amethyst_bud + surface.topBlocksPercent.minecraft:purpur_block + surface.topBlocksPercent.minecraft:crying_obsidian + surface.topBlocksPercent.minecraft:obsidian",
+   "op": ">=",
+   "value": 3,
+   "from": "\"broken crystal country\"; 1.21.1 crystal_peaks, amethyst_canyon"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": ">=",
+   "value": 5,
+   "from": "\"moonlight groves have taken the sheltered ground\""
+  },
+  {
+   "key": "biomeExpression.expressed",
+   "op": ">=",
+   "value": 5,
+   "from": "1.21.1 lists nine biomes: most of the placed ones show on the islands"
+  },
+  {
+   "key": "surface.voidPercent",
+   "op": "between",
+   "value": [
+    25,
+    65
+   ],
+   "from": "1.21.1 type end: islands over the void"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": "<=",
+   "value": 0,
+   "from": "open sky"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting (ridges and groves): the largest three regions hold most of the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": "<=",
+   "value": 8,
+   "from": "place kind meeting: a few places, not many"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of biome specks"
+  }
+ ]
+}

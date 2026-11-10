@@ -1,0 +1,101 @@
+{
+ "slug": "the_verdant_hollow",
+ "targets": [
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 61.9,
+   "from": "meeting: \"broad green valleys\" (measured 39.7); re-cut over land outside sea biomes (W9h, measured 68.8), was >= 35.7 over all columns"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:alpine_meadow",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.adventure:bioshroom_caves.columns? + biomeExpression.biomes.adventure:bioshroom_caves.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:lavender_fields",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:magnolia_woodland",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:nether_grasslands",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:birch_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:flower_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:lush_caves.columns? + biomeExpression.biomes.minecraft:lush_caves.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:meadow",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:plains",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:windswept_hills",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 28.3,
+   "from": "place: biome regions (W9f, measured 35.0); re-cut over land outside sea biomes (W9h, measured 31.4), was >= 31.5 over all columns"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 2.4,
+   "from": "place: biome regions (W9f, measured 1.5); re-cut over land outside sea biomes (W9h, measured 1.5), was <= 2.4 over all columns"
+  },
+  {
+   "key": "placeness.landBiomeRegions.perKm2",
+   "op": "<=",
+   "value": 6.9,
+   "from": "place: biome regions (W9f, measured 2.9); re-cut over land outside sea biomes (W9h, measured 5.9), was <= 3.4 over all columns"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 61.9,
+   "from": "place: biome regions (W9f, measured 75.6); re-cut over land outside sea biomes (W9h, measured 68.8), was >= 68.0 over all columns"
+  }
+ ]
+}

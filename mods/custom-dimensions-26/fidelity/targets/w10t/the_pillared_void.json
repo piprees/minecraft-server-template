@@ -1,0 +1,59 @@
+{
+ "slug": "the_pillared_void",
+ "targets": [
+  {
+   "key": "surface.voidPercent",
+   "op": ">=",
+   "value": 85,
+   "from": "\"Lonely pillars in the void ... nothing else\""
+  },
+  {
+   "key": "terrain.surfaceHeight.max",
+   "op": ">=",
+   "value": 140,
+   "from": "\"Spires\", \"The pillars ... rise\": columns far above the End's island height"
+  },
+  {
+   "key": "terrain.slopes.cliffPercent",
+   "op": ">=",
+   "value": 20,
+   "from": "\"pillars\": vertical sides on most of the little land there is"
+  },
+  {
+   "key": "surface.snowIcePercent",
+   "op": "<=",
+   "value": 2,
+   "from": "1.21.1 lists void_barrens, end_barrens, the_end, small_end_islands, end_highlands, crystal_peaks: no snowfield"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:end_stone + surface.groundBlocksPercent.minecraft:obsidian",
+   "op": ">=",
+   "value": 5,
+   "from": "\"the endermen's oldest construction\": end stone and obsidian pillars"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.1,
+   "from": "1.21.1 ambientLight 0.05"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": "<=",
+   "value": 0,
+   "from": "open sky"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one empty void): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

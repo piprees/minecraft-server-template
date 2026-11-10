@@ -1,0 +1,6 @@
+{
+  "reason": "G8: landShare 0.8 holds very large land regions; rivers stay (water 34.5%) for any seed.",
+  "terrain": {
+    "landShare": 0.8
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "reason": "Route 1: the list halved to seven, sculk and dark overworld leading, ranked over the End's islands (G3) and stretched 2x for whole-island regions; End islands grown a little for the corrupted heartland (G4); the deep_dark zone kept.",
+  "terrain": {
+    "base": "end",
+    "params": {
+      "coverage": 0.05
+    },
+    "scales": {
+      "climate": 2
+    }
+  },
+  "biomes": [
+    "minecraft:deep_dark",
+    "adventure:umbral_wastes",
+    "minecraft:dark_forest",
+    "minecraft:mangrove_swamp",
+    "minecraft:soul_sand_valley",
+    "adventure:ash_barrens",
+    "minecraft:end_highlands"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:deep_dark": 25,
+      "adventure:umbral_wastes": 20,
+      "minecraft:dark_forest": 15,
+      "minecraft:mangrove_swamp": 10,
+      "minecraft:soul_sand_valley": 10,
+      "adventure:ash_barrens": 10,
+      "minecraft:end_highlands": 10
+    },
+    "over": "land"
+  }
+}

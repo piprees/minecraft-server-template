@@ -1,0 +1,41 @@
+{
+ "slug": "the_slatemouth",
+ "targets": [
+  {
+   "key": "surface.voidPercent",
+   "op": ">=",
+   "value": 99,
+   "from": "\"a basalt-and-soul void, and nothing else \u2014 no floor, no horizon\""
+  },
+  {
+   "key": "vertical.layerColumnsPercent.underground",
+   "op": "<=",
+   "value": 1,
+   "from": "\"a basalt-and-soul void, and nothing else \u2014 no floor, no horizon\""
+  },
+  {
+   "key": "vegetation.trees",
+   "op": "<=",
+   "value": 0,
+   "from": "\"a basalt-and-soul void, and nothing else \u2014 no floor, no horizon\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 0,
+   "from": "\"no lava left to reflect a sky\""
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.1,
+   "from": "1.21.1 ambientLight 0.05"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:basalt_deltas + placeness.biomesPercent.minecraft:soul_sand_valley",
+   "op": ">",
+   "value": 0,
+   "from": "\"A basalt-and-soul void\": the basalt and soul biomes are present over the void"
+  }
+ ]
+}

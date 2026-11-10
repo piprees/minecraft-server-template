@@ -1,0 +1,19 @@
+{
+  "reason": "Chasm country: narrow mesas at 80 under a ceiling near 106, cut by a chasm network about a third of the floor wide, 62 deep to floors near y 12 just over a lava sea at 10, walls shelved every 12 (G1 chasms+ledges).",
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 80,
+      "floorRelief": 6,
+      "ceilingGap": 26,
+      "roughness": 0.25,
+      "chasms": 0.12,
+      "chasmDepth": 62,
+      "ledges": 0.3,
+      "ledgeStep": 12
+    }
+  },
+  "liquids": {
+    "seaLevel": 10
+  }
+}

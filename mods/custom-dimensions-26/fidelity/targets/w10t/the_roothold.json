@@ -1,0 +1,59 @@
+{
+ "slug": "the_roothold",
+ "targets": [
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": ">=",
+   "value": 100,
+   "from": "\"Deep old-growth forest\""
+  },
+  {
+   "key": "surface.canopyPercent",
+   "op": ">=",
+   "value": 45,
+   "from": "\"Deep old-growth forest\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:swamp",
+   "op": "<=",
+   "value": 10,
+   "from": "1.21.1 willow_forest is one of ten"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:redwood_grove + surface.biomesPercent.minecraft:old_growth_spruce_taiga + surface.biomesPercent.minecraft:dark_forest + surface.biomesPercent.minecraft:old_growth_pine_taiga",
+   "op": ">=",
+   "value": 40,
+   "from": "1.21.1 redwood_forest, old_growth_spruce_taiga, old_growth_forest, old_growth_dark_forest, dark_forest"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:rooted_dirt + surface.groundBlocksPercent.minecraft:podzol + surface.groundBlocksPercent.minecraft:moss_block + surface.groundBlocksPercent.minecraft:mud + surface.topBlocksPercent.minecraft:hanging_roots + surface.topBlocksPercent.minecraft:mangrove_roots",
+   "op": ">=",
+   "value": 15,
+   "from": "\"roots in everything\""
+  },
+  {
+   "key": "underground.caveBiomesPercent.adventure:root_hollows + underground.caveBiomesPercent.minecraft:lush_caves",
+   "op": ">=",
+   "value": 20,
+   "from": "\"The roots go a long way down, and they did not stop at stone\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 8,
+   "from": "\"Deep old-growth forest\": land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one forest): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

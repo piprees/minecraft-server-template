@@ -1,0 +1,71 @@
+{
+ "slug": "the_luminous_caverns",
+ "targets": [
+  {
+   "key": "surface.biomesPercent.minecraft:lush_caves + surface.biomesPercent.adventure:lichen_caves",
+   "op": ">=",
+   "value": 30,
+   "from": "\"lush moss\"; 1.21.1 lists lush_caves first, lichen_caves"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:moss_block + surface.groundBlocksPercent.minecraft:clay + surface.groundBlocksPercent.minecraft:calcite + surface.groundBlocksPercent.minecraft:tuff + surface.groundBlocksPercent.minecraft:quartz_block + surface.topBlocksPercent.minecraft:moss_carpet + surface.topBlocksPercent.minecraft:glow_lichen + surface.topBlocksPercent.minecraft:azalea + surface.topBlocksPercent.minecraft:flowering_azalea",
+   "op": ">=",
+   "value": 25,
+   "from": "\"lush moss and quartz light\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:sulfur_caves",
+   "op": "<=",
+   "value": 15,
+   "from": "1.21.1 thermal_caves is one of 14"
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 12,
+   "from": "\"Serene glowing caverns\": dry floors with pools"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 5,
+   "from": "\"under a bedrock roof\": no lawns"
+  },
+  {
+   "key": "biomeExpression.expressed",
+   "op": ">=",
+   "value": 7,
+   "from": "1.21.1 lists 14 cave biomes: most placed ones show"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": ">=",
+   "value": 0.3,
+   "from": "\"glowing\"; 1.21.1 ambientLight 0.4"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 95,
+   "from": "1.21.1 type cave, hasCeiling true"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting (glowing cave biomes): the largest three regions hold most of the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": "<=",
+   "value": 8,
+   "from": "place kind meeting: a few places, not many"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of biome specks"
+  }
+ ]
+}

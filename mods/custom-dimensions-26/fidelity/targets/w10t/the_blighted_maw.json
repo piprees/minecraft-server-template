@@ -1,0 +1,56 @@
+{
+ "slug": "the_blighted_maw",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:netherrack + surface.groundBlocksPercent.minecraft:crimson_nylium + surface.groundBlocksPercent.minecraft:warped_nylium + surface.groundBlocksPercent.minecraft:soul_sand + surface.groundBlocksPercent.minecraft:soul_soil + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:magma_block + surface.groundBlocksPercent.minecraft:nether_wart_block + surface.groundBlocksPercent.minecraft:gravel + surface.groundBlocksPercent.minecraft:tuff + surface.groundBlocksPercent.minecraft:smooth_basalt + surface.groundBlocksPercent.minecraft:moss_block + surface.groundBlocksPercent.minecraft:slime_block",
+   "op": ">=",
+   "value": 15,
+   "from": "\"A toxic little hell\"; 1.21.1 defaultBlock netherrack, Nether biomes only (of all columns, islands being under a third)"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:end_stone",
+   "op": "<=",
+   "value": 3,
+   "from": "1.21.1 type nether_islands: no end stone"
+  },
+  {
+   "key": "biomeExpression.expressed",
+   "op": ">=",
+   "value": 4,
+   "from": "1.21.1 lists five biomes: each shows on its islands"
+  },
+  {
+   "key": "surface.voidPercent",
+   "op": "between",
+   "value": [
+    55,
+    85
+   ],
+   "from": "\"a tight cluster of floating islands with a long fall between them\""
+  },
+  {
+   "key": "placeness.at.spawn.biomeEdgeBlocks",
+   "op": "<=",
+   "value": 400,
+   "from": "\"a tight cluster\": land round spawn, not far off"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:mycotoxic_undergrowth + surface.biomesPercent.minecraft:soul_sand_valley + surface.biomesPercent.adventure:withered_forest",
+   "op": ">=",
+   "value": 25,
+   "from": "1.21.1 toxic_heap, soul_sand_valley, withered_forest"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.1,
+   "from": "1.21.1 ambientLight 0.08"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": "<=",
+   "value": 0,
+   "from": "open sky"
+  }
+ ]
+}

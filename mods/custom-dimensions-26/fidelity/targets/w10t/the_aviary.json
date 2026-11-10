@@ -1,0 +1,65 @@
+{
+ "slug": "the_aviary",
+ "targets": [
+  {
+   "key": "surface.voidPercent",
+   "op": "between",
+   "value": [
+    15,
+    60
+   ],
+   "from": "\"skylands ... on the updrafts between plateaus\": open sky between the masses"
+  },
+  {
+   "key": "landforms.sharesPercent.plateaus + landforms.sharesPercent.plains",
+   "op": ">=",
+   "value": 35,
+   "from": "\"between plateaus\": flat-topped islands"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:wisteria_grove",
+   "op": ">=",
+   "value": 8,
+   "from": "\"Wisteria drifts on the updrafts\""
+  },
+  {
+   "key": "surface.biomesPercent.adventure:sky_highlands + surface.biomesPercent.adventure:golden_skygrove + surface.biomesPercent.minecraft:forest + surface.biomesPercent.minecraft:flower_forest + surface.biomesPercent.minecraft:meadow + surface.biomesPercent.minecraft:cherry_grove + surface.biomesPercent.adventure:wisteria_grove",
+   "op": ">=",
+   "value": 50,
+   "from": "1.21.1 spawnFilter highlands, highlands_forest, wisteria_woods: skyland groves"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "between",
+   "value": [
+    15,
+    120
+   ],
+   "from": "\"It just grew\": living groves, not bare rock"
+  },
+  {
+   "key": "surface.bareRockPercent",
+   "op": "<=",
+   "value": 15,
+   "from": "\"The oldest living world\""
+  },
+  {
+   "key": "vertical.layerColumnsPercent.sky",
+   "op": ">=",
+   "value": 5,
+   "from": "\"skylands\": some islands stacked above others"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting: plateaus and groves in a few large regions"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting"
+  }
+ ]
+}

@@ -1,0 +1,56 @@
+{
+ "slug": "the_shattered_skies",
+ "targets": [
+  {
+   "key": "surface.voidPercent",
+   "op": "between",
+   "value": [
+    35,
+    75
+   ],
+   "from": "\"adrift in a void slowly winning\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:cherry_grove + surface.biomesPercent.adventure:magnolia_woodland",
+   "op": ">=",
+   "value": 12,
+   "from": "\"sakura\"; 1.21.1 sakura_valley, sakura_grove, cherry_grove"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:plains + surface.biomesPercent.minecraft:meadow + surface.biomesPercent.minecraft:flower_forest + surface.biomesPercent.minecraft:sunflower_plains + surface.biomesPercent.minecraft:forest + surface.biomesPercent.minecraft:birch_forest + surface.biomesPercent.minecraft:cherry_grove + surface.biomesPercent.adventure:lavender_fields + surface.biomesPercent.adventure:sky_highlands",
+   "op": ">=",
+   "value": 55,
+   "from": "\"Floating garden islands\"; 1.21.1 lists plains, forest, birch, meadow, flower forest, cherry, blooming and lavender valleys"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:sand",
+   "op": "<=",
+   "value": 4,
+   "from": "\"garden islands\": no desert"
+  },
+  {
+   "key": "surface.groundPlantsPercent.flower",
+   "op": ">=",
+   "value": 4,
+   "from": "\"garden\""
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting (garden islands): the largest three regions hold most of the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": "<=",
+   "value": 8,
+   "from": "place kind meeting: a few places, not many"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of biome specks"
+  }
+ ]
+}

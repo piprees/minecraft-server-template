@@ -1,0 +1,50 @@
+{
+ "slug": "the_buried_age",
+ "targets": [
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "between",
+   "value": [
+    60,
+    75
+   ],
+   "from": "\"Two thirds of the world is under it\""
+  },
+  {
+   "key": "terrain.surfaceHeight.p50",
+   "op": "<=",
+   "value": 74,
+   "from": "\"the lava took\" the land: the median floor lies under the lava line (1.21.1 seaLevel 74)"
+  },
+  {
+   "key": "terrain.belowSeaLevelPercent",
+   "op": ">=",
+   "value": 60,
+   "from": "\"Two thirds of the world is under it\""
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 90,
+   "from": "\"a corridor between the lava surface and the bedrock roof\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:basalt_deltas + surface.biomesPercent.minecraft:soul_sand_valley + surface.biomesPercent.minecraft:nether_wastes + surface.biomesPercent.adventure:quartz_flats",
+   "op": ">=",
+   "value": 60,
+   "from": "1.21.1 biomes basalt_deltas, flooded_deltas, soul_sand_valley, nether_wastes, quartz_flats"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.15,
+   "from": "1.21.1 ambientLight 0.1"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 10,
+   "from": "place kind broken (one drowned ruin field): broken by design, but not a speckle"
+  }
+ ]
+}

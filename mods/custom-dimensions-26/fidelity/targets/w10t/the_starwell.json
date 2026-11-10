@@ -1,0 +1,62 @@
+{
+ "slug": "the_starwell",
+ "targets": [
+  {
+   "key": "surface.voidPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "\"a few silvered islands adrift\": mostly open void between islands"
+  },
+  {
+   "key": "surface.voidPercent",
+   "op": "<=",
+   "value": 90,
+   "from": "\"a few ... islands\": the islands are there"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:sand + surface.groundBlocksPercent.minecraft:red_sand + surface.groundBlocksPercent.minecraft:sandstone",
+   "op": "<=",
+   "value": 10,
+   "from": "1.21.1 biomes mirage_isles, skylands_winter, alpha_islands: no desert sand"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:snowy_plains + surface.biomesPercent.adventure:windswept_isles + surface.biomesPercent.adventure:alpha_grove",
+   "op": ">=",
+   "value": 60,
+   "from": "1.21.1 biomes: winter skylands and alpha islands carry the islands"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.fixedTime?",
+   "op": "between",
+   "value": [
+    13000,
+    23000
+   ],
+   "from": "\"A well of night sky\"; 1.21.1 environment fixedTime 18000"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.3,
+   "from": "\"night sky\"; 1.21.1 ambientLight 0.15"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface + vegetation.treesPerHectareByLayer.sky",
+   "op": "<=",
+   "value": 15,
+   "from": "\"a few silvered islands\": sparse, quiet islands"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place: one well of sky with one island character"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place"
+  }
+ ]
+}

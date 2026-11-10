@@ -1,0 +1,41 @@
+{
+ "slug": "the_canvas",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block",
+   "op": ">=",
+   "value": 99,
+   "from": "\"bedrock, dirt and grass, nothing else, forever\""
+  },
+  {
+   "key": "terrain.reliefMedian",
+   "op": "<=",
+   "value": 0,
+   "from": "\"A flat blank canvas\""
+  },
+  {
+   "key": "terrain.slopes.flatUnder15Percent",
+   "op": ">=",
+   "value": 99,
+   "from": "\"A flat blank canvas\""
+  },
+  {
+   "key": "vegetation.trees",
+   "op": "<=",
+   "value": 0,
+   "from": "\"nothing else\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water + surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 0,
+   "from": "\"nothing else\""
+  },
+  {
+   "key": "vertical.layerColumnsPercent.underground",
+   "op": "<=",
+   "value": 0,
+   "from": "\"bedrock, dirt and grass\": no caves"
+  }
+ ]
+}

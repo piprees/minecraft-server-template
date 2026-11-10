@@ -1,0 +1,59 @@
+{
+ "slug": "the_sculked_beyond",
+ "targets": [
+  {
+   "key": "surface.biomesPercent.minecraft:deep_dark",
+   "op": ">=",
+   "value": 35,
+   "from": "\"Sculk-eaten caverns\", \"The deep dark outlived the world it consumed\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:sculk + surface.topBlocksPercent.minecraft:sculk_vein",
+   "op": ">=",
+   "value": 30,
+   "from": "\"Sculk-eaten\", \"the infection never stopped\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:dripstone_caves",
+   "op": "<=",
+   "value": 15,
+   "from": "1.21.1 lists no dripstone caves; terralith deep/tuff caves are minor"
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 12,
+   "from": "\"caverns ... tunnelled on\": dry tunnels"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 3,
+   "from": "\"Sculk-eaten caverns\": no grass"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.05,
+   "from": "1.21.1 ambientLight 0.03"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 95,
+   "from": "1.21.1 type cave, hasCeiling true"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (sculk everywhere): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

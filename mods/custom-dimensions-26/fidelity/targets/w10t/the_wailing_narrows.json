@@ -1,0 +1,59 @@
+{
+ "slug": "the_wailing_narrows",
+ "targets": [
+  {
+   "key": "terrain.slopes.over45Percent",
+   "op": ">=",
+   "value": 55,
+   "from": "\"Narrow bridged chasms\": walls everywhere"
+  },
+  {
+   "key": "landforms.sharesPercent.basins + landforms.sharesPercent.water",
+   "op": ">=",
+   "value": 35,
+   "from": "\"chasms\", \"deeper and deeper\": low cut ground"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 15,
+   "from": "\"quartz spans over the wail\": chasms, not lava lakes"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:soul_sand_valley + surface.biomesPercent.minecraft:basalt_deltas + surface.biomesPercent.adventure:quartz_flats",
+   "op": ">=",
+   "value": 95,
+   "from": "1.21.1 biomes soul_sand_valley, basalt_deltas, quartz_flats"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:quartz_flats",
+   "op": ">=",
+   "value": 10,
+   "from": "\"quartz spans\""
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.1,
+   "from": "1.21.1 ambientLight 0.06"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 85,
+   "from": "1.21.1 type nether: a roof over the world"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one chasm country): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

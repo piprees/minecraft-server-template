@@ -1,0 +1,6 @@
+{
+  "reason": "Route is low: biomes and weights stay; only the lava sea drops to 24; vanilla relief kept (structures carry it).",
+  "liquids": {
+    "seaLevel": 24
+  }
+}

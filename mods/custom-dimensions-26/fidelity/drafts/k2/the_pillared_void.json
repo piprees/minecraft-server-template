@@ -1,0 +1,35 @@
+{
+  "reason": "Route 2: spires over a void (G12 floor void) as the pillars, nothing between them; End stone throughout; end_barrens and the_end only, ranked over the columns (G3); the End sky from the shipped atmosphere.",
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "spires",
+    "floor": "void",
+    "params": {
+      "coverage": 0.02,
+      "spireHeight": 120,
+      "landHeight": 30,
+      "thickness": 1.6,
+      "taper": 0.1
+    }
+  },
+  "materials": {
+    "defaultBlock": "minecraft:end_stone",
+    "top": "minecraft:end_stone",
+    "filler": "minecraft:end_stone"
+  },
+  "biomes": [
+    "minecraft:end_barrens",
+    "minecraft:the_end"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:end_barrens": 70,
+      "minecraft:the_end": 30
+    },
+    "over": "land"
+  }
+}

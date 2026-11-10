@@ -1,0 +1,71 @@
+{
+ "slug": "the_violet_spire",
+ "targets": [
+  {
+   "key": "surface.biomesPercent.adventure:wisteria_grove + surface.biomesPercent.adventure:lavender_fields",
+   "op": ">=",
+   "value": 25,
+   "from": "\"Wisteria islands\"; 1.21.1 spawnFilter lavender_fields"
+  },
+  {
+   "key": "surface.snowIcePercent",
+   "op": "<=",
+   "value": 8,
+   "from": "\"Violet spires ... wisteria ... amethyst\": not a snowfield"
+  },
+  {
+   "key": "surface.topBlocksPercent.minecraft:amethyst_block + surface.topBlocksPercent.minecraft:amethyst_cluster + surface.topBlocksPercent.minecraft:budding_amethyst + surface.topBlocksPercent.minecraft:purpur_block + surface.topBlocksPercent.minecraft:purple_terracotta + surface.topBlocksPercent.minecraft:magenta_terracotta",
+   "op": ">=",
+   "value": 2,
+   "from": "\"amethyst canyons\", \"endermen architecture\": violet blocks on the surface"
+  },
+  {
+   "key": "terrain.slopes.cliffPercent",
+   "op": ">=",
+   "value": 15,
+   "from": "\"Violet spires\", \"canyons\": vertical faces"
+  },
+  {
+   "key": "terrain.surfaceHeight.p95",
+   "op": ">=",
+   "value": 200,
+   "from": "\"spires in the sky\": tall masses above the plateaus"
+  },
+  {
+   "key": "surface.voidPercent",
+   "op": "between",
+   "value": [
+    15,
+    60
+   ],
+   "from": "\"in the sky\": skylands with open sky between"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "between",
+   "value": [
+    0.15,
+    0.4
+   ],
+   "from": "\"Arcane but not hostile\"; 1.21.1 ambientLight 0.25"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting (\"two worlds overlapped\"): the largest three regions hold most of the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": "<=",
+   "value": 8,
+   "from": "place kind meeting: a few places, not many"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of biome specks"
+  }
+ ]
+}

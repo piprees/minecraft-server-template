@@ -1,0 +1,38 @@
+{
+  "reason": "Route is low: weights and blackstone palettes; climate stretched 2x to cut its 25 major regions (G2); vanilla Nether relief kept.",
+  "terrain": {
+    "scales": {
+      "climate": 2
+    }
+  },
+  "liquids": {
+    "seaLevel": 24
+  },
+  "materials": {
+    "cliffs": "minecraft:blackstone",
+    "biomes": {
+      "minecraft:nether_wastes": {
+        "filler": "minecraft:blackstone"
+      }
+    }
+  },
+  "biomes": [
+    "adventure:blackstone_basin",
+    "minecraft:basalt_deltas",
+    "minecraft:soul_sand_valley",
+    "adventure:ash_barrens",
+    "adventure:crimson_pinewood",
+    "minecraft:crimson_forest"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:blackstone_basin": 30,
+      "minecraft:basalt_deltas": 20,
+      "minecraft:soul_sand_valley": 15,
+      "adventure:ash_barrens": 10,
+      "adventure:crimson_pinewood": 10,
+      "minecraft:crimson_forest": 10
+    }
+  }
+}

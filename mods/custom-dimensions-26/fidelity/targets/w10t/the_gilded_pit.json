@@ -1,0 +1,59 @@
+{
+ "slug": "the_gilded_pit",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:gilded_blackstone + surface.groundBlocksPercent.minecraft:gold_block + surface.groundBlocksPercent.minecraft:nether_gold_ore + surface.groundBlocksPercent.minecraft:blackstone",
+   "op": ">=",
+   "value": 15,
+   "from": "\"gold in every wall\""
+  },
+  {
+   "key": "landforms.sharesPercent.basins",
+   "op": ">=",
+   "value": 25,
+   "from": "\"a ledge overlooking what remains\": the capital lies in a pit"
+  },
+  {
+   "key": "placeness.at.spawn.biomeEdgeBlocks",
+   "op": ">=",
+   "value": 64,
+   "from": "\"Nothing within arm's reach of the landing\": spawn sits well inside one region"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:blackstone_basin",
+   "op": ">=",
+   "value": 15,
+   "from": "\"gold in every wall\": the library's gilded-seam biome"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 15,
+   "from": "\"treasure in every ruin\": a city floor, not a lava lake"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:basalt_deltas",
+   "op": "<=",
+   "value": 20,
+   "from": "1.21.1 biomes: gravel_desert, poor_nether_grasslands, nether_wastes, basalt_deltas, crimson_forest, inferno: deltas one of six"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 85,
+   "from": "1.21.1 type nether: a roof over the world"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one pit): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

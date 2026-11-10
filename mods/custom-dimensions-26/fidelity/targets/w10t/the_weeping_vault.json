@@ -1,0 +1,59 @@
+{
+ "slug": "the_weeping_vault",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:crying_obsidian + surface.topBlocksPercent.minecraft:crying_obsidian",
+   "op": ">=",
+   "value": 3,
+   "from": "\"A vault of crying obsidian\", \"the crying obsidian is the lock\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:polished_blackstone + surface.groundBlocksPercent.minecraft:polished_blackstone_bricks + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:soul_soil + surface.groundBlocksPercent.minecraft:soul_sand + surface.groundBlocksPercent.minecraft:crimson_nylium + surface.groundBlocksPercent.minecraft:crying_obsidian + surface.groundBlocksPercent.minecraft:obsidian",
+   "op": ">=",
+   "value": 60,
+   "from": "\"a vault\"; 1.21.1 defaultBlock blackstone, Nether biomes only"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 3,
+   "from": "\"with no sky\": no lawns in a sealed vault"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:crimson_forest + surface.biomesPercent.adventure:nether_jungle",
+   "op": ">=",
+   "value": 25,
+   "from": "1.21.1 weeping_valley, crimson_forest"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 25,
+   "from": "\"castle dungeons and a sanctum\": halls to walk, lava below"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.1,
+   "from": "1.21.1 ambientLight 0.06"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 95,
+   "from": "1.21.1 type cave, hasCeiling true"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one sealed vault): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

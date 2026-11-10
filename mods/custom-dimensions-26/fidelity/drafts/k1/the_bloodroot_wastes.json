@@ -1,0 +1,27 @@
+{
+  "reason": "Route is low: weights only; climate stretched 1.8x for fewer, larger forests (G2); vanilla Nether relief kept.",
+  "terrain": {
+    "scales": {
+      "climate": 1.8
+    }
+  },
+  "biomes": [
+    "minecraft:crimson_forest",
+    "adventure:nether_jungle",
+    "adventure:upside_down_forest",
+    "adventure:crimson_pinewood",
+    "minecraft:nether_wastes",
+    "minecraft:basalt_deltas"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:crimson_forest": 35,
+      "adventure:nether_jungle": 25,
+      "adventure:upside_down_forest": 15,
+      "adventure:crimson_pinewood": 10,
+      "minecraft:nether_wastes": 10,
+      "minecraft:basalt_deltas": 5
+    }
+  }
+}

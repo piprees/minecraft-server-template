@@ -1,0 +1,74 @@
+{
+ "slug": "the_fungal_lanterns",
+ "targets": [
+  {
+   "key": "surface.topBlocksPercent.minecraft:shroomlight + surface.groundBlocksPercent.minecraft:shroomlight",
+   "op": ">=",
+   "value": 1,
+   "from": "\"Shroomlight groves\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:crimson_nylium + surface.groundBlocksPercent.minecraft:warped_nylium + surface.groundBlocksPercent.minecraft:nether_wart_block + surface.groundBlocksPercent.minecraft:warped_wart_block + surface.groundBlocksPercent.minecraft:mycelium",
+   "op": ">=",
+   "value": 30,
+   "from": "\"Shroomlight groves\", \"the nether's gentlest rooms\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 5,
+   "from": "\"the nether's gentlest rooms\": Nether ground, not lawns"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": ">=",
+   "value": 30,
+   "from": "\"groves on ledges\": fungi stand on the floor"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "between",
+   "value": [
+    10,
+    35
+   ],
+   "from": "\"above a lava sea\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:warped_forest",
+   "op": ">=",
+   "value": 15,
+   "from": "\"teal from above\": warped light"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": ">=",
+   "value": 0.25,
+   "from": "\"gentlest rooms\"; 1.21.1 ambientLight 0.35"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 95,
+   "from": "1.21.1 type cave, hasCeiling true"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting (orange and teal): the largest three regions hold most of the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": "<=",
+   "value": 8,
+   "from": "place kind meeting: a few places, not many"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of biome specks"
+  }
+ ]
+}

@@ -1,0 +1,65 @@
+{
+ "slug": "the_wuthering_wisteria",
+ "targets": [
+  {
+   "key": "surface.biomesPercent.adventure:wisteria_grove",
+   "op": ">=",
+   "value": 30,
+   "from": "\"a pocket grove of wisteria\"; 1.21.1 wisteria_forest, wisteria_grove"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:cherry_grove + surface.biomesPercent.adventure:magnolia_woodland",
+   "op": ">=",
+   "value": 15,
+   "from": "1.21.1 sakura_grove, cherry_grove, sakura_valley"
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "between",
+   "value": [
+    2,
+    15
+   ],
+   "from": "\"a stream winding beneath the canopy\": water present but a stream"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:ocean + surface.biomesPercent.minecraft:warm_ocean + surface.biomesPercent.minecraft:lukewarm_ocean + surface.biomesPercent.minecraft:cold_ocean + surface.biomesPercent.minecraft:deep_ocean + surface.biomesPercent.minecraft:deep_lukewarm_ocean + surface.biomesPercent.minecraft:deep_cold_ocean + surface.biomesPercent.minecraft:frozen_ocean",
+   "op": "<=",
+   "value": 3,
+   "from": "\"a pocket grove\": no sea"
+  },
+  {
+   "key": "surface.canopyPercent",
+   "op": ">=",
+   "value": 30,
+   "from": "\"beneath the canopy\""
+  },
+  {
+   "key": "vegetation.species.minecraft:birch_log.perHectare?",
+   "op": "<=",
+   "value": 10,
+   "from": "1.21.1 list has no birch forest"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.fixedTime?",
+   "op": "between",
+   "value": [
+    11000,
+    13000
+   ],
+   "from": "1.21.1 fixedTime 12000"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one sealed grove): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

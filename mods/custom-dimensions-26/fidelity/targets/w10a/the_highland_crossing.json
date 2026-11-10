@@ -1,0 +1,11 @@
+{
+ "slug": "the_highland_crossing",
+ "targets": [
+  {
+   "key": "landforms.highGroundFine.upperThreeQuarters.top3Percent",
+   "op": ">=",
+   "value": 80,
+   "from": "1.21.1 \"endlessly connected\": the mountains are one or a few regions (measured on the fine map, T197)"
+  }
+ ]
+}

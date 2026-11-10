@@ -1,0 +1,34 @@
+{
+  "reason": "Route 1, second branch: the End kept now its default block shows (G5: netherrack replaces the End's End stone fill, the Nether ground lays nylium and soul sand); route's seven Nether biomes ranked over the islands and stretched 2x (G3); lava and fog kept.",
+  "terrain": {
+    "base": "end",
+    "params": {
+      "coverage": 0.04
+    },
+    "scales": {
+      "climate": 2
+    }
+  },
+  "biomes": [
+    "minecraft:crimson_forest",
+    "minecraft:warped_forest",
+    "minecraft:basalt_deltas",
+    "minecraft:nether_wastes",
+    "adventure:magma_land",
+    "adventure:ash_barrens",
+    "adventure:withered_forest"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:crimson_forest": 20,
+      "minecraft:warped_forest": 15,
+      "minecraft:basalt_deltas": 15,
+      "minecraft:nether_wastes": 15,
+      "adventure:magma_land": 15,
+      "adventure:ash_barrens": 10,
+      "adventure:withered_forest": 10
+    },
+    "over": "land"
+  }
+}

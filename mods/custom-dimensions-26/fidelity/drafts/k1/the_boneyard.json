@@ -1,0 +1,53 @@
+{
+  "reason": "A rolling floor at 48 \u00b1 14 cut by thin chasms whose low walls (y 29 and under, depth 0.15) take deep_dark, so sculk lies below; lava at 20 floors only the deepest cuts (G1 chasms, depth binding, G2).",
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 48,
+      "floorRelief": 14,
+      "ceilingGap": 50,
+      "roughness": 0.35,
+      "chasms": 0.03,
+      "chasmDepth": 30
+    },
+    "scales": {
+      "climate": 1.6
+    }
+  },
+  "liquids": {
+    "seaLevel": 20
+  },
+  "materials": {
+    "biomes": {
+      "minecraft:soul_sand_valley": {
+        "cliffs": "minecraft:bone_block"
+      }
+    }
+  },
+  "biomes": [
+    "minecraft:soul_sand_valley",
+    "adventure:ash_barrens",
+    "adventure:gravel_desert",
+    "adventure:withered_forest",
+    "adventure:quartz_flats",
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "depth": [
+          0.15,
+          1
+        ]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:soul_sand_valley": 35,
+      "adventure:ash_barrens": 25,
+      "adventure:gravel_desert": 15,
+      "adventure:withered_forest": 8,
+      "adventure:quartz_flats": 5
+    }
+  }
+}

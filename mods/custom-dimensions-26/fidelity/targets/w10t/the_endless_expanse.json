@@ -1,0 +1,47 @@
+{
+ "slug": "the_endless_expanse",
+ "targets": [
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 15,
+   "from": "\"Large biomes ... The scale is the point\""
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": "<=",
+   "value": 10,
+   "from": "\"The scale is the point\": few, very large regions"
+  },
+  {
+   "key": "placeness.landBiomeRegions.medianHa",
+   "op": ">=",
+   "value": 1,
+   "from": "\"Large biomes\": no small regions"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 3,
+   "from": "\"Large biomes\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 30,
+   "from": "\"what humans and villagers built when they had room\": land to build on"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:plains + surface.biomesPercent.minecraft:forest + surface.biomesPercent.minecraft:birch_forest + surface.biomesPercent.minecraft:savanna + surface.biomesPercent.minecraft:taiga + surface.biomesPercent.minecraft:meadow + surface.biomesPercent.minecraft:sunflower_plains",
+   "op": ">=",
+   "value": 30,
+   "from": "\"villagers built\": village biomes carry the land"
+  },
+  {
+   "key": "placeness.correlationLength.surfaceHeight.blocks",
+   "op": ">=",
+   "value": 200,
+   "from": "\"The scale is the point\": broad landforms"
+  }
+ ]
+}

@@ -1,0 +1,59 @@
+{
+ "slug": "the_snowbound_isle",
+ "targets": [
+  {
+   "key": "surface.snowIcePercent",
+   "op": ">=",
+   "value": 70,
+   "from": "\"A snowbound island\", \"drifts\""
+  },
+  {
+   "key": "surface.voidPercent",
+   "op": ">=",
+   "value": 35,
+   "from": "\"an island adrift in the sky\": void round one island"
+  },
+  {
+   "key": "vegetation.species.minecraft:spruce_log.perHectare?",
+   "op": ">=",
+   "value": 25,
+   "from": "\"Fir forests\""
+  },
+  {
+   "key": "vegetation.species.minecraft:oak_log.perHectare? + vegetation.species.minecraft:poplar_log.perHectare?",
+   "op": "<=",
+   "value": 5,
+   "from": "1.21.1 biomes are all snowy firs and tundra: no gold groves"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:snowy_taiga + surface.biomesPercent.minecraft:snowy_plains + surface.biomesPercent.minecraft:snowy_slopes + surface.biomesPercent.adventure:windswept_isles + surface.biomesPercent.minecraft:grove",
+   "op": ">=",
+   "value": 70,
+   "from": "1.21.1 biomes snowy_taiga, snowy_fir_forest, snowy_plains, snowy_slopes, skylands_winter, frozen_cliffs"
+  },
+  {
+   "key": "surface.precipitationPercent.snow",
+   "op": ">=",
+   "value": 85,
+   "from": "\"the cold keeps everything honest\": it snows"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.sky",
+   "op": "<=",
+   "value": 8,
+   "from": "\"A snowbound island\": one island, not a stack"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (\"A snowbound island\"): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

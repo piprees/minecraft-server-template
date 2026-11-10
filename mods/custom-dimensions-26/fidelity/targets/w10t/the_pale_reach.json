@@ -1,0 +1,59 @@
+{
+ "slug": "the_pale_reach",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:calcite + surface.groundBlocksPercent.minecraft:snow_block + surface.groundBlocksPercent.minecraft:powder_snow + surface.groundBlocksPercent.minecraft:packed_ice + surface.groundBlocksPercent.minecraft:diorite + surface.groundBlocksPercent.minecraft:stone + surface.topBlocksPercent.minecraft:snow",
+   "op": ">=",
+   "value": 50,
+   "from": "\"calcite crags floating in white silence\""
+  },
+  {
+   "key": "surface.topBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 15,
+   "from": "\"pale\", \"white silence\""
+  },
+  {
+   "key": "surface.voidPercent",
+   "op": "between",
+   "value": [
+    25,
+    70
+   ],
+   "from": "\"crags floating\": open white sky between"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "<=",
+   "value": 5,
+   "from": "\"where even the animal kingdoms thin out\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:ice_spikes + surface.biomesPercent.minecraft:snowy_plains + surface.biomesPercent.minecraft:frozen_peaks + surface.biomesPercent.minecraft:snowy_slopes + surface.biomesPercent.adventure:windswept_isles",
+   "op": ">=",
+   "value": 30,
+   "from": "1.21.1 skylands_winter, frozen_cliffs, wintry_lowlands, ice_spikes, snowy_slopes, frozen_peaks"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.fixedTime?",
+   "op": "between",
+   "value": [
+    4000,
+    8000
+   ],
+   "from": "1.21.1 fixedTime 6000: bright white noon"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one white reach): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

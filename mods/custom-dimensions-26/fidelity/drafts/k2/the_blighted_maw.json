@@ -1,0 +1,49 @@
+{
+  "reason": "Route 1: a tight cluster of netherrack islands over lava at the centre, open void to the 1024 border (G10 radial on floating_islands, G5 no longer forces End stone); weights from the route, ranked over land (G3).",
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "coverage": 0.25,
+      "size": 1.5,
+      "altitude": 110
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [
+        0,
+        0
+      ],
+      "radius": 160,
+      "falloff": 320,
+      "strength": 1
+    }
+  },
+  "liquids": {
+    "defaultFluid": "minecraft:lava"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:netherrack"
+  },
+  "biomes": [
+    "adventure:mycotoxic_undergrowth",
+    "minecraft:soul_sand_valley",
+    "adventure:withered_forest",
+    "adventure:ash_barrens",
+    "minecraft:nether_wastes"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:mycotoxic_undergrowth": 30,
+      "minecraft:soul_sand_valley": 25,
+      "adventure:withered_forest": 20,
+      "adventure:ash_barrens": 15,
+      "minecraft:nether_wastes": 10
+    },
+    "over": "land"
+  }
+}
