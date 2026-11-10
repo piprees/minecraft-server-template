@@ -167,6 +167,10 @@ put() {
   base="$(awk -v p="$rel" '$2 == p { print $1 }' "$HERE/files.sha256")"
   if [[ -f "$rel" ]]; then
     cur="$(sha "$rel")"
+    # A dry run has not applied the edits a port's base sha was taken after.
+    if [[ $DRY -eq 1 && -n "$base" && "$base" != "$cur" ]]; then
+      cur="$(python3 "$EDITS" --sha "$REPO" "$rel")"
+    fi
     if [[ -n "$base" && "$base" != new && "$base" != "$cur" && $ACCEPT_DRIFT -eq 0 ]]; then
       out '!' "$rel drifted since its replacement was written (base $base, now $cur): review, then --accept-drift"
       DRIFT=1

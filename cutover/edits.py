@@ -11,6 +11,7 @@ written is reviewed rather than overwritten.
 Usage:
   edits.py <repo> <step> [--dry-run]   apply (or list) one step's edits
   edits.py --steps                     list the steps
+  edits.py --sha <repo> <path>         sha256 of the path once every edit applies
 Exit 0 when every edit of the step applied or was already applied; 1 on drift.
 """
 
@@ -627,9 +628,27 @@ def run(root, step, dry):
     return ok
 
 
+def edited(root, path):
+    """The text of `path` once every step's edits apply to it, for a dry run's drift check."""
+    import hashlib
+    text = (root / path).read_text()
+    for step in steps():
+        for s, p, old, new, every in E:
+            if s == step and p == path and (text.count(old) == 1 or (every and text.count(old) > 1)):
+                text = text.replace(old, new)
+        for s, p, start, stop in RANGES:
+            if s == step and p == path and text.count(start) == 1 and text.find(stop, text.index(start)) >= 0:
+                a = text.index(start)
+                text = text[:a] + text[text.find(stop, a):]
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
 def main(argv):
     if argv[1:2] == ["--steps"]:
         print("\n".join(steps()))
+        return 0
+    if argv[1:2] == ["--sha"] and len(argv) == 4:
+        print(edited(Path(argv[2]), argv[3]))
         return 0
     if len(argv) < 3:
         print(__doc__, file=sys.stderr)
