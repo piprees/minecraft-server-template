@@ -8,23 +8,11 @@
         "type": "minecraft:multi_noise",
         "biomes": [
           {
-            "biome": "minecraft:basalt_deltas",
+            "biome": "adventure:ash_barrens",
             "parameters": {
-              "temperature": [-2.0, 0.0409],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [-2.0, -0.2638],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "adventure:magma_land",
-            "parameters": {
-              "temperature": [0.0409, 2.0],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [-2.0, -0.2638],
+              "temperature": [-2.0, -0.2818],
+              "humidity": [-2.0, -0.1341],
+              "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
               "depth": [-2.0, 2.0],
@@ -34,33 +22,9 @@
           {
             "biome": "minecraft:soul_sand_valley",
             "parameters": {
-              "temperature": [-2.0, -0.197],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [-0.2638, 0.2758],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:nether_wastes",
-            "parameters": {
-              "temperature": [-0.197, 2.0],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [-0.2638, 0.2758],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "adventure:quartz_flats",
-            "parameters": {
-              "temperature": [-2.0, -0.385],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [0.2758, 2.0],
+              "temperature": [-2.0, -0.2818],
+              "humidity": [-0.1341, 0.4693],
+              "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
               "depth": [-2.0, 2.0],
@@ -70,9 +34,9 @@
           {
             "biome": "adventure:blackstone_basin",
             "parameters": {
-              "temperature": [-0.385, 0.1413],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [0.2758, 2.0],
+              "temperature": [-2.0, -0.2818],
+              "humidity": [0.4693, 2.0],
+              "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
               "depth": [-2.0, 2.0],
@@ -80,11 +44,47 @@
             }
           },
           {
-            "biome": "adventure:ash_barrens",
+            "biome": "minecraft:nether_wastes",
             "parameters": {
-              "temperature": [0.1413, 2.0],
-              "humidity": [-2.0, 2.0],
-              "continentalness": [0.2758, 2.0],
+              "temperature": [-0.2818, 0.2638],
+              "humidity": [-2.0, 0.1838],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:quartz_flats",
+            "parameters": {
+              "temperature": [-0.2818, 0.2638],
+              "humidity": [0.1838, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:magma_land",
+            "parameters": {
+              "temperature": [0.2638, 2.0],
+              "humidity": [-2.0, -0.0409],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:basalt_deltas",
+            "parameters": {
+              "temperature": [0.2638, 2.0],
+              "humidity": [-0.0409, 2.0],
+              "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
               "depth": [-2.0, 2.0],
@@ -95,10 +95,10 @@
       },
       "regions": {
         "axes": [
-          "continentalness",
-          "temperature"
+          "temperature",
+          "humidity"
         ],
-        "columns": [-0.2638, 0.2758],
+        "columns": [-0.2818, 0.2638],
         "radius": 2048
       }
     },

@@ -26,28 +26,24 @@
     }
   },
   "biomes": [
-    "minecraft:basalt_deltas",
-    "adventure:magma_land",
-    "minecraft:nether_wastes",
+    "adventure:ash_barrens",
     "minecraft:soul_sand_valley",
-    "adventure:quartz_flats",
     "adventure:blackstone_basin",
-    "adventure:ash_barrens"
+    "adventure:quartz_flats",
+    "minecraft:nether_wastes",
+    "adventure:magma_land",
+    "minecraft:basalt_deltas"
   ],
   "biomeLayout": {
     "mode": "regions",
-    "axes": [
-      "continentalness",
-      "temperature"
-    ],
     "weights": {
-      "minecraft:basalt_deltas": 19.1,
-      "adventure:magma_land": 17.6,
-      "minecraft:nether_wastes": 16.1,
+      "adventure:ash_barrens": 15.5,
       "minecraft:soul_sand_valley": 10.8,
-      "adventure:quartz_flats": 11.1,
       "adventure:blackstone_basin": 9.5,
-      "adventure:ash_barrens": 15.5
+      "adventure:quartz_flats": 11.1,
+      "minecraft:nether_wastes": 16.1,
+      "adventure:magma_land": 17.6,
+      "minecraft:basalt_deltas": 19.1
     }
   },
   "liquids": {

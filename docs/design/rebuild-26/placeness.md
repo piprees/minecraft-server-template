@@ -53,7 +53,7 @@ Fast surveys of the definitions with their biome lists as bands and without `sca
 | Dimension | Why | Setting | Biome largest / top 3 % | Landform largest / top 3 % | Reads |
 |---|---|---|---|---|---|
 | `overworld` | The 1.21.1 wide tune | `scales` continents 1.3, erosion 2.08, ridges 1.39, climate 1.67 | 2.9 / 7.8 → 4.6 / 12.1 | 11.3 / 28.4 → 17.1 / 35.9 | noise |
-| `the_basalt_spires` | One basalt land round the central bastion, lava beyond: biome rings on the layout's continentalness, magma land and deltas on the lava side, ash barrens at the bastion | regions on continentalness × temperature; `scales` climate 2; `layout` radial at [0, 0], radius 500, falloff 900, strength 0.3 | 10.6 / 28.8 → 15.2 / 36.7 | 39.4 / 54.9 → 66.6 / 70.9 | place |
+| `the_basalt_spires` | One basalt land round the central bastion, lava beyond | regions; `scales` climate 2; `layout` radial at [0, 0], radius 500, falloff 900, strength 0.3 | 10.6 / 28.8 → 16.9 / 42.5 | 39.4 / 54.9 → 66.6 / 70.9 | place |
 | `the_blossom_gardens` | Everything built round the gate: a continent centred on spawn, wide tune | regions; `scales` continents 1.3, erosion 2, ridges 1.4, climate 3; `layout` radial at [768, 640], radius 700, falloff 900, strength 0.35 | 2.2 / 6.1 → 7.2 / 18.3 | 10.0 / 27.4 → 64.8 / 73.9 | place |
 | `the_crimson_nexus` | A meeting of many biomes: twelve regions, a few each, caves bound on depth | regions; `scales` ridges 1.4, climate 3 | 0.8 / 1.6 → 14.6 / 34.0 | 6.7 / 17.2 → 9.5 / 18.6 | noise |
 | `the_crucible` | Deliberately broken | regions; `scales` climate 2 | 58.2 / 59.0 → 60.0 / 63.0 | 7.2 / 17.4 | place |
