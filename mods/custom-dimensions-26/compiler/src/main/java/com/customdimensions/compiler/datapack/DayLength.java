@@ -53,11 +53,11 @@ public final class DayLength {
         return d * period() + within;
     }
 
-    /** {@code timeline} on this day length. */
-    public JsonObject apply(JsonObject timeline) {
+    /** {@code timeline} on this day length, read from {@code clock}. */
+    public JsonObject apply(JsonObject timeline, String clock) {
         int period = timeline.get("period_ticks").getAsInt();
         JsonObject out = new JsonObject();
-        out.add("clock", timeline.get("clock").deepCopy());
+        out.addProperty("clock", clock);
         out.addProperty("period_ticks", warp(period));
         if (timeline.has("time_markers")) {
             JsonObject markers = new JsonObject();
@@ -125,6 +125,14 @@ public final class DayLength {
     private static void add(List<long[]> ticks, List<JsonElement> values, long t, JsonElement value) {
         ticks.add(new long[]{t});
         values.add(value);
+    }
+
+    /**
+     * The world clock of this day length: {@code <namespace>:day_length/<day>_<night>} in ticks. A clock's time markers
+     * are unique across every timeline on it, so the warped day, which carries vanilla's markers, runs on a clock of its own.
+     */
+    public String clockId(String namespace) {
+        return namespace + ":day_length/" + day + "_" + night;
     }
 
     /** The id of a vanilla timeline on this day length: {@code <namespace>:day_length/<path>_<day>_<night>} in ticks. */

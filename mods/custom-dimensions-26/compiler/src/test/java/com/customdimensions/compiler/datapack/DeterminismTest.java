@@ -40,7 +40,7 @@ class DeterminismTest {
         out.files().forEach((path, text) -> {
             assertTrue(text.endsWith("}\n"), path);
             assertFalse(text.contains("\t"), path);
-            assertTrue(text.startsWith("{\n  \""), path);
+            assertTrue(text.startsWith("{\n  \"") || text.equals("{}\n"), path);
         });
     }
 

@@ -7,6 +7,7 @@
         "minecraft:visual/fog_color": "#1b2b1b"
       }
     },
+    "default_clock": "adventure:day_length/54000_18000",
     "has_skylight": false,
     "timelines": [
       "adventure:day_length/villager_schedule_54000_18000",

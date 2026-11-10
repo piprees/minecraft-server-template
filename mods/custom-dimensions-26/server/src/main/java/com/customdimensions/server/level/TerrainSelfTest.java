@@ -1,6 +1,7 @@
 package com.customdimensions.server.level;
 
 import com.customdimensions.compiler.terrain.TerrainFamily;
+import com.customdimensions.server.render.Sampler;
 import com.mojang.serialization.JsonOps;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.BlockPos;
@@ -65,6 +66,8 @@ public final class TerrainSelfTest {
     static final int FLOOR_ACROSS = 24;
     static final int FLOOR_CUT = 12;
     static final int CAVE_BELOW_SEA = 8;
+    /** Roofed terrain: blocks of open air between a roof's underside and the floor that count as a cavern, not a crack. */
+    static final int ROOFED_GAP = 8;
     /** Single precision: two terrains also rendered block by block around 30,000, -30,000 to show any banding or seam. */
     static final int FAR = 30_000;
     static final List<String> FAR_RENDERS = List.of("terrain_terraces_default", "terrain_canyons_default");
@@ -155,6 +158,8 @@ public final class TerrainSelfTest {
         chain = family(chain, "voids", this::voids, "firstVoid");
         chain = family(chain, "shattered", this::shattered, "spaced");
         chain = family(chain, "spires", this::spires, "highest");
+        chain = family(chain, "roofed", this::roofed, "spaced");
+        chain = family(chain, "end", this::end, "spaced");
         chain = chain.thenRun(this::performance);
         String gallery = System.getProperty(GALLERY, "");
         if (!gallery.isEmpty()) {
@@ -656,6 +661,49 @@ public final class TerrainSelfTest {
                 + " at its highest point); " + pct(tall) + " of the area stands 20 above the median (a spire, not a plateau: needs at most 30%)");
     }
 
+    /**
+     * A roof over the land and a floor under it: a solid block at the noise's top over nearly every column,
+     * with open air between the roof's underside and the floor in most of them.
+     */
+    private String roofed(Measure m, Measure unused) {
+        int top = noiseTop(m.level);
+        int roofed = 0, open = 0;
+        List<Integer> floors = new ArrayList<>();
+        List<Integer> gaps = new ArrayList<>();
+        for (Column col : m.columns) {
+            int x = col.x(), z = col.z();
+            if (!Sampler.solid(m.level.getBlockState(new BlockPos(x, top, z)))) continue;
+            roofed++;
+            int under = top;
+            while (under > m.minY && Sampler.solid(m.level.getBlockState(new BlockPos(x, under, z)))) under--;
+            int floor = Sampler.surface(y -> m.level.getBlockState(new BlockPos(x, y, z)), top, m.minY).height();
+            floors.add(floor);
+            gaps.add(under - floor + 1);
+            if (under - floor + 1 >= ROOFED_GAP) open++;
+        }
+        double roof = (double) roofed / Math.max(1, m.columns.size());
+        double air = (double) open / Math.max(1, roofed);
+        java.util.Collections.sort(floors);
+        java.util.Collections.sort(gaps);
+        String spread = floors.isEmpty() ? "none" : floors.get(floors.size() / 10) + ".." + floors.get(floors.size() * 9 / 10)
+                + " (p10..p90), median gap " + gaps.get(gaps.size() / 2);
+        return verdict(roof >= 0.95 && air >= 0.5, m.area() + ": " + pct(roof) + " of columns under a roof at y " + top
+                + " (needs 95%); " + pct(air)
+                + " of those have " + ROOFED_GAP + "+ blocks of open air between the roof's underside and the floor (needs 50%); floor y " + spread);
+    }
+
+    /** End terrain: land in islands over a void, as floating islands have it, every land column topped in the End's own ground. */
+    private String end(Measure m, Measure c) {
+        double[] here = m.hanging();
+        long land = m.columns.stream().filter(col -> col.lowest() != null).count();
+        long endStone = m.columns.stream().filter(col -> col.lowest() != null
+                && m.level.getBlockState(new BlockPos(col.x(), col.floor(), col.z())).is(net.minecraft.world.level.block.Blocks.END_STONE)).count();
+        double ground = land == 0 ? 0 : (double) endStone / land;
+        return verdict(here[0] >= 0.05 && here[2] >= 0.3 && ground >= 0.5, m.area() + ": " + pct(here[0])
+                + " of columns carry land (needs 5%); " + pct(here[2]) + " are empty to the bottom (needs 30%; continents " + pct(c.hanging()[2])
+                + "); " + pct(ground) + " of the land's ground is end stone (needs 50%); " + pct(here[1]) + " of the land hangs over open air");
+    }
+
     private void performance() {
         StringBuilder sb = new StringBuilder();
         List<String> over = new ArrayList<>();
@@ -790,13 +838,14 @@ public final class TerrainSelfTest {
         });
     }
 
-    /** Rows split over the pool; the ocean floor height: blue below sea level, grey from sea level (dark) to y 256 (white), red no block. */
+    /** Rows split over the pool; the ocean floor height ({@link #floorHeight}): blue below sea level, grey from sea level (dark) to y 256 (white), red no block. */
     private static CompletableFuture<BufferedImage> render(ServerLevel level, ExecutorService pool, int cx, int cz, int radius,
                                                            int step) {
         int n = 2 * radius / step + 1;
         BufferedImage img = new BufferedImage(n, n, BufferedImage.TYPE_INT_RGB);
         ChunkGenerator generator = level.getChunkSource().getGenerator();
         RandomState random = level.getChunkSource().randomState();
+        int top = noiseTop(level);
         List<CompletableFuture<Void>> parts = new ArrayList<>();
         for (int t = 0; t < GALLERY_THREADS; t++) {
             int first = t;
@@ -805,13 +854,33 @@ public final class TerrainSelfTest {
                     for (int i = 0; i < n; i++) {
                         int x = cx - radius + i * step;
                         int z = cz - radius + j * step;
-                        int h = generator.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, level, random);
+                        int h = floorHeight(generator, level, random, x, z, top);
                         img.setRGB(i, j, colour(h, level.getMinY(), level.getSeaLevel()));
                     }
                 }
             }, pool));
         }
         return CompletableFuture.allOf(parts.toArray(CompletableFuture[]::new)).thenApply(v -> img);
+    }
+
+    /** The highest y the level's noise fills; a solid block there is a roof. */
+    static int noiseTop(ServerLevel level) {
+        if (level.getChunkSource().getGenerator() instanceof NoiseBasedChunkGenerator noise) {
+            var clamped = noise.generatorSettings().value().noiseSettings().clampToHeightAccessor(level);
+            return clamped.minY() + clamped.height() - 1;
+        }
+        return level.getMaxY();
+    }
+
+    /**
+     * The ocean-floor height of a column, or, under a roof (a solid block at {@code top}), the floor under it, so a
+     * roofed world's gallery shows its floor rather than its roof.
+     */
+    static int floorHeight(ChunkGenerator generator, ServerLevel level, RandomState random, int x, int z, int top) {
+        int h = generator.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, level, random);
+        if (h <= top) return h;
+        var column = generator.getBaseColumn(x, z, level, random);
+        return Sampler.surface(y -> column.getBlock(y), top, level.getMinY()).height();
     }
 
     static int colour(int h, int minY, int sea) {
@@ -836,7 +905,7 @@ public final class TerrainSelfTest {
         StringBuilder sb = new StringBuilder("<!doctype html><meta charset=utf-8><title>Terrain gallery</title>"
                 + "<style>body{font-family:sans-serif;background:#111;color:#ddd}td{text-align:center;padding:4px}"
                 + "img{width:257px;image-rendering:pixelated}</style><h1>Terrain gallery</h1>"
-                + "<p>Ocean-floor height at radius 1,024 blocks, one pixel per 8: blue below sea level (darker is deeper), "
+                + "<p>Ocean-floor height (under a roof, the floor below it) at radius 1,024 blocks, one pixel per 8: blue below sea level (darker is deeper), "
                 + "grey from sea level (dark) to y 256 (white), red a column with no block.</p>"
                 + "<table><tr><th></th><th>gentle</th><th>default</th><th>extreme</th><th>wide</th><th>compressed</th></tr>");
         for (Map.Entry<String, Map<String, String>> row : grid.entrySet()) {

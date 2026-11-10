@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "description": "Self-test fixture and showcase: the biome library's cedar forest filling a whole level on overworld terrain, for the biomes section's per-biome checks, renders and screenshots.",
+  "description": "Self-test fixture and showcase: the biome library's cedar forest filling a whole level on overworld land gathered round spawn, for the biomes section's per-biome checks, renders and screenshots.",
   "seed": 16,
   "spawn": [
     0,
@@ -13,5 +13,15 @@
   },
   "borders": {
     "player": 512
+  },
+  "terrain": {
+    "base": "continents",
+    "landShare": 0.95,
+    "layout": {
+      "type": "radial",
+      "radius": 200,
+      "falloff": 300,
+      "strength": 0.4
+    }
   }
 }

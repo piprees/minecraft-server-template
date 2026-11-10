@@ -51,6 +51,12 @@ public final class BiomeLibrary {
     /** Generation steps a biome's {@code features} may fill: vanilla's {@code GenerationStep.Decoration}. */
     static final int STEPS = 11;
     static final Pattern NAME = Pattern.compile("[a-z0-9_]+");
+    /**
+     * Blocks a horizontal {@code block_column} may run: it tests one block past its last, so from the far edge of its
+     * chunk it reaches the far edge of the next.
+     */
+    static final int HORIZONTAL_REACH = 16;
+    static final List<String> HORIZONTAL = List.of("north", "south", "east", "west");
     static final Pattern REF = Pattern.compile("#?[a-z0-9_.-]+:[a-z0-9_./-]+");
     static final String SPAWNS = "minecraft:gameplay/natural_mob_spawns";
     static final String PARTICLES = "minecraft:visual/ambient_particles";
@@ -300,6 +306,7 @@ public final class BiomeLibrary {
                 if (body.isJsonObject()) {
                     need(where + ".feature.type", body.getAsJsonObject().get("type").getAsString(), "minecraft:worldgen/feature_type", "feature type");
                     walk(where + ".feature", body, null);
+                    reach(where + ".feature", body);
                 } else {
                     String ref = body.getAsString();
                     if (ref.startsWith("~")) own(where + ".feature", ref);
@@ -308,6 +315,45 @@ public final class BiomeLibrary {
                 JsonElement placement = f.getValue().get("placement");
                 if (placement != null) placement(where + ".placement", placement.getAsJsonArray());
             }
+        }
+
+        /**
+         * Refuses a horizontal {@code block_column} longer than {@link #HORIZONTAL_REACH}: a feature starts anywhere in
+         * its chunk and may read and write one chunk beyond it, so a longer piece reads unsafe terrain at load.
+         */
+        private void reach(String where, JsonElement e) {
+            if (e.isJsonArray()) {
+                JsonArray a = e.getAsJsonArray();
+                for (int i = 0; i < a.size(); i++) reach(where + "[" + i + "]", a.get(i));
+            } else if (e.isJsonObject()) {
+                JsonObject o = e.getAsJsonObject();
+                if (o.has("type") && o.get("type").isJsonPrimitive() && "minecraft:block_column".equals(o.get("type").getAsString())
+                        && o.has("direction") && HORIZONTAL.contains(o.get("direction").getAsString())) {
+                    int length = 0;
+                    for (JsonElement layer : arrayOf(o.get("layers"), where + ".layers")) length += maxHeight(layer.getAsJsonObject().get("height"));
+                    if (length > HORIZONTAL_REACH) {
+                        fail(where + ": a block_column " + o.get("direction").getAsString() + " reaches " + length + " blocks; a horizontal column reaches at most "
+                                + HORIZONTAL_REACH + " (a feature writes one chunk past its own)");
+                    }
+                }
+                for (Map.Entry<String, JsonElement> kv : o.entrySet()) reach(where + "." + kv.getKey(), kv.getValue());
+            }
+        }
+
+        /** The largest value an int provider gives: a number, {@code constant}'s value, or a ranged provider's {@code max_inclusive}. */
+        private static int maxHeight(JsonElement h) {
+            if (h == null) return 0;
+            if (h.isJsonPrimitive()) return h.getAsInt();
+            JsonObject o = h.getAsJsonObject();
+            if (o.has("max_inclusive")) return o.get("max_inclusive").getAsInt();
+            if (o.has("value")) return maxHeight(o.get("value"));
+            if (o.has("distribution")) {
+                int max = 0;
+                for (JsonElement d : o.getAsJsonArray("distribution")) max = Math.max(max, maxHeight(d.getAsJsonObject().get("data")));
+                return max;
+            }
+            if (o.has("source")) return maxHeight(o.get("source"));
+            return 0;
         }
 
         private void placement(String where, JsonArray modifiers) {

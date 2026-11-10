@@ -80,6 +80,10 @@ class VoidWorldsTest {
         assertTrue(cells.contains("\"type\":\"customdimensions:checker_cells\"") && cells.contains("\"cells\":[1]")
                 && cells.contains("\"count\":3") && cells.contains("\"scale\":3"), cells);
         assertTrue(out.reportText().contains("128-block cells"), out.reportText());
+        JsonObject s = settings(out, "c");
+        assertFalse(s.has("aquifers"), "aquifers would flood the void cells");
+        assertEquals("minecraft:air", s.get("default_fluid").getAsString());
+        assertEquals(s.getAsJsonObject("noise").get("min_y").getAsInt(), s.get("sea_level").getAsInt(), "a sea would fill the void cells");
     }
 
     @Test

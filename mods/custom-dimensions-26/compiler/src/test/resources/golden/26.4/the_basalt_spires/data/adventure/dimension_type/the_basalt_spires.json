@@ -16,6 +16,7 @@
       ]
     },
     "cardinal_light": "nether",
+    "default_clock": "adventure:day_length/54000_18000",
     "has_skylight": false,
     "height": 320,
     "logical_height": 320,

@@ -1,5 +1,5 @@
 {
-  "clock": "minecraft:overworld",
+  "clock": "adventure:day_length/54000_18000",
   "period_ticks": 576000,
   "tracks": {
     "minecraft:gameplay/surface_slime_spawn_chance": {

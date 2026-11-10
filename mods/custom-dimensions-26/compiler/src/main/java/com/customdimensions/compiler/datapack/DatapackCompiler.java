@@ -468,12 +468,16 @@ public final class DatapackCompiler {
 
     /**
      * {@code atmosphere.dayLength}, or the settings' default: in a dimension with vanilla's day, each timeline that
-     * repeats in whole days replaced by its warped copy ({@link DayLength}), shared by every dimension on that length.
+     * repeats in whole days replaced by its warped copy ({@link DayLength}) on the day length's own clock, which becomes the
+     * dimension's default clock; clock and timelines are shared by every dimension on that length.
      */
     private void applyDayLength(JsonObject type, Atmosphere.DayLength length, CompileReport.Entry entry) {
         List<String> ids = vanilla.expandTimelines(type.get("timelines"));
         if (!ids.contains("minecraft:day")) return;
         DayLength d = new DayLength(length.dayMinutes(), length.nightMinutes());
+        String clock = d.clockId(namespace);
+        put(dataPath(clock, "world_clock"), new JsonObject(), entry);
+        type.addProperty("default_clock", clock);
         JsonArray timelines = new JsonArray();
         for (String id : ids) {
             JsonObject timeline = vanilla.timeline(id);
@@ -482,7 +486,7 @@ public final class DatapackCompiler {
                 continue;
             }
             String warped = d.id(namespace, id);
-            put(dataPath(warped, "timeline"), sorted(d.apply(timeline)), entry);
+            put(dataPath(warped, "timeline"), sorted(d.apply(timeline, clock)), entry);
             timelines.add(warped);
         }
         type.add("timelines", timelines);
@@ -751,6 +755,11 @@ public final class DatapackCompiler {
         if (voidCells != null) {
             JsonObject router = settings.getAsJsonObject("noise_router");
             router.add("final_density", TerrainLibrary.voided(router.get("final_density"), voidCells));
+            settings.remove("aquifers");
+            settings.addProperty("default_fluid", "minecraft:air");
+            settings.addProperty("sea_level", settings.getAsJsonObject("noise").get("min_y").getAsInt());
+            if (liquids != null && liquids.seaLevel() != null) entry.unsupported("liquids.seaLevel", "a sea would fill the void cells");
+            entry.note("No sea and no aquifers: the sea and the aquifers' water would fill the void cells");
         }
         boolean changesZones = zones != null && zones.changesSettings();
         if (changesZones) {

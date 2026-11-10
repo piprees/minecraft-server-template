@@ -469,7 +469,7 @@
               "direction": "east",
               "layers": [
                 {
-                  "height": 64,
+                  "height": 16,
                   "provider": {
                     "id": "minecraft:mangrove_roots",
                     "properties": {
@@ -492,7 +492,7 @@
               "direction": "east",
               "layers": [
                 {
-                  "height": 64,
+                  "height": 16,
                   "provider": {
                     "id": "minecraft:mangrove_roots",
                     "properties": {
@@ -522,7 +522,7 @@
               "direction": "east",
               "layers": [
                 {
-                  "height": 64,
+                  "height": 16,
                   "provider": {
                     "id": "minecraft:mangrove_roots",
                     "properties": {
@@ -629,7 +629,7 @@
               "direction": "south",
               "layers": [
                 {
-                  "height": 64,
+                  "height": 16,
                   "provider": {
                     "id": "minecraft:mangrove_roots",
                     "properties": {
@@ -652,7 +652,7 @@
               "direction": "south",
               "layers": [
                 {
-                  "height": 64,
+                  "height": 16,
                   "provider": {
                     "id": "minecraft:mangrove_roots",
                     "properties": {
@@ -682,7 +682,7 @@
               "direction": "south",
               "layers": [
                 {
-                  "height": 64,
+                  "height": 16,
                   "provider": {
                     "id": "minecraft:mangrove_roots",
                     "properties": {

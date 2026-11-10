@@ -222,6 +222,25 @@ class BiomeLibraryTest {
     }
 
     @Test
+    void aHorizontalColumnPastTheWriteRadiusIsRefused() {
+        Consumer<Integer> reach = max -> {
+            BiomeLibrary library = ashenWith(o -> feature(o, "sunk_coal_logs_east").getAsJsonArray("layers").get(0).getAsJsonObject()
+                    .getAsJsonObject("height").addProperty("max_inclusive", max));
+            compile("a", "\"generator\": {\"type\": \"single_biome\", \"biome\": \"" + ASHEN + "\"}", library);
+        };
+        reach.accept(BiomeLibrary.HORIZONTAL_REACH);
+        String message = refusal(ashenWith(o -> feature(o, "sunk_coal_logs_east").getAsJsonArray("layers").get(0).getAsJsonObject()
+                .add("height", new com.google.gson.JsonPrimitive(BiomeLibrary.HORIZONTAL_REACH + 1))));
+        assertTrue(message.contains("sunk_coal_logs_east") && message.contains("block_column east reaches 17"), message);
+        BiomeLibrary vertical = ashenWith(o -> {
+            JsonObject column = feature(o, "sunk_coal_logs_east");
+            column.addProperty("direction", "up");
+            column.getAsJsonArray("layers").get(0).getAsJsonObject().addProperty("height", 64);
+        });
+        compile("b", "\"generator\": {\"type\": \"single_biome\", \"biome\": \"" + ASHEN + "\"}", vertical);
+    }
+
+    @Test
     void anUnknownPaletteBlockIsRefused() {
         String message = refusal(ashenWith(o -> o.getAsJsonObject("palette").addProperty("top", "minecraft:ash")));
         assertTrue(message.contains("ashen_woodland") && message.contains("palette.top"), message);

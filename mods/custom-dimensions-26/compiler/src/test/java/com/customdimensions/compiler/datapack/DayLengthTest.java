@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DayLengthTest {
 
     private static final DayLength BETTER_DAYS = new DayLength(45, 15);
+    private static final String CLOCK = "adventure:day_length/54000_18000";
 
     @Test
     void theWarpStretchesTheDayAndTheNightSeparately() {
@@ -32,7 +33,8 @@ class DayLengthTest {
     @Test
     void everyTrackKeepsItsValueAtTheWarpedTick() {
         JsonObject vanilla = Fixtures.vanilla().timeline("minecraft:day");
-        JsonObject warped = BETTER_DAYS.apply(vanilla);
+        JsonObject warped = BETTER_DAYS.apply(vanilla, CLOCK);
+        assertEquals(CLOCK, warped.get("clock").getAsString());
         assertEquals(72000, warped.get("period_ticks").getAsInt());
         JsonObject markers = warped.getAsJsonObject("time_markers");
         assertEquals(27000, markers.getAsJsonObject("minecraft:noon").get("ticks").getAsInt());
@@ -61,7 +63,7 @@ class DayLengthTest {
 
     @Test
     void aTimelineOfSeveralDaysWarpsEachDay() {
-        JsonObject moon = BETTER_DAYS.apply(Fixtures.vanilla().timeline("minecraft:moon"));
+        JsonObject moon = BETTER_DAYS.apply(Fixtures.vanilla().timeline("minecraft:moon"), CLOCK);
         assertEquals(8 * 72000, moon.get("period_ticks").getAsInt());
         assertEquals(72000, moon.getAsJsonObject("tracks").getAsJsonObject("minecraft:visual/moon_phase").getAsJsonArray("keyframes")
                 .get(1).getAsJsonObject().get("ticks").getAsInt());
@@ -81,6 +83,8 @@ class DayLengthTest {
                 && timelines.contains("adventure:day_length/villager_schedule_54000_18000") && timelines.contains("minecraft:early_game"), timelines);
         assertTrue(own.files().containsKey("data/adventure/timeline/day_length/day_54000_18000.json"));
         assertTrue(own.reportText().contains("Day length 45 min day, 15 min night"), own.reportText());
+        assertEquals(CLOCK, type(own, "d").get("default_clock").getAsString());
+        assertEquals("{}", own.files().get("data/adventure/world_clock/day_length/54000_18000.json").strip());
 
         Atmosphere.DayLength fallback = new Atmosphere.DayLength(30, 10);
         Map<String, com.customdimensions.core.definition.Definition> defs = Map.of(
@@ -94,6 +98,31 @@ class DayLengthTest {
 
         DatapackCompiler.Output none = Fixtures.compile("d", overworld);
         assertFalse(none.files().keySet().stream().anyMatch(p -> p.contains("day_length")));
+    }
+
+    /** The game refuses a pack in which two timelines on one clock define the same time marker. */
+    @Test
+    void noClockCarriesATimeMarkerTwice() {
+        String overworld = "\"generator\": {\"type\": \"noise\", \"preset\": \"overworld\"}";
+        DatapackCompiler.Output out = DatapackCompiler.compileAll("adventure", Map.of(
+                "a", Fixtures.definition(overworld + ", \"atmosphere\": {\"dayLength\": {\"dayMinutes\": 45, \"nightMinutes\": 15}}"),
+                "b", Fixtures.definition(overworld + ", \"atmosphere\": {\"dayLength\": {\"dayMinutes\": 30, \"nightMinutes\": 10}}"),
+                "c", Fixtures.definition(overworld + ", \"atmosphere\": {\"fixedTime\": 6000}")), Fixtures.vanilla(), VersionTable.V26_3);
+        Map<String, JsonObject> timelines = new java.util.TreeMap<>();
+        for (String id : java.util.List.of("minecraft:day", "minecraft:moon", "minecraft:villager_schedule", "minecraft:early_game")) {
+            timelines.put(id, Fixtures.vanilla().timeline(id));
+        }
+        out.files().forEach((path, text) -> {
+            if (path.contains("/timeline/")) timelines.put(path, JsonParser.parseString(text).getAsJsonObject());
+        });
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        timelines.forEach((id, t) -> {
+            if (!t.has("time_markers")) return;
+            for (String marker : t.getAsJsonObject("time_markers").keySet()) {
+                assertTrue(seen.add(t.get("clock").getAsString() + " " + marker), id + " repeats " + marker + " on " + t.get("clock"));
+            }
+        });
+        assertTrue(seen.contains("adventure:day_length/54000_18000 minecraft:wake_up_from_sleep"), seen.toString());
     }
 
     @Test

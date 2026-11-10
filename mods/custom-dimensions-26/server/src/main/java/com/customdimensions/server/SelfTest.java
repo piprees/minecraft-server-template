@@ -99,6 +99,7 @@ final class SelfTest {
         lines.addAll(compiledPack(server));
         lines.addAll(com.customdimensions.server.firewall.FirewallSelfTest.run(server));
         lines.addAll(MixinSelfTest.run(server));
+        lines.addAll(com.customdimensions.server.level.DayLengthSelfTest.run(server));
         String only = System.getProperty(ONLY, "");
         boolean materialsOnly = "materials".equals(only);
         boolean biomesOnly = "biomes".equals(only);

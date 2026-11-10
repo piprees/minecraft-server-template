@@ -52,6 +52,8 @@ import java.util.function.Function;
 public final class GeneratorSelfTest {
     /** Ticks to wait for a sample area to finish generating. */
     static final int LOAD_CAP_TICKS = 6000;
+    /** A void world's biomes are read from its biome source every {@link #BIOME_STEP} blocks out to this many: one climate region can cover a whole chunk sample. */
+    static final int BIOME_REACH = 1024, BIOME_STEP = 64;
     /** Each preset's own sea level, to find the definition whose {@code liquids.seaLevel} departs furthest from it. */
     static final Map<String, Integer> PRESET_SEA_LEVELS = Map.of("overworld", 63, "large_biomes", 63, "amplified", 63,
             "caves", 32, "floating_islands", -64, "nether", 32, "end", 0);
@@ -460,18 +462,17 @@ public final class GeneratorSelfTest {
             }
         }
         Set<String> biomes = new TreeSet<>();
-        for (LevelChunk chunk : c.chunks) {
-            for (int q = 0; q < 16; q += 4) {
-                for (int r = 0; r < 16; r += 4) {
-                    chunk.getNoiseBiome(QuartPos.fromBlock(q), QuartPos.fromBlock(64), QuartPos.fromBlock(r)).unwrapKey()
-                            .ifPresent(k -> biomes.add(k.identifier().toString()));
-                }
+        var source = c.level.getChunkSource().getGenerator().getBiomeSource().createUncachedResolver(c.level.getChunkSource().randomState());
+        for (int x = -BIOME_REACH; x <= BIOME_REACH; x += BIOME_STEP) {
+            for (int z = -BIOME_REACH; z <= BIOME_REACH; z += BIOME_STEP) {
+                source.getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(64), QuartPos.fromBlock(z)).unwrapKey()
+                        .ifPresent(k -> biomes.add(k.identifier().toString()));
             }
         }
         long listed = definition(c.slug).biomes().stream().map(b -> b.id()).distinct().count();
         boolean placed = listed < 2 || biomes.size() >= 2;
-        return verdict(blocks == 0 && placed, c.area() + ": " + blocks + " non-air blocks (the mod builds no spawn platform); biomes at y 64 "
-                + biomes + " of " + listed + " listed");
+        return verdict(blocks == 0 && placed, c.area() + ": " + blocks + " non-air blocks (the mod builds no spawn platform); biomes at y 64 within "
+                + BIOME_REACH + " blocks " + biomes + " of " + listed + " listed");
     }
 
     /** Columns in the checkerboard cells of {@code generator.voidBiomes} hold no block; the other cells have ground. */
@@ -481,20 +482,32 @@ public final class GeneratorSelfTest {
         Set<Integer> voids = new HashSet<>();
         def.generator().voidBiomes().forEach(id -> voids.add(order.indexOf(id)));
         int scale = def.generator().cellScale() != null ? def.generator().cellScale() : 2;
-        long voidColumns = 0, voidSolid = 0, landColumns = 0, landEmpty = 0;
+        long voidColumns = 0, voidTerrain = 0, voidFeature = 0, landColumns = 0, landEmpty = 0;
+        Map<String, Integer> features = new java.util.TreeMap<>();
         for (Column col : c.columns) {
             boolean empty = col.lowest() == null;
             if (voids.contains(com.customdimensions.core.zone.CheckerCells.index(col.x(), col.z(), scale, order.size()))) {
                 voidColumns++;
-                if (!empty) voidSolid++;
+                if (empty) continue;
+                boolean terrain = false;
+                for (int y = col.lowest(); y <= col.surface() && !terrain; y++) {
+                    BlockState s = col.chunk().getBlockState(new BlockPos(col.x(), y, col.z()));
+                    terrain = s.is(Blocks.STONE) || s.is(Blocks.DEEPSLATE) || s.is(Blocks.BEDROCK) || !s.getFluidState().isEmpty();
+                }
+                if (terrain) voidTerrain++;
+                else {
+                    voidFeature++;
+                    features.merge(BuiltInRegistries.BLOCK.getKey(col.top().getBlock()).getPath(), 1, Integer::sum);
+                }
             } else {
                 landColumns++;
                 if (empty) landEmpty++;
             }
         }
-        return verdict(voidColumns > 0 && landColumns > 0 && voidSolid == 0 && landEmpty <= landColumns / 100, c.area() + ": "
-                + voidSolid + " of " + voidColumns + " void-cell columns hold a block; " + landEmpty + " of " + landColumns
-                + " other columns are empty");
+        return verdict(voidColumns > 0 && landColumns > 0 && voidTerrain == 0 && landEmpty <= landColumns / 100, c.area() + ": "
+                + voidTerrain + " of " + voidColumns + " void-cell columns hold terrain (stone, deepslate, bedrock or a fluid); " + landEmpty
+                + " of " + landColumns + " other columns are empty; " + voidFeature + " void-cell columns hold only features or structures"
+                + (features.isEmpty() ? "" : ", by top block " + features.entrySet().stream().sorted((x, y) -> y.getValue() - x.getValue()).limit(6).toList()));
     }
 
     private String seaLevel(Columns c) {

@@ -13,6 +13,7 @@
         "minecraft:visual/cloud_height"
       ]
     },
+    "default_clock": "adventure:day_length/54000_18000",
     "height": 256,
     "logical_height": 256,
     "min_y": 0,
