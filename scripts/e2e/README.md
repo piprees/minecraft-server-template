@@ -107,6 +107,7 @@ checkout's file. Java 25 for the client comes from `JAVA_HOME`.
 | `e2e-item2-stronghold.sh`, `e2e-item3-end-exit.sh`, `portal-aperture.sh` | As on 1.21.1, through `e2e-state`, `customdim use` and the bridge |
 | `e2e-item5-crucible.sh` | As on 1.21.1, with the companion's `companion-feed: preloaded` line in place of the two `companion-suppress` lines: the 26.x companion is told the transfer is pre-loaded and does not suppress the arrival screen |
 | `e2e-item4-idle-unload.sh` | A player in `e2e_two` keeps it open past `idleUnloadMinutes`; after the last one leaves, LevelManager's unload line and `customdim list` reading it lazy |
+| `e2e-saved-level.sh` | A player who left in a lazy level returns to it: `PHASE=leave` (in a join) sends them to a recorded spot in `e2e_two`, then a restart (`./dev restart mc`) or `PHASE=unload` closes the level, and `PHASE=back` (in a second join) asserts the dimension and position from `e2e-state` and the mod's `login: opening` line |
 | `companion-pack.sh` | Builds the companion-only client pack |
 | `rig-ready.sh` | Checks the rig; it cannot relaunch a 26.x client, which only a fresh `vanilla-join.sh` brings back, and says so |
 

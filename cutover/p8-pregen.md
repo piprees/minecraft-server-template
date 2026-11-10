@@ -11,13 +11,14 @@ Chunky writes real chunks out to each dimension's `borders.generation`; Distant 
 
 | Dimension | Chunky time per 1,000 chunks | Disk per 1,000 chunks (region) | DH time per 1,000 chunks | DH disk per 1,000 chunks |
 | --- | --- | --- | --- | --- |
-| overworld | to be measured in the rehearsal | to be measured in the rehearsal | to be measured in the rehearsal | to be measured in the rehearsal |
+| overworld | 14 s on the linked local 26.3 consumer, empty (1,089 chunks in 15 s, mspt P99 1.5) | 16.2 MiB | to be measured in the rehearsal | to be measured in the rehearsal |
 | the_nether | to be measured in the rehearsal | to be measured in the rehearsal | to be measured in the rehearsal | to be measured in the rehearsal |
 | the_end | to be measured in the rehearsal | to be measured in the rehearsal | to be measured in the rehearsal | to be measured in the rehearsal |
 | the_aviary | to be measured in the rehearsal | to be measured in the rehearsal | to be measured in the rehearsal | to be measured in the rehearsal |
 | one lazy dimension (the heaviest zone set) | to be measured in the rehearsal | to be measured in the rehearsal | to be measured in the rehearsal | to be measured in the rehearsal |
+| the_greenreach, the_ashgrove (lazy, local) | 16 s and 18 s (1,089 chunks in 17 s, mspt P99 58; 19,321 in 5:41) | 16.1 MiB and 22.4 MiB | not measured | not measured |
 
-Measure each with `./ops chunky` (progress and rate), `./ops stats --once` (TPS) and `./ops ssh 'du -sh ~/server/data/world/region ~/server/data/world/dimensions/adventure/<slug>/region'` before and after a fixed 1,000-chunk slice. Multiply by 65.5 for one dimension and by the dimension count for the total; stop if the projected total exceeds the free disk `./ops doctor` reports, less the backup headroom (`BACKUP_SIZE_CAP_GIB`).
+Measure each with `./ops chunky` (progress and rate), `./ops stats --once` (TPS) and `./ops ssh 'du -sh ~/server/data/world/dimensions/minecraft/overworld/region ~/server/data/world/dimensions/adventure/<slug>/region'` before and after a fixed 1,000-chunk slice. Multiply by 65.5 for one dimension and by the dimension count for the total; stop if the projected total exceeds the free disk `./ops doctor` reports, less the backup headroom (`BACKUP_SIZE_CAP_GIB`).
 
 ## Before
 
@@ -77,3 +78,5 @@ After each dimension: `./ops stats --once` (TPS back to 20), `./ops ssh 'df -h /
 - `Can't keep up` with TPS under 15 for more than a few minutes: `./ops rcon "chunky pause"`, check `./ops logs mc --tail 200 --grep ERROR`, resume only once it is understood.
 - `Error upgrading chunk`: K1/K6. Stop, snapshot the log, do not restart mc by hand (safety rule 8).
 - A player joins: `chunky pause` and `dh pregen stop`; resume when the server is empty.
+
+A lazy level's idle unload starts while a Chunky task runs in it: the unload waits on Chunky's chunk tickets, logs `idle unload of <slug> failed: ... still loaded after 2400 ticks` after two minutes, Chunky finishes every chunk, and the level closes once the task ends. A stage of more than `idleUnloadMinutes` therefore completes, with that warning in the log.

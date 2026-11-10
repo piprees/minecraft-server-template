@@ -35,6 +35,6 @@ Each is a replacement under `files/` (base sha: the file as the edits leave it) 
 | `docker/unmined-render/render-loop.sh` | Stays: it labels `paradise_lost`, reads the deleted `display-names.json` and overlay thumbnails, and falls back to title-cased slugs and every dimension when those are absent, which renders a correct 26.3 map with plain names. The labels are a sidecar-image change |
 | Required status checks | Owner: `mod-build.yml` ("Build & test in-house mods") is deleted; if branch protection requires it, swap in `Mod build`'s job |
 | `farmers-delight-refabricated` parity exemption | Stays in the 26.3 manifest's `_parityExempt`: the quick gate fails without it, and the smoke test's vanilla join keeps proving farmers-delight-polymer serves vanilla clients |
-| Starter kit SNBT | Unverified in game: check with `/starterkit set` in the rehearsal (P7 § 4) |
-| A lazy level unloading under Chunky | Unmeasured (P8): TP10-2 |
+| Starter kit SNBT | `/starterkit set` on 26.3 writes slot 10 as `{components:{"minecraft:bundle_contents":[{count:16,id:"minecraft:arrow"},{count:15,id:"minecraft:torch"}]},count:1,id:"minecraft:brown_bundle"}` and slot 12 as `{count:1,id:"minecraft:bundle"}`: P7's line with its keys in another order. An unnamed `/starterkit set` moves the existing kits to `kits/inactive/`; name the kit (`/sk set Default`) |
+| A lazy level unloading under Chunky | The unload waits on Chunky's tickets and fails after 2,400 ticks with a warning; Chunky finishes and the level then closes (`p8-pregen.md`) |
 | The scaffold's `.stack-version` | Stays `v5.27.1`: release.yml's publish job writes the released version into it |
