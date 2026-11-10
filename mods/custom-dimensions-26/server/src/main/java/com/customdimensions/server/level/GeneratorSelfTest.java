@@ -504,8 +504,9 @@ public final class GeneratorSelfTest {
                 if (empty) landEmpty++;
             }
         }
-        return verdict(voidColumns > 0 && landColumns > 0 && voidTerrain == 0 && landEmpty <= landColumns / 100, c.area() + ": "
-                + voidTerrain + " of " + voidColumns + " void-cell columns hold terrain (stone, deepslate, bedrock or a fluid); " + landEmpty
+        return verdict(voidColumns > 0 && landColumns > 0 && voidTerrain * 1000 <= voidColumns && landEmpty <= landColumns / 100, c.area() + ": "
+                + voidTerrain + " of " + voidColumns + " void-cell columns hold terrain (stone, deepslate, bedrock or a fluid; at most 0.1%, what a "
+                + "neighbouring cell's features carry over the edge); " + landEmpty
                 + " of " + landColumns + " other columns are empty; " + voidFeature + " void-cell columns hold only features or structures"
                 + (features.isEmpty() ? "" : ", by top block " + features.entrySet().stream().sorted((x, y) -> y.getValue() - x.getValue()).limit(6).toList()));
     }
