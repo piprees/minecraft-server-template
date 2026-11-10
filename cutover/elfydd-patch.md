@@ -28,8 +28,8 @@ Before `v6.0.0` is published, so no deploy can take it early:
 
 At the migration (`migration-notes.md` step 6), one commit:
 
-2. `./dev update` with `STACK_VERSION=v6.0.0` exported, which pulls the v6 bundle and replaces the scaffold files its `update)` case names: `dev`, `ops`, `.env.example`, `.gitignore`, `AGENTS.md`, `commands.json`, `.github/workflows/{deploy,update,server-power}.yml` and `.github/dependabot.yml`. It leaves `.stack-version`, `README.md` and `overlay/` alone.
-3. `.stack-version`: `v6.0.0`.
+2. `.stack-version`: `v6.0.0`. First: the v6 `dev` that step 3 re-runs itself as reads the file before an exported `STACK_VERSION`, so step 1's pin left in place pulls v5 back.
+3. `./dev update --scaffold-only` with `STACK_VERSION=v6.0.0` exported (Elfydd's v5 `dev` resolves its pin from `.env` and the variable only), which pulls the v6 bundle and replaces the scaffold files its `update)` case names: `dev`, `ops`, `.env.example`, `.gitignore`, `AGENTS.md`, `commands.json`, `.github/workflows/{deploy,update,server-power}.yml` and `.github/dependabot.yml`. It leaves `.stack-version`, `README.md` and `overlay/` alone.
 4. `.github/workflows/deploy.yml` (as the v6 scaffold has it): `uses: piprees/minecraft-server-template/.github/workflows/deploy-reusable.yml@v6`, `with: stack_version_override: ${{ inputs.stack_version || '' }}` and the `workflow_dispatch` `stack_version` input, and two more secrets:
 
    ```yaml
@@ -37,7 +37,7 @@ At the migration (`migration-notes.md` step 6), one commit:
          FLOODGATE_KEY_B64: ${{ secrets.FLOODGATE_KEY_B64 }}
    ```
 
-5. Delete `overlay/config/custom-dimensions/` (the 36 seed-viewer files): `git rm -r overlay/config/custom-dimensions`.
+5. Delete the 36 seed-viewer files (`*_thumb.json`, `*_low.png`, `*_high.png` in `overlay/config/custom-dimensions/dimensions/`), which are all `overlay/config/custom-dimensions/` holds.
 6. Commit: `feat!: move to the v6 stack (Minecraft 26.3)`.
 
 Secrets, in the Elfydd repository's `production` environment, before step 6 is pushed:

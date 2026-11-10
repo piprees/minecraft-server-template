@@ -30,14 +30,17 @@ line_for() {
 }
 
 tmp="$(mktemp)"
-echo "# sha256-of-the-repo-file-each-replacement-was-written-against  path" > "$tmp"
+# The table keeps its order and comments: a named entry is rewritten in place,
+# a stored file the table lacks is appended.
+while IFS= read -r line; do
+  rel="${line#* }"
+  case "$line" in
+    "" | "#"*) echo "$line" ;;
+    *) if [[ "$1" == --all ]] || printf '%s\n' "$@" | grep -qxF "$rel"; then line_for "$rel"; else echo "$line"; fi ;;
+  esac
+done < "$table" > "$tmp"
 (cd "$here/files" && find . -type f | sed 's|^\./||' | LC_ALL=C sort) | while IFS= read -r stored; do
   rel="$(repo_path "$stored")"
-  keep="$(awk -v p="$rel" '$2 == p' "$table" 2> /dev/null || true)"
-  if [[ "$1" == --all || -z "$keep" ]] || printf '%s\n' "$@" | grep -qxF "$rel"; then
-    line_for "$rel"
-  else
-    echo "$keep"
-  fi
+  awk -v p="$rel" '$2 == p { found = 1 } END { exit !found }' "$table" || line_for "$rel"
 done >> "$tmp"
 mv "$tmp" "$table"

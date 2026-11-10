@@ -79,6 +79,10 @@ MANIFEST=(
   scripts/map-render.sh
   scripts/backup-now.sh
   scripts/reset-seed.sh
+  # The 1.21.1 -> 26.3 migration: a v5 consumer runs it by path from the
+  # pulled v6 bundle, with its doc beside it.
+  scripts/migrate-to-26.sh
+  docs/migrate-to-26.md
   # `./dev pin` execs pin-mod-versions.sh from the bundle; it in turn runs
   # modrinth-api.py from the same directory. Both must ship or `./dev pin`
   # dies with a missing file on every consumer.

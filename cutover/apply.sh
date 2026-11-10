@@ -64,7 +64,7 @@ done
 if [[ -z "$REPO" ]]; then
   REPO="$(git -C "$PWD" rev-parse --show-toplevel 2> /dev/null || true)"
 fi
-[[ -n "$REPO" && -f "$REPO/.minecraft-version" && -d "$REPO/.git" ]] || {
+[[ -n "$REPO" && -f "$REPO/.minecraft-version" && -e "$REPO/.git" ]] || {
   echo "ERROR: $REPO is not a checkout of the template (no .minecraft-version or .git)" >&2
   exit 2
 }
@@ -463,6 +463,7 @@ while IFS= read -r line; do
   esac
   put "$rel"
 done < <(grep -vE '^[[:space:]]*(#|$)' "$HERE/files.sha256" | awk '{ print $1 " " $2 }')
+[[ $DRY -eq 1 || ! -f scripts/migrate-to-26.sh ]] || chmod +x scripts/migrate-to-26.sh
 
 # =============================================================================
 # Last: the kit itself, once everything it carries is in place.

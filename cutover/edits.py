@@ -539,6 +539,10 @@ edit("docs", "README.md",
      "| `smoke.sh` | Boot the real stack from the checkout (seed image, the version's itzg image, mod list, config overlay and in-house mod) and gate its boot log; `smoke-test.yml` runs it, and it runs the same way on a workstation |")
 edit("docs", "README.md", "`smoke-test-26.yml` runs it after the boot gate", "`smoke-test.yml` runs it after the boot gate")
 edit("docs", "README.md", "Minecraft 1.21.1 is a fixed decision.", "Minecraft 26.3 is a fixed decision.")
+edit("docs", "README.md",
+     "| `reset-seed.sh` | Mac | World reset with a new seed (backs up first, triple-confirmed; wipes the old world's bot/webhook messages from the Discord channels) |\n",
+     "| `reset-seed.sh` | Mac | World reset with a new seed (backs up first, triple-confirmed; wipes the old world's bot/webhook messages from the Discord channels) |\n"
+     "| `migrate-to-26.sh` | Mac | A 1.21.1 server and its consumer repo to the v6 stack, phase by phase (a dry run unless `--apply`); run by path from the pulled v6 bundle: [`docs/migrate-to-26.md`](docs/migrate-to-26.md) |\n")
 edit("docs", "README.md", "Minecraft **1.21.1**, Fabric, Docker, conventional networking, Cloudflare HTTP tunnel only, Incendium-only Nether,",
      "Minecraft **26.3**, Fabric, Docker, conventional networking, Cloudflare HTTP tunnel only, one worldgen owner (custom-dimensions),")
 edit("docs", "docs/common-tasks.md",
