@@ -1596,6 +1596,60 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t243"></a>
+### T243 — Game rules on 26.3 are one server-wide store
+- **Symptom:** a game rule set in one dimension changes every other, lazy levels included.
+- **Cause:** 26.3 keeps game rules on the server, not per level.
+- **Fix:** set rules once, anywhere (`mc_game_rules` in the deploy); a per-dimension rule needs the mod, not `/gamerule`.
+
+<a id="t242"></a>
+### T242 — An unnamed `/starterkit set` moves the existing kits to `kits/inactive`
+- **Symptom:** after `/starterkit set`, the named kits stop being handed out.
+- **Cause:** Starter Kit 26.3 treats an unnamed set as the single active kit and files the others away.
+- **Fix:** name it: `/sk set Default`.
+
+<a id="t241"></a>
+### T241 — `./dev restart mc` on a 26.x consumer needs the selected version exported
+- **Symptom:** mc crash-loops after a local restart (41 restarts), booting 1.21.1 on a 26.3 world.
+- **Cause:** compose's inline defaults are the 1.21.1 values; only dev-up and deploy exported the selected version and the server pack.
+- **Fix:** `service.sh` exports the version and the `RESOURCE_PACK*` values for a local mc; any other path that recreates mc must do the same ([T9](#t9)).
+
+<a id="t240"></a>
+### T240 — `@ModifyVariable` at STORE also matches a try-with-resources handler's store
+- **Symptom:** `VerifyError` on every login after a mixin on `PrepareSpawnTask.start`.
+- **Cause:** the compiler reuses the local slot for the handler's `Throwable`; an ordinal-less STORE injector matches both stores.
+- **Fix:** target the call (`@ModifyExpressionValue` on the `orElse`), and load the target class at `SERVER_STARTING` so a broken mixin stops the boot rather than each login.
+
+<a id="t239"></a>
+### T239 — A player saved in a lazy level must have it opened before placement
+- **Symptom:** a player who logged out in a lazy dimension rejoins after a restart in the overworld at the same coordinates, inside terrain.
+- **Cause:** 26.3's `PrepareSpawnTask.start` resolves the saved dimension with `server::getLevel`; for a closed level that is null, and it falls back to the world spawn's level but keeps the saved position.
+- **Fix:** `SavedLevel` (a configuration task) opens the saved level through `LevelManager`'s queue before the spawn task; `PrepareSpawnTaskMixin` drops a saved position whose level is still closed, so the player goes to the world spawn. `scripts/e2e/e2e-saved-level.sh` covers restart and idle unload.
+
+<a id="t238"></a>
+### T238 — `config/messages.json` does not reach the 26.3 server's config folder
+- **Symptom:** players see raw keys (`customdim.use.…`, the approach title).
+- **Cause:** nothing copies the file into `data/config` on the 26.3 stack.
+- **Fix:** every `customdim`, `portal` and `win` key has a built-in default in the mod; a test fails for a key in the file without one.
+
+<a id="t237"></a>
+### T237 — `e2e-state`'s `packSees` reads the server's state, not what Polymer sends
+- **Symptom:** `packSees` reports the tinted tripwire state while the client draws string.
+- **Cause:** the instrument reads the block state before Polymer's per-player mapper ([T236](#t236)).
+- **Fix:** judge the tint from a screenshot (`e2e-vanilla-portal.sh`'s colour rows), not from `packSees` alone.
+
+<a id="t236"></a>
+### T236 — A Polymer block that claims a tripwire state must be a `PolymerTexturedBlock`
+- **Symptom:** with the server pack accepted, a portal opening draws as plain string.
+- **Cause:** polymer-blocks' `BlockExtBlockMapper` maps a claimed state back to vanilla for any block that is not a `PolymerTexturedBlock`.
+- **Fix:** `PortalBlock` implements `PolymerTexturedBlock`.
+
+<a id="t235"></a>
+### T235 — The server pack's download host must resolve on the client's machine
+- **Symptom:** a local client is offered the pack and fails to download it; portals stay vanilla.
+- **Cause:** the pack URL is `pack.<LOCAL_DOMAIN>`, served by pack-web; the client resolves it itself.
+- **Fix:** add the host to the client machine's hosts file for a local stack. `RESOURCE_PACK_ENFORCE` stays FALSE: Geyser answers a required pack as loaded without loading it.
+
 <a id="t234"></a>
 ### T234 — A void world that places biomes still runs their features
 - **Symptom:** blocks stand in a void world or a void cell: obsidian spikes, village pieces reaching over a cell edge.
@@ -1977,7 +2031,7 @@ Bands and regions cut temperature, humidity and weirdness with no regard for the
 
 - **Symptom:** with nobody online, `customdim activate` stays `queued` and a Carpet `player … spawn` never completes, while RCON still answers.
 - **Cause:** 26.x's `pause-when-empty-seconds` (default 60) stops the tick loop on an empty server.
-- **Fix:** the compose default `PAUSE_WHEN_EMPTY_SECONDS=0` turns it off; itzg's autopause owns idling. `runServer` sets 0 in `run/server.properties`, so the in-game self-test never meets it.
+- **Fix:** the compose default `PAUSE_WHEN_EMPTY_SECONDS=0` turns it off; itzg's autopause owns idling. The in-game self-test sets it to 0 for its run (`SelfTest.holdAwake`, its first report line): without that it goes silent mid-run on any `server.properties` that leaves the default, as CI's does.
 
 <a id="t175"></a>
 ### T175 — On 26.3 an unlisted accessor mixin hangs the boot
