@@ -1202,6 +1202,13 @@
           "minimum": 0,
           "maximum": 1,
           "default": 0.5
+        },
+        "crust": {
+          "description": "Blocks under the surface that no noise cave opens into, so caves never break the ground; 0 lets them",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 48,
+          "default": 0
         }
       }
     },
@@ -1860,6 +1867,13 @@
           "minimum": 0,
           "maximum": 40,
           "default": 10
+        },
+        "crust": {
+          "description": "Blocks under the surface that no noise cave opens into, so caves never break the ground or the sea floor; 0 lets them",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 48,
+          "default": 0
         }
       }
     },

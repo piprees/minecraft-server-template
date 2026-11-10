@@ -458,7 +458,7 @@ public final class Survey {
         }
         Map<String, Long> cave = merge(patches, p -> p.undergroundBiomes);
         JsonObject o = new JsonObject();
-        o.addProperty("method", "placement shares are % of the biome's own surface columns (plus sky-island tops); flags: mostly water (but for a sea or river biome), lava or "
+        o.addProperty("method", "placement shares are % of the biome's own surface columns (plus sky-island tops); flags: mostly water or lava (but for a sea or river biome) or "
                 + "void (50%+), mostly bare rock (50%+ of land, but for a biome whose surface rule lays rock), a snowing climate (50%+) under 5% snow cover, a biome whose placed features are named for trees with "
                 + "none on a quarter hectare or more of its land; judged from 100+ columns");
         JsonObject biomes = new JsonObject();
@@ -492,7 +492,7 @@ public final class Survey {
             boolean judged = a[0] >= 100;
             if (judged) {
                 if (a[2] * 2 >= a[0] && !meta.waterBiomes().contains(e.getKey())) flags.add("mostly water");
-                if (a[3] * 2 >= a[0]) flags.add("mostly lava");
+                if (a[3] * 2 >= a[0] && !meta.waterBiomes().contains(e.getKey())) flags.add("mostly lava");
                 if (a[4] * 2 >= a[0]) flags.add("mostly void");
                 if (a[1] > 0 && a[10] * 2 >= a[1] && !meta.rockBiomes().contains(e.getKey())) flags.add("mostly bare rock");
                 long wet = a[1] + a[2] + a[3];

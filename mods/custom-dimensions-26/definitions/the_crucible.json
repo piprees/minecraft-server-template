@@ -15,8 +15,8 @@
       "landHeight": 110,
       "relief": 80,
       "faultHeight": 48,
-      "lift": 1,
-      "roughness": 0.9
+      "lift": 0.6,
+      "roughness": 0.7
     },
     "scale": 0.6,
     "scales": {

@@ -49,7 +49,7 @@
       "minecraft:soul_sand_valley": 6,
       "minecraft:warped_forest": 30,
       "adventure:upside_down_forest": 8,
-      "adventure:orchid_marsh": 5,
+      "adventure:orchid_marsh": 2,
       "adventure:ash_barrens": 15
     }
   },
@@ -141,6 +141,10 @@
       "minecraft:soul_sand_valley": {
         "top": "minecraft:soul_soil",
         "filler": "minecraft:soul_sand"
+      },
+      "adventure:upside_down_forest": {
+        "top": "minecraft:netherrack",
+        "filler": "minecraft:netherrack"
       }
     }
   }

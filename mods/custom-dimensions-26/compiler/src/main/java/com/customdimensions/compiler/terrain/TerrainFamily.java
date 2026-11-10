@@ -36,10 +36,11 @@ import static com.customdimensions.compiler.terrain.Df.sub;
 public enum TerrainFamily {
 
     CONTINENTS("continents", "Oceans and land masses from continentalness, with erosion hills.",
-            List.of(), Map.of(),
+            List.of(new TerrainParam("crust", 0, 48, 0, "Blocks under the surface that no noise cave opens into, so caves never break the ground; 0 lets them")),
+            Map.of(),
             Map.of("relief", 8.0, "landHeight", 72.0, "roughness", 0.3, "coast", -0.3),
             Map.of("relief", 100.0, "landHeight", 130.0, "roughness", 0.75, "coast", 0.0),
-            false, ctx -> ctx.land()),
+            false, ctx -> crust(ctx, ctx.land())),
 
     EROSION("erosion", "Land worn down to flat basin floors at landHeight, with the hills that remain between them.",
             List.of(new TerrainParam("basinShare", 0.02, 0.9, 0.4, "Share of the land worn down to the flat basin floor"),
@@ -131,11 +132,12 @@ public enum TerrainFamily {
                     new TerrainParam("size", 0.25, 4, 1, "Island size; higher is larger and fewer"),
                     new TerrainParam("islandHeight", 4, 120, 28, "Blocks an island rises above sea level"),
                     new TerrainParam("archipelago", 0, 1, 0.4, "How much islands break into clusters of smaller ones"),
-                    new TerrainParam("trench", 0, 40, 10, "Blocks the sea floor falls below seaFloor far from any island; 0 keeps it flat")),
+                    new TerrainParam("trench", 0, 40, 10, "Blocks the sea floor falls below seaFloor far from any island; 0 keeps it flat"),
+                    new TerrainParam("crust", 0, 48, 0, "Blocks under the surface that no noise cave opens into, so caves never break the ground or the sea floor; 0 lets them")),
             Map.of("seaFloor", 30.0),
             Map.of("coverage", 0.35, "islandHeight", 10.0, "archipelago", 0.1),
             Map.of("coverage", 0.12, "islandHeight", 90.0, "archipelago", 0.5, "size", 1.5),
-            false, TerrainFamily::islands),
+            false, ctx -> crust(ctx, islands(ctx))),
 
     VOIDS("voids", "Land broken by bottomless voids, each ringed by a raised rim.",
             List.of(new TerrainParam("coverage", 0.02, 0.5, 0.1, "Share of the land that is void"),
@@ -644,6 +646,21 @@ public enum TerrainFamily {
         JsonElement cut = max(max(chasm, floorBelow), offshore);
         JsonElement factor = lerp(c(lift), land.factor(), c(1.2));
         return new Shape(h, factor, land.jaggedness(), cut, null, land.continents(), 0.6 + 2.5 * lift);
+    }
+
+    /** Blocks under the height a crust starts: the top is the 3D noise's, so the crust never stands above the ground. */
+    static final double CRUST_TOP = 3;
+
+    /**
+     * {@code land} with ground no cave cuts from {@link #CRUST_TOP} to {@code crust} blocks under its height, so
+     * spaghetti, noodle and cheese caves stay below the crust and never open pits and ledges in the surface.
+     */
+    private static Shape crust(Ctx ctx, Shape land) {
+        double crust = ctx.p("crust");
+        if (crust <= CRUST_TOP) return land;
+        JsonElement y = negY(ctx.minY(), ctx.maxY());
+        JsonElement band = min(add(add(land.height(), -CRUST_TOP), y), sub(c(0), add(add(land.height(), -crust), y)));
+        return land.withSolid(mul(band, 1 / 8.0));
     }
 
     private static Shape spires(Ctx ctx) {

@@ -13,9 +13,10 @@
     "params": {
       "coast": -0.6,
       "relief": 5,
-      "roughness": 0
+      "roughness": 0,
+      "crust": 24
     },
-    "scale": 4
+    "scale": 2.5
   },
   "biomes": [
     {

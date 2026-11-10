@@ -14,7 +14,7 @@
       "continents": 1.3,
       "erosion": 2.0,
       "ridges": 1.4,
-      "climate": 3.0
+      "climate": 4.0
     },
     "layout": {
       "type": "radial",
@@ -24,7 +24,8 @@
       "strength": 0.35
     },
     "params": {
-      "coast": -0.45
+      "coast": -0.45,
+      "relief": 12
     }
   },
   "biomes": [

@@ -4,127 +4,395 @@
     "density": {
       "left": {
         "left": {
-          "input": {
-            "left": {
-              "alpha": {
-                "axis": "y",
-                "from_coordinate": -64,
-                "from_value": 0.0,
-                "to_coordinate": -40,
-                "to_value": 1.0,
-                "type": "minecraft:gradient"
-              },
-              "first": 0.1171875,
-              "second": {
+          "left": {
+            "input": {
+              "left": {
                 "alpha": {
                   "axis": "y",
-                  "from_coordinate": 240,
-                  "from_value": 1.0,
-                  "to_coordinate": 256,
-                  "to_value": 0.0,
+                  "from_coordinate": -64,
+                  "from_value": 0.0,
+                  "to_coordinate": -40,
+                  "to_value": 1.0,
                   "type": "minecraft:gradient"
                 },
-                "first": -0.078125,
+                "first": 0.1171875,
                 "second": {
-                  "input": "adventure:terrain/the_greenreach/sloped_cheese",
-                  "max_exclusive": 1.5625,
-                  "min_inclusive": -1000000.0,
-                  "type": "minecraft:range_choice",
-                  "when_in_range": {
-                    "left": "adventure:terrain/the_greenreach/sloped_cheese",
-                    "right": {
-                      "left": "minecraft:overworld/caves/entrances",
-                      "right": 5.0,
-                      "type": "minecraft:mul"
-                    },
-                    "type": "minecraft:min"
+                  "alpha": {
+                    "axis": "y",
+                    "from_coordinate": 240,
+                    "from_value": 1.0,
+                    "to_coordinate": 256,
+                    "to_value": 0.0,
+                    "type": "minecraft:gradient"
                   },
-                  "when_out_of_range": {
-                    "left": {
+                  "first": -0.078125,
+                  "second": {
+                    "input": "adventure:terrain/the_greenreach/sloped_cheese",
+                    "max_exclusive": 1.5625,
+                    "min_inclusive": -1000000.0,
+                    "type": "minecraft:range_choice",
+                    "when_in_range": {
+                      "left": "adventure:terrain/the_greenreach/sloped_cheese",
+                      "right": {
+                        "left": "minecraft:overworld/caves/entrances",
+                        "right": 5.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:min"
+                    },
+                    "when_out_of_range": {
                       "left": {
                         "left": {
                           "left": {
                             "left": {
-                              "input": {
-                                "noise": "minecraft:cave_layer",
-                                "type": "minecraft:noise",
-                                "xz_scale": 1.0,
-                                "y_scale": 8.0
-                              },
-                              "type": "minecraft:square"
-                            },
-                            "right": 4.0,
-                            "type": "minecraft:mul"
-                          },
-                          "right": {
-                            "left": {
-                              "input": {
-                                "left": {
-                                  "noise": "minecraft:cave_cheese",
+                              "left": {
+                                "input": {
+                                  "noise": "minecraft:cave_layer",
                                   "type": "minecraft:noise",
                                   "xz_scale": 1.0,
-                                  "y_scale": 0.6666666666666666
+                                  "y_scale": 8.0
                                 },
-                                "right": 0.27,
-                                "type": "minecraft:add"
+                                "type": "minecraft:square"
                               },
-                              "max": 1.0,
-                              "min": -1.0,
-                              "type": "minecraft:clamp"
+                              "right": 4.0,
+                              "type": "minecraft:mul"
                             },
                             "right": {
-                              "input": {
-                                "left": {
-                                  "left": "adventure:terrain/the_greenreach/sloped_cheese",
-                                  "right": -0.64,
-                                  "type": "minecraft:mul"
+                              "left": {
+                                "input": {
+                                  "left": {
+                                    "noise": "minecraft:cave_cheese",
+                                    "type": "minecraft:noise",
+                                    "xz_scale": 1.0,
+                                    "y_scale": 0.6666666666666666
+                                  },
+                                  "right": 0.27,
+                                  "type": "minecraft:add"
                                 },
-                                "right": 1.5,
-                                "type": "minecraft:add"
+                                "max": 1.0,
+                                "min": -1.0,
+                                "type": "minecraft:clamp"
                               },
-                              "max": 0.5,
-                              "min": 0.0,
-                              "type": "minecraft:clamp"
+                              "right": {
+                                "input": {
+                                  "left": {
+                                    "left": "adventure:terrain/the_greenreach/sloped_cheese",
+                                    "right": -0.64,
+                                    "type": "minecraft:mul"
+                                  },
+                                  "right": 1.5,
+                                  "type": "minecraft:add"
+                                },
+                                "max": 0.5,
+                                "min": 0.0,
+                                "type": "minecraft:clamp"
+                              },
+                              "type": "minecraft:add"
                             },
                             "type": "minecraft:add"
                           },
+                          "right": "minecraft:overworld/caves/entrances",
+                          "type": "minecraft:min"
+                        },
+                        "right": {
+                          "left": "minecraft:overworld/caves/spaghetti_2d",
+                          "right": "minecraft:overworld/caves/spaghetti_roughness_function",
                           "type": "minecraft:add"
                         },
-                        "right": "minecraft:overworld/caves/entrances",
                         "type": "minecraft:min"
                       },
                       "right": {
-                        "left": "minecraft:overworld/caves/spaghetti_2d",
-                        "right": "minecraft:overworld/caves/spaghetti_roughness_function",
-                        "type": "minecraft:add"
+                        "input": "minecraft:overworld/caves/pillars",
+                        "max_exclusive": 0.03,
+                        "min_inclusive": -1000000.0,
+                        "type": "minecraft:range_choice",
+                        "when_in_range": -1000000.0,
+                        "when_out_of_range": "minecraft:overworld/caves/pillars"
                       },
-                      "type": "minecraft:min"
-                    },
-                    "right": {
-                      "input": "minecraft:overworld/caves/pillars",
-                      "max_exclusive": 0.03,
-                      "min_inclusive": -1000000.0,
-                      "type": "minecraft:range_choice",
-                      "when_in_range": -1000000.0,
-                      "when_out_of_range": "minecraft:overworld/caves/pillars"
-                    },
-                    "type": "minecraft:max"
-                  }
+                      "type": "minecraft:max"
+                    }
+                  },
+                  "type": "minecraft:lerp"
                 },
                 "type": "minecraft:lerp"
               },
-              "type": "minecraft:lerp"
+              "right": 0.64,
+              "type": "minecraft:mul"
             },
-            "right": 0.64,
-            "type": "minecraft:mul"
+            "type": "minecraft:squeeze"
           },
-          "type": "minecraft:squeeze"
+          "right": 64.0,
+          "type": "minecraft:min"
         },
-        "right": 64.0,
-        "type": "minecraft:min"
+        "right": 0.0,
+        "type": "minecraft:add"
       },
-      "right": 0.0,
-      "type": "minecraft:add"
+      "right": {
+        "left": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "spline": {
+                    "coordinate": "adventure:terrain/the_greenreach/continents",
+                    "points": [
+                      {
+                        "derivative": 0.0,
+                        "location": -1.5,
+                        "value": 16.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": -0.85,
+                        "value": 36.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": -0.64,
+                        "value": 29.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": -0.6,
+                        "value": 34.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": -0.54,
+                        "value": 38.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": -0.3,
+                        "value": 55.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": 1.5,
+                        "value": 72.0
+                      }
+                    ]
+                  },
+                  "type": "minecraft:spline"
+                },
+                "right": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": "adventure:terrain/the_greenreach/continents",
+                          "right": 0.6,
+                          "type": "minecraft:add"
+                        },
+                        "right": 8.0,
+                        "type": "minecraft:mul"
+                      },
+                      "max": 1.0,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": {
+                      "left": {
+                        "spline": {
+                          "coordinate": "adventure:terrain/the_greenreach/erosion",
+                          "points": [
+                            {
+                              "derivative": 0.0,
+                              "location": -1.0,
+                              "value": 1.0
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": -0.4,
+                              "value": 0.7
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": 0.0,
+                              "value": 0.35
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": 0.5,
+                              "value": 0.1
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": 1.0,
+                              "value": 0.0
+                            }
+                          ]
+                        },
+                        "type": "minecraft:spline"
+                      },
+                      "right": {
+                        "left": {
+                          "left": "adventure:terrain/the_greenreach/ridges_folded",
+                          "right": 0.4,
+                          "type": "minecraft:mul"
+                        },
+                        "right": 0.6,
+                        "type": "minecraft:add"
+                      },
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:mul"
+                  },
+                  "right": 5.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:add"
+              },
+              "right": -3.0,
+              "type": "minecraft:add"
+            },
+            "right": {
+              "axis": "y",
+              "from_coordinate": -64,
+              "from_value": 64.0,
+              "to_coordinate": 320,
+              "to_value": -320.0,
+              "type": "minecraft:gradient"
+            },
+            "type": "minecraft:add"
+          },
+          "right": {
+            "left": 0.0,
+            "right": {
+              "left": {
+                "left": {
+                  "left": {
+                    "spline": {
+                      "coordinate": "adventure:terrain/the_greenreach/continents",
+                      "points": [
+                        {
+                          "derivative": 0.0,
+                          "location": -1.5,
+                          "value": 16.0
+                        },
+                        {
+                          "derivative": 0.0,
+                          "location": -0.85,
+                          "value": 36.0
+                        },
+                        {
+                          "derivative": 0.0,
+                          "location": -0.64,
+                          "value": 29.0
+                        },
+                        {
+                          "derivative": 0.0,
+                          "location": -0.6,
+                          "value": 34.0
+                        },
+                        {
+                          "derivative": 0.0,
+                          "location": -0.54,
+                          "value": 38.0
+                        },
+                        {
+                          "derivative": 0.0,
+                          "location": -0.3,
+                          "value": 55.0
+                        },
+                        {
+                          "derivative": 0.0,
+                          "location": 1.5,
+                          "value": 72.0
+                        }
+                      ]
+                    },
+                    "type": "minecraft:spline"
+                  },
+                  "right": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": "adventure:terrain/the_greenreach/continents",
+                            "right": 0.6,
+                            "type": "minecraft:add"
+                          },
+                          "right": 8.0,
+                          "type": "minecraft:mul"
+                        },
+                        "max": 1.0,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": {
+                        "left": {
+                          "spline": {
+                            "coordinate": "adventure:terrain/the_greenreach/erosion",
+                            "points": [
+                              {
+                                "derivative": 0.0,
+                                "location": -1.0,
+                                "value": 1.0
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": -0.4,
+                                "value": 0.7
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": 0.0,
+                                "value": 0.35
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": 0.5,
+                                "value": 0.1
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": 1.0,
+                                "value": 0.0
+                              }
+                            ]
+                          },
+                          "type": "minecraft:spline"
+                        },
+                        "right": {
+                          "left": {
+                            "left": "adventure:terrain/the_greenreach/ridges_folded",
+                            "right": 0.4,
+                            "type": "minecraft:mul"
+                          },
+                          "right": 0.6,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:mul"
+                    },
+                    "right": 5.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:add"
+                },
+                "right": -24.0,
+                "type": "minecraft:add"
+              },
+              "right": {
+                "axis": "y",
+                "from_coordinate": -64,
+                "from_value": 64.0,
+                "to_coordinate": 320,
+                "to_value": -320.0,
+                "type": "minecraft:gradient"
+              },
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:sub"
+          },
+          "type": "minecraft:min"
+        },
+        "right": 0.125,
+        "type": "minecraft:mul"
+      },
+      "type": "minecraft:max"
     },
     "lower_bound": -64,
     "type": "minecraft:find_top_surface",
