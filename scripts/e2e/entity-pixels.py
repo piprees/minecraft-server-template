@@ -5,7 +5,7 @@
 #          same camera is shot twice through the opening: with a mob standing on
 #          the far side in front of a white wall, and with the mob moved out of
 #          view. A pixel of the centre crop is the mob's when, without it, the
-#          pixel is the wall (bright and grey) and, with it, the pixel is not
+#          pixel is the wall (grey, at or over WALL_LUMA) and, with it, the pixel is not
 #          (darker by more than LUMA_DROP, or coloured): the husk is tan and
 #          shaded, the wall white concrete.
 # Context: template-only. Needs Pillow. No Minecraft, no server.
@@ -22,6 +22,9 @@ import sys
 from PIL import Image
 
 LUMA_DROP = 40
+# White concrete seen through the opening is lit by the far side: about
+# (116, 119, 142) under e2e_two's sky on the 26.3 companion.
+WALL_LUMA = 90
 CHANGED = 48
 
 
@@ -30,7 +33,7 @@ def luma(r, g, b):
 
 
 def wall(r, g, b):
-    return luma(r, g, b) >= 150 and max(r, g, b) - min(r, g, b) <= 40
+    return luma(r, g, b) >= WALL_LUMA and max(r, g, b) - min(r, g, b) <= 40
 
 
 def crop_pixels(image, crop):
@@ -82,6 +85,12 @@ def self_test():
     fogged = Image.new("RGB", (200, 100), (120, 167, 255))
     fogged.paste((190, 196, 200), (60, 20, 140, 80))
     check("a slightly fogged wall is not an entity", measure(fogged, scene)["entityPixels"] == 0, measure(fogged, scene))
+    shaded = Image.new("RGB", (200, 100), (120, 167, 255))
+    shaded.paste((116, 119, 142), (60, 20, 140, 80))
+    shaded_husk = shaded.copy()
+    shaded_husk.paste((90, 76, 52), (90, 30, 110, 75))
+    check("a husk on a wall lit by the far side is counted", measure(shaded_husk, shaded)["entityPixels"] == 20 * 40,
+          measure(shaded_husk, shaded))
     sky = Image.new("RGB", (200, 100), (120, 167, 255))
     sky_change = sky.copy()
     sky_change.paste((20, 20, 20), (90, 30, 110, 75))
