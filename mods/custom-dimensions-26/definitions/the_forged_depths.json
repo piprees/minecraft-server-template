@@ -8,49 +8,24 @@
     "preset": "nether"
   },
   "biomes": [
-    {
-      "id": "adventure:quartz_flats",
-      "climate": {
-        "temperature": [-2.0, -0.033],
-        "humidity": [-2.0, -0.045]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [-2.0, -0.033],
-        "humidity": [-0.045, 0.19]
-      }
-    },
-    {
-      "id": "adventure:crimson_pinewood",
-      "climate": {
-        "temperature": [-2.0, -0.033],
-        "humidity": [0.19, 2.0]
-      }
-    },
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "temperature": [-0.033, 2.0],
-        "humidity": [-2.0, -0.092]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [-0.033, 2.0],
-        "humidity": [-0.092, 0.224]
-      }
-    },
-    {
-      "id": "minecraft:crimson_forest",
-      "climate": {
-        "temperature": [-0.033, 2.0],
-        "humidity": [0.224, 2.0]
-      }
-    }
+    "adventure:quartz_flats",
+    "minecraft:nether_wastes",
+    "adventure:crimson_pinewood",
+    "adventure:magma_land",
+    "minecraft:basalt_deltas",
+    "minecraft:crimson_forest"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:quartz_flats": 27.3,
+      "minecraft:nether_wastes": 12.6,
+      "adventure:crimson_pinewood": 8.2,
+      "adventure:magma_land": 26,
+      "minecraft:basalt_deltas": 16.7,
+      "minecraft:crimson_forest": 9.2
+    }
+  },
   "atmosphere": {
     "fogColor": "#4B2B1B",
     "ambientLight": 0.08

@@ -8,70 +8,30 @@
     "of": "adventure:the_aviary"
   },
   "biomes": [
-    {
-      "id": "adventure:sky_highlands",
-      "climate": {
-        "temperature": [-2.0, -0.503],
-        "humidity": [-2.0, -0.085]
-      }
-    },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "temperature": [-2.0, -0.503],
-        "humidity": [-0.085, 0.089]
-      }
-    },
-    {
-      "id": "minecraft:beach",
-      "climate": {
-        "temperature": [-2.0, -0.503],
-        "humidity": [0.089, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:deep_lukewarm_ocean",
-      "climate": {
-        "temperature": [-0.503, -0.006],
-        "humidity": [-2.0, -0.149]
-      }
-    },
-    {
-      "id": "minecraft:lukewarm_ocean",
-      "climate": {
-        "temperature": [-0.503, -0.006],
-        "humidity": [-0.149, 0.061]
-      }
-    },
-    {
-      "id": "adventure:hanging_gardens",
-      "climate": {
-        "temperature": [-0.503, -0.006],
-        "humidity": [0.061, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:warm_ocean",
-      "climate": {
-        "temperature": [-0.006, 2.0],
-        "humidity": [-2.0, -0.149]
-      }
-    },
-    {
-      "id": "adventure:desert_oasis",
-      "climate": {
-        "temperature": [-0.006, 2.0],
-        "humidity": [-0.149, 0.061]
-      }
-    },
-    {
-      "id": "minecraft:jungle",
-      "climate": {
-        "temperature": [-0.006, 2.0],
-        "humidity": [0.061, 2.0]
-      }
-    }
+    "adventure:sky_highlands",
+    "minecraft:meadow",
+    "minecraft:beach",
+    "minecraft:deep_lukewarm_ocean",
+    "minecraft:lukewarm_ocean",
+    "adventure:hanging_gardens",
+    "minecraft:warm_ocean",
+    "adventure:desert_oasis",
+    "minecraft:jungle"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:sky_highlands": 8.7,
+      "minecraft:meadow": 3.9,
+      "minecraft:beach": 3.6,
+      "minecraft:deep_lukewarm_ocean": 11.8,
+      "minecraft:lukewarm_ocean": 14.2,
+      "adventure:hanging_gardens": 22.4,
+      "minecraft:warm_ocean": 6.1,
+      "adventure:desert_oasis": 10.6,
+      "minecraft:jungle": 14.3
+    }
+  },
   "liquids": {
     "seaLevel": 90
   },

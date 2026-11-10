@@ -22,56 +22,26 @@
         "depth": [0.2, 2.0]
       }
     },
-    {
-      "id": "minecraft:taiga",
-      "climate": {
-        "temperature": [-2.0, 0.071],
-        "humidity": [-2.0, -0.126]
-      }
-    },
-    {
-      "id": "minecraft:windswept_forest",
-      "climate": {
-        "temperature": [-2.0, 0.071],
-        "humidity": [-0.126, 0.139]
-      }
-    },
-    {
-      "id": "adventure:redwood_grove",
-      "climate": {
-        "temperature": [-2.0, 0.071],
-        "humidity": [0.139, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:forest",
-      "climate": {
-        "temperature": [0.071, 0.256],
-        "humidity": [-2.0, 0.088]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_spruce_taiga",
-      "climate": {
-        "temperature": [0.071, 0.256],
-        "humidity": [0.088, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "temperature": [0.256, 2.0],
-        "humidity": [-2.0, 0.01]
-      }
-    },
-    {
-      "id": "minecraft:swamp",
-      "climate": {
-        "temperature": [0.256, 2.0],
-        "humidity": [0.01, 2.0]
-      }
-    }
+    "minecraft:taiga",
+    "minecraft:windswept_forest",
+    "adventure:redwood_grove",
+    "minecraft:forest",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:dark_forest",
+    "minecraft:swamp"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:taiga": 4.6,
+      "minecraft:windswept_forest": 3,
+      "adventure:redwood_grove": 11.3,
+      "minecraft:forest": 38.1,
+      "minecraft:old_growth_spruce_taiga": 13.8,
+      "minecraft:dark_forest": 2.8,
+      "minecraft:swamp": 25.9
+    }
+  },
   "borders": {
     "player": 1024,
     "generation": 1024

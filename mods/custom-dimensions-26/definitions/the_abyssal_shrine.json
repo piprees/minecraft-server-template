@@ -8,70 +8,30 @@
     "of": "adventure:the_aviary"
   },
   "biomes": [
-    {
-      "id": "adventure:umbral_wastes",
-      "climate": {
-        "temperature": [-2.0, -0.209],
-        "humidity": [-2.0, -0.192]
-      }
-    },
-    {
-      "id": "adventure:windswept_isles",
-      "climate": {
-        "temperature": [-2.0, -0.209],
-        "humidity": [-0.192, 0.113]
-      }
-    },
-    {
-      "id": "minecraft:deep_cold_ocean",
-      "climate": {
-        "temperature": [-2.0, -0.209],
-        "humidity": [0.113, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:dripstone_caves",
-      "climate": {
-        "temperature": [-0.209, 0.012],
-        "humidity": [-2.0, -0.153]
-      }
-    },
-    {
-      "id": "minecraft:deep_dark",
-      "climate": {
-        "temperature": [-0.209, 0.012],
-        "humidity": [-0.153, 0.078]
-      }
-    },
-    {
-      "id": "minecraft:deep_ocean",
-      "climate": {
-        "temperature": [-0.209, 0.012],
-        "humidity": [0.078, 2.0]
-      }
-    },
-    {
-      "id": "adventure:sky_highlands",
-      "climate": {
-        "temperature": [0.012, 2.0],
-        "humidity": [-2.0, -0.118]
-      }
-    },
-    {
-      "id": "adventure:golden_skygrove",
-      "climate": {
-        "temperature": [0.012, 2.0],
-        "humidity": [-0.118, 0.144]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "temperature": [0.012, 2.0],
-        "humidity": [0.144, 2.0]
-      }
-    }
+    "adventure:umbral_wastes",
+    "adventure:windswept_isles",
+    "minecraft:deep_cold_ocean",
+    "minecraft:dripstone_caves",
+    "minecraft:deep_dark",
+    "minecraft:deep_ocean",
+    "adventure:sky_highlands",
+    "adventure:golden_skygrove",
+    "minecraft:dark_forest"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:umbral_wastes": 1,
+      "adventure:windswept_isles": 1,
+      "minecraft:deep_cold_ocean": 1,
+      "minecraft:dripstone_caves": 1,
+      "minecraft:deep_dark": 11.8,
+      "minecraft:deep_ocean": 42.2,
+      "adventure:sky_highlands": 17.1,
+      "adventure:golden_skygrove": 23.1,
+      "minecraft:dark_forest": 3.6
+    }
+  },
   "liquids": {
     "seaLevel": 90
   },

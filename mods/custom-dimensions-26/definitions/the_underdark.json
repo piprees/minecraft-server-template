@@ -8,49 +8,24 @@
     "preset": "caves"
   },
   "biomes": [
-    {
-      "id": "minecraft:deep_dark",
-      "climate": {
-        "temperature": [-2.0, 0.823],
-        "humidity": [-2.0, -0.015]
-      }
-    },
-    {
-      "id": "minecraft:warped_forest",
-      "climate": {
-        "temperature": [-2.0, 0.823],
-        "humidity": [-0.015, 0.098]
-      }
-    },
-    {
-      "id": "adventure:withered_forest",
-      "climate": {
-        "temperature": [-2.0, 0.823],
-        "humidity": [0.098, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:dripstone_caves",
-      "climate": {
-        "temperature": [0.823, 2.0],
-        "humidity": [-2.0, -0.041]
-      }
-    },
-    {
-      "id": "minecraft:crimson_forest",
-      "climate": {
-        "temperature": [0.823, 2.0],
-        "humidity": [-0.041, 0.064]
-      }
-    },
-    {
-      "id": "minecraft:lush_caves",
-      "climate": {
-        "temperature": [0.823, 2.0],
-        "humidity": [0.064, 2.0]
-      }
-    }
+    "minecraft:deep_dark",
+    "minecraft:warped_forest",
+    "adventure:withered_forest",
+    "minecraft:dripstone_caves",
+    "minecraft:crimson_forest",
+    "minecraft:lush_caves"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:deep_dark": 38.7,
+      "minecraft:warped_forest": 14.9,
+      "adventure:withered_forest": 30.5,
+      "minecraft:dripstone_caves": 7,
+      "minecraft:crimson_forest": 3.5,
+      "minecraft:lush_caves": 5.3
+    }
+  },
   "zones": [
     {
       "shape": "circle",

@@ -8,73 +8,30 @@
     "preset": "nether"
   },
   "biomes": [
-    {
-      "id": "minecraft:deep_dark",
-      "climate": {
-        "temperature": [-2.0, -0.8352]
-      }
-    },
-    {
-      "id": "adventure:gravel_desert",
-      "climate": {
-        "temperature": [-0.8352, -0.6762]
-      }
-    },
-    {
-      "id": "minecraft:soul_sand_valley",
-      "climate": {
-        "temperature": [-0.6762, -0.1768]
-      }
-    },
-    {
-      "id": "minecraft:soul_sand_valley",
-      "climate": {
-        "temperature": [-0.1768, -0.1168]
-      }
-    },
-    {
-      "id": "adventure:quartz_flats",
-      "climate": {
-        "temperature": [-0.1168, -0.0547]
-      }
-    },
-    {
-      "id": "adventure:ash_barrens",
-      "climate": {
-        "temperature": [-0.0547, 0.0512]
-      }
-    },
-    {
-      "id": "adventure:blackstone_basin",
-      "climate": {
-        "temperature": [0.0512, 0.0977]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [0.0977, 0.1629]
-      }
-    },
-    {
-      "id": "adventure:ash_barrens",
-      "climate": {
-        "temperature": [0.1629, 0.2058]
-      }
-    },
-    {
-      "id": "adventure:mycotoxic_undergrowth",
-      "climate": {
-        "temperature": [0.2058, 0.3044]
-      }
-    },
-    {
-      "id": "adventure:withered_forest",
-      "climate": {
-        "temperature": [0.3044, 2.0]
-      }
-    }
+    "minecraft:deep_dark",
+    "adventure:gravel_desert",
+    "minecraft:soul_sand_valley",
+    "adventure:quartz_flats",
+    "adventure:ash_barrens",
+    "adventure:blackstone_basin",
+    "minecraft:basalt_deltas",
+    "adventure:mycotoxic_undergrowth",
+    "adventure:withered_forest"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:deep_dark": 1,
+      "adventure:gravel_desert": 1.5,
+      "minecraft:soul_sand_valley": 32.5,
+      "adventure:quartz_flats": 7.5,
+      "adventure:ash_barrens": 17.1,
+      "adventure:blackstone_basin": 5.2,
+      "minecraft:basalt_deltas": 7.5,
+      "adventure:mycotoxic_undergrowth": 8.5,
+      "adventure:withered_forest": 19.9
+    }
+  },
   "atmosphere": {
     "fogColor": "#D8C8A0",
     "ambientLight": 0.08

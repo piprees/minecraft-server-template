@@ -22,70 +22,30 @@
         "depth": [0.2, 2.0]
       }
     },
-    {
-      "id": "adventure:dry_steppe",
-      "climate": {
-        "temperature": [-2.0, 0.32],
-        "humidity": [-2.0, -0.082]
-      }
-    },
-    {
-      "id": "minecraft:savanna_plateau",
-      "climate": {
-        "temperature": [-2.0, 0.32],
-        "humidity": [-0.082, 0.15]
-      }
-    },
-    {
-      "id": "minecraft:savanna",
-      "climate": {
-        "temperature": [-2.0, 0.32],
-        "humidity": [0.15, 2.0]
-      }
-    },
-    {
-      "id": "adventure:prairie",
-      "climate": {
-        "temperature": [0.32, 0.685],
-        "humidity": [-2.0, -0.02]
-      }
-    },
-    {
-      "id": "minecraft:desert",
-      "climate": {
-        "temperature": [0.32, 0.685],
-        "humidity": [-0.02, 0.185]
-      }
-    },
-    {
-      "id": "minecraft:badlands",
-      "climate": {
-        "temperature": [0.32, 0.685],
-        "humidity": [0.185, 2.0]
-      }
-    },
-    {
-      "id": "adventure:joshua_desert",
-      "climate": {
-        "temperature": [0.685, 2.0],
-        "humidity": [-2.0, -0.082]
-      }
-    },
-    {
-      "id": "adventure:saguaro_desert",
-      "climate": {
-        "temperature": [0.685, 2.0],
-        "humidity": [-0.082, 0.15]
-      }
-    },
-    {
-      "id": "adventure:parched_forest",
-      "climate": {
-        "temperature": [0.685, 2.0],
-        "humidity": [0.15, 2.0]
-      }
-    }
+    "adventure:dry_steppe",
+    "minecraft:savanna_plateau",
+    "minecraft:savanna",
+    "adventure:prairie",
+    "minecraft:desert",
+    "minecraft:badlands",
+    "adventure:joshua_desert",
+    "adventure:saguaro_desert",
+    "adventure:parched_forest"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:dry_steppe": 1,
+      "minecraft:savanna_plateau": 1,
+      "minecraft:savanna": 1,
+      "adventure:prairie": 26.8,
+      "minecraft:desert": 11.1,
+      "minecraft:badlands": 1,
+      "adventure:joshua_desert": 33.4,
+      "adventure:saguaro_desert": 23.7,
+      "adventure:parched_forest": 4.3
+    }
+  },
   "liquids": {
     "seaLevel": -55
   },

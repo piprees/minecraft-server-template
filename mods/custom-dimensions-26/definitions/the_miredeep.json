@@ -38,49 +38,24 @@
         "depth": [0.2, 2.0]
       }
     },
-    {
-      "id": "minecraft:old_growth_birch_forest",
-      "climate": {
-        "temperature": [-2.0, 0.14],
-        "humidity": [-2.0, -0.079]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "temperature": [-2.0, 0.14],
-        "humidity": [-0.079, 0.109]
-      }
-    },
-    {
-      "id": "adventure:orchid_marsh",
-      "climate": {
-        "temperature": [-2.0, 0.14],
-        "humidity": [0.109, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:swamp",
-      "climate": {
-        "temperature": [0.14, 2.0],
-        "humidity": [-2.0, -0.044]
-      }
-    },
-    {
-      "id": "minecraft:mangrove_swamp",
-      "climate": {
-        "temperature": [0.14, 2.0],
-        "humidity": [-0.044, 0.174]
-      }
-    },
-    {
-      "id": "adventure:cypress_wetland",
-      "climate": {
-        "temperature": [0.14, 2.0],
-        "humidity": [0.174, 2.0]
-      }
-    }
+    "minecraft:old_growth_birch_forest",
+    "minecraft:dark_forest",
+    "adventure:orchid_marsh",
+    "minecraft:swamp",
+    "minecraft:mangrove_swamp",
+    "adventure:cypress_wetland"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:old_growth_birch_forest": 1,
+      "minecraft:dark_forest": 1.8,
+      "adventure:orchid_marsh": 12.4,
+      "minecraft:swamp": 25.6,
+      "minecraft:mangrove_swamp": 18.9,
+      "adventure:cypress_wetland": 30.7
+    }
+  },
   "atmosphere": {
     "fogColor": "#4B5B3B"
   },

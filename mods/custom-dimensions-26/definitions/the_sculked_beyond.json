@@ -8,70 +8,30 @@
     "preset": "caves"
   },
   "biomes": [
-    {
-      "id": "adventure:umbral_wastes",
-      "climate": {
-        "temperature": [-2.0, -0.078],
-        "humidity": [-2.0, -0.081]
-      }
-    },
-    {
-      "id": "minecraft:deep_dark",
-      "climate": {
-        "temperature": [-2.0, -0.078],
-        "humidity": [-0.081, 0.168]
-      }
-    },
-    {
-      "id": "adventure:withered_forest",
-      "climate": {
-        "temperature": [-2.0, -0.078],
-        "humidity": [0.168, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:dripstone_caves",
-      "climate": {
-        "temperature": [-0.078, 0.169],
-        "humidity": [-2.0, -0.081]
-      }
-    },
-    {
-      "id": "adventure:lichen_caves",
-      "climate": {
-        "temperature": [-0.078, 0.169],
-        "humidity": [-0.081, 0.168]
-      }
-    },
-    {
-      "id": "adventure:mycotoxic_undergrowth",
-      "climate": {
-        "temperature": [-0.078, 0.169],
-        "humidity": [0.168, 2.0]
-      }
-    },
-    {
-      "id": "adventure:bioshroom_caves",
-      "climate": {
-        "temperature": [0.169, 2.0],
-        "humidity": [-2.0, -0.048]
-      }
-    },
-    {
-      "id": "adventure:magmatic_caves",
-      "climate": {
-        "temperature": [0.169, 2.0],
-        "humidity": [-0.048, 0.141]
-      }
-    },
-    {
-      "id": "adventure:redstone_abyss",
-      "climate": {
-        "temperature": [0.169, 2.0],
-        "humidity": [0.141, 2.0]
-      }
-    }
+    "adventure:umbral_wastes",
+    "minecraft:deep_dark",
+    "adventure:withered_forest",
+    "minecraft:dripstone_caves",
+    "adventure:lichen_caves",
+    "adventure:mycotoxic_undergrowth",
+    "adventure:bioshroom_caves",
+    "adventure:magmatic_caves",
+    "adventure:redstone_abyss"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:umbral_wastes": 1,
+      "minecraft:deep_dark": 1,
+      "adventure:withered_forest": 1,
+      "minecraft:dripstone_caves": 60.5,
+      "adventure:lichen_caves": 11.2,
+      "adventure:mycotoxic_undergrowth": 9.1,
+      "adventure:bioshroom_caves": 5.8,
+      "adventure:magmatic_caves": 9.8,
+      "adventure:redstone_abyss": 3.6
+    }
+  },
   "dimensionType": {
     "hasSkylight": false,
     "hasCeiling": true,

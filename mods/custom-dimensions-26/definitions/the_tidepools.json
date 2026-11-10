@@ -29,13 +29,7 @@
         "depth": [-2.0, 0.1]
       }
     },
-    {
-      "id": "minecraft:windswept_gravelly_hills",
-      "climate": {
-        "weirdness": [-0.358, -0.1741],
-        "depth": [-2.0, 0.1]
-      }
-    },
+    "minecraft:windswept_gravelly_hills",
     {
       "id": "minecraft:stony_shore",
       "climate": {
@@ -72,6 +66,12 @@
       }
     }
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:windswept_gravelly_hills": 24.2
+    }
+  },
   "borders": {
     "player": 256,
     "generation": 512

@@ -9,49 +9,24 @@
     "endIsland": false
   },
   "biomes": [
-    {
-      "id": "minecraft:end_barrens",
-      "climate": {
-        "temperature": [-2.0, -0.224],
-        "humidity": [-2.0, -0.078]
-      }
-    },
-    {
-      "id": "minecraft:small_end_islands",
-      "climate": {
-        "temperature": [-2.0, -0.224],
-        "humidity": [-0.078, 0.172]
-      }
-    },
-    {
-      "id": "adventure:ice_starfield",
-      "climate": {
-        "temperature": [-2.0, -0.224],
-        "humidity": [0.172, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:end_midlands",
-      "climate": {
-        "temperature": [-0.224, 2.0],
-        "humidity": [-2.0, -0.125]
-      }
-    },
-    {
-      "id": "minecraft:the_end",
-      "climate": {
-        "temperature": [-0.224, 2.0],
-        "humidity": [-0.125, 0.111]
-      }
-    },
-    {
-      "id": "minecraft:end_highlands",
-      "climate": {
-        "temperature": [-0.224, 2.0],
-        "humidity": [0.111, 2.0]
-      }
-    }
+    "minecraft:end_barrens",
+    "minecraft:small_end_islands",
+    "adventure:ice_starfield",
+    "minecraft:end_midlands",
+    "minecraft:the_end",
+    "minecraft:end_highlands"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:end_barrens": 5.8,
+      "minecraft:small_end_islands": 4.1,
+      "adventure:ice_starfield": 4.3,
+      "minecraft:end_midlands": 9.8,
+      "minecraft:the_end": 9.7,
+      "minecraft:end_highlands": 10.1
+    }
+  },
   "borders": {
     "player": 4096,
     "generation": 2048

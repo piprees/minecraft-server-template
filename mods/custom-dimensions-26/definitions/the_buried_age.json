@@ -8,61 +8,26 @@
     "preset": "nether"
   },
   "biomes": [
-    {
-      "id": "minecraft:soul_sand_valley",
-      "climate": {
-        "temperature": [-2.0, -0.4483]
-      }
-    },
-    {
-      "id": "minecraft:soul_sand_valley",
-      "climate": {
-        "temperature": [-0.4483, -0.3616]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [-0.3616, -0.073]
-      }
-    },
-    {
-      "id": "adventure:upside_down_forest",
-      "climate": {
-        "temperature": [-0.073, -0.0436]
-      }
-    },
-    {
-      "id": "minecraft:crimson_forest",
-      "climate": {
-        "temperature": [-0.0436, -0.0195]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [-0.0195, 0.0181]
-      }
-    },
-    {
-      "id": "adventure:ash_barrens",
-      "climate": {
-        "temperature": [0.0181, 0.0727]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [0.0727, 0.3368]
-      }
-    },
-    {
-      "id": "adventure:quartz_flats",
-      "climate": {
-        "temperature": [0.3368, 2.0]
-      }
-    }
+    "minecraft:soul_sand_valley",
+    "minecraft:basalt_deltas",
+    "adventure:upside_down_forest",
+    "minecraft:crimson_forest",
+    "adventure:ash_barrens",
+    "minecraft:nether_wastes",
+    "adventure:quartz_flats"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:soul_sand_valley": 13.6,
+      "minecraft:basalt_deltas": 32.3,
+      "adventure:upside_down_forest": 3.4,
+      "minecraft:crimson_forest": 2.9,
+      "adventure:ash_barrens": 6.5,
+      "minecraft:nether_wastes": 24.7,
+      "adventure:quartz_flats": 16.7
+    }
+  },
   "liquids": {
     "seaLevel": 74,
     "defaultFluid": "minecraft:lava"

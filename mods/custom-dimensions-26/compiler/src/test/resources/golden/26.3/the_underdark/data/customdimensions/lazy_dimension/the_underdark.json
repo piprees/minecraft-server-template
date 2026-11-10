@@ -10,8 +10,8 @@
           {
             "biome": "minecraft:deep_dark",
             "parameters": {
-              "temperature": [-2.0, 0.823],
-              "humidity": [-2.0, -0.015],
+              "temperature": [-2.0, 0.0731],
+              "humidity": [-2.0, 0.444],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -22,44 +22,8 @@
           {
             "biome": "minecraft:warped_forest",
             "parameters": {
-              "temperature": [-2.0, 0.823],
-              "humidity": [-0.015, 0.098],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "adventure:withered_forest",
-            "parameters": {
-              "temperature": [-2.0, 0.823],
-              "humidity": [0.098, 2.0],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:dripstone_caves",
-            "parameters": {
-              "temperature": [0.823, 2.0],
-              "humidity": [-2.0, -0.041],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:crimson_forest",
-            "parameters": {
-              "temperature": [0.823, 2.0],
-              "humidity": [-0.041, 0.064],
+              "temperature": [-2.0, 0.0731],
+              "humidity": [0.444, 2.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -70,8 +34,44 @@
           {
             "biome": "minecraft:lush_caves",
             "parameters": {
-              "temperature": [0.823, 2.0],
-              "humidity": [0.064, 2.0],
+              "temperature": [0.0731, 2.0],
+              "humidity": [-2.0, -0.7711],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:crimson_forest",
+            "parameters": {
+              "temperature": [0.0731, 2.0],
+              "humidity": [-0.7711, -0.6199],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:dripstone_caves",
+            "parameters": {
+              "temperature": [0.0731, 2.0],
+              "humidity": [-0.6199, -0.3175],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:withered_forest",
+            "parameters": {
+              "temperature": [0.0731, 2.0],
+              "humidity": [-0.3175, 2.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -98,7 +98,15 @@
             }
           ]
         }
-      ]
+      ],
+      "regions": {
+        "axes": [
+          "temperature",
+          "humidity"
+        ],
+        "columns": [0.0731],
+        "radius": 4096
+      }
     },
     "settings": "adventure:the_underdark"
   }

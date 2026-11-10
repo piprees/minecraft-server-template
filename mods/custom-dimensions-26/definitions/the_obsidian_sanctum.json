@@ -13,6 +13,15 @@
     "adventure:withered_forest",
     "minecraft:basalt_deltas"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:soul_sand_valley": 15.2,
+      "minecraft:nether_wastes": 37.4,
+      "adventure:withered_forest": 38.3,
+      "minecraft:basalt_deltas": 9.2
+    }
+  },
   "atmosphere": {
     "skyColor": "#1B0B2B",
     "fogColor": "#1B0B2B",

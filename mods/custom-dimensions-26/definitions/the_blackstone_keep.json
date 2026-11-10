@@ -8,63 +8,28 @@
     "preset": "nether"
   },
   "biomes": [
-    {
-      "id": "adventure:ash_barrens",
-      "climate": {
-        "temperature": [-2.0, -0.139],
-        "humidity": [-2.0, -0.109]
-      }
-    },
-    {
-      "id": "adventure:blackstone_basin",
-      "climate": {
-        "temperature": [-2.0, -0.139],
-        "humidity": [-0.109, 0.186]
-      }
-    },
-    {
-      "id": "adventure:upside_down_forest",
-      "climate": {
-        "temperature": [-2.0, -0.139],
-        "humidity": [0.186, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:soul_sand_valley",
-      "climate": {
-        "temperature": [-0.139, 0.234],
-        "humidity": [-2.0, -0.15]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [-0.139, 0.234],
-        "humidity": [-0.15, 0.232]
-      }
-    },
-    {
-      "id": "adventure:crimson_pinewood",
-      "climate": {
-        "temperature": [-0.139, 0.234],
-        "humidity": [0.232, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [0.234, 2.0],
-        "humidity": [-2.0, 0.125]
-      }
-    },
-    {
-      "id": "minecraft:crimson_forest",
-      "climate": {
-        "temperature": [0.234, 2.0],
-        "humidity": [0.125, 2.0]
-      }
-    }
+    "adventure:ash_barrens",
+    "adventure:blackstone_basin",
+    "adventure:upside_down_forest",
+    "minecraft:soul_sand_valley",
+    "minecraft:nether_wastes",
+    "adventure:crimson_pinewood",
+    "minecraft:basalt_deltas",
+    "minecraft:crimson_forest"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:ash_barrens": 6.2,
+      "adventure:blackstone_basin": 6.1,
+      "adventure:upside_down_forest": 14.4,
+      "minecraft:soul_sand_valley": 11.3,
+      "minecraft:nether_wastes": 15.7,
+      "adventure:crimson_pinewood": 16.5,
+      "minecraft:basalt_deltas": 16.8,
+      "minecraft:crimson_forest": 12.9
+    }
+  },
   "atmosphere": {
     "fogColor": "#1B1B2B",
     "ambientLight": 0.08

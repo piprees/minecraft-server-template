@@ -45,42 +45,22 @@
         "depth": [0.2, 2.0]
       }
     },
-    {
-      "id": "minecraft:plains",
-      "climate": {
-        "temperature": [-2.0, 0.086],
-        "humidity": [-2.0, -0.109]
-      }
-    },
-    {
-      "id": "minecraft:sparse_jungle",
-      "climate": {
-        "temperature": [-2.0, 0.086],
-        "humidity": [-0.109, 0.091]
-      }
-    },
-    {
-      "id": "minecraft:mangrove_swamp",
-      "climate": {
-        "temperature": [-2.0, 0.086],
-        "humidity": [0.091, 2.0]
-      }
-    },
-    {
-      "id": "adventure:desert_oasis",
-      "climate": {
-        "temperature": [0.086, 2.0],
-        "humidity": [-2.0, 0.047]
-      }
-    },
-    {
-      "id": "minecraft:jungle",
-      "climate": {
-        "temperature": [0.086, 2.0],
-        "humidity": [0.047, 2.0]
-      }
-    }
+    "minecraft:plains",
+    "minecraft:sparse_jungle",
+    "minecraft:mangrove_swamp",
+    "adventure:desert_oasis",
+    "minecraft:jungle"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:plains": 19.2,
+      "minecraft:sparse_jungle": 24.7,
+      "minecraft:mangrove_swamp": 14.8,
+      "adventure:desert_oasis": 2.3,
+      "minecraft:jungle": 2.9
+    }
+  },
   "borders": {
     "player": 1024,
     "generation": 1024

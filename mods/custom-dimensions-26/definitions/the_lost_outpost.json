@@ -22,63 +22,28 @@
         "depth": [0.2, 2.0]
       }
     },
-    {
-      "id": "minecraft:savanna_plateau",
-      "climate": {
-        "temperature": [-2.0, 0.014],
-        "humidity": [-2.0, -0.126]
-      }
-    },
-    {
-      "id": "minecraft:savanna",
-      "climate": {
-        "temperature": [-2.0, 0.014],
-        "humidity": [-0.126, 0.076]
-      }
-    },
-    {
-      "id": "minecraft:forest",
-      "climate": {
-        "temperature": [-2.0, 0.014],
-        "humidity": [0.076, 2.0]
-      }
-    },
-    {
-      "id": "adventure:prairie",
-      "climate": {
-        "temperature": [0.014, 0.353],
-        "humidity": [-2.0, -0.157]
-      }
-    },
-    {
-      "id": "minecraft:windswept_savanna",
-      "climate": {
-        "temperature": [0.014, 0.353],
-        "humidity": [-0.157, 0.107]
-      }
-    },
-    {
-      "id": "minecraft:wooded_badlands",
-      "climate": {
-        "temperature": [0.014, 0.353],
-        "humidity": [0.107, 2.0]
-      }
-    },
-    {
-      "id": "adventure:parched_forest",
-      "climate": {
-        "temperature": [0.353, 2.0],
-        "humidity": [-2.0, -0.029]
-      }
-    },
-    {
-      "id": "adventure:baobab_savanna",
-      "climate": {
-        "temperature": [0.353, 2.0],
-        "humidity": [-0.029, 2.0]
-      }
-    }
+    "minecraft:savanna_plateau",
+    "minecraft:savanna",
+    "minecraft:forest",
+    "adventure:prairie",
+    "minecraft:windswept_savanna",
+    "minecraft:wooded_badlands",
+    "adventure:parched_forest",
+    "adventure:baobab_savanna"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:savanna_plateau": 1,
+      "minecraft:savanna": 1,
+      "minecraft:forest": 1,
+      "adventure:prairie": 1,
+      "minecraft:windswept_savanna": 32,
+      "minecraft:wooded_badlands": 60.7,
+      "adventure:parched_forest": 2.2,
+      "adventure:baobab_savanna": 4.9
+    }
+  },
   "zones": [
     {
       "shape": "circle",

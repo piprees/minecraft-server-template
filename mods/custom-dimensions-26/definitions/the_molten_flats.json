@@ -8,43 +8,22 @@
     "preset": "nether"
   },
   "biomes": [
-    {
-      "id": "adventure:ash_barrens",
-      "climate": {
-        "temperature": [-2.0, -0.495]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [-0.495, -0.234]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [-0.234, -0.046]
-      }
-    },
-    {
-      "id": "adventure:gravel_desert",
-      "climate": {
-        "temperature": [-0.046, 0.098]
-      }
-    },
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "temperature": [0.098, 0.297]
-      }
-    },
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "temperature": [0.297, 2.0]
-      }
-    }
+    "adventure:ash_barrens",
+    "minecraft:nether_wastes",
+    "minecraft:basalt_deltas",
+    "adventure:gravel_desert",
+    "adventure:magma_land"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:ash_barrens": 1.8,
+      "minecraft:nether_wastes": 7.7,
+      "minecraft:basalt_deltas": 15.2,
+      "adventure:gravel_desert": 19.5,
+      "adventure:magma_land": 55.9
+    }
+  },
   "borders": {
     "player": 1024,
     "generation": 1024

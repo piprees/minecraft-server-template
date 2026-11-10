@@ -8,48 +8,11 @@
     "preset": "overworld"
   },
   "biomes": [
-    {
-      "id": "adventure:orchid_marsh",
-      "climate": {
-        "weirdness": [-2.0, -0.19],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:swamp",
-      "climate": {
-        "weirdness": [-0.19, -0.1636],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:mangrove_swamp",
-      "climate": {
-        "weirdness": [-0.1636, -0.1373],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:mangrove_swamp",
-      "climate": {
-        "weirdness": [-0.1373, -0.1109],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:bamboo_jungle",
-      "climate": {
-        "weirdness": [-0.1109, -0.0845],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:river",
-      "climate": {
-        "weirdness": [-0.0845, -0.0582],
-        "depth": [-2.0, 0.1]
-      }
-    },
+    "adventure:orchid_marsh",
+    "minecraft:swamp",
+    "minecraft:mangrove_swamp",
+    "minecraft:bamboo_jungle",
+    "minecraft:river",
     {
       "id": "minecraft:beach",
       "climate": {
@@ -58,48 +21,10 @@
         "depth": [-2.0, 0.1]
       }
     },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "weirdness": [-0.0318, -0.0055],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_birch_forest",
-      "climate": {
-        "weirdness": [-0.0055, 0.0209],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:orchid_marsh",
-      "climate": {
-        "weirdness": [0.0209, 0.0473],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:swamp",
-      "climate": {
-        "weirdness": [0.0473, 0.0736],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:muddy_river",
-      "climate": {
-        "weirdness": [0.0736, 0.1],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:cypress_wetland",
-      "climate": {
-        "weirdness": [0.1, 2.0],
-        "depth": [-2.0, 0.1]
-      }
-    },
+    "minecraft:dark_forest",
+    "minecraft:old_growth_birch_forest",
+    "adventure:muddy_river",
+    "adventure:cypress_wetland",
     {
       "id": "minecraft:lush_caves",
       "climate": {
@@ -115,6 +40,20 @@
       }
     }
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:orchid_marsh": 25.4,
+      "minecraft:swamp": 5,
+      "minecraft:mangrove_swamp": 5,
+      "minecraft:bamboo_jungle": 2.8,
+      "minecraft:river": 4.1,
+      "minecraft:dark_forest": 3.8,
+      "minecraft:old_growth_birch_forest": 2.7,
+      "adventure:muddy_river": 2.3,
+      "adventure:cypress_wetland": 47.4
+    }
+  },
   "borders": {
     "player": 1024,
     "generation": 1024

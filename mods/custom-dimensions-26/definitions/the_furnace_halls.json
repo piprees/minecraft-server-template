@@ -8,42 +8,22 @@
     "preset": "nether"
   },
   "biomes": [
-    {
-      "id": "minecraft:soul_sand_valley",
-      "climate": {
-        "temperature": [-2.0, 0.031],
-        "humidity": [-2.0, -0.175]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [-2.0, 0.031],
-        "humidity": [-0.175, 0.194]
-      }
-    },
-    {
-      "id": "minecraft:crimson_forest",
-      "climate": {
-        "temperature": [-2.0, 0.031],
-        "humidity": [0.194, 2.0]
-      }
-    },
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "temperature": [0.031, 2.0],
-        "humidity": [-2.0, -0.065]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [0.031, 2.0],
-        "humidity": [-0.065, 2.0]
-      }
-    }
+    "minecraft:soul_sand_valley",
+    "minecraft:nether_wastes",
+    "minecraft:crimson_forest",
+    "adventure:magma_land",
+    "minecraft:basalt_deltas"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:soul_sand_valley": 17.8,
+      "minecraft:nether_wastes": 26.4,
+      "minecraft:crimson_forest": 14.7,
+      "adventure:magma_land": 13.1,
+      "minecraft:basalt_deltas": 27.9
+    }
+  },
   "borders": {
     "player": 1024,
     "generation": 1024

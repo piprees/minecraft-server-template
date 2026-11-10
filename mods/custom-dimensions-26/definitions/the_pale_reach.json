@@ -8,63 +8,28 @@
     "preset": "floating_islands"
   },
   "biomes": [
-    {
-      "id": "minecraft:ice_spikes",
-      "climate": {
-        "temperature": [-2.0, 0.304],
-        "humidity": [-2.0, -0.155]
-      }
-    },
-    {
-      "id": "adventure:windswept_isles",
-      "climate": {
-        "temperature": [-2.0, 0.304],
-        "humidity": [-0.155, 0.083]
-      }
-    },
-    {
-      "id": "minecraft:snowy_plains",
-      "climate": {
-        "temperature": [-2.0, 0.304],
-        "humidity": [0.083, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:frozen_peaks",
-      "climate": {
-        "temperature": [0.304, 0.747],
-        "humidity": [-2.0, -0.185]
-      }
-    },
-    {
-      "id": "minecraft:jagged_peaks",
-      "climate": {
-        "temperature": [0.304, 0.747],
-        "humidity": [-0.185, 0.011]
-      }
-    },
-    {
-      "id": "minecraft:snowy_slopes",
-      "climate": {
-        "temperature": [0.304, 0.747],
-        "humidity": [0.011, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:end_barrens",
-      "climate": {
-        "temperature": [0.747, 2.0],
-        "humidity": [-2.0, -0.042]
-      }
-    },
-    {
-      "id": "adventure:chalk_cliffs",
-      "climate": {
-        "temperature": [0.747, 2.0],
-        "humidity": [-0.042, 2.0]
-      }
-    }
+    "minecraft:ice_spikes",
+    "adventure:windswept_isles",
+    "minecraft:snowy_plains",
+    "minecraft:frozen_peaks",
+    "minecraft:jagged_peaks",
+    "minecraft:snowy_slopes",
+    "minecraft:end_barrens",
+    "adventure:chalk_cliffs"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:ice_spikes": 1,
+      "adventure:windswept_isles": 1,
+      "minecraft:snowy_plains": 1,
+      "minecraft:frozen_peaks": 1,
+      "minecraft:jagged_peaks": 4,
+      "minecraft:snowy_slopes": 23.1,
+      "minecraft:end_barrens": 12.7,
+      "adventure:chalk_cliffs": 49.4
+    }
+  },
   "liquids": {
     "seaLevel": -64,
     "defaultFluid": "minecraft:water"

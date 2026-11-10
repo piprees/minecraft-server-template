@@ -9,63 +9,28 @@
     "endIsland": false
   },
   "biomes": [
-    {
-      "id": "adventure:umbral_wastes",
-      "climate": {
-        "temperature": [-2.0, -0.414],
-        "humidity": [-2.0, -0.04]
-      }
-    },
-    {
-      "id": "minecraft:end_barrens",
-      "climate": {
-        "temperature": [-2.0, -0.414],
-        "humidity": [-0.04, 0.128]
-      }
-    },
-    {
-      "id": "adventure:ice_starfield",
-      "climate": {
-        "temperature": [-2.0, -0.414],
-        "humidity": [0.128, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:small_end_islands",
-      "climate": {
-        "temperature": [-0.414, 0.226],
-        "humidity": [-2.0, -0.068]
-      }
-    },
-    {
-      "id": "minecraft:end_midlands",
-      "climate": {
-        "temperature": [-0.414, 0.226],
-        "humidity": [-0.068, 0.079]
-      }
-    },
-    {
-      "id": "minecraft:end_highlands",
-      "climate": {
-        "temperature": [-0.414, 0.226],
-        "humidity": [0.079, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [0.226, 2.0],
-        "humidity": [-2.0, 0.046]
-      }
-    },
-    {
-      "id": "minecraft:stony_peaks",
-      "climate": {
-        "temperature": [0.226, 2.0],
-        "humidity": [0.046, 2.0]
-      }
-    }
+    "adventure:umbral_wastes",
+    "minecraft:end_barrens",
+    "adventure:ice_starfield",
+    "minecraft:small_end_islands",
+    "minecraft:end_midlands",
+    "minecraft:end_highlands",
+    "minecraft:basalt_deltas",
+    "minecraft:stony_peaks"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:umbral_wastes": 5.7,
+      "minecraft:end_barrens": 3.4,
+      "adventure:ice_starfield": 2.2,
+      "minecraft:small_end_islands": 3,
+      "minecraft:end_midlands": 4.6,
+      "minecraft:end_highlands": 7.3,
+      "minecraft:basalt_deltas": 3.5,
+      "minecraft:stony_peaks": 6.3
+    }
+  },
   "atmosphere": {
     "skyColor": "#0B0B14",
     "fogColor": "#241C2E",

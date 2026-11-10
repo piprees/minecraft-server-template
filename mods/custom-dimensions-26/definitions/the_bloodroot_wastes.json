@@ -8,43 +8,22 @@
     "preset": "nether"
   },
   "biomes": [
-    {
-      "id": "minecraft:crimson_forest",
-      "climate": {
-        "temperature": [-2.0, -0.328]
-      }
-    },
-    {
-      "id": "adventure:nether_jungle",
-      "climate": {
-        "temperature": [-0.328, -0.136]
-      }
-    },
-    {
-      "id": "adventure:upside_down_forest",
-      "climate": {
-        "temperature": [-0.136, 0.003]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [0.003, 0.164]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [0.164, 0.345]
-      }
-    },
-    {
-      "id": "minecraft:crimson_forest",
-      "climate": {
-        "temperature": [0.345, 2.0]
-      }
-    }
+    "minecraft:crimson_forest",
+    "adventure:nether_jungle",
+    "adventure:upside_down_forest",
+    "minecraft:nether_wastes",
+    "minecraft:basalt_deltas"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:crimson_forest": 30.1,
+      "adventure:nether_jungle": 16.3,
+      "adventure:upside_down_forest": 13.1,
+      "minecraft:nether_wastes": 22,
+      "minecraft:basalt_deltas": 18.5
+    }
+  },
   "atmosphere": {
     "fogColor": "#5B1B1B"
   },

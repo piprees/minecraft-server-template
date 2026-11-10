@@ -8,104 +8,18 @@
     "preset": "overworld"
   },
   "biomes": [
-    {
-      "id": "adventure:saguaro_desert",
-      "climate": {
-        "depth": [-2.0, 0.1],
-        "humidity": [-2.0, -0.5657]
-      }
-    },
-    {
-      "id": "adventure:ashen_woodland",
-      "climate": {
-        "depth": [-2.0, 0.1],
-        "humidity": [-0.5657, -0.3514]
-      }
-    },
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "depth": [-2.0, 0.1],
-        "humidity": [-0.3514, -0.1936]
-      }
-    },
-    {
-      "id": "adventure:blackstone_basin",
-      "climate": {
-        "depth": [-2.0, 0.1],
-        "humidity": [-0.1936, -0.088]
-      }
-    },
-    {
-      "id": "minecraft:savanna",
-      "climate": {
-        "depth": [-2.0, 0.1],
-        "humidity": [-0.088, -0.0531]
-      }
-    },
-    {
-      "id": "minecraft:wooded_badlands",
-      "climate": {
-        "depth": [-2.0, 0.1],
-        "humidity": [-0.0531, -0.0237]
-      }
-    },
-    {
-      "id": "minecraft:badlands",
-      "climate": {
-        "depth": [-2.0, 0.1],
-        "humidity": [-0.0237, 0.004]
-      }
-    },
-    {
-      "id": "minecraft:eroded_badlands",
-      "climate": {
-        "depth": [-2.0, 0.1],
-        "humidity": [0.004, 0.0223]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "depth": [-2.0, 0.1],
-        "humidity": [0.0223, 0.0687]
-      }
-    },
-    {
-      "id": "adventure:joshua_desert",
-      "climate": {
-        "depth": [-2.0, 0.1],
-        "humidity": [0.0687, 0.104]
-      }
-    },
-    {
-      "id": "minecraft:savanna",
-      "climate": {
-        "depth": [-2.0, 0.1],
-        "humidity": [0.104, 0.1711]
-      }
-    },
-    {
-      "id": "minecraft:windswept_savanna",
-      "climate": {
-        "depth": [-2.0, 0.1],
-        "humidity": [0.1711, 0.2069]
-      }
-    },
-    {
-      "id": "adventure:ashen_woodland",
-      "climate": {
-        "depth": [-2.0, 0.1],
-        "humidity": [0.2069, 0.2999]
-      }
-    },
-    {
-      "id": "adventure:baobab_savanna",
-      "climate": {
-        "depth": [-2.0, 0.1],
-        "humidity": [0.2999, 2.0]
-      }
-    },
+    "adventure:saguaro_desert",
+    "adventure:ashen_woodland",
+    "adventure:magma_land",
+    "adventure:blackstone_basin",
+    "minecraft:savanna",
+    "minecraft:wooded_badlands",
+    "minecraft:badlands",
+    "minecraft:eroded_badlands",
+    "minecraft:basalt_deltas",
+    "adventure:joshua_desert",
+    "minecraft:windswept_savanna",
+    "adventure:baobab_savanna",
     {
       "id": "minecraft:dripstone_caves",
       "climate": {
@@ -121,6 +35,23 @@
       }
     }
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:saguaro_desert": 1,
+      "adventure:ashen_woodland": 13.4,
+      "adventure:magma_land": 15.2,
+      "adventure:blackstone_basin": 12.4,
+      "minecraft:savanna": 14.3,
+      "minecraft:wooded_badlands": 4.1,
+      "minecraft:badlands": 3.8,
+      "minecraft:eroded_badlands": 3,
+      "minecraft:basalt_deltas": 9.4,
+      "adventure:joshua_desert": 5.8,
+      "minecraft:windswept_savanna": 4.5,
+      "adventure:baobab_savanna": 12.1
+    }
+  },
   "atmosphere": {
     "fogColor": "#7B6B5B",
     "ambientLight": 0.2

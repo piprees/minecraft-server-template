@@ -8,35 +8,20 @@
     "preset": "floating_islands"
   },
   "biomes": [
-    {
-      "id": "adventure:windswept_isles",
-      "climate": {
-        "temperature": [-2.0, 0.017],
-        "humidity": [-2.0, 0.074]
-      }
-    },
-    {
-      "id": "minecraft:snowy_plains",
-      "climate": {
-        "temperature": [-2.0, 0.017],
-        "humidity": [0.074, 2.0]
-      }
-    },
-    {
-      "id": "adventure:alpha_grove",
-      "climate": {
-        "temperature": [0.017, 2.0],
-        "humidity": [-2.0, 0.011]
-      }
-    },
-    {
-      "id": "adventure:desert_oasis",
-      "climate": {
-        "temperature": [0.017, 2.0],
-        "humidity": [0.011, 2.0]
-      }
-    }
+    "adventure:windswept_isles",
+    "minecraft:snowy_plains",
+    "adventure:alpha_grove",
+    "adventure:desert_oasis"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:windswept_isles": 1,
+      "minecraft:snowy_plains": 18.8,
+      "adventure:alpha_grove": 1,
+      "adventure:desert_oasis": 68.4
+    }
+  },
   "liquids": {
     "seaLevel": -64
   },

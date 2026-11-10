@@ -22,35 +22,20 @@
         "depth": [0.2, 2.0]
       }
     },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "temperature": [-2.0, -0.045],
-        "humidity": [-2.0, 0.082]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_birch_forest",
-      "climate": {
-        "temperature": [-2.0, -0.045],
-        "humidity": [0.082, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:cherry_grove",
-      "climate": {
-        "temperature": [-0.045, 2.0],
-        "humidity": [-2.0, -0.005]
-      }
-    },
-    {
-      "id": "adventure:wisteria_grove",
-      "climate": {
-        "temperature": [-0.045, 2.0],
-        "humidity": [-0.005, 2.0]
-      }
-    }
+    "minecraft:meadow",
+    "minecraft:old_growth_birch_forest",
+    "minecraft:cherry_grove",
+    "adventure:wisteria_grove"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:meadow": 14,
+      "minecraft:old_growth_birch_forest": 52.9,
+      "minecraft:cherry_grove": 21.8,
+      "adventure:wisteria_grove": 11.1
+    }
+  },
   "liquids": {
     "seaLevel": 66
   },

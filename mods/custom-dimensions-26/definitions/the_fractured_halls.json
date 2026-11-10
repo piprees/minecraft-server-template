@@ -9,70 +9,30 @@
     "endIsland": false
   },
   "biomes": [
-    {
-      "id": "adventure:umbral_wastes",
-      "climate": {
-        "temperature": [-2.0, -0.619],
-        "humidity": [-2.0, -0.17]
-      }
-    },
-    {
-      "id": "adventure:ice_starfield",
-      "climate": {
-        "temperature": [-2.0, -0.619],
-        "humidity": [-0.17, 0.049]
-      }
-    },
-    {
-      "id": "minecraft:deep_dark",
-      "climate": {
-        "temperature": [-2.0, -0.619],
-        "humidity": [0.049, 2.0]
-      }
-    },
-    {
-      "id": "adventure:crystal_hollows",
-      "climate": {
-        "temperature": [-0.619, -0.087],
-        "humidity": [-2.0, -0.17]
-      }
-    },
-    {
-      "id": "minecraft:small_end_islands",
-      "climate": {
-        "temperature": [-0.619, -0.087],
-        "humidity": [-0.17, 0.049]
-      }
-    },
-    {
-      "id": "minecraft:pale_garden",
-      "climate": {
-        "temperature": [-0.619, -0.087],
-        "humidity": [0.049, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:end_midlands",
-      "climate": {
-        "temperature": [-0.087, 2.0],
-        "humidity": [-2.0, -0.198]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_birch_forest",
-      "climate": {
-        "temperature": [-0.087, 2.0],
-        "humidity": [-0.198, -0.021]
-      }
-    },
-    {
-      "id": "minecraft:end_highlands",
-      "climate": {
-        "temperature": [-0.087, 2.0],
-        "humidity": [-0.021, 2.0]
-      }
-    }
+    "adventure:umbral_wastes",
+    "adventure:ice_starfield",
+    "minecraft:deep_dark",
+    "adventure:crystal_hollows",
+    "minecraft:small_end_islands",
+    "minecraft:pale_garden",
+    "minecraft:end_midlands",
+    "minecraft:old_growth_birch_forest",
+    "minecraft:end_highlands"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:umbral_wastes": 1.3,
+      "adventure:ice_starfield": 1.7,
+      "minecraft:deep_dark": 1.3,
+      "adventure:crystal_hollows": 2.9,
+      "minecraft:small_end_islands": 4.6,
+      "minecraft:pale_garden": 5.5,
+      "minecraft:end_midlands": 4.8,
+      "minecraft:old_growth_birch_forest": 6.9,
+      "minecraft:end_highlands": 13.4
+    }
+  },
   "borders": {
     "player": 4096,
     "generation": 2048

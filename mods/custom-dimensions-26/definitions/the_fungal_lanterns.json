@@ -8,49 +8,24 @@
     "preset": "caves"
   },
   "biomes": [
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [-2.0, 0.195],
-        "humidity": [-2.0, -0.17]
-      }
-    },
-    {
-      "id": "minecraft:warped_forest",
-      "climate": {
-        "temperature": [-2.0, 0.195],
-        "humidity": [-0.17, 0.08]
-      }
-    },
-    {
-      "id": "adventure:upside_down_forest",
-      "climate": {
-        "temperature": [-2.0, 0.195],
-        "humidity": [0.08, 2.0]
-      }
-    },
-    {
-      "id": "adventure:quartz_flats",
-      "climate": {
-        "temperature": [0.195, 2.0],
-        "humidity": [-2.0, -0.146]
-      }
-    },
-    {
-      "id": "adventure:bioshroom_caves",
-      "climate": {
-        "temperature": [0.195, 2.0],
-        "humidity": [-0.146, 0.042]
-      }
-    },
-    {
-      "id": "minecraft:crimson_forest",
-      "climate": {
-        "temperature": [0.195, 2.0],
-        "humidity": [0.042, 2.0]
-      }
-    }
+    "minecraft:nether_wastes",
+    "minecraft:warped_forest",
+    "adventure:upside_down_forest",
+    "adventure:quartz_flats",
+    "adventure:bioshroom_caves",
+    "minecraft:crimson_forest"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:nether_wastes": 5.7,
+      "minecraft:warped_forest": 19.9,
+      "adventure:upside_down_forest": 19.1,
+      "adventure:quartz_flats": 11.9,
+      "adventure:bioshroom_caves": 18.2,
+      "minecraft:crimson_forest": 25.2
+    }
+  },
   "liquids": {
     "seaLevel": 34,
     "defaultFluid": "minecraft:lava"

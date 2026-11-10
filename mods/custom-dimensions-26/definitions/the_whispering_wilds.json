@@ -17,133 +17,48 @@
         "weirdness": [-0.05, 0.05]
       }
     },
-    {
-      "id": "adventure:aspen_forest",
-      "climate": {
-        "temperature": [-2.0, -0.452],
-        "humidity": [-2.0, -0.249]
-      }
-    },
-    {
-      "id": "minecraft:taiga",
-      "climate": {
-        "temperature": [-2.0, -0.452],
-        "humidity": [-0.249, -0.129]
-      }
-    },
-    {
-      "id": "adventure:redwood_grove",
-      "climate": {
-        "temperature": [-2.0, -0.452],
-        "humidity": [-0.129, 0.034]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_spruce_taiga",
-      "climate": {
-        "temperature": [-2.0, -0.452],
-        "humidity": [0.034, 0.18]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_pine_taiga",
-      "climate": {
-        "temperature": [-2.0, -0.452],
-        "humidity": [0.18, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:birch_forest",
-      "climate": {
-        "temperature": [-0.452, -0.318],
-        "humidity": [-2.0, -0.235]
-      }
-    },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "temperature": [-0.452, -0.318],
-        "humidity": [-0.235, -0.107]
-      }
-    },
-    {
-      "id": "minecraft:mushroom_fields",
-      "climate": {
-        "temperature": [-0.452, -0.318],
-        "humidity": [-0.107, 0.008]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_birch_forest",
-      "climate": {
-        "temperature": [-0.452, -0.318],
-        "humidity": [0.008, 0.164]
-      }
-    },
-    {
-      "id": "minecraft:pale_garden",
-      "climate": {
-        "temperature": [-0.452, -0.318],
-        "humidity": [0.164, 2.0]
-      }
-    },
-    {
-      "id": "adventure:alpha_grove",
-      "climate": {
-        "temperature": [-0.318, -0.167],
-        "humidity": [-2.0, -0.198]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "temperature": [-0.318, -0.167],
-        "humidity": [-0.198, -0.05]
-      }
-    },
-    {
-      "id": "adventure:cloud_forest",
-      "climate": {
-        "temperature": [-0.318, -0.167],
-        "humidity": [-0.05, 0.119]
-      }
-    },
-    {
-      "id": "adventure:sugi_forest",
-      "climate": {
-        "temperature": [-0.318, -0.167],
-        "humidity": [0.119, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:sparse_jungle",
-      "climate": {
-        "temperature": [-0.167, 2.0],
-        "humidity": [-2.0, -0.198]
-      }
-    },
-    {
-      "id": "minecraft:swamp",
-      "climate": {
-        "temperature": [-0.167, 2.0],
-        "humidity": [-0.198, -0.05]
-      }
-    },
-    {
-      "id": "minecraft:mangrove_swamp",
-      "climate": {
-        "temperature": [-0.167, 2.0],
-        "humidity": [-0.05, 0.119]
-      }
-    },
-    {
-      "id": "minecraft:jungle",
-      "climate": {
-        "temperature": [-0.167, 2.0],
-        "humidity": [0.119, 2.0]
-      }
-    }
+    "adventure:aspen_forest",
+    "minecraft:taiga",
+    "adventure:redwood_grove",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:old_growth_pine_taiga",
+    "minecraft:birch_forest",
+    "minecraft:meadow",
+    "minecraft:mushroom_fields",
+    "minecraft:old_growth_birch_forest",
+    "minecraft:pale_garden",
+    "adventure:alpha_grove",
+    "minecraft:dark_forest",
+    "adventure:cloud_forest",
+    "adventure:sugi_forest",
+    "minecraft:sparse_jungle",
+    "minecraft:swamp",
+    "minecraft:mangrove_swamp",
+    "minecraft:jungle"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:aspen_forest": 1.8,
+      "minecraft:taiga": 2.2,
+      "adventure:redwood_grove": 1.8,
+      "minecraft:old_growth_spruce_taiga": 1,
+      "minecraft:old_growth_pine_taiga": 1,
+      "minecraft:birch_forest": 1.3,
+      "minecraft:meadow": 1.3,
+      "minecraft:mushroom_fields": 1.4,
+      "minecraft:old_growth_birch_forest": 1.9,
+      "minecraft:pale_garden": 2.1,
+      "adventure:alpha_grove": 4.7,
+      "minecraft:dark_forest": 4.7,
+      "adventure:cloud_forest": 4.3,
+      "adventure:sugi_forest": 3.8,
+      "minecraft:sparse_jungle": 12.8,
+      "minecraft:swamp": 14.1,
+      "minecraft:mangrove_swamp": 18.1,
+      "minecraft:jungle": 20.2
+    }
+  },
   "atmosphere": {
     "fogColor": "#2B4B2B"
   },
@@ -211,5 +126,10 @@
       "mansion",
       "mss:arena"
     ]
+  },
+  "terrain": {
+    "scales": {
+      "climate": 3.0
+    }
   }
 }

@@ -8,28 +8,18 @@
     "preset": "nether"
   },
   "biomes": [
-    {
-      "id": "adventure:quartz_flats",
-      "climate": {
-        "temperature": [-2.0, 0.146],
-        "humidity": [-2.0, -0.122]
-      }
-    },
-    {
-      "id": "minecraft:soul_sand_valley",
-      "climate": {
-        "temperature": [-2.0, 0.146],
-        "humidity": [-0.122, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [0.146, 2.0],
-        "humidity": [-2.0, 2.0]
-      }
-    }
+    "adventure:quartz_flats",
+    "minecraft:soul_sand_valley",
+    "minecraft:basalt_deltas"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:quartz_flats": 12.5,
+      "minecraft:soul_sand_valley": 45.2,
+      "minecraft:basalt_deltas": 42.3
+    }
+  },
   "atmosphere": {
     "fogColor": "#2B1B3B",
     "ambientLight": 0.06

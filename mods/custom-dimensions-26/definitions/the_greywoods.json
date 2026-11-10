@@ -22,63 +22,28 @@
         "depth": [0.2, 2.0]
       }
     },
-    {
-      "id": "adventure:dying_forest",
-      "climate": {
-        "temperature": [-2.0, -0.193],
-        "humidity": [-2.0, -0.076]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_spruce_taiga",
-      "climate": {
-        "temperature": [-2.0, -0.193],
-        "humidity": [-0.076, 0.103]
-      }
-    },
-    {
-      "id": "minecraft:pale_garden",
-      "climate": {
-        "temperature": [-2.0, -0.193],
-        "humidity": [0.103, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:birch_forest",
-      "climate": {
-        "temperature": [-0.193, -0.019],
-        "humidity": [-2.0, -0.025]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "temperature": [-0.193, -0.019],
-        "humidity": [-0.025, 0.138]
-      }
-    },
-    {
-      "id": "adventure:sugi_forest",
-      "climate": {
-        "temperature": [-0.193, -0.019],
-        "humidity": [0.138, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:swamp",
-      "climate": {
-        "temperature": [-0.019, 2.0],
-        "humidity": [-2.0, 0.013]
-      }
-    },
-    {
-      "id": "adventure:fungal_fen",
-      "climate": {
-        "temperature": [-0.019, 2.0],
-        "humidity": [0.013, 2.0]
-      }
-    }
+    "adventure:dying_forest",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:pale_garden",
+    "minecraft:birch_forest",
+    "minecraft:dark_forest",
+    "adventure:sugi_forest",
+    "minecraft:swamp",
+    "adventure:fungal_fen"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:dying_forest": 8.3,
+      "minecraft:old_growth_spruce_taiga": 6,
+      "minecraft:pale_garden": 11.5,
+      "minecraft:birch_forest": 19.4,
+      "minecraft:dark_forest": 10.3,
+      "adventure:sugi_forest": 15.9,
+      "minecraft:swamp": 16.8,
+      "adventure:fungal_fen": 11.4
+    }
+  },
   "atmosphere": {
     "fogColor": "#8B968B",
     "ambientLight": 0.1

@@ -8,77 +8,32 @@
     "of": "adventure:the_aviary"
   },
   "biomes": [
-    {
-      "id": "adventure:crystal_hollows",
-      "climate": {
-        "temperature": [-2.0, -0.147],
-        "humidity": [-2.0, -0.079]
-      }
-    },
-    {
-      "id": "minecraft:jagged_peaks",
-      "climate": {
-        "temperature": [-2.0, -0.147],
-        "humidity": [-0.079, 0.048]
-      }
-    },
-    {
-      "id": "adventure:ice_starfield",
-      "climate": {
-        "temperature": [-2.0, -0.147],
-        "humidity": [0.048, 0.172]
-      }
-    },
-    {
-      "id": "minecraft:forest",
-      "climate": {
-        "temperature": [-2.0, -0.147],
-        "humidity": [0.172, 2.0]
-      }
-    },
-    {
-      "id": "adventure:sky_highlands",
-      "climate": {
-        "temperature": [-0.147, -0.015],
-        "humidity": [-2.0, -0.079]
-      }
-    },
-    {
-      "id": "minecraft:cherry_grove",
-      "climate": {
-        "temperature": [-0.147, -0.015],
-        "humidity": [-0.079, 0.107]
-      }
-    },
-    {
-      "id": "minecraft:dark_forest",
-      "climate": {
-        "temperature": [-0.147, -0.015],
-        "humidity": [0.107, 2.0]
-      }
-    },
-    {
-      "id": "adventure:lavender_fields",
-      "climate": {
-        "temperature": [-0.015, 2.0],
-        "humidity": [-2.0, -0.021]
-      }
-    },
-    {
-      "id": "minecraft:stony_peaks",
-      "climate": {
-        "temperature": [-0.015, 2.0],
-        "humidity": [-0.021, 0.135]
-      }
-    },
-    {
-      "id": "adventure:wisteria_grove",
-      "climate": {
-        "temperature": [-0.015, 2.0],
-        "humidity": [0.135, 2.0]
-      }
-    }
+    "adventure:crystal_hollows",
+    "minecraft:jagged_peaks",
+    "adventure:ice_starfield",
+    "minecraft:forest",
+    "adventure:sky_highlands",
+    "minecraft:cherry_grove",
+    "minecraft:dark_forest",
+    "adventure:lavender_fields",
+    "minecraft:stony_peaks",
+    "adventure:wisteria_grove"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:crystal_hollows": 20.9,
+      "minecraft:jagged_peaks": 11.9,
+      "adventure:ice_starfield": 8.5,
+      "minecraft:forest": 2.2,
+      "adventure:sky_highlands": 22.8,
+      "minecraft:cherry_grove": 11.1,
+      "minecraft:dark_forest": 4.1,
+      "adventure:lavender_fields": 11.1,
+      "minecraft:stony_peaks": 1,
+      "adventure:wisteria_grove": 1
+    }
+  },
   "zones": [
     {
       "shape": "circle",

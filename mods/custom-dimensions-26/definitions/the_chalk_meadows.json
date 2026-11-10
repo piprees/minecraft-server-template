@@ -22,70 +22,30 @@
         "depth": [0.2, 2.0]
       }
     },
-    {
-      "id": "minecraft:sunflower_plains",
-      "climate": {
-        "temperature": [-2.0, -0.595],
-        "humidity": [-2.0, -0.14]
-      }
-    },
-    {
-      "id": "adventure:highland_fells",
-      "climate": {
-        "temperature": [-2.0, -0.595],
-        "humidity": [-0.14, 0.081]
-      }
-    },
-    {
-      "id": "adventure:alpine_meadow",
-      "climate": {
-        "temperature": [-2.0, -0.595],
-        "humidity": [0.081, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:flower_forest",
-      "climate": {
-        "temperature": [-0.595, -0.029],
-        "humidity": [-2.0, -0.17]
-      }
-    },
-    {
-      "id": "minecraft:plains",
-      "climate": {
-        "temperature": [-0.595, -0.029],
-        "humidity": [-0.17, 0.017]
-      }
-    },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "temperature": [-0.595, -0.029],
-        "humidity": [0.017, 2.0]
-      }
-    },
-    {
-      "id": "adventure:lavender_fields",
-      "climate": {
-        "temperature": [-0.029, 2.0],
-        "humidity": [-2.0, -0.14]
-      }
-    },
-    {
-      "id": "adventure:chalk_cliffs",
-      "climate": {
-        "temperature": [-0.029, 2.0],
-        "humidity": [-0.14, 0.081]
-      }
-    },
-    {
-      "id": "adventure:carnation_fields",
-      "climate": {
-        "temperature": [-0.029, 2.0],
-        "humidity": [0.081, 2.0]
-      }
-    }
+    "minecraft:sunflower_plains",
+    "adventure:highland_fells",
+    "adventure:alpine_meadow",
+    "minecraft:flower_forest",
+    "minecraft:plains",
+    "minecraft:meadow",
+    "adventure:lavender_fields",
+    "adventure:chalk_cliffs",
+    "adventure:carnation_fields"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:sunflower_plains": 1,
+      "adventure:highland_fells": 4.1,
+      "adventure:alpine_meadow": 13.1,
+      "minecraft:flower_forest": 7.9,
+      "minecraft:plains": 17.2,
+      "minecraft:meadow": 33.3,
+      "adventure:lavender_fields": 4.8,
+      "adventure:chalk_cliffs": 11.2,
+      "adventure:carnation_fields": 8.2
+    }
+  },
   "borders": {
     "player": 1024,
     "generation": 1024

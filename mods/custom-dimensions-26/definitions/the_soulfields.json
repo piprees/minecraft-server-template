@@ -8,37 +8,22 @@
     "preset": "overworld"
   },
   "biomes": [
-    {
-      "id": "minecraft:soul_sand_valley",
-      "climate": {
-        "temperature": [-0.6, -0.3]
-      }
-    },
-    {
-      "id": "adventure:ash_barrens",
-      "climate": {
-        "temperature": [-0.3, 0.0]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [0.0, 0.3]
-      }
-    },
-    {
-      "id": "adventure:nether_jungle",
-      "climate": {
-        "temperature": [0.3, 0.6]
-      }
-    },
-    {
-      "id": "adventure:withered_forest",
-      "climate": {
-        "temperature": [0.6, 0.9]
-      }
-    }
+    "minecraft:soul_sand_valley",
+    "adventure:ash_barrens",
+    "minecraft:nether_wastes",
+    "adventure:nether_jungle",
+    "adventure:withered_forest"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:soul_sand_valley": 29,
+      "adventure:ash_barrens": 25.6,
+      "minecraft:nether_wastes": 19.5,
+      "adventure:nether_jungle": 19.7,
+      "adventure:withered_forest": 6.3
+    }
+  },
   "liquids": {
     "seaLevel": -60
   },
@@ -112,5 +97,10 @@
       "bastion"
     ],
     "terrain": "flat"
+  },
+  "terrain": {
+    "scales": {
+      "climate": 3.0
+    }
   }
 }

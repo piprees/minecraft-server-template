@@ -3,29 +3,80 @@
   "generator": {
     "type": "minecraft:noise",
     "biome_source": {
-      "type": "minecraft:multi_noise",
-      "biomes": [
-        {
-          "biome": "adventure:ash_barrens",
-          "parameters": "sha1:7b3cc9f75af0cb08311eecb7498c6b04b7aa58cb"
-        },
-        {
-          "biome": "minecraft:soul_sand_valley",
-          "parameters": "sha1:19adb360e2f4faa9c1d5e2073d0ba5192f949d8f"
-        },
-        {
-          "biome": "adventure:withered_forest",
-          "parameters": "sha1:8b9cb0688fd002b834356cd5010a899bf28c418b"
-        },
-        {
-          "biome": "minecraft:nether_wastes",
-          "parameters": "sha1:c8d1c6d93ba6f59f3e7a21f037739368ffbce7e5"
-        },
-        {
-          "biome": "adventure:mycotoxic_undergrowth",
-          "parameters": "sha1:61c191635334214e1885cda5e1226fcf03e072c0"
-        }
-      ]
+      "type": "customdimensions:zoned",
+      "base": {
+        "type": "minecraft:multi_noise",
+        "biomes": [
+          {
+            "biome": "adventure:ash_barrens",
+            "parameters": {
+              "temperature": [-2.0, 0.0755],
+              "humidity": [-2.0, -0.6491],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:soul_sand_valley",
+            "parameters": {
+              "temperature": [-2.0, 0.0755],
+              "humidity": [-0.6491, 0.3333],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:withered_forest",
+            "parameters": {
+              "temperature": [-2.0, 0.0755],
+              "humidity": [0.3333, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:mycotoxic_undergrowth",
+            "parameters": {
+              "temperature": [0.0755, 2.0],
+              "humidity": [-2.0, 0.3878],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:nether_wastes",
+            "parameters": {
+              "temperature": [0.0755, 2.0],
+              "humidity": [0.3878, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          }
+        ]
+      },
+      "regions": {
+        "axes": [
+          "temperature",
+          "humidity"
+        ],
+        "columns": [0.0755],
+        "radius": 1024
+      }
     },
     "settings": "adventure:the_blighted_maw"
   }

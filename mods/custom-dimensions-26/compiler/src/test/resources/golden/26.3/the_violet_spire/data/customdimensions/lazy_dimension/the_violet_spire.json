@@ -10,8 +10,8 @@
           {
             "biome": "adventure:crystal_hollows",
             "parameters": {
-              "temperature": [-2.0, -0.147],
-              "humidity": [-2.0, -0.079],
+              "temperature": [-2.0, -0.3066],
+              "humidity": [-2.0, 0.2744],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -22,32 +22,8 @@
           {
             "biome": "minecraft:jagged_peaks",
             "parameters": {
-              "temperature": [-2.0, -0.147],
-              "humidity": [-0.079, 0.048],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "adventure:ice_starfield",
-            "parameters": {
-              "temperature": [-2.0, -0.147],
-              "humidity": [0.048, 0.172],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:forest",
-            "parameters": {
-              "temperature": [-2.0, -0.147],
-              "humidity": [0.172, 2.0],
+              "temperature": [-2.0, -0.3066],
+              "humidity": [0.2744, 2.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -58,8 +34,32 @@
           {
             "biome": "adventure:sky_highlands",
             "parameters": {
-              "temperature": [-0.147, -0.015],
-              "humidity": [-2.0, -0.079],
+              "temperature": [-0.3066, 0.4017],
+              "humidity": [-2.0, 0.3612],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:forest",
+            "parameters": {
+              "temperature": [-0.3066, 0.4017],
+              "humidity": [0.3612, 0.4925],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:ice_starfield",
+            "parameters": {
+              "temperature": [-0.3066, 0.4017],
+              "humidity": [0.4925, 2.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -70,8 +70,8 @@
           {
             "biome": "minecraft:cherry_grove",
             "parameters": {
-              "temperature": [-0.147, -0.015],
-              "humidity": [-0.079, 0.107],
+              "temperature": [0.4017, 2.0],
+              "humidity": [-2.0, -0.2155],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -82,8 +82,8 @@
           {
             "biome": "minecraft:dark_forest",
             "parameters": {
-              "temperature": [-0.147, -0.015],
-              "humidity": [0.107, 2.0],
+              "temperature": [0.4017, 2.0],
+              "humidity": [-0.2155, 0.0742],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -94,8 +94,8 @@
           {
             "biome": "adventure:lavender_fields",
             "parameters": {
-              "temperature": [-0.015, 2.0],
-              "humidity": [-2.0, -0.021],
+              "temperature": [0.4017, 2.0],
+              "humidity": [0.0742, 0.8587],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -106,8 +106,8 @@
           {
             "biome": "minecraft:stony_peaks",
             "parameters": {
-              "temperature": [-0.015, 2.0],
-              "humidity": [-0.021, 0.135],
+              "temperature": [0.4017, 2.0],
+              "humidity": [0.8587, 0.9293],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -118,8 +118,8 @@
           {
             "biome": "adventure:wisteria_grove",
             "parameters": {
-              "temperature": [-0.015, 2.0],
-              "humidity": [0.135, 2.0],
+              "temperature": [0.4017, 2.0],
+              "humidity": [0.9293, 2.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -1182,7 +1182,15 @@
             }
           ]
         }
-      ]
+      ],
+      "regions": {
+        "axes": [
+          "temperature",
+          "humidity"
+        ],
+        "columns": [-0.3066, 0.4017],
+        "radius": 683
+      }
     },
     "settings": "adventure:the_violet_spire"
   }

@@ -8,70 +8,30 @@
     "preset": "floating_islands"
   },
   "biomes": [
-    {
-      "id": "minecraft:ice_spikes",
-      "climate": {
-        "temperature": [-2.0, -0.001],
-        "humidity": [-2.0, -0.188]
-      }
-    },
-    {
-      "id": "adventure:windswept_isles",
-      "climate": {
-        "temperature": [-2.0, -0.001],
-        "humidity": [-0.188, 0.03]
-      }
-    },
-    {
-      "id": "minecraft:frozen_peaks",
-      "climate": {
-        "temperature": [-2.0, -0.001],
-        "humidity": [0.03, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:jagged_peaks",
-      "climate": {
-        "temperature": [-0.001, 0.24],
-        "humidity": [-2.0, -0.188]
-      }
-    },
-    {
-      "id": "minecraft:snowy_slopes",
-      "climate": {
-        "temperature": [-0.001, 0.24],
-        "humidity": [-0.188, 0.03]
-      }
-    },
-    {
-      "id": "minecraft:snowy_taiga",
-      "climate": {
-        "temperature": [-0.001, 0.24],
-        "humidity": [0.03, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:end_barrens",
-      "climate": {
-        "temperature": [0.24, 2.0],
-        "humidity": [-2.0, -0.219]
-      }
-    },
-    {
-      "id": "adventure:highland_fells",
-      "climate": {
-        "temperature": [0.24, 2.0],
-        "humidity": [-0.219, 0.07]
-      }
-    },
-    {
-      "id": "adventure:golden_skygrove",
-      "climate": {
-        "temperature": [0.24, 2.0],
-        "humidity": [0.07, 2.0]
-      }
-    }
+    "minecraft:ice_spikes",
+    "adventure:windswept_isles",
+    "minecraft:frozen_peaks",
+    "minecraft:jagged_peaks",
+    "minecraft:snowy_slopes",
+    "minecraft:snowy_taiga",
+    "minecraft:end_barrens",
+    "adventure:highland_fells",
+    "adventure:golden_skygrove"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:ice_spikes": 9.9,
+      "adventure:windswept_isles": 17.5,
+      "minecraft:frozen_peaks": 19,
+      "minecraft:jagged_peaks": 5.1,
+      "minecraft:snowy_slopes": 6.6,
+      "minecraft:snowy_taiga": 8,
+      "minecraft:end_barrens": 8.5,
+      "adventure:highland_fells": 12.2,
+      "adventure:golden_skygrove": 7.8
+    }
+  },
   "liquids": {
     "seaLevel": -64,
     "defaultFluid": "minecraft:water"

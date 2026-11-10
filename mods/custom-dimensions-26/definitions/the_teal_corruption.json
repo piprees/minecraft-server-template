@@ -8,69 +8,14 @@
     "preset": "overworld"
   },
   "biomes": [
-    {
-      "id": "minecraft:eroded_badlands",
-      "climate": {
-        "weirdness": [-2.0, -0.501],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:warped_forest",
-      "climate": {
-        "weirdness": [-0.501, -0.463],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:badlands",
-      "climate": {
-        "weirdness": [-0.463, -0.255],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:warped_forest",
-      "climate": {
-        "weirdness": [-0.255, -0.0803],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:upside_down_forest",
-      "climate": {
-        "weirdness": [-0.0803, 0.0357],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:crimson_forest",
-      "climate": {
-        "weirdness": [0.0357, 0.193],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:maple_woodland",
-      "climate": {
-        "weirdness": [0.193, 0.3823],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:ashen_woodland",
-      "climate": {
-        "weirdness": [0.3823, 0.501],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:blackstone_basin",
-      "climate": {
-        "weirdness": [0.501, 2.0],
-        "depth": [-2.0, 0.1]
-      }
-    },
+    "minecraft:eroded_badlands",
+    "minecraft:warped_forest",
+    "minecraft:badlands",
+    "adventure:upside_down_forest",
+    "minecraft:crimson_forest",
+    "adventure:maple_woodland",
+    "adventure:ashen_woodland",
+    "adventure:blackstone_basin",
     {
       "id": "minecraft:dripstone_caves",
       "climate": {
@@ -93,6 +38,19 @@
       }
     }
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:eroded_badlands": 5.7,
+      "minecraft:warped_forest": 21.8,
+      "minecraft:badlands": 13.1,
+      "adventure:upside_down_forest": 12.1,
+      "minecraft:crimson_forest": 16.4,
+      "adventure:maple_woodland": 15.4,
+      "adventure:ashen_woodland": 6.3,
+      "adventure:blackstone_basin": 7.8
+    }
+  },
   "liquids": {
     "seaLevel": -55
   },
@@ -173,5 +131,10 @@
       "towns_and_towers:exclusives/village_piglin"
     ],
     "water": "none"
+  },
+  "terrain": {
+    "scales": {
+      "climate": 2.0
+    }
   }
 }

@@ -8,62 +8,12 @@
     "preset": "overworld"
   },
   "biomes": [
-    {
-      "id": "minecraft:snowy_taiga",
-      "climate": {
-        "weirdness": [-2.0, -0.19],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:taiga",
-      "climate": {
-        "weirdness": [-0.19, -0.1417],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_pine_taiga",
-      "climate": {
-        "weirdness": [-0.1417, -0.0933],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:taiga",
-      "climate": {
-        "weirdness": [-0.0933, -0.045],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_spruce_taiga",
-      "climate": {
-        "weirdness": [-0.045, 0.0033],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:old_growth_spruce_taiga",
-      "climate": {
-        "weirdness": [0.0033, 0.0517],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:windswept_forest",
-      "climate": {
-        "weirdness": [0.0517, 0.1],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:redwood_grove",
-      "climate": {
-        "weirdness": [0.1, 2.0],
-        "depth": [-2.0, 0.1]
-      }
-    },
+    "minecraft:snowy_taiga",
+    "minecraft:taiga",
+    "minecraft:old_growth_pine_taiga",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:windswept_forest",
+    "adventure:redwood_grove",
     {
       "id": "minecraft:dripstone_caves",
       "climate": {
@@ -79,6 +29,17 @@
       }
     }
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:snowy_taiga": 36.5,
+      "minecraft:taiga": 9.1,
+      "minecraft:old_growth_pine_taiga": 4.7,
+      "minecraft:old_growth_spruce_taiga": 11.1,
+      "minecraft:windswept_forest": 5.6,
+      "adventure:redwood_grove": 31.6
+    }
+  },
   "atmosphere": {
     "fogColor": "#6B8B7B"
   },

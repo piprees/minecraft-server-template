@@ -8,85 +8,34 @@
     "preset": "nether"
   },
   "biomes": [
-    {
-      "id": "adventure:nether_grasslands",
-      "climate": {
-        "temperature": [-2.0, -0.5106]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [-0.5106, -0.4514]
-      }
-    },
-    {
-      "id": "adventure:nether_grasslands",
-      "climate": {
-        "temperature": [-0.4514, -0.2045]
-      }
-    },
-    {
-      "id": "adventure:crimson_pinewood",
-      "climate": {
-        "temperature": [-0.2045, -0.1908]
-      }
-    },
-    {
-      "id": "adventure:mycotoxic_undergrowth",
-      "climate": {
-        "temperature": [-0.1908, -0.1715]
-      }
-    },
-    {
-      "id": "adventure:sulphur_springs",
-      "climate": {
-        "temperature": [-0.1715, -0.1036]
-      }
-    },
-    {
-      "id": "minecraft:sulfur_caves",
-      "climate": {
-        "temperature": [-0.1036, -0.0304]
-      }
-    },
-    {
-      "id": "adventure:quartz_flats",
-      "climate": {
-        "temperature": [-0.0304, 0.0059]
-      }
-    },
-    {
-      "id": "adventure:nether_jungle",
-      "climate": {
-        "temperature": [0.0059, 0.0354]
-      }
-    },
-    {
-      "id": "minecraft:crimson_forest",
-      "climate": {
-        "temperature": [0.0354, 0.1007]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [0.1007, 0.1586]
-      }
-    },
-    {
-      "id": "adventure:gravel_desert",
-      "climate": {
-        "temperature": [0.1586, 0.2916]
-      }
-    },
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "temperature": [0.2916, 2.0]
-      }
-    }
+    "adventure:nether_grasslands",
+    "minecraft:nether_wastes",
+    "adventure:crimson_pinewood",
+    "adventure:mycotoxic_undergrowth",
+    "adventure:sulphur_springs",
+    "minecraft:sulfur_caves",
+    "adventure:quartz_flats",
+    "adventure:nether_jungle",
+    "minecraft:crimson_forest",
+    "adventure:gravel_desert",
+    "adventure:magma_land"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:nether_grasslands": 21.6,
+      "minecraft:nether_wastes": 9,
+      "adventure:crimson_pinewood": 1.4,
+      "adventure:mycotoxic_undergrowth": 2.1,
+      "adventure:sulphur_springs": 8.4,
+      "minecraft:sulfur_caves": 10.7,
+      "adventure:quartz_flats": 5.2,
+      "adventure:nether_jungle": 4.2,
+      "minecraft:crimson_forest": 8.2,
+      "adventure:gravel_desert": 13.7,
+      "adventure:magma_land": 15.5
+    }
+  },
   "atmosphere": {
     "fogColor": "#E8A05A",
     "ambientLight": 0.25

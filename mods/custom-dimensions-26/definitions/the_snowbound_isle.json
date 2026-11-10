@@ -8,56 +8,26 @@
     "of": "adventure:the_aviary"
   },
   "biomes": [
-    {
-      "id": "adventure:windswept_isles",
-      "climate": {
-        "temperature": [-2.0, 0.175],
-        "humidity": [-2.0, -0.133]
-      }
-    },
-    {
-      "id": "minecraft:snowy_plains",
-      "climate": {
-        "temperature": [-2.0, 0.175],
-        "humidity": [-0.133, 0.128]
-      }
-    },
-    {
-      "id": "minecraft:jagged_peaks",
-      "climate": {
-        "temperature": [-2.0, 0.175],
-        "humidity": [0.128, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:snowy_slopes",
-      "climate": {
-        "temperature": [0.175, 0.414],
-        "humidity": [-2.0, -0.013]
-      }
-    },
-    {
-      "id": "minecraft:snowy_taiga",
-      "climate": {
-        "temperature": [0.175, 0.414],
-        "humidity": [-0.013, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:cherry_grove",
-      "climate": {
-        "temperature": [0.414, 2.0],
-        "humidity": [-2.0, -0.013]
-      }
-    },
-    {
-      "id": "adventure:golden_skygrove",
-      "climate": {
-        "temperature": [0.414, 2.0],
-        "humidity": [-0.013, 2.0]
-      }
-    }
+    "adventure:windswept_isles",
+    "minecraft:snowy_plains",
+    "minecraft:jagged_peaks",
+    "minecraft:snowy_slopes",
+    "minecraft:snowy_taiga",
+    "minecraft:cherry_grove",
+    "adventure:golden_skygrove"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:windswept_isles": 5,
+      "minecraft:snowy_plains": 3.5,
+      "minecraft:jagged_peaks": 2.6,
+      "minecraft:snowy_slopes": 22.5,
+      "minecraft:snowy_taiga": 29.3,
+      "minecraft:cherry_grove": 1.4,
+      "adventure:golden_skygrove": 31.9
+    }
+  },
   "borders": {
     "player": 1024,
     "generation": 1024

@@ -8,34 +8,9 @@
     "preset": "overworld"
   },
   "biomes": [
-    {
-      "id": "adventure:wisteria_grove",
-      "climate": {
-        "weirdness": [-2.0, -0.19],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:cherry_grove",
-      "climate": {
-        "weirdness": [-0.19, -0.1578],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:cherry_grove",
-      "climate": {
-        "weirdness": [-0.1578, -0.1256],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:lavender_fields",
-      "climate": {
-        "weirdness": [-0.1256, -0.0933],
-        "depth": [-2.0, 0.1]
-      }
-    },
+    "adventure:wisteria_grove",
+    "minecraft:cherry_grove",
+    "adventure:lavender_fields",
     {
       "id": "adventure:chalk_cliffs",
       "climate": {
@@ -44,48 +19,10 @@
         "depth": [-2.0, 0.1]
       }
     },
-    {
-      "id": "minecraft:flower_forest",
-      "climate": {
-        "weirdness": [-0.0611, -0.0289],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:meadow",
-      "climate": {
-        "weirdness": [-0.0289, 0.0033],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:flower_forest",
-      "climate": {
-        "weirdness": [0.0033, 0.0356],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "minecraft:birch_forest",
-      "climate": {
-        "weirdness": [0.0356, 0.0678],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:wisteria_grove",
-      "climate": {
-        "weirdness": [0.0678, 0.1],
-        "depth": [-2.0, 0.1]
-      }
-    },
-    {
-      "id": "adventure:magnolia_woodland",
-      "climate": {
-        "weirdness": [0.1, 2.0],
-        "depth": [-2.0, 0.1]
-      }
-    },
+    "minecraft:flower_forest",
+    "minecraft:meadow",
+    "minecraft:birch_forest",
+    "adventure:magnolia_woodland",
     {
       "id": "minecraft:lush_caves",
       "climate": {
@@ -101,6 +38,18 @@
       }
     }
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:wisteria_grove": 33.4,
+      "minecraft:cherry_grove": 6.6,
+      "adventure:lavender_fields": 4.4,
+      "minecraft:flower_forest": 7.3,
+      "minecraft:meadow": 3.1,
+      "minecraft:birch_forest": 3,
+      "adventure:magnolia_woodland": 39.8
+    }
+  },
   "atmosphere": {
     "fogColor": "#E8D0C8"
   },

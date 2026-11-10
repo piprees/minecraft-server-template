@@ -22,126 +22,46 @@
         "depth": [0.2, 2.0]
       }
     },
-    {
-      "id": "adventure:gravel_desert",
-      "climate": {
-        "temperature": [-2.0, -0.329],
-        "humidity": [-2.0, -0.194]
-      }
-    },
-    {
-      "id": "adventure:umbral_wastes",
-      "climate": {
-        "temperature": [-2.0, -0.329],
-        "humidity": [-0.194, -0.066]
-      }
-    },
-    {
-      "id": "adventure:ash_barrens",
-      "climate": {
-        "temperature": [-2.0, -0.329],
-        "humidity": [-0.066, 0.034]
-      }
-    },
-    {
-      "id": "minecraft:windswept_gravelly_hills",
-      "climate": {
-        "temperature": [-2.0, -0.329],
-        "humidity": [0.034, 0.143]
-      }
-    },
-    {
-      "id": "adventure:blackstone_basin",
-      "climate": {
-        "temperature": [-2.0, -0.329],
-        "humidity": [0.143, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:soul_sand_valley",
-      "climate": {
-        "temperature": [-0.329, -0.127],
-        "humidity": [-2.0, -0.103]
-      }
-    },
-    {
-      "id": "minecraft:deep_dark",
-      "climate": {
-        "temperature": [-0.329, -0.127],
-        "humidity": [-0.103, 0.063]
-      }
-    },
-    {
-      "id": "minecraft:pale_garden",
-      "climate": {
-        "temperature": [-0.329, -0.127],
-        "humidity": [0.063, 0.198]
-      }
-    },
-    {
-      "id": "adventure:mycotoxic_undergrowth",
-      "climate": {
-        "temperature": [-0.329, -0.127],
-        "humidity": [0.198, 2.0]
-      }
-    },
-    {
-      "id": "adventure:ashen_woodland",
-      "climate": {
-        "temperature": [-0.127, 0.005],
-        "humidity": [-2.0, -0.083]
-      }
-    },
-    {
-      "id": "adventure:chalk_cliffs",
-      "climate": {
-        "temperature": [-0.127, 0.005],
-        "humidity": [-0.083, 0.039]
-      }
-    },
-    {
-      "id": "minecraft:nether_wastes",
-      "climate": {
-        "temperature": [-0.127, 0.005],
-        "humidity": [0.039, 0.181]
-      }
-    },
-    {
-      "id": "adventure:redstone_abyss",
-      "climate": {
-        "temperature": [-0.127, 0.005],
-        "humidity": [0.181, 2.0]
-      }
-    },
-    {
-      "id": "minecraft:eroded_badlands",
-      "climate": {
-        "temperature": [0.005, 2.0],
-        "humidity": [-2.0, -0.083]
-      }
-    },
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "temperature": [0.005, 2.0],
-        "humidity": [-0.083, 0.039]
-      }
-    },
-    {
-      "id": "minecraft:badlands",
-      "climate": {
-        "temperature": [0.005, 2.0],
-        "humidity": [0.039, 0.181]
-      }
-    },
-    {
-      "id": "minecraft:basalt_deltas",
-      "climate": {
-        "temperature": [0.005, 2.0],
-        "humidity": [0.181, 2.0]
-      }
-    }
+    "adventure:gravel_desert",
+    "adventure:umbral_wastes",
+    "adventure:ash_barrens",
+    "minecraft:windswept_gravelly_hills",
+    "adventure:blackstone_basin",
+    "minecraft:soul_sand_valley",
+    "minecraft:deep_dark",
+    "minecraft:pale_garden",
+    "adventure:mycotoxic_undergrowth",
+    "adventure:ashen_woodland",
+    "adventure:chalk_cliffs",
+    "minecraft:nether_wastes",
+    "adventure:redstone_abyss",
+    "minecraft:eroded_badlands",
+    "adventure:magma_land",
+    "minecraft:badlands",
+    "minecraft:basalt_deltas"
   ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:gravel_desert": 3.8,
+      "adventure:umbral_wastes": 4.8,
+      "adventure:ash_barrens": 4.8,
+      "minecraft:windswept_gravelly_hills": 4.4,
+      "adventure:blackstone_basin": 7.1,
+      "minecraft:soul_sand_valley": 6.1,
+      "minecraft:deep_dark": 6.8,
+      "minecraft:pale_garden": 5.1,
+      "adventure:mycotoxic_undergrowth": 3.8,
+      "adventure:ashen_woodland": 6.7,
+      "adventure:chalk_cliffs": 4.1,
+      "minecraft:nether_wastes": 3.9,
+      "adventure:redstone_abyss": 3.1,
+      "minecraft:eroded_badlands": 14.3,
+      "adventure:magma_land": 6.8,
+      "minecraft:badlands": 7.9,
+      "minecraft:basalt_deltas": 6.4
+    }
+  },
   "zones": [
     {
       "shape": "circle",
@@ -233,5 +153,10 @@
     "shuns": [
       "village"
     ]
+  },
+  "terrain": {
+    "scales": {
+      "climate": 3.0
+    }
   }
 }
