@@ -1,0 +1,245 @@
+name: Mod Updates
+
+# Dependabot-style updates for Modrinth mods, as two PRs. Re-pins every mod in
+# config/modrinth-mods.txt to its latest Fabric build for MC_VERSION, then
+# splits the result (scripts/dep_review/partition.py):
+#
+#   mod-updates/auto        regular updates; dep-review.yml may auto-merge it
+#   mod-updates/next-major  worldgen updates; reviewed and kept ready, merged
+#                           only by a human cutting the next major release
+#
+# Consumers pinned to a major take every minor release in it, and worldgen
+# changes cannot be undone on generated chunks (TROUBLESHOOTING.md#d2), so a
+# worldgen change ships only in a major. release.yml refuses a non-major
+# release over the next-major PR's breaking commit. Never touches production
+# directly - this only runs against a checkout in the Actions runner.
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Monday 06:00 UTC, matches dependabot.yml cadence
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: mod-updates
+  cancel-in-progress: false
+
+jobs:
+  pin:
+    name: Re-pin and split
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Carry holds from the open PRs
+        # dep-review.yml holds mods back (or releases them) by editing _holds on
+        # either PR branch; the re-pin below starts from main, so those edits
+        # come across first or the held versions would return.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for BRANCH in mod-updates/auto mod-updates/next-major; do
+            PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+            [[ -n "$PR_NUM" ]] || continue
+            git fetch --no-tags origin "$BRANCH"
+            git show FETCH_HEAD:modpack/adventure.mrpack.json > /tmp/holds-branch.json
+            git show "$(git merge-base HEAD FETCH_HEAD):modpack/adventure.mrpack.json" > /tmp/holds-base.json
+            python3 scripts/dep_review/carry_holds.py --manifest modpack/adventure.mrpack.json \
+              --branch /tmp/holds-branch.json --base /tmp/holds-base.json
+          done
+
+      - name: Resolve latest mod versions (server + client manifest)
+        run: ./scripts/pin-mod-versions.sh --apply
+
+      - name: Split regular and worldgen updates
+        run: |
+          mkdir -p variants
+          python3 scripts/dep_review/partition.py --old-ref HEAD --out-dir variants \
+            --cache "$RUNNER_TEMP/jar-cache" | tee variants/partition.log
+          mkdir -p variants/before/config variants/before/modpack
+          git show HEAD:config/modrinth-mods.txt > variants/before/config/modrinth-mods.txt
+          git show HEAD:modpack/adventure.mrpack.json > variants/before/modpack/adventure.mrpack.json
+
+      - name: Upload the variants
+        uses: actions/upload-artifact@v7
+        with:
+          name: mod-variants
+          path: variants/
+          retention-days: 7
+
+  pr:
+    name: ${{ matrix.branch }}
+    needs: pin
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: regular
+            branch: mod-updates/auto
+          - variant: worldgen
+            branch: mod-updates/next-major
+    env:
+      BRANCH: ${{ matrix.branch }}
+      VARIANT: ${{ matrix.variant }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Ensure labels exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create dependencies --color B8EE55 --force
+          gh label create minecraft --color 44BD32 --description "Minecraft server/mod content" --force
+          gh label create release:major --color 5319E7 --force \
+            --description "Ships only in the next major release"
+
+      - name: Download the variants
+        uses: actions/download-artifact@v8
+        with:
+          name: mod-variants
+          path: /tmp/variants
+
+      - name: Apply this PR's pins
+        run: |
+          cp "/tmp/variants/$VARIANT/config/modrinth-mods.txt" config/modrinth-mods.txt
+          cp "/tmp/variants/$VARIANT/modpack/adventure.mrpack.json" modpack/adventure.mrpack.json
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet -- config/modrinth-mods.txt modpack/adventure.mrpack.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Close stale PR (no updates)
+        if: steps.diff.outputs.changed == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$PR_NUM" ]]; then
+            gh pr comment "$PR_NUM" --body "Everything on this branch now matches \`main\` - closing, nothing left to update."
+            gh pr close "$PR_NUM" --delete-branch
+            echo "Closed stale PR #$PR_NUM"
+          else
+            echo "No $VARIANT updates available."
+          fi
+
+      - name: Build PR body with changelogs
+        if: steps.diff.outputs.changed == 'true'
+        id: body
+        # Count is read from the script's own stdout, because
+        # steps.body.outputs.count isn't set until this step finishes.
+        run: |
+          set -euo pipefail
+          : > /tmp/pr-body.md
+          if [[ "$VARIANT" == "worldgen" ]]; then
+            {
+              echo "> **Next major release only.** These updates change world generation, which cannot"
+              echo "> be undone on chunks already generated. Consumers pinned to the current major must"
+              echo "> not receive them in a minor release. Merge this PR only when cutting the next major;"
+              echo "> \`release.yml\` refuses a minor release once it is merged. dep-review labels it"
+              echo "> \`dep-review:ready-for-major\` while it is reviewed and green."
+              echo ""
+              echo "Every worldgen mod reaches the world through a reviewed bridge in"
+              echo "\`config/custom-dimensions/bridges/\`: diff each changed jar's structures and"
+              echo "features against its bridge (\`docs/design/rebuild-26/bridges.md\`) before merging."
+              echo ""
+            } >> /tmp/pr-body.md
+          fi
+          python3 scripts/build-mod-update-report.py \
+            --old /tmp/variants/before/config/modrinth-mods.txt \
+            --new config/modrinth-mods.txt \
+            --server-env .env.example \
+            --output /tmp/report.md | tee /tmp/body-outputs.txt >> "$GITHUB_OUTPUT"
+          cat /tmp/report.md >> /tmp/pr-body.md
+          {
+            echo ""
+            echo "## How this week's updates were split"
+            echo ""
+            echo '```'
+            cat /tmp/variants/partition.log
+            echo '```'
+          } >> /tmp/pr-body.md
+          COUNT=$(grep '^count=' /tmp/body-outputs.txt | cut -d= -f2)
+          if [[ "$VARIANT" == "worldgen" ]]; then
+            echo "title=feat(mods)!: worldgen updates for the next major ($COUNT mod version(s))" >> "$GITHUB_OUTPUT"
+          else
+            echo "title=chore: update $COUNT mod version(s)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          TITLE: ${{ steps.body.outputs.title }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add config/modrinth-mods.txt modpack/adventure.mrpack.json
+          if [[ "$VARIANT" == "worldgen" ]]; then
+            git commit -m "$TITLE" \
+              -m "BREAKING CHANGE: world generation changes for newly generated chunks; ships only in a new major release."
+          else
+            git commit -m "$TITLE"
+          fi
+          git push --force origin "$BRANCH"
+
+      - name: Open or update PR
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: ${{ steps.body.outputs.title }}
+        run: |
+          PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$PR_NUM" ]]; then
+            gh pr edit "$PR_NUM" --title "$TITLE" --body-file /tmp/pr-body.md
+            gh pr comment "$PR_NUM" --body "Refreshed with the latest available mod versions ($(date -u +%Y-%m-%d))."
+            echo "Updated PR #$PR_NUM"
+          else
+            LABELS=(--label dependencies --label minecraft)
+            [[ "$VARIANT" == "worldgen" ]] && LABELS+=(--label release:major)
+            gh pr create --title "$TITLE" --body-file /tmp/pr-body.md \
+              --base main --head "$BRANCH" "${LABELS[@]}"
+            echo "Opened new PR"
+          fi
+
+      - name: Request dependency review
+        # PRs opened or pushed with GITHUB_TOKEN trigger no pull_request
+        # workflows; dispatch is the exception.
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          gh workflow run dep-review.yml --ref main -f pr="$PR_NUM"
