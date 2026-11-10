@@ -21,6 +21,7 @@
 
   "portal.no_site": "The portal cannot find anywhere safe to put you.",
   "portal.approach.title": "{destination}",
+  "portal.block.name": "Portal",
   "server_pack.prompt": "This server offers a small resource pack that colours each portal like the world it leads to. You can join without it.",
   "win.earned": "§6{player} §rearned §e{win}§r in {dimension}.",
   "customdim.no_manager": "The level manager has not started.",

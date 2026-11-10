@@ -612,8 +612,12 @@ compose_up() {
 
 # itzg chowns /data only when /data itself is foreign, so a root host's later
 # writes under an already-chowned data/ stay root's and the server cannot
-# write its own config (as smoke-26.sh).
-if [[ "$(id -u)" -eq 0 ]]; then chown -R 1000:1000 "$CONSUMER_DIR/data"; fi
+# write its own config (as smoke-26.sh). The .seed-rolling bind mount is
+# created by Docker as root and the server writes its reports there.
+if [[ "$(id -u)" -eq 0 ]]; then
+  mkdir -p "${SEED_ROLLING_DIR:-$CONSUMER_DIR/.seed-rolling}"
+  chown -R 1000:1000 "$CONSUMER_DIR/data" "${SEED_ROLLING_DIR:-$CONSUMER_DIR/.seed-rolling}"
+fi
 compose_up seed
 SEED_EXIT=$(docker wait "${CONTAINER_PREFIX:-}seed")
 if [[ "$SEED_EXIT" != "0" ]]; then

@@ -80,7 +80,7 @@ rig_frame() { # axis x0 z0 frame-block
       FRAME_CELL="$x0 $FLOOR_Y $z0"
       FRAME_USE="$((x0 - 1)) $FLOOR_Y $z0 up"
       FRAME_STAND="$((x0 + 1)).0 $y0 $((z0 - 3)).5"
-      FRAME_LOOK="0 55"
+      FRAME_LOOK="0 28"
       FRAME_ENTER="$((x0 + 1)).0 $FLOOR_Y $((z0 + 1)).0"
       FRAME_AWAY="$((x0 + 1)).0 $y0 $((z0 - 20)).5"
       ;;

@@ -22,6 +22,13 @@ public final class Messages {
     private static final Map<String, String> DEFAULTS = Map.ofEntries(
             Map.entry(PORTAL_NO_SITE, "The portal cannot find anywhere safe to put you."),
             Map.entry(WIN_EARNED, "§6{player} §rearned §e{win}§r in {dimension}."),
+            Map.entry("portal.block.name", "Portal"),
+            Map.entry("portal.approach.title", "{destination}"),
+            Map.entry("customdim.e2e_state.done", "e2e-state: {online}/{players} player(s) online, {open}/{dimensions} dimension(s) open, {zones} zone(s) ({cold} cold), tick {tick} -> {path}"),
+            Map.entry("customdim.use.done", "{player} used {item} on {block} at {x} {y} {z} ({face}): {result}"),
+            Map.entry("customdim.use.no_player", "Run this as a player: /execute as <player> run customdim use <x> <y> <z> [face]."),
+            Map.entry("customdim.use.face", "{face} is not a block face: use up, down, north, south, east or west."),
+            Map.entry("customdim.use.reach", "{player} is {distance} blocks from that face; the reach is {reach}."),
             Map.entry("customdim.no_manager", "The level manager has not started."),
             Map.entry("customdim.unknown", "There is no dimension called {dimension}."),
             Map.entry("customdim.write_failed", "Could not write {path}: {reason}"),

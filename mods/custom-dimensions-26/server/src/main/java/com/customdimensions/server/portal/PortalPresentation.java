@@ -74,15 +74,22 @@ public final class PortalPresentation {
                 nearest = zone;
             }
         }
+        String dimension = level.dimension().identifier().toString();
         String held = TITLED.get(player.getUUID());
-        if (nearest == null || best > LEAVE) {
-            if (held != null) {
-                TITLED.remove(player.getUUID());
+        double heldDistance = Double.POSITIVE_INFINITY;
+        if (held != null) {
+            for (PortalZone zone : PortalRegistry.get().zones(level.dimension())) {
+                if (held.equals(PortalJournal.key(dimension, Pos.core(zone.landingCell())))) {
+                    heldDistance = distance(zone, eye);
+                }
             }
-            return;
         }
-        String key = PortalJournal.key(level.dimension().identifier().toString(), Pos.core(nearest.landingCell()));
-        if (best > APPROACH || key.equals(held)) {
+        String key = nearest == null ? null : PortalJournal.key(dimension, Pos.core(nearest.landingCell()));
+        Step next = next(held, heldDistance, key, best);
+        if (next.held() == null) {
+            TITLED.remove(player.getUUID());
+        }
+        if (!next.title()) {
             return;
         }
         ResourceKey<Level> destination = destination(level, nearest);
@@ -96,9 +103,26 @@ public final class PortalPresentation {
         }
         player.connection.send(new ClientboundSetTitlesAnimationPacket(FADE_IN, STAY, FADE_OUT));
         player.connection.send(new ClientboundSetTitleTextPacket(Component.literal(text)));
-        TITLED.put(player.getUUID(), key);
+        TITLED.put(player.getUUID(), next.held());
         PortalJournal.titled(new PortalJournal.Title(player.getName().getString(), level.dimension().identifier().toString(),
                 Pos.core(nearest.landingCell()), destination.identifier().toString(), text, server.getTickCount()));
+    }
+
+    /** Whether this step titles, and the zone held afterwards. */
+    record Step(boolean title, String held) {
+    }
+
+    /**
+     * The approach rule: a held zone is let go once the eye is more than {@link #LEAVE} from it
+     * (or it is gone), whichever zone is nearest; the nearest zone titles when the eye is within
+     * {@link #APPROACH} of it and it is not the one held.
+     */
+    static Step next(String held, double heldDistance, String nearestKey, double nearestDistance) {
+        String kept = held != null && heldDistance > LEAVE ? null : held;
+        if (nearestKey == null || nearestDistance > APPROACH || nearestKey.equals(kept)) {
+            return new Step(false, kept);
+        }
+        return new Step(true, nearestKey);
     }
 
     /** Where walking in leads: a source's target, or an arrival's recorded way back. */

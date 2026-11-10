@@ -38,6 +38,14 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * check of its zone's frame, and the zone breaks as one ({@link Portals#validateAt}).
  */
 public final class PortalBlock extends Block implements PolymerBlock, Portal {
+    public static final String NAME_KEY = "portal.block.name";
+
+    /** A literal name: an unmodded client has no translation for this block's key. */
+    @Override
+    public net.minecraft.network.chat.MutableComponent getName() {
+        return net.minecraft.network.chat.Component.literal(com.customdimensions.server.MessageFile.get().template(NAME_KEY));
+    }
+
     public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
     /** A dye index ({@link PortalTints#DYES}): the colour a pack client is shown. */
     public static final IntegerProperty TINT = IntegerProperty.create("tint", 0, PortalTints.COUNT - 1);

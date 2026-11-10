@@ -49,4 +49,17 @@ class MessagesTest {
             assertEquals(Messages.defaults().template(key), m.template(key), key);
         }
     }
+
+    @Test
+    void everyModKeyInTheRepositoryFileHasABuiltInDefault() throws Exception {
+        String json = java.nio.file.Files.readString(Path.of("../../../config/messages.json"));
+        com.google.gson.JsonObject root = com.google.gson.JsonParser.parseString(json).getAsJsonObject();
+        for (String key : root.keySet()) {
+            String prefix = key.substring(0, Math.max(0, key.indexOf('.')));
+            if (prefix.equals("customdim") || prefix.equals("portal") || prefix.equals("win")) {
+                org.junit.jupiter.api.Assertions.assertTrue(Messages.defaultKeys().contains(key),
+                        key + " is in config/messages.json, which no server reads, but has no built-in default");
+            }
+        }
+    }
 }
