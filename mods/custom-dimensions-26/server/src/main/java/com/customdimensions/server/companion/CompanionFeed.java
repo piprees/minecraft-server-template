@@ -134,6 +134,28 @@ public final class CompanionFeed {
         return handovers;
     }
 
+    /** One companion's feed as it stands: the portal it watches, where that leads, and what it was sent. */
+    public record Subscription(BlockPos portal, ResourceKey<Level> world, ResourceKey<Level> destination,
+                               BlockPos apertureOrigin, int chunksSent, List<Integer> entityIds, long entityTick) {
+        public Subscription {
+            entityIds = List.copyOf(entityIds);
+        }
+    }
+
+    /** This viewer's feed, or null when it watches no portal. */
+    public static Subscription subscription(UUID id) {
+        Viewer v = VIEWERS.get(id);
+        if (v == null || v.watch == null) {
+            return null;
+        }
+        Watch w = v.watch;
+        List<Integer> ids = new ArrayList<>();
+        w.seen.forEach(s -> ids.add(s.id()));
+        return new Subscription(w.zone.landingCell(), w.zone.world, w.target,
+                w.frame == null ? null : w.frame.apertureOrigin(), v.sent.getOrDefault(w.target, Set.of()).size(), ids,
+                w.entityTick);
+    }
+
     // --- The pass ----------------------------------------------------------------------------
 
     private static void tick(MinecraftServer server) {

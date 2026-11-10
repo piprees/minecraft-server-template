@@ -128,6 +128,9 @@ public final class PortalAuras {
         Aura.Pass pass = Aura.pass(new LevelAuraWorld(level), centre, Aura.exclusion(interior), state, settings,
                 subsume, Aura.remaining(budget, state.spent), random);
         state.spent += pass.spent();
+        PortalJournal.auraPass(PortalJournal.key(level.dimension().identifier().toString(),
+                com.customdimensions.core.portal.PortalGeometry.keyCell(interior)), pass.spent(), pass.claimed(),
+                level.getServer().getTickCount());
         if (pass.claimed() > 0) {
             CustomDimensions.LOG.debug("aura: pass near {} in {} spent {}, {} of {} candidates vetoed by a claim",
                     centre, level.dimension().identifier(), pass.spent(), pass.claimed(), settings.getBlocksPerPass());

@@ -2,6 +2,7 @@ package com.customdimensions.server.companion;
 
 import com.customdimensions.core.companion.ViewPreference;
 import com.customdimensions.server.CustomDimensions;
+import com.customdimensions.server.portal.PortalJournal;
 import io.netty.buffer.Unpooled;
 import java.util.Map;
 import java.util.UUID;
@@ -120,6 +121,7 @@ public final class CompanionNetwork {
     public static void forget(UUID id) {
         COMPANIONS.remove(id);
         CompanionFeed.forget(id);
+        PortalJournal.forget(id);
     }
 
     /**
@@ -131,12 +133,14 @@ public final class CompanionNetwork {
             return false;
         }
         ServerPlayNetworking.send(player, payload);
+        PortalJournal.companionPayload(player.getUUID());
         return true;
     }
 
     /** Tells a companion its crossing lands in a resident destination, so the loading screen is ceremony. */
     public static void preloaded(ServerPlayer player, ResourceKey<Level> destination) {
         if (send(player, new CompanionPayloads.PreloadedTransfer(destination.identifier()))) {
+            PortalJournal.preloadedSent(player.getUUID(), destination.identifier().toString());
             CustomDimensions.LOG.info("{} player={} dimension={}", PRELOADED_MARKER, player.getName().getString(),
                     destination.identifier());
         }

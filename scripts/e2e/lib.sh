@@ -4,11 +4,15 @@
 # Purpose: two instruments and one assertion form. Server facts come from
 #          `customdim e2e-state` as a JSON artefact; the client is read and
 #          driven through the companion mod's dev bridge on loopback.
-# Context: sourced by e2e-item*.sh and e2e-c1-render.sh. Drives Pip's real
-#          client — never a bot, and never the window manager.
+# Context: sourced by the e2e-*.sh checks. Drives a real client — never a bot,
+#          and never the window manager. On 1.21.1 the client is Prism's
+#          (`./dev launch --dev-bridge`); on 26.x it is vanilla-join.sh's with
+#          `--jvm-arg -Dcustomdimensions.devBridge=8766`, and the server needs
+#          JVM_DD_OPTS='customdimensions.e2e=true' in the consumer .env for
+#          `customdim e2e-state` and `customdim use` to exist (E2E_26 says which).
 # Usage:   source "$(dirname "$0")/lib.sh"; then state_refresh, assert_*, finish.
-#          The bridge needs `./dev launch --dev-bridge` (port 8766, loopback).
-#          BRIDGE_PORT=<n> overrides it; PLAYER=<name> overrides the player.
+#          BRIDGE_PORT=<n> overrides the bridge port (8766); PLAYER=<name> the
+#          player; CLIENT_LOG=<file> names the 26.x client's latest.log.
 # EVERY ACTION RETURNS A MEASUREMENT. A walk that does not arrive says how far
 #          it got and why it stopped; a read that has no value says so in words
 #          no assertion can mistake for one. Nothing returns silence.
@@ -28,6 +32,13 @@
 set -uo pipefail
 
 CONSUMER_DIR="${CONSUMER_DIR:-$HOME/Projects/elfydd}"
+# shellcheck source=mc-version.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/mc-version.sh"
+if e2e_is_26; then E2E_26=1; else E2E_26=0; fi
+# Inside vanilla-join.sh --during, the client's own log is known.
+if [ -z "${CLIENT_LOG:-}" ] && [ -n "${VANILLA_JOIN_GAME:-}" ]; then
+  CLIENT_LOG="$VANILLA_JOIN_GAME/logs/latest.log"
+fi
 
 # Whose client the run drives. WHITELIST first, then OPS, first name of either.
 # The local profile disables the whitelist and usually leaves WHITELIST
@@ -531,6 +542,33 @@ assert_shot() { # label name
   fi
   _record ok "$1" ">= $SHOT_MIN_BYTES bytes of framebuffer" \
     "$SHOT_PNG ($on_disk bytes, $(json_read "$BRIDGE_LAST" '"\(.width)x\(.height)"'))"
+}
+
+# The client's log: Prism's through `./dev client-log` on 1.21.1, the file
+# CLIENT_LOG names on 26.x (vanilla-join.sh's <out>/game/logs/latest.log).
+client_log_snapshot() { # outfile [tail-lines]
+  if [ "$E2E_26" -eq 1 ]; then
+    if [ -n "${CLIENT_LOG:-}" ] && [ -f "$CLIENT_LOG" ]; then
+      tail -n "${2:-8000}" "$CLIENT_LOG" > "$1"
+    else
+      printf 'no client log: CLIENT_LOG=%s\n' "${CLIENT_LOG:-unset}" > "$1"
+      return 1
+    fi
+  else
+    dev client-log --tail "${2:-8000}" > "$1" 2>/dev/null
+  fi
+}
+
+# Per fed portal (26.x companion): drawing, destination, chunks and entities
+# held, sky and fog colours. Written to $RUN_DIR/portals-<name>.json.
+bridge_portals() { # name
+  bridge_request "$RUN_DIR/portals-$1.json" GET /portals
+}
+
+# The aperture census through the nearest fed portal, or the one whose
+# aperture origin is given. Written to $RUN_DIR/census-<name>.json.
+bridge_census() { # name [x,y,z]
+  bridge_request "$RUN_DIR/census-$1.json" GET "/portal-census${2:+?origin=$2}"
 }
 
 bridge_state() {

@@ -146,7 +146,7 @@ final class AuraSelfTest {
         PortalZone zone = new PortalZone(built.interior(), def, Direction.Axis.X, level.dimension(),
                 PortalRegistry.key(def.getTargetDimension()), false);
         PortalRegistry.get().addIfAbsent(zone);
-        PortalWorld.fill(level, zone.interior, zone.axis);
+        PortalWorld.fill(level, zone.interior, zone.axis, Portals.parseColor(def.getColor()));
         zone.aura = new AuraState(List.of(PALETTE_BLOCK), List.of(), List.of(), List.of(), 0);
         Map<BlockPos, BlockState> ring = new HashMap<>();
         built.ring().forEach(p -> ring.put(p, level.getBlockState(p)));

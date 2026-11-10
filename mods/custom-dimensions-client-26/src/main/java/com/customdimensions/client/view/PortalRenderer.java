@@ -73,6 +73,12 @@ public final class PortalRenderer {
     private static ClientLevel factoryLevel;
     private static boolean failed;
 
+    /** When an opening was last emitted, by its aperture origin, and how many faces that emit drew. */
+    public record Drawn(long nanos, int faces) {
+    }
+
+    private static final Map<BlockPos, Drawn> DRAWN = new HashMap<>();
+
     public static long openingsDrawn;
     public static long facesDrawn;
     public static int lastFaces;
@@ -86,6 +92,7 @@ public final class PortalRenderer {
 
     public static void reset() {
         BUILT.clear();
+        DRAWN.clear();
         factory = null;
         factoryLevel = null;
     }
@@ -140,11 +147,12 @@ public final class PortalRenderer {
             TextureAtlasSprite white = sprite(mc, "block/white_concrete");
             openingsDrawn++;
             ctx.submitNodeCollector().submitCustomGeometry(ctx.poseStack(), RenderTypes.cutoutMovingBlock(),
-                    (pose, vc) -> emit(pose, vc, op, eye, d0, high, faces, planes, sky, fog, white));
+                    (pose, vc) -> DRAWN.put(o, new Drawn(System.nanoTime(),
+                            emit(pose, vc, op, eye, d0, high, faces, planes, sky, fog, white))));
         }
     }
 
-    private static void emit(PoseStack.Pose pose, VertexConsumer vc, Opening op, double[] eye, double d0, boolean high,
+    private static int emit(PoseStack.Pose pose, VertexConsumer vc, Opening op, double[] eye, double d0, boolean high,
                              List<Face> faces, double[][] planes, int sky, int fog, TextureAtlasSprite white) {
         int n = op.normalAxis();
         double back = high ? op.surface(true) + EPSILON : op.surface(false) - EPSILON;
@@ -197,6 +205,27 @@ public final class PortalRenderer {
         }
         lastFaces = drawn;
         facesDrawn += drawn;
+        return drawn;
+    }
+
+    /** The last emit of the opening at this aperture origin, or null when it was never drawn. */
+    public static Drawn drawn(BlockPos apertureOrigin) {
+        return DRAWN.get(apertureOrigin);
+    }
+
+    /** A fed chunk of {@code frame}'s destination, decoded, or null when it is not held. */
+    public static DecodedChunk decoded(ClientLevel level, CompanionPayloads.PortalFrame frame, Feed.Destination d,
+                                       int x, int z) {
+        DimensionType type = level.registryAccess().lookupOrThrow(Registries.DIMENSION_TYPE)
+                .getValue(frame.dimensionType());
+        if (type == null) {
+            return null;
+        }
+        if (factory == null || factoryLevel != level) {
+            factory = PalettedContainerFactory.create(level.registryAccess());
+            factoryLevel = level;
+        }
+        return chunk(d, type, x, z);
     }
 
     private static void quadVertex(PoseStack.Pose pose, VertexConsumer vc, float[] p, int rgb, Face f) {

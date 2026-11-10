@@ -523,6 +523,20 @@ if [[ -d "$LOCAL_MODS" ]] && ls "$LOCAL_MODS"/*.jar &> /dev/null 2>&1; then
   echo "  Installed $(ls "$LOCAL_MODS"/*.jar | wc -l | tr -d ' ') in-house mod JAR(s) from the bundle"
 fi
 
+# --- Stage the server resource pack ------------------------------------------
+# Mirrors deploy.sh step 8c: the 26.x mod's portal tint pack goes to
+# modpack-dist/server-pack/ for pack-web, and the RESOURCE_PACK* values are
+# exported for compose. The client fetches it through nav-proxy, so
+# pack.${LOCAL_DOMAIN} must resolve on the client's machine (the hosts line
+# printed above); SERVER_PACK_URL overrides the base.
+if [[ -f "$SCRIPT_DIR/server-pack.py" ]]; then
+  while IFS=$'\t' read -r name value; do
+    export "$name=$value"
+  done < <(python3 "$SCRIPT_DIR/server-pack.py" "$CONSUMER_DIR" \
+    "${SERVER_PACK_URL:-http://pack.${LOCAL_DOMAIN}:${WEB_PORT}}" --dist "${DIST_DIR:-$CONSUMER_DIR/modpack-dist}")
+  echo "  Server resource pack: ${RESOURCE_PACK:-none: no mod jar carries one}"
+fi
+
 # --- Pre-seed mods from mirror/cache -----------------------------------------
 # The mod mirror uses content-addressed filenames ({slug}-{versionId}.jar) but
 # itzg expects Modrinth's original filenames. mirror-map.json maps between them.

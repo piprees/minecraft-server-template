@@ -20,6 +20,8 @@ One block of ours, with a state per plane. Ignition uses Fabric's use-block even
 | Horizontal | End portal, tinted | End portal |
 | Single cell | End gateway, tinted | End gateway |
 
+The tint is the dye nearest the definition's `color`, stored in the block's `tint` state. A client that loaded the server pack (`scripts/server-pack.py`, served by pack-web) is sent a disarmed tripwire state that pack remaps to a pane in that dye; any other client, Bedrock included, is sent the vanilla block. Tints arm only when the pack the server offers is the one built into the mod's jar (`PortalTints`, `PortalTintStates`).
+
 Vanilla End gateway, End portal and Nether portal behaviour stays dark where a definition suppresses it.
 
 ## Travel

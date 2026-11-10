@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "description": "E2E rig e2e_four: one minecraft:obsidian layer at the bottom of the world under the End's black sky, for the end-to-end harness: the void destination.",
+  "seed": 2204,
+  "spawn": [
+    4,
+    -60,
+    1
+  ],
+  "generator": {
+    "type": "flat",
+    "biome": "minecraft:the_void",
+    "layers": [
+      {
+        "block": "minecraft:obsidian",
+        "height": 1
+      }
+    ]
+  },
+  "atmosphere": {
+    "ambientLight": 0.0,
+    "fixedTime": 18000,
+    "effects": "minecraft:the_end",
+    "skyColor": "#000000",
+    "fogColor": "#000000"
+  },
+  "rules": {
+    "natural": false
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "structures": {
+    "density": "sparse",
+    "clearSpawnRadius": 512
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:black_concrete",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "1D1D21",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "orientation": "vertical"
+    }
+  ]
+}

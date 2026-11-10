@@ -1,5 +1,6 @@
 package com.customdimensions.client;
 
+import com.customdimensions.client.dev.DevBridge;
 import com.customdimensions.client.dev.Rig;
 import com.customdimensions.client.feed.Feed;
 import com.customdimensions.client.view.PortalRenderer;
@@ -60,6 +61,7 @@ public final class CompanionClient implements ClientModInitializer {
         LevelRenderEvents.COLLECT_SUBMITS.register(PortalRenderer::submit);
         ClientTickEvents.END_CLIENT_TICK.register(CompanionClient::tick);
         Rig.register();
+        DevBridge.register();
     }
 
     /** This jar's release: the server admits a hello naming exactly its own. */

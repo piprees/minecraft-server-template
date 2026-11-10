@@ -76,13 +76,17 @@ public final class Ignition {
                 if (!PortalRegistry.get().addIfAbsent(zone)) {
                     return new Outcome(null, IgnitionRefusal.ALREADY_LIT, def.getId());
                 }
-                PortalWorld.fill(level, zone.interior, zone.axis);
+                PortalWorld.fill(level, zone.interior, zone.axis, Portals.parseColor(def.getColor()));
                 PortalRegistry.get().save();
                 Portals.playSound(level, Pos.mc(site.soundPos()), def.getIgniteSound());
                 spend(level, stack, player, hand, def);
                 prewarm(zone);
                 CustomDimensions.LOG.info("portal lit: {} in {} at {} ({} cells, axis {})", def.getId(),
                         level.dimension().identifier(), zone.landingCell(), zone.interior.size(), zone.axis);
+                PortalJournal.ignited(new PortalJournal.Ignition(player == null ? null : player.getName().getString(),
+                        def.getId(), level.dimension().identifier().toString(), zone.target.identifier().toString(),
+                        zone.axis.name(), Pos.core(zone.landingCell()), zone.interior.size(),
+                        level.getServer().getTickCount()));
                 return new Outcome(zone, null, def.getId());
             }
             log(level, clicked, clickedId, def, attempt.refusal());

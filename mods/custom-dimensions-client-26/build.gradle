@@ -82,6 +82,10 @@ loom {
 					vmArg "-Dorg.lwjgl.opengl.libname=${project.rigGl}"
 				}
 			}
+			// -PdevBridge=<port> opens the dev bridge (dev/DevBridge.java) on loopback for scripts/e2e/.
+			if (project.hasProperty('devBridge')) {
+				vmArg "-Dcustomdimensions.devBridge=${project.devBridge}"
+			}
 		}
 	}
 }

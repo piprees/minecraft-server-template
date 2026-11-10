@@ -237,12 +237,29 @@ services:
 
       # Custom log4j config to filter RCON spam, Vinery warnings, etc.
       JVM_OPTS: "-Dlog4j.configurationFile=/config-vol/log4j2-adventure.xml"
+      # Extra system properties, comma-separated name=value pairs. Local
+      # harness use: customdimensions.e2e=true registers the 26.x mod's
+      # `customdim e2e-state` and `customdim use` (scripts/e2e/README.md).
+      JVM_DD_OPTS: "${JVM_DD_OPTS:-}"
 
       # In-house mod log level, read by log4j2-adventure.xml via its
       # Environment Lookup. "debug" turns on the immersive-portal
       # diagnostics (projection/mask counts, deferred packets, aura passes);
       # "info" is the shipped default. Restart mc to apply.
       CUSTOMDIM_LOG_LEVEL: "${CUSTOMDIM_LOG_LEVEL:-info}"
+
+      # The server resource pack that tints portals for unmodded clients
+      # (26.x mod). deploy.sh and dev-up.sh export these from
+      # scripts/server-pack.py, which stages the pack for pack-web; empty
+      # clears the properties. The mod tints only for the pack its own jar
+      # carries, so a stale value shows vanilla portals.
+      RESOURCE_PACK: "${RESOURCE_PACK:-}"
+      RESOURCE_PACK_SHA1: "${RESOURCE_PACK_SHA1:-}"
+      RESOURCE_PACK_ID: "${RESOURCE_PACK_ID:-}"
+      RESOURCE_PACK_PROMPT: "${RESOURCE_PACK_PROMPT:-}"
+      # Never TRUE: Geyser answers a required pack as loaded without loading
+      # it, and Bedrock players would be sent the tinted states' tripwire.
+      RESOURCE_PACK_ENFORCE: "FALSE"
 
     volumes:
       # Persistent world data, config, mods, logs - the lot.

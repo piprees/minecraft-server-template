@@ -15,6 +15,8 @@
     "minecraft": "~26.3",
     "java": ">=25",
     "fabric-api": "*",
-    "polymer-core": ">=0.18.4"
+    "polymer-core": ">=0.18.4",
+    "polymer-blocks": ">=0.18.4",
+    "polymer-resource-pack": ">=0.18.4"
   }
 }

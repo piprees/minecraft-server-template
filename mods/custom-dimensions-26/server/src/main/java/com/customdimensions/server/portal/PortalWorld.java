@@ -1,5 +1,6 @@
 package com.customdimensions.server.portal;
 
+import com.customdimensions.core.portal.PortalTints;
 import com.customdimensions.core.config.PortalDefinition;
 import com.customdimensions.core.portal.ArrivalSite;
 import com.customdimensions.core.portal.FrameForms;
@@ -144,9 +145,10 @@ public final class PortalWorld {
         return FrameForms.of(forms);
     }
 
-    /** Fills an opening with portal blocks on its axis. */
-    public static void fill(ServerLevel level, Set<BlockPos> interior, Direction.Axis axis) {
-        BlockState state = Portals.block().defaultBlockState().setValue(PortalBlock.AXIS, axis);
+    /** Fills an opening with portal blocks on its axis, tinted the dye nearest {@code rgb}. */
+    public static void fill(ServerLevel level, Set<BlockPos> interior, Direction.Axis axis, int rgb) {
+        BlockState state = Portals.block().defaultBlockState().setValue(PortalBlock.AXIS, axis)
+                .setValue(PortalBlock.TINT, PortalTints.nearest(rgb));
         for (BlockPos p : interior) {
             level.setBlock(p, state, Block.UPDATE_CLIENTS);
         }

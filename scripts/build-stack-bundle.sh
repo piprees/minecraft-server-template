@@ -46,6 +46,7 @@ MANIFEST=(
   scripts/force-toml-key.py
   scripts/deploy.sh
   scripts/sync-mods.sh
+  scripts/server-pack.py
   scripts/initial-setup.sh
   scripts/infra-deploy.sh
   scripts/setup-permissions.sh

@@ -30,7 +30,9 @@ dependencies {
 	include "xyz.nucleoid:fantasy:${project.fantasy_version}"
 
 	// The portal block (decisions.md RB-11, RB-26). Loom's include is not transitive, so each module is nested.
-	for (module in ['polymer-core', 'polymer-common', 'polymer-networking', 'polymer-reg-sync-manipulator']) {
+	// polymer-blocks and polymer-resource-pack: the tinted portal states and the per-player pack check.
+	for (module in ['polymer-core', 'polymer-common', 'polymer-networking', 'polymer-reg-sync-manipulator',
+			'polymer-blocks', 'polymer-resource-pack']) {
 		implementation "eu.pb4:${module}:${project.polymer_version}"
 		include "eu.pb4:${module}:${project.polymer_version}"
 	}
@@ -65,12 +67,40 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+// The server resource pack that tints portals for unmodded clients, built from the
+// vanilla client jar Loom keeps and nested in the jar (PortalTints.PACK_RESOURCE).
+def serverPackDir = layout.buildDirectory.dir('generated/server-pack')
+def clientJar = new File(gradle.gradleUserHomeDir, "caches/fabric-loom/${project.minecraft_version}/minecraft-client.jar")
+configurations {
+	serverPackTool
+}
+dependencies {
+	serverPackTool project(':core')
+}
+def serverPack = tasks.register('serverPack', JavaExec) {
+	group = 'custom-dimensions'
+	description = 'Builds the portal tint resource pack from the vanilla client jar.'
+	def out = serverPackDir.get().file('customdimensions/server-pack.zip').asFile
+	classpath = configurations.serverPackTool
+	mainClass = 'com.customdimensions.core.portal.TintPackWriter'
+	inputs.file clientJar
+	outputs.file out
+	args clientJar.absolutePath, out.absolutePath
+	doFirst {
+		if (!clientJar.isFile()) {
+			throw new GradleException("no Minecraft client jar at ${clientJar}: Loom fetches it when the project configures")
+		}
+	}
+}
+
 processResources {
 	def version = project.version
 	inputs.property 'version', version
 	filesMatching('fabric.mod.json') {
 		expand 'version': version
 	}
+	dependsOn serverPack
+	from serverPackDir
 }
 
 // -PselfTest adds the fixture dimensions in src/selftest/definitions to a copy of

@@ -30,7 +30,8 @@ import net.minecraft.world.level.Level;
 /**
  * {@code /customdim}, permission level 4: {@code list}, {@code info},
  * {@code tp}, {@code activate}, {@code unload}, {@code delete},
- * {@code create}, {@code audit}, {@code catalogue} and {@code render}, one class per concern.
+ * {@code create}, {@code audit}, {@code catalogue}, {@code render}, {@code roll} and {@code survey}, one class per
+ * concern; {@code e2e-state} and {@code use} only under {@code -Dcustomdimensions.e2e=true}.
  * Every reply is a {@code customdim.*} template from {@code config/messages.json}.
  */
 public final class CustomDimCommands {
@@ -65,6 +66,8 @@ public final class CustomDimCommands {
         RenderCommand.attach(root);
         RollCommand.attach(root);
         SurveyCommand.attach(root);
+        E2eStateCommand.attach(root);
+        UseCommand.attach(root);
         dispatcher.register(root);
     }
 

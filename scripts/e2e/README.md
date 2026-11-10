@@ -55,41 +55,70 @@ measurement of anything.
 
 ## On 26.x
 
-The 26.x server has no `customdim e2e-state` and the 26.x companion no dev
-bridge, so on 26.x every fact is a log line, a file or a player's own NBT, and
-the real client is `vanilla-join.sh` running a pack of the companion and Fabric
-API alone. From a scaffold consumer (`examples/consumer/`) linked to this
-checkout:
+The 26.x server writes `customdim e2e-state` and runs `customdim use` when the
+JVM has `-Dcustomdimensions.e2e=true`, and the 26.x companion opens the dev
+bridge when its JVM has `-Dcustomdimensions.devBridge=<port>`. The real client
+is `vanilla-join.sh`: unmodded, or running the companion pack with
+`--jvm-arg -Dcustomdimensions.devBridge=8766`; every check that needs the
+client runs as its `--during` command, which is handed the client's X display
+(`VANILLA_JOIN_DISPLAY`) and game directory (`VANILLA_JOIN_GAME`, from which
+`lib.sh` reads the client log). The rig is four flat levels from
+`rig-26/`: `e2e_one` (where every test frame stands), `e2e_two` (sky-lit,
+magenta floor), `e2e_three` (the Nether's fog, netherrack, flat portals only)
+and `e2e_four` (a void under the End's sky), each lit with an amethyst shard
+on its own concrete. From a scaffold consumer (`examples/consumer/`) linked to
+this checkout:
 
 ```bash
-# once: the consumer selects 26.3 and holds the rig pair
+# once: the consumer selects 26.3, opens the e2e commands and holds the rig
 echo "MC_VERSION_OVERRIDE='26.3'" >> .env
+echo "JVM_DD_OPTS='customdimensions.e2e=true'" >> .env
 MC_VERSION_OVERRIDE=26.3 ./dev link <checkout>
 mkdir -p data/config/custom-dimensions/dimensions
 cp <checkout>/scripts/e2e/rig-26/e2e_*.json data/config/custom-dimensions/dimensions/
 ./dev up                                   # stages the v2 set beside them
-# the rig, then the client
+# the rig portal, the client pack, then the checks
 CONSUMER_DIR=$PWD <checkout>/scripts/e2e/build-e2e-portal.sh        # PORTAL-BUILT
 MC_VERSION_OVERRIDE=26.3 <checkout>/scripts/e2e/companion-pack.sh /tmp/companion.mrpack
+MC_VERSION_OVERRIDE=26.3 <checkout>/scripts/e2e/vanilla-join.sh --name VanillaGate \
+  --out /tmp/vanilla --hold 20 \
+  --during "PLAYER=VanillaGate CONSUMER_DIR=$PWD <checkout>/scripts/e2e/e2e-vanilla-portal.sh"
 MC_VERSION_OVERRIDE=26.3 <checkout>/scripts/e2e/vanilla-join.sh --name Rig \
-  --mrpack /tmp/companion.mrpack --out /tmp/rig --hold 30 \
-  --during "CLIENT_LOG=/tmp/rig/game/logs/latest.log <checkout>/scripts/e2e/e2e-rig-companion.sh"
+  --mrpack /tmp/companion.mrpack --jvm-arg -Dcustomdimensions.devBridge=8766 \
+  --out /tmp/rig --hold 20 \
+  --during "PLAYER=Rig CONSUMER_DIR=$PWD <checkout>/scripts/e2e/e2e-companion-portal.sh"
 <checkout>/scripts/e2e/e2e-item4-idle-unload.sh                     # no client
 ```
 
-`MC_VERSION_OVERRIDE` in the consumer's `.env` is the switch: a linked farm's
-scripts resolve `lib.sh`'s `../.minecraft-version` through the `scripts`
-symlink, so they read the checkout's file. Java 25 for the client comes from
-`JAVA_HOME`.
+`MC_VERSION_OVERRIDE` in the consumer's `.env` is the switch: `mc-version.sh`
+reads it (environment first, then the consumer's `.env`, then the checkout's
+`.minecraft-version`), and a linked farm's scripts resolve `lib.sh`'s
+`../.minecraft-version` through the `scripts` symlink, so they read the
+checkout's file. Java 25 for the client comes from `JAVA_HOME`.
+`portal-colour.py` needs Pillow (`PYTHON=<python with Pillow>`).
 
-| Script | Proves on 26.x |
+| Script | On 26.x |
 | --- | --- |
 | `build-e2e-portal.sh` | The rig portal: the link in `world/data/customdimensions/portal_links.json` and `customdimensions:portal` in all six opening cells |
-| `e2e-rig-companion.sh` | The three-way rig check (link, `companion-feed:start` to `e2e_two`, the client's `received chunks` at 20 or more), then the crossing: `companion-send:preloaded-transfer`, the client's `companion-feed: preloaded`, and arrival in `e2e_two` that holds ten seconds |
+| `e2e-vanilla-portal.sh` | An unmodded client at an X, a Z and a flat frame: every cell sent as the vanilla block for its plane, the destination's dust particles reaching the player, the destination's name as the approach title, the screenshot's centre in the portal's colour (`portal-colour.py`), the crossing and a ten-second stay, and never a companion payload. `SERVER_PACK=accept` (with `vanilla-join.sh --server-pack accept`) is the second pass: a client that loaded the server resource pack is sent one tinted tripwire state per opening and the centre is the cell's tint (`hue:RRGGBB`), never the vanilla portal |
+| `e2e-companion-portal.sh` | The companion at frames into `e2e_two`, `e2e_three` and `e2e_four`: each far side drawn (`/portals`), the aperture census landing on that destination's own blocks and on nothing in the void, a husk and an arrow in both feeds and drawn (a miss while the renderer draws fed blocks only), a far-side block change in the next census, the frame rate above `FPS_FLOOR`, and the walk in on the pre-loaded transfer |
+| `e2e-rig-companion.sh` | The three-way rig check from the logs (link, `companion-feed:start` to `e2e_two`, the client's `received chunks` at 20 or more), then the crossing: `companion-send:preloaded-transfer`, the client's `companion-feed: preloaded`, and arrival in `e2e_two` that holds ten seconds |
+| `e2e-portal-matrix.sh` | As on 1.21.1, from the v2 definitions (`portal-matrix-plan.py` reads `portals`); its render step adds the bay's `/portals` drawing and `/portal-census` hits |
+| `e2e-item2-stronghold.sh`, `e2e-item3-end-exit.sh`, `portal-aperture.sh` | As on 1.21.1, through `e2e-state`, `customdim use` and the bridge |
+| `e2e-item5-crucible.sh` | As on 1.21.1, with the companion's `companion-feed: preloaded` line in place of the two `companion-suppress` lines: the 26.x companion is told the transfer is pre-loaded and does not suppress the arrival screen |
 | `e2e-item4-idle-unload.sh` | A player in `e2e_two` keeps it open past `idleUnloadMinutes`; after the last one leaves, LevelManager's unload line and `customdim list` reading it lazy |
 | `companion-pack.sh` | Builds the companion-only client pack |
+| `rig-ready.sh` | Checks the rig; it cannot relaunch a 26.x client, which only a fresh `vanilla-join.sh` brings back, and says so |
 
-Every other script reads `e2e-state` or the bridge and runs on 1.21.1 only.
+These do not apply on 26.x and exit 3, naming why, through `mc-version.sh`:
+`e2e-c1-render.sh` (the 1.21.1 renderer's mesh markers; the 26.x render proof
+is `e2e-companion-portal.sh`), `e2e-c2-live-table.sh` (the 1.21.1 Projection
+wire; the companion check's far-side change is the 26.x liveness row),
+`e2e-c3-portal-light.sh` (1.21.1's aperture light is a fake block; the 26.x
+portal block carries its own light level), `e2e-camera-sweep.sh`,
+`shimmer-trace.sh` and `fps-motion.sh` (the 1.21.1 bridge's projection-camera
+endpoints), and `flicker-record.sh` (macOS `screencapture` against 1.21.1's
+`/frames`). They go with the 1.21.1 mod at the `v6.0.0` switch.
 
 ## The two instruments
 
@@ -97,17 +126,53 @@ Every assertion reads one of these. Nothing parses an RCON reply for data, and
 nothing touches the window manager.
 
 **The server** — `customdim e2e-state <player>`, one RCON round trip that writes
-`$CONSUMER_DIR/.seed-rolling/e2e-state.json` (or the mod's config directory when
-that mount is absent). `state_refresh` runs it and refuses an artefact whose
-`generatedAt` did not change, so the previous call's answer can never be read as
-this one's. Facts are typed: a player who is not there is `"online": false` with
-null everywhere, so a position is a number or nothing.
+`$CONSUMER_DIR/.seed-rolling/e2e-state.json` (on 1.21.1, the mod's config
+directory when that mount is absent). `state_refresh` runs it and refuses an
+artefact whose `generatedAt` did not change, so the previous call's answer can
+never be read as this one's. Facts are typed: a player who is not there is
+`"online": false` with null everywhere, so a position is a number or nothing.
+Both versions carry `server.tick`, `players[]` (name, dimension, `pos`,
+`blockPos`, yaw, pitch, `mainHandItem`, `portalCooldown`), `dimensions[]` (`id`,
+`managed`) and `zones[]` (`kind`, `world`, `targetWorld`, `axis`, `interior`,
+`resident`, `frameStands`). 26.x adds:
 
-**The client** — the companion mod's dev bridge, opened by
-`./dev launch --dev-bridge` on loopback port 8766 and deleted by a plain launch.
-`/state` reads the client's own view, `/screenshot` writes the GAME's
-framebuffer to a path it then reports, and `/input` holds a real key binding and
-comes back with how far the player got and why it stopped.
+- `server.tintPack`: the SHA-1 of the server resource pack portal tints are
+  armed for, null while they are off;
+- per player: `companion`, `serverPack` (it loaded that pack), its declared `view`, `companionPayloads` (null when
+  none was ever sent), its `feed` (portal, destination, chunks sent, the
+  entities in the last snapshot with their types), `lastIgnition`,
+  `lastTraversal` (`from`, `to`, `landing`, `preloadedSent`) and the last
+  approach `title` (destination, text, the portal, tick);
+- per dimension: `slug`, `state`, `open`, players and loaded chunks — every
+  dimension the runtime knows, open or not;
+- per zone, where its chunks are resident: `lit` and each cell's server block
+  and `clientSees` (the block an unmodded client is sent), `packSees` (the
+  tinted state a client with the server pack is sent, null while tints are
+  off) and `tint` (the dye colour, `#RRGGBB`), plus
+  `singleUseTicksLeft`, an arrival's `returnTo`, the aura's spend, budget and
+  passes, and the `particles` record (bursts, particle, colour, the players in
+  range of the last one). A closed world's zones stay listed with
+  `resident: false`;
+- the recent `ignitions` and `traversals`, oldest first, 32 of each.
+
+**The client** — the companion mod's dev bridge on loopback: on 1.21.1 opened
+by `./dev launch --dev-bridge` (port 8766) and deleted by a plain launch, on
+26.x by `-Dcustomdimensions.devBridge=<port>`. `/state` reads the client's own
+view, `/screenshot` writes the GAME's framebuffer to a path it then reports,
+and `/input` holds a real key binding and comes back with how far the player
+got and why it stopped. The 26.x bridge answers `/health`, `/state`,
+`/screenshot` and `/input` (`look`, `walk`, `use`, `slot`) in the 1.21.1
+shapes the scripts read, and adds:
+
+- `/portals`: per fed portal, its destination, offset, `chunksHeld`, the fed
+  entities, the sky and fog colours it is drawn with, and `drawing` — the
+  renderer emitted it in the last second with faces;
+- `/portal-census[?origin=x,y,z]`: rays from the eye through the aperture,
+  walked through the fed destination chunks from the far portal's own layer
+  out to 40 blocks, counted as `hits` (with block and biome counts), `unfed`
+  (a chunk the client does not hold) and `open` — so a script asserts "the
+  picture inside the frame is the far side" from the data the picture is drawn
+  from.
 
 ## Run
 
@@ -164,6 +229,9 @@ contract — damageable igniters take damage, others are untouched),
 | `portal-matrix-lib.sh` | The matrix's own helpers, apart from the driver so they can be self-tested: `assert_items`, `within_reuse_box`, `near_column`, `place_cells`, the bounded waits |
 | `portal-matrix-selftest.sh` | The planner's arithmetic and those helpers, each proved red and green against fixtures. `--mutate` breaks one piece on purpose to show which case catches it. No Minecraft, no docker, no RCON |
 | `lib-selftest.sh` | `lib.sh` itself, against fixture artefacts and a stub bridge. No Minecraft, no docker, no RCON |
+| `mc-version.sh` | Which Minecraft the stack runs, for the scripts that run on one version only: `e2e_is_26`, and `e2e_refuse_on_26`, which exits 3 with the reason |
+| `rig-frames-lib.sh` | The 26.x portal checks' frames: opens a rig level, stands an X, Z or flat frame of a rig destination in `e2e_one`, lights it through `customdim use`, and names where to stand, enter and retreat |
+| `portal-colour.py` | The share of a screenshot's centre painted as a vanilla Nether portal (violet) or End portal (near-black). `--self-test` proves the colour rules on synthetic images |
 
 ## Before you restart anything: `stack-lock.sh`
 
@@ -341,9 +409,11 @@ reason it now prevents. Read its header comments before changing an assertion.
   carves when no open site exists, and the broken arrival's frame is left
   standing, so the heightmap the next one reads has moved. Assert the dimension
   and the round trip, never a fixed arrival coordinate.
-- **A destination that idled out lists no zones at all.** `e2e-state` reports
-  zones per LOADED world, so every arrival assertion first proves the world is
-  still there rather than reading an unload as an unlink.
+- **A destination that idled out is not an unlinked one.** 1.21.1's `e2e-state`
+  reports zones per LOADED world; 26.x lists a closed world's zones with
+  `resident: false` and its dimension with `open: false`. Either way every
+  arrival assertion first proves the world is open (`world_loaded`) rather
+  than reading an unload as an unlink.
 - **`<slug>_thumb.json` is a seed-viewer sidecar, not a dimension.** There is
   one per dimension, so reading the directory naively doubles the denominator
   and files 82 "no portal block" skips against things that were never

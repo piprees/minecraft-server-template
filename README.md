@@ -153,6 +153,7 @@ Three categories, by where a script ends up and who runs it. Every script has a 
 | `clean-dev-state.sh` | Mac | `./dev clean`: delete regenerable local state by named target (`--list`, `--dry-run`); world, seed bank and backups are opt-in |
 | `service.sh` | Mac | Start, stop, restart, or check status of a service. Production refuses every `mc` action but `status`; the local profile (`./dev`) allows all of them |
 | `map-render.sh` | Mac | Drive the unmined-render sidecar: status, force a render pass |
+| `server-pack.py` | server, Mac | Stage the 26.x mod's portal tint resource pack for pack-web (`server-pack/portals.zip`) and print the `RESOURCE_PACK*` values deploy.sh and dev-up.sh export for itzg |
 | `force-toml-key.py` | server, Mac | Force one key in a mod's TOML to a value, re-applied every deploy because mods rewrite their own config |
 | `lib.sh` | (sourced) | Shared utilities: env loading, bounded RCON, the deploy lock, provider detection |
 | `stack_update.py` | CI (consumer) | The `Updates` workflow's stack job: picks the highest stable release, sizes the bump, writes the PR body, checks every image exists at the target version |

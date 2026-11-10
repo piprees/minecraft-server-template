@@ -1,5 +1,6 @@
 package com.customdimensions.server.portal;
 
+import com.customdimensions.core.portal.PortalTints;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.BlockPos;
@@ -20,6 +21,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -28,30 +30,38 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 /**
  * The one portal block ({@code customdimensions:portal}). Upright on the X or
  * Z axis a vanilla client sees a Nether portal on that axis; flat (Y) it sees
- * an End portal. The vanilla {@link Portal} interface does the teleport;
- * {@link PortalTravel} decides where to.
+ * an End portal. A client that loaded the server pack sees a pane in the
+ * cell's {@code tint} instead ({@link PortalTintStates}). The vanilla
+ * {@link Portal} interface does the teleport; {@link PortalTravel} decides where to.
  * <p>
  * It never pops itself on a neighbour update: a change beside it schedules a
  * check of its zone's frame, and the zone breaks as one ({@link Portals#validateAt}).
  */
 public final class PortalBlock extends Block implements PolymerBlock, Portal {
     public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
+    /** A dye index ({@link PortalTints#DYES}): the colour a pack client is shown. */
+    public static final IntegerProperty TINT = IntegerProperty.create("tint", 0, PortalTints.COUNT - 1);
     private static final VoxelShape X_SHAPE = Block.box(0, 0, 6, 16, 16, 10);
     private static final VoxelShape Z_SHAPE = Block.box(6, 0, 0, 10, 16, 16);
     private static final VoxelShape Y_SHAPE = Block.box(0, 6, 0, 16, 12, 16);
 
     public PortalBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(AXIS, Direction.Axis.X));
+        registerDefaultState(stateDefinition.any().setValue(AXIS, Direction.Axis.X).setValue(TINT, PortalTints.DEFAULT));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(AXIS);
+        builder.add(AXIS, TINT);
     }
 
     @Override
     public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
+        return PortalTintStates.clientState(state.getValue(AXIS), state.getValue(TINT), vanilla(state), context);
+    }
+
+    /** What a client without the server pack is sent. */
+    public static BlockState vanilla(BlockState state) {
         return switch (state.getValue(AXIS)) {
             case X -> Blocks.NETHER_PORTAL.defaultBlockState().setValue(NetherPortalBlock.AXIS, Direction.Axis.X);
             case Z -> Blocks.NETHER_PORTAL.defaultBlockState().setValue(NetherPortalBlock.AXIS, Direction.Axis.Z);

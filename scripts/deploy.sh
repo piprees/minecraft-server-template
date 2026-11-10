@@ -5,7 +5,7 @@
 # Sequence: in-game countdown (60s->1s) -> clear whitelist (blocks joins) ->
 # kick all -> save-all flush -> stop mc -> pull images -> re-run seed ->
 # seed mod configs into data/config/ -> apply overlay -> datapacks ->
-# enforce Discord config ->
+# enforce Discord config -> stage the server resource pack (8c) ->
 # Modrinth sync IF mod list changed -> compose up -> force-recreate sidecars ->
 # wait for RCON (180s) -> world borders -> game rules -> LuckPerms -> spawn ->
 # restore whitelist -> welcome back -> docker prune.
@@ -589,6 +589,23 @@ if [[ -d "$LOCAL_MODS" ]] && ls "$LOCAL_MODS"/*.jar &> /dev/null 2>&1; then
   # Record what we installed so the stale-jar prune exempts these names.
   for j in "$LOCAL_MODS"/*.jar; do basename "$j"; done > "$SERVER_DIR/data/mods/.local-mods-manifest"
   echo "  Copied $(ls "$LOCAL_MODS"/*.jar | wc -l | tr -d ' ') mod JAR(s)"
+fi
+
+# =============================================================================
+# 8c. Stage the server resource pack (before mc starts)
+# =============================================================================
+# The 26.x mod's jar carries the pack that tints portals for unmodded clients.
+# server-pack.py copies it to modpack-dist/server-pack/ for pack-web and
+# prints the RESOURCE_PACK* values compose hands to itzg; with no such jar
+# they are empty and the properties are cleared.
+PACK_BASE="${SERVER_PACK_URL:-${DOMAIN:+https://pack.$DOMAIN}}"
+if [[ -f "$SCRIPT_DIR/server-pack.py" && -n "$PACK_BASE" ]]; then
+  echo ""
+  echo "==> Staging the server resource pack..."
+  while IFS=$'\t' read -r name value; do
+    export "$name=$value"
+  done < <(python3 "$SCRIPT_DIR/server-pack.py" "$SERVER_DIR" "$PACK_BASE" --dist "${DIST_DIR:-$SERVER_DIR/modpack-dist}")
+  echo "  ${RESOURCE_PACK:-none: no mod jar carries a server pack}"
 fi
 
 # Repair known-bad data inside third-party mod jars (idempotent; a patched

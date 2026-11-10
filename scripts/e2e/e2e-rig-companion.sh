@@ -45,7 +45,7 @@ rc() { timeout 20 docker exec -i mc rcon-cli "$1" 2>&1 | tr -d '\r'; }
 slog() { docker logs mc --since "$SINCE" > "$OUT/server.log" 2>&1; cat "$OUT/server.log"; }
 check() { # label ok|fail detail
   printf '%s\t%s\t%s\n' "$2" "$1" "$3" >> "$OUT/assertions.tsv"
-  printf '  %-4s %s (%s)\n' "$(echo "$2" | tr a-z A-Z)" "$1" "$3"
+  printf '  %-4s %s (%s)\n' "$(echo "$2" | tr '[:lower:]' '[:upper:]')" "$1" "$3"
   [[ "$2" == ok ]] || FAILED=1
 }
 dimension() { rc "data get entity $PLAYER Dimension" | sed -nE 's/.*: "([^"]+)".*/\1/p'; }

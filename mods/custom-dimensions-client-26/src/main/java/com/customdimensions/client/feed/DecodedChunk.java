@@ -55,6 +55,16 @@ public final class DecodedChunk {
         return sections[i].getBlockState(x & 15, y & 15, z & 15);
     }
 
+    /** The biome id at this block's quarter cell, or null where the destination's registry has no key for it. */
+    public String biome(int x, int y, int z) {
+        int i = (y - minY) >> 4;
+        if (y < minY || i >= sections.length) {
+            return null;
+        }
+        return sections[i].getNoiseBiome((x & 15) >> 2, (y & 15) >> 2, (z & 15) >> 2).unwrapKey()
+                .map(k -> k.identifier().toString()).orElse(null);
+    }
+
     public int skyLight(int x, int y, int z) {
         return sky.get(Math.floorDiv(y - minY, 16), x, y, z);
     }

@@ -57,11 +57,27 @@ public final class PortalTravel {
             return null;
         }
         try {
-            return zone.arrival ? back(level, entity, pos, zone) : out(level, entity, pos, zone);
+            return journalled(zone.arrival ? back(level, entity, pos, zone) : out(level, entity, pos, zone),
+                    level, entity, pos, zone);
         } catch (RuntimeException e) {
             CustomDimensions.LOG.warn("portal travel from {} at {} failed", level.dimension().identifier(), pos, e);
             return null;
         }
+    }
+
+    /** A player's crossing is journalled once its post-teleport step runs, which is when it has arrived. */
+    private static TeleportTransition journalled(TeleportTransition t, ServerLevel from, Entity entity, BlockPos pos,
+                                                 PortalZone zone) {
+        if (t == null || !(entity instanceof ServerPlayer)) {
+            return t;
+        }
+        String to = t.newLevel().dimension().identifier().toString();
+        BlockPos landing = BlockPos.containing(t.position());
+        TeleportTransition.PostTeleportTransition record = e -> PortalJournal.traversed(new PortalJournal.Traversal(
+                e.getName().getString(), from.dimension().identifier().toString(), to, Pos.core(pos), Pos.core(landing),
+                zone.arrival, PortalJournal.takePreloaded(e.getUUID(), to), from.getServer().getTickCount()));
+        return new TeleportTransition(t.newLevel(), t.position(), t.deltaMovement(), t.yRot(), t.xRot(),
+                t.missingRespawnBlock(), t.asPassenger(), t.relatives(), t.postTeleportTransition().then(record));
     }
 
     /** "Not yet": the next tick asks again. */
@@ -260,7 +276,7 @@ public final class PortalTravel {
         registry.addIfAbsent(arrival);
         PortalWorld.clearArrival(level, interior, axis);
         PortalWorld.buildFrame(level, interior, axis, def);
-        PortalWorld.fill(level, interior, axis);
+        PortalWorld.fill(level, interior, axis, color);
         registry.save();
         return arrival;
     }

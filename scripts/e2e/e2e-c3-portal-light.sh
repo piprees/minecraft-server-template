@@ -38,6 +38,9 @@
 
 # shellcheck disable=SC2034  # lib.sh reads it to name the run dir
 SCRIPT_NAME="c3-portal-light"
+# shellcheck source=mc-version.sh
+. "$(cd "$(dirname "$0")" && pwd)/mc-version.sh"
+e2e_refuse_on_26 "the 1.21.1 aperture light is a fake block it measures with customdim portal-light; the 26.3 portal block carries its own light level, so there is no fake light to find"
 # shellcheck source=lib.sh
 . "$(cd "$(dirname "$0")" && pwd)/lib.sh"
 

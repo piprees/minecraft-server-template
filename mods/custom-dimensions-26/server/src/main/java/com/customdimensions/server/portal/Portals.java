@@ -49,6 +49,8 @@ public final class Portals {
     public static final int NEUTRAL_COLOR = 0x8844FF;
     static final int PARTICLE_INTERVAL = 10;
     static final int VALIDATE_INTERVAL = 20;
+    /** Vanilla sends a particle to the players within this many blocks of it. */
+    static final double PARTICLE_RANGE = 32.0;
 
     private static PortalBlock block;
 
@@ -64,8 +66,10 @@ public final class Portals {
         block = Registry.register(BuiltInRegistries.BLOCK, key, new PortalBlock(BlockBehaviour.Properties.of()
                 .setId(key).noCollision().strength(-1.0f, 3600000.0f).noLootTable().sound(SoundType.GLASS)
                 .lightLevel(state -> 11).pushReaction(PushReaction.IMMOVEABLE)));
+        PortalTintStates.register();
         PortalTickets.register();
         Ignition.register();
+        PortalPresentation.register();
         LevelManager.onClose(PortalTickets::release);
         LevelManager.onDelete(PortalRegistry.get()::forgetWorld);
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
@@ -78,6 +82,8 @@ public final class Portals {
             PortalTickets.clear();
             ExitPortals.clear();
             ExitShrines.clear();
+            PortalJournal.clear();
+            PortalPresentation.clear();
         });
         ServerTickEvents.END_LEVEL_TICK.register(Portals::tick);
         ServerChunkEvents.CHUNK_LOAD.register((level, chunk, generated) -> ExitShrines.onChunkLoad(level, chunk));
@@ -111,7 +117,7 @@ public final class Portals {
     }
 
     /** Every chunk under the opening and its frame is resident, so checking it loads nothing. */
-    static boolean loaded(ServerLevel level, PortalZone zone) {
+    public static boolean loaded(ServerLevel level, PortalZone zone) {
         int minX = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
         for (BlockPos p : zone.interior) {
             minX = Math.min(minX, p.getX());
@@ -153,7 +159,7 @@ public final class Portals {
             full &= portal;
         }
         if (empty) {
-            PortalWorld.fill(level, zone.interior, zone.axis);
+            PortalWorld.fill(level, zone.interior, zone.axis, colour(level, zone));
         } else if (!full) {
             breakZone(level, zone);
         }
@@ -307,12 +313,11 @@ public final class Portals {
         if (level.players().isEmpty()) {
             return;
         }
-        int color = parseColor(zone.definition.getColor());
+        int color = colour(level, zone);
         String type = zone.definition.getParticleType();
         if (zone.arrival) {
             PortalZone.ReturnTarget t = PortalRegistry.get().target(level.dimension(), zone.landingCell());
             if (t != null) {
-                color = t.color();
                 type = t.particleType();
             }
         }
@@ -320,6 +325,27 @@ public final class Portals {
         for (BlockPos p : zone.interior) {
             level.sendParticles(effect, p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5, 1, 0.3, 0.3, 0.3, 0.01);
         }
+        BlockPos at = zone.landingCell();
+        Set<String> inRange = new HashSet<>();
+        for (net.minecraft.server.level.ServerPlayer player : level.players()) {
+            if (player.blockPosition().closerThan(at, PARTICLE_RANGE)) {
+                inRange.add(player.getName().getString());
+            }
+        }
+        PortalJournal.particles(PortalJournal.key(level.dimension().identifier().toString(), Pos.core(at)),
+                level.getServer().getTickCount(), BuiltInRegistries.PARTICLE_TYPE.getKey(effect.getType()).toString(),
+                color, inRange);
+    }
+
+    /** A zone's colour: its definition's, or for an arrival the recorded way back's. */
+    static int colour(ServerLevel level, PortalZone zone) {
+        if (zone.arrival) {
+            PortalZone.ReturnTarget t = PortalRegistry.get().target(level.dimension(), zone.landingCell());
+            if (t != null) {
+                return t.color();
+            }
+        }
+        return parseColor(zone.definition.getColor());
     }
 
     /** A simple particle by id, else dust in the portal's colour. */

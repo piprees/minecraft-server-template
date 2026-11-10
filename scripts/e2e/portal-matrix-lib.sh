@@ -37,11 +37,12 @@ arrival_zone_count() { # world
   state_read "[.zones[] | select(.kind==\"arrival\" and .world==\"$1\")] | length"
 }
 
-# e2e-state lists zones only for worlds that are loaded right now, so an idled
-# destination reports no arrival zones for a reason that is not an unlink.
-# Every arrival assertion asks this first.
+# 1.21.1 e2e-state lists zones and dimensions only for loaded worlds, so an
+# idled destination reports no arrival zones for a reason that is not an
+# unlink. 26.x lists every dimension with `open`, and a closed world's zones
+# stay listed with `resident: false`. Every arrival assertion asks this first.
 world_loaded() { # world
-  state_read "[.dimensions[] | select(.id==\"$1\")] | length"
+  state_read "[.dimensions[] | select(.id==\"$1\" and .open != false)] | length"
 }
 
 # --- arithmetic the assertions turn on --------------------------------------

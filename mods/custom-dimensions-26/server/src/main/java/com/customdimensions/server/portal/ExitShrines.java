@@ -96,7 +96,7 @@ public final class ExitShrines {
             PortalZone zone = new PortalZone(interior, def, axis, level.dimension(), Level.OVERWORLD, true);
             registry.addIfAbsent(zone);
             relay(level, beacon, dir, def);
-            PortalWorld.fill(level, interior, axis);
+            PortalWorld.fill(level, interior, axis, target.color());
             registry.save();
             CustomDimensions.LOG.info("exit shrine registered in {} at {} (axis {}) to {}", level.dimension().identifier(),
                     beacon.toShortString(), axis, exitMode);

@@ -261,6 +261,20 @@ variant runs on OpenGL, the backend Iris uses.
 
 The checked-in set is `docs/screens/`, scaled to 960 px wide.
 
+## The dev bridge
+
+`dev/DevBridge.java`, off unless the JVM has
+`-Dcustomdimensions.devBridge=<port>` (`-PdevBridge=<port>` on `runClient`,
+`--jvm-arg` on `scripts/e2e/vanilla-join.sh`): loopback HTTP for the
+end-to-end harness, every read on the client thread. `/health`, `/state`,
+`/screenshot` and `/input` (`look`, `walk`, `use`, `slot`) answer in the shapes
+`scripts/e2e/lib.sh` reads; `/portals` reports each fed portal (drawn in the
+last second or not, destination, chunks and entities held, sky and fog
+colours) and `/portal-census` casts `dev/ApertureCensus.java`'s rays through an
+aperture into the fed chunks and counts the blocks and biomes they land on.
+Contract: [`scripts/e2e/README.md`](../../scripts/e2e/README.md) § The two
+instruments.
+
 ## Not ported
 
 - **Destination entities and projectiles are received, not drawn.** Snapshots
@@ -275,6 +289,5 @@ The checked-in set is `docs/screens/`, scaled to 960 px wide.
 - **The projection/v3 slab, the fake-block store and its renderer**, which
   served the server-painted projection that RB-03 removes. `keepSlab` stays on
   the wire because the server expects it.
-- **The settings screen and stored settings, the developer HTTP bridge and its
-  actions, the arrival screen and the preloaded-transfer loading skip.**
-  `preloaded/v1` is received and logged.
+- **The settings screen and stored settings, the arrival screen and the
+  preloaded-transfer loading skip.** `preloaded/v1` is received and logged.

@@ -30,16 +30,24 @@
 #   scripts/e2e/vanilla-join.sh [--version V] [--server host:port] [--name N]
 #       [--hold SECONDS] [--join-timeout SECONDS] [--cache DIR] [--out DIR]
 #       [--container mc] [--during 'command run once joined']
-#       [--mrpack FILE] [--expect REGEX]
+#       [--mrpack FILE] [--expect REGEX] [--jvm-arg ARG]...
+#       [--server-pack accept|decline]
 #
 #   --version       default: mc_version (MC_VERSION_OVERRIDE, else .minecraft-version)
 #   --server        default 127.0.0.1:25577 (docker-compose.yml's SERVER_PORT)
 #   --hold          default 60
 #   --join-timeout  default 600: software GL takes minutes to reach the title screen
 #   --during        runs after the join, while the client stays connected (the
-#                   admin parity check with --player uses it)
+#                   admin parity check with --player uses it), with
+#                   VANILLA_JOIN_DISPLAY (the client's X display) and
+#                   VANILLA_JOIN_GAME (its game directory) in its environment
 #   --mrpack        a built .mrpack (scripts/build-modpack.sh) to install and run
 #   --expect        a regex the server log must show by the end of the hold
+#   --jvm-arg       one more client JVM argument, repeatable; the companion's
+#                   dev bridge is -Dcustomdimensions.devBridge=8766
+#   --server-pack   the answer to a server resource pack, default decline:
+#                   written as the server entry's acceptTextures in servers.dat,
+#                   which quick play reads, so no prompt waits for a click
 #
 # Gotchas:
 #   - Linux only (Xvfb with GLX, Mesa). The client renders through SDL3 with
@@ -73,6 +81,8 @@ DURING=""
 MRPACK=""
 EXPECT=""
 KIND="Vanilla"
+USER_JVM=()
+SERVER_PACK="decline"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --version) VERSION="$2" ;;
@@ -86,6 +96,8 @@ while [[ $# -gt 0 ]]; do
     --during) DURING="$2" ;;
     --mrpack) MRPACK="$2" ;;
     --expect) EXPECT="$2" ;;
+    --jvm-arg) USER_JVM+=("$2") ;;
+    --server-pack) SERVER_PACK="$2" ;;
     *)
       sed -n '/^# Usage:/,/^# Gotchas:/p' "$0" | sed '$d' | sed 's/^# \{0,1\}//' >&2
       exit 2
@@ -94,6 +106,13 @@ while [[ $# -gt 0 ]]; do
   shift 2
 done
 [[ -n "$VERSION" ]] || VERSION="$(mc_version)"
+case "$SERVER_PACK" in
+  accept | decline) ;;
+  *)
+    echo "ERROR: --server-pack takes accept or decline, not $SERVER_PACK" >&2
+    exit 2
+    ;;
+esac
 mkdir -p "$OUT" "$CACHE"
 OUT="$(cd "$OUT" && pwd)"
 CACHE="$(cd "$CACHE" && pwd)"
@@ -262,6 +281,23 @@ PY
   MAIN="$(sed -n 's/^MAIN //p' "$VDIR/fabric-$LOADER.txt")"
   while IFS= read -r arg; do JVM_EXTRA+=("$arg"); done < <(sed -n 's/^JVM //p' "$VDIR/fabric-$LOADER.txt")
 fi
+# servers.dat: one entry for --server whose acceptTextures answers the pack
+# prompt. A pack's own servers.dat is kept.
+if [[ ! -f "$GAME/servers.dat" ]]; then
+  python3 - "$GAME/servers.dat" "$SERVER" "$SERVER_PACK" << 'PY'
+import struct, sys
+def text(s):
+    b = s.encode("utf-8")
+    return struct.pack(">H", len(b)) + b
+def named(tag, name, payload):
+    return bytes([tag]) + text(name) + payload
+entry = (named(8, "ip", text(sys.argv[2])) + named(8, "name", text("e2e"))
+         + named(1, "acceptTextures", bytes([1 if sys.argv[3] == "accept" else 0])) + b"\x00")
+root = named(10, "", named(9, "servers", bytes([10]) + struct.pack(">i", 1) + entry) + b"\x00")
+open(sys.argv[1], "wb").write(root)
+PY
+fi
+echo "  server resource pack: $SERVER_PACK"
 if [[ -n "$MRPACK" || -n "${GL_SHIM:-}" ]]; then
   SHIM_SRC="$SCRIPT_DIR/../../mods/custom-dimensions-client-26/rig/srgbshim.c"
   SHIM="$CACHE/libsrgbshim.so"
@@ -288,6 +324,7 @@ since="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 UUID="$(python3 -c 'import hashlib,sys,uuid; h=bytearray(hashlib.md5(("OfflinePlayer:"+sys.argv[1]).encode()).digest()); h[6]=h[6]&0x0f|0x30; h[8]=h[8]&0x3f|0x80; print(uuid.UUID(bytes=bytes(h)))' "$NAME")"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-$(mktemp -d)}"
 chmod 700 "$XDG_RUNTIME_DIR"
+JVM_EXTRA+=(${USER_JVM[@]+"${USER_JVM[@]}"})
 # From the game directory, as a launcher runs it: Configured Defaults copies
 # into the working directory. A UTF-8 locale lets Java open pack files whose
 # names carry a § (LowOnFire).
@@ -322,7 +359,7 @@ until server_log | grep -q "$NAME joined the game"; do
 done
 echo "  joined after ${waited}s; holding ${HOLD}s"
 if [[ -n "$DURING" ]]; then
-  bash -c "$DURING" > "$OUT/during.log" 2>&1 || echo "  the --during command failed (see $OUT/during.log)"
+  VANILLA_JOIN_DISPLAY="$DISPLAY_NUM" VANILLA_JOIN_GAME="$GAME" bash -c "$DURING" > "$OUT/during.log" 2>&1 || echo "  the --during command failed (see $OUT/during.log)"
 fi
 
 held=0

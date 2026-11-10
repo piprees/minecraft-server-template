@@ -373,6 +373,26 @@ check("and it produces no bay and no skip record of its own",
       "standard_thumb" not in skipped
       and all(b["slug"] != "standard_thumb" for b in p["bays"]),
       sorted(skipped))
+# Schema v2 (26.x) lists portals; the matrix builds the one vanilla does not own.
+V2 = {"schemaVersion": 2, "portals": [
+    {"vanillaManaged": True, "frameBlock": "minecraft:obsidian"},
+    {"frameBlock": "minecraft:calcite", "igniterItem": "minecraft:diamond", "scale": 2.0}]}
+check("a v2 definition's portal is its first that vanilla does not own",
+      (plan.portal_of(V2) or {}).get("frameBlock") == "minecraft:calcite", plan.portal_of(V2))
+check("an all-vanilla v2 definition answers its vanilla portal, so the skip says vanillaManaged",
+      plan.portal_of({"portals": [{"vanillaManaged": True}]}) == {"vanillaManaged": True},
+      plan.portal_of({"portals": [{"vanillaManaged": True}]}))
+check("a v1 config's portal block reads as it always did",
+      plan.portal_of({"portal": {"frameBlock": "minecraft:stone"}}) == {"frameBlock": "minecraft:stone"},
+      plan.portal_of({"portal": {"frameBlock": "minecraft:stone"}}))
+import tempfile
+with tempfile.TemporaryDirectory() as v2dir:
+    for name, body in (("settings.json", {"namespace": "adventure"}), ("one.json", V2)):
+        with open(os.path.join(v2dir, name), "w") as handle:
+            json.dump(body, handle)
+    read, ignored = plan.load_dimensions(v2dir)
+check("a v2 directory's settings.json is not read as a dimension",
+      sorted(read) == ["one"] and ignored == 1, (sorted(read), ignored))
 check("a consumesIgniter dimension asserts the item is gone",
       bays["greedy_x"]["igniterExpectation"] == "consumed"
       and bays["greedy_x"]["igniterVerdict"] == "absent"

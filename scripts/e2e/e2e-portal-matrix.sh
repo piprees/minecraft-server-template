@@ -8,6 +8,9 @@
 #          light the neighbour - asserting at every step from the SERVER's own
 #          zone records. The client is used for the render step and nothing
 #          else, so a client death costs the screenshots and no linking result.
+#          On 26.x the render step also reads the companion's /portals (the
+#          bay's far side drawn) and /portal-census (rays through the opening
+#          that hit blocks of the destination), in place of 1.21.1's emit lines.
 #
 # Context: local dev stack only (~/Projects/elfydd, `./dev link`ed to a
 #          platform checkout). Template-only: not in build-stack-bundle.sh's
@@ -16,7 +19,9 @@
 #          nothing here is a hardcoded coordinate.
 #
 # Usage:   ./dev up                       # the jar under test must be SERVED
-#          ./dev launch --dev-bridge      # only needed for --render
+#          ./dev launch --dev-bridge      # only needed for --render (1.21.1);
+#                                         # on 26.x vanilla-join.sh --mrpack
+#                                         # with the dev bridge (README § On 26.x)
 #          ./scripts/e2e/e2e-portal-matrix.sh [options]
 #
 #   --only SLUG[,SLUG]   restrict to these dimensions
@@ -641,7 +646,7 @@ render_bay() {
     return
   fi
   CLI_BEFORE="$RUN_DIR/dim/$ID.client-before.log"
-  dev client-log --tail 3000 > "$CLI_BEFORE" 2>/dev/null || true
+  client_log_snapshot "$CLI_BEFORE" 3000 || true
   CLI_LINES="$(wc -l < "$CLI_BEFORE" | tr -d ' ')"
 
   # Three viewpoints on the source side, then one from inside the destination.
@@ -662,8 +667,11 @@ EOF
   sleep 4
   assert_shot "$ID: close to the opening" "$ID-close"
 
+  if [ "$E2E_26" -eq 1 ]; then
+    render_bay_26
+  fi
   CLI_AFTER="$RUN_DIR/dim/$ID.client-after.log"
-  dev client-log --tail 8000 > "$CLI_AFTER" 2>/dev/null || true
+  client_log_snapshot "$CLI_AFTER" 8000 || true
   tail -n "+$((CLI_LINES + 1))" "$CLI_AFTER" > "$RUN_DIR/dim/$ID.client-new.log" 2>/dev/null \
     || cp "$CLI_AFTER" "$RUN_DIR/dim/$ID.client-new.log"
   grep -a "companion-client:emit" "$RUN_DIR/dim/$ID.client-new.log" \
@@ -685,6 +693,40 @@ EOF
     verdict S_RENDER fail
   fi
   RENDER_DONE=$((RENDER_DONE + 1))
+}
+
+# 26.x: the companion draws the far side itself, so the bridge can say whether
+# this bay's opening is drawn and what the picture inside it is made of. Read
+# from the "close" viewpoint, which is the last one render_bay set.
+render_bay_26() {
+  local drawing census_hits census_rays unfed dest
+  if ! bridge_portals "$ID"; then
+    _record fail "$ID: the client reported its fed portals" "/portals" "$BRIDGE_REASON"
+    return
+  fi
+  dest="$(json_read "$BRIDGE_LAST" "[.portals[] | select(.destination==\"$DIMENSION\")] | length")"
+  assert_json_at_least "$ID: the companion is fed this bay's destination" "$BRIDGE_LAST" \
+    "[.portals[] | select(.destination==\"$DIMENSION\")] | length" 1
+  drawing="$(json_read "$BRIDGE_LAST" "[.portals[] | select(.destination==\"$DIMENSION\") | .drawing] | any")"
+  if [ "$drawing" = "true" ]; then
+    _record ok "$ID: the far side is drawn in the opening" "drawing true" \
+      "$(json_read "$BRIDGE_LAST" "[.portals[] | select(.destination==\"$DIMENSION\") | .lastFaces] | max") faces"
+  else
+    _record fail "$ID: the far side is drawn in the opening" "drawing true" \
+      "drawing $drawing over $dest fed portal(s) to $DIMENSION"
+  fi
+  if ! bridge_census "$ID"; then
+    _record fail "$ID: the aperture census ran" "/portal-census" "$BRIDGE_REASON"
+    return
+  fi
+  census_rays="$(json_read "$BRIDGE_LAST" '.rays')"
+  census_hits="$(json_read "$BRIDGE_LAST" '.hits')"
+  unfed="$(json_read "$BRIDGE_LAST" '.unfed')"
+  assert_json "$ID: the census looked into $DIMENSION" "$BRIDGE_LAST" '.destination' "$DIMENSION"
+  assert_json_at_least "$ID: rays through the opening hit destination blocks" "$BRIDGE_LAST" '.hits' 1
+  report_metric "$ID: census rays hit/unfed/open" \
+    "$census_hits/$unfed/$(json_read "$BRIDGE_LAST" '.open') of $census_rays" \
+    "$(json_read "$BRIDGE_LAST" '.blocks | to_entries | sort_by(-.value) | .[0:3] | map("\(.key)=\(.value)") | join(" ")')"
 }
 
 BAY_INDEX=0
