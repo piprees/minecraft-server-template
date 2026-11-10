@@ -6,7 +6,7 @@
 #          an End portal block for a flat one; this measures the share of the
 #          centre crop each would paint: `nether` counts violet pixels (blue
 #          well above red and both well above green, so magenta concrete is
-#          not one), `end` counts near-black ones. `hue:RRGGBB` counts the
+#          not one), `end` counts near-black ones that are not red (a red frame's shaded walls). `hue:RRGGBB` counts the
 #          pixels a server-pack pane tinted that colour paints: within
 #          HUE_TOLERANCE degrees of its hue, saturated and lit.
 # Context: template-only. Needs Pillow. No Minecraft, no server.
@@ -28,7 +28,8 @@ def violet(r, g, b):
 
 
 def dark(r, g, b):
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b < 40
+    # Near-black and not red: a red frame's shaded inner walls are as dark.
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b < 40 and r - max(g, b) < 24
 
 
 RULES = {"nether": violet, "end": dark}
@@ -88,6 +89,9 @@ def self_test():
     check("a violet pane in the centre is counted", share(portal, "nether")["share"] > 0.5, share(portal, "nether"))
     check("a lime floor is not dark", share(floor, "end")["share"] == 0, share(floor, "end"))
     check("an End portal's black is counted", share(end, "end")["share"] > 0.9, share(end, "end"))
+    wall = floor.copy()
+    wall.paste((80, 20, 20), (60, 25, 140, 75))
+    check("a shaded red frame is not dark", share(wall, "end")["share"] == 0, share(wall, "end"))
     check("the magenta concrete frame is not read as the portal",
           share(Image.new("RGB", (50, 50), (169, 48, 159)), "nether")["share"] == 0, None)
     blue = sky.copy()
