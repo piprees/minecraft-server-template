@@ -44,8 +44,26 @@ final class MixinSelfTest {
         lines.add(check("NoiseBasedChunkGeneratorAccessor", "the overworld generator's fluid rule reads and writes", () -> fluidRule(server)));
         lines.add(check("StructureStateMixin", "a switched-off structure set leaves a new structure state", () -> FirewallSelfTest.structureState(server)));
         lines.add(check("ChunkMapStructuresMixin", "the chunk map builds the overworld's structure state with its control", MixinSelfTest::structureControl));
+        lines.add(check("PrepareSpawnTaskMixin", "a login saved in a level that is not open is placed at the world spawn", () -> savedLevel(server)));
         lines.add(check("DisabledAquiferMixin", "a disabled aquifer schedules basin fluid near the rim to flow", () -> basinFlow(server)));
         return lines;
+    }
+
+    private static String savedLevel(MinecraftServer server) {
+        var who = new net.minecraft.server.players.NameAndId(java.util.UUID.nameUUIDFromBytes("selftest".getBytes()), "SelfTest");
+        // Constructing the task links and verifies the class the handler is merged into.
+        new net.minecraft.server.network.config.PrepareSpawnTask(server, who);
+        if (!com.customdimensions.server.level.SavedLevel.mixinApplied()) throw new AssertionError("the spawn task has no merged handler");
+        var pos = java.util.Optional.of(new net.minecraft.world.phys.Vec3(4.5, -60, -8.5));
+        var gone = net.minecraft.resources.ResourceKey.create(Registries.DIMENSION,
+                net.minecraft.resources.Identifier.fromNamespaceAndPath("customdimensions", "selftest_not_open"));
+        var away = com.customdimensions.server.level.SavedLevel.placeable(server, who,
+                new net.minecraft.server.level.ServerPlayer.SavedPosition(java.util.Optional.of(gone), pos, java.util.Optional.empty()));
+        if (away.dimension().isPresent() || away.position().isPresent()) throw new AssertionError("a level that is not open kept " + away);
+        var home = new net.minecraft.server.level.ServerPlayer.SavedPosition(java.util.Optional.of(net.minecraft.world.level.Level.OVERWORLD), pos,
+                java.util.Optional.empty());
+        if (com.customdimensions.server.level.SavedLevel.placeable(server, who, home) != home) throw new AssertionError("an open level's position was changed");
+        return "the handler is merged into PrepareSpawnTask; a position saved in a level that is not open is dropped (world spawn), one in the overworld is kept";
     }
 
     private static String generationSettings(MinecraftServer server) {
