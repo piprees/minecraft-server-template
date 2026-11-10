@@ -198,7 +198,7 @@ edit("deploy", "scripts/dev-up.sh",
      "  cp \"$STACK_DIR\"/config/custom-dimensions/bridges/*.json \"$CONSUMER_DIR/data/config/custom-dimensions/bridges/\"\n"
      "fi\n")
 edit("deploy", "scripts/dev-up.sh",
-     "# write its own config (as smoke-26.sh).\n", "# write its own config (as smoke.sh).\n")
+     "# write its own config (as smoke-26.sh).", "# write its own config (as smoke.sh).")
 edit("deploy", "scripts/build-stack-bundle.sh",
      "# Excludes 1password.env (secrets), pinned mod lists and the climate grids\n"
      "# (platform-internal: 2.3 MB that only check-band-share.py reads).\n",
