@@ -32,6 +32,11 @@ with open(os.path.join(fx, "calls.log"), "a") as f:
 print("BANNER  fixture - ops " + (sys.argv[1] if len(sys.argv) > 1 else ""))
 cmd = sys.argv[1] if len(sys.argv) > 1 else ""
 if cmd == "ssh":
+    # A dropped connection for the calls whose command holds a line of ssh-fail.
+    fail = os.path.join(fx, "ssh-fail")
+    if os.path.exists(fail) and any(l and l in sys.argv[2] for l in open(fail).read().splitlines()):
+        print("ssh: connect to host fixture port 22: Connection reset by peer", file=sys.stderr)
+        sys.exit(255)
     env = dict(os.environ, HOME=os.path.join(fx, "home"))
     sys.exit(subprocess.call(["bash", "-c", sys.argv[2]], env=env))
 if cmd == "doctor":
@@ -68,7 +73,7 @@ if a[0] == "inspect":
     name = a[-1]
     st = running(name)
     if st is None: sys.exit(1)
-    if "-f" in a: print(st)
+    if "-f" in a: print({"true": "running", "false": "exited"}.get(st, st))
     sys.exit(0)
 if a[0] == "ps":
     for n in sorted(os.listdir(d)):
@@ -112,6 +117,8 @@ a = sys.argv[1:]
 with open(os.path.join(fx, "calls.log"), "a") as f:
     f.write("gh " + " ".join(a) + "\n")
 if a[:2] == ["run", "list"]:
+    if os.path.exists(os.path.join(fx, "gh-fail")):
+        print("error connecting to api.github.com", file=sys.stderr); sys.exit(1)
     if "--commit" in a: print("4242")
     else:
         p = os.path.join(fx, "gh-runs")
@@ -407,6 +414,44 @@ class CleanTests(Base):
         self.fx.set_server_stack("v6.0.0")
         self.refused(self.fx.run("clean", "--offhost-sha", sha, "--yes-clean"), "not v5")
 
+    def test_refuses_when_the_mc_probe_fails_while_later_calls_succeed(self):
+        sha = self.fx.archive_ready()
+        (self.fx.tmp / "ssh-fail").write_text("docker inspect -f\n")
+        r = self.fx.run("clean", "--offhost-sha", sha, "--yes-clean")
+        self.refused(r, "cannot tell whether mc is running")
+        self.assertNotIn("mc is stopped", r.stdout)
+        # Only that call failed: without it the same run goes through.
+        (self.fx.tmp / "ssh-fail").unlink()
+        self.assertIn("ok    mc is stopped", self.ok(self.fx.run("clean", "--offhost-sha", sha, "--yes-clean")))
+
+    def test_refuses_when_the_mc_probe_answers_garbage(self):
+        sha = self.fx.archive_ready()
+        (self.fx.tmp / "docker/mc").write_text("Error response from daemon: maybe")
+        self.refused(self.fx.run("clean", "--offhost-sha", sha, "--yes-clean"), "cannot tell whether mc is running")
+
+    def test_refuses_when_the_mc_probe_answers_nothing(self):
+        sha = self.fx.archive_ready()
+        (self.fx.tmp / "docker/mc").write_text("")
+        self.refused(self.fx.run("clean", "--offhost-sha", sha, "--yes-clean"), "cannot tell whether mc is running")
+
+    def test_passes_when_mc_is_definitely_stopped(self):
+        sha = self.fx.archive_ready()
+        r = self.fx.run("clean", "--offhost-sha", sha, "--yes-clean")
+        self.assertIn("ok    mc is stopped", self.ok(r))
+        self.assertFalse((self.fx.server / "data/world").exists())
+
+    def test_passes_when_mc_is_definitely_absent(self):
+        sha = self.fx.archive_ready()
+        (self.fx.tmp / "docker/mc").unlink()
+        r = self.fx.run("clean", "--offhost-sha", sha, "--yes-clean")
+        self.assertIn("ok    mc is absent", self.ok(r))
+        self.assertFalse((self.fx.server / "data/world").exists())
+
+    def test_refuses_when_the_bundle_cannot_be_read(self):
+        sha = self.fx.archive_ready()
+        (self.fx.tmp / "ssh-fail").write_text("readlink .stack/current\n")
+        self.refused(self.fx.run("clean", "--offhost-sha", sha, "--yes-clean"), "unreadable")
+
     def test_deletes_exactly_the_list_and_keeps_the_rest(self):
         sha = self.fx.archive_ready()
         self.ok(self.fx.run("clean", "--offhost-sha", sha, "--yes-clean"))
@@ -456,7 +501,7 @@ class ArchiveTests(Base):
         self.assertEqual(self.fx.calls().count("\ndocker restart mc-backup"), 1)
         self.assertEqual(self.fx.state()["snapshot"], SNAP)
         out = self.ok(self.fx.run("archive", "--yes-map", "--yes-stop-mc"))
-        self.assertIn("mc stopped", out)
+        self.assertIn("ok    mc is stopped", out)
         st = self.fx.state()
         tar = self.fx.server / st["world_tar"]
         self.assertTrue(tar.exists())
@@ -481,6 +526,53 @@ class ArchiveTests(Base):
         self.assertEqual(r.returncode, 1)
         self.assertIn("2 player(s) online", r.stderr)
         self.assertEqual((self.fx.tmp / "docker/mc").read_text(), "true")
+
+    def test_an_unreachable_server_is_not_rcon_silence(self):
+        self.fx.prime(done_preflight=1, done_pin=1, pinned="v5.27.1", owner_release=1, snapshot=SNAP, map_tar="data/ops.json")
+        (self.fx.tmp / "snapshots").write_text(SNAP + "\n")
+        (self.fx.tmp / "ssh-fail").write_text("rcon-cli 'list'\n")
+        r = self.fx.run("archive", "--yes-stop-mc")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("cannot reach the server to ask who is online", r.stderr)
+        self.assertNotIn("autopaused", r.stdout)
+        self.assertEqual((self.fx.tmp / "docker/mc").read_text(), "true")
+
+    def test_the_cold_tar_never_overwrites_a_tar_it_did_not_record(self):
+        self.fx.prime(done_preflight=1, done_pin=1, pinned="v5.27.1", owner_release=1, snapshot=SNAP, map_tar="data/ops.json")
+        (self.fx.tmp / "snapshots").write_text(SNAP + "\n")
+        import datetime
+        tar = self.fx.server / f"backups/world-1.21.1-{datetime.date.today():%Y%m%d}.tar.gz"
+        tar.write_bytes(b"an earlier archive")
+        r = self.fx.run("archive", "--yes-stop-mc")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("exists and is not the recorded tar", r.stderr)
+        self.assertEqual(tar.read_bytes(), b"an earlier archive")
+        self.assertEqual((self.fx.tmp / "docker/mc").read_text(), "true")
+
+    def test_no_cold_tar_of_a_world_that_is_gone(self):
+        self.fx.prime(done_preflight=1, done_pin=1, pinned="v5.27.1", owner_release=1, snapshot=SNAP, map_tar="data/ops.json")
+        (self.fx.tmp / "snapshots").write_text(SNAP + "\n")
+        (self.fx.server / "data/world/level.dat").unlink()
+        r = self.fx.run("archive", "--yes-stop-mc")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("no 1.21.1 world to archive", r.stderr)
+
+    def test_a_failed_stop_probe_takes_no_tar(self):
+        self.fx.prime(done_preflight=1, done_pin=1, pinned="v5.27.1", owner_release=1, snapshot=SNAP, map_tar="data/ops.json")
+        (self.fx.tmp / "snapshots").write_text(SNAP + "\n")
+        (self.fx.tmp / "ssh-fail").write_text("docker inspect -f\n")
+        r = self.fx.run("archive", "--yes-stop-mc")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("cannot tell whether mc is running", r.stderr)
+        self.assertFalse(list((self.fx.server / "backups").glob("world-1.21.1-*")))
+
+    def test_a_failed_run_listing_is_not_an_idle_repo(self):
+        self.fx.prime(done_preflight=1)
+        (self.fx.tmp / "gh-fail").write_text("1")
+        r = self.fx.run("pin", "--yes-pin")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("cannot list the consumer's workflow runs", r.stderr)
+        self.assertFalse((self.fx.consumer / ".stack-version").exists())
 
     def test_rcon_silence_is_autopause_not_failure(self):
         self.fx.rcon({})
@@ -555,6 +647,18 @@ class FlowTests(Base):
         self.assertIn("Owner step", out.replace("Next, an owner step", "Owner step"))
         self.ok(fx.run("status", "--owner-done", "launch"))
         self.assertIn("done     owner launch", self.ok(fx.run("status", apply=False)))
+
+    def test_consumer_refuses_when_the_world_probe_fails(self):
+        fx = self.fx
+        fx.archive_ready()
+        fx.prime(**dict(fx.state(), done_clean=1, owner_secrets=1))
+        shutil.rmtree(fx.server / "data/world")
+        (fx.tmp / "ssh-fail").write_text("test -e data/world\n")
+        r = fx.run("consumer", "--yes-consumer")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("cannot tell whether 'test -e data/world' holds", r.stderr)
+        self.assertNotIn("git push", r.stdout)
+        self.assertEqual(fx.git("log", "-1", "--format=%s").strip(), "init")
 
     def test_verify_reports_a_seed_mismatch_and_never_resets(self):
         fx = self.fx

@@ -231,8 +231,10 @@ confirm() {
 # --- The server -----------------------------------------------------------------
 # srv <command>: runs in the server directory (./ops ssh, or locally with
 # --local); the output lands in SRV_OUT and the command's exit code is returned.
-# Markers fence it from the dispatcher's banner.
+# Markers fence it from the dispatcher's banner. SRV_REACHED is 1 only when the
+# command ran: without the closing marker nothing is known about the server.
 SRV_OUT=""
+SRV_REACHED=0
 srv() {
   local raw rc
   raw="$(
@@ -244,7 +246,15 @@ srv() {
   )"
   SRV_OUT="$(printf '%s\n' "$raw" | sed -n '/^__M26_BEGIN__$/,/^__M26_RC=/p' | sed '1d;$d')"
   rc="$(printf '%s\n' "$raw" | grep -oE '^__M26_RC=[0-9]+' | tail -1 | cut -d= -f2)"
-  [[ -n "$rc" ]] || { SRV_OUT="$raw"; return 255; }
+  [[ -n "$rc" ]] || { SRV_OUT="$raw"; SRV_REACHED=0; return 255; }
+  SRV_REACHED=1
+  return "$rc"
+}
+# srv_test <test expression>: 0 true, 1 false; anything else is "cannot tell" and refuses.
+srv_test() {
+  local rc=0
+  srv "test $1" || rc=$?
+  [[ $SRV_REACHED -eq 1 && ( $rc -eq 0 || $rc -eq 1 ) ]] || refuse "cannot tell whether 'test $1' holds on the server (the probe failed):"$'\n'"$SRV_OUT"
   return "$rc"
 }
 srv_or_die() { srv "$1" || refuse "server command failed: $1"$'\n'"$SRV_OUT"; }
@@ -255,10 +265,12 @@ rcon_q() {
   [[ "$1" != *"'"* ]] || die "an RCON command must not contain a single quote"
   srv "timeout 30 docker exec $MC_CT rcon-cli '$1' 2>/dev/null" || true
   RCON_OUT="$SRV_OUT"
+  RCON_REACHED=$SRV_REACHED
 }
+RCON_REACHED=0
 
-server_tag() { srv "readlink .stack/current" || true; printf '%s' "$SRV_OUT" | tail -1; }
-server_mc() { srv "cat .stack/current/stack/.minecraft-version 2>/dev/null" || true; printf '%s' "$SRV_OUT" | tail -1 | tr -d '[:space:]'; }
+server_tag() { srv "readlink .stack/current" && printf '%s' "$SRV_OUT" | tail -1 || printf 'unreadable'; }
+server_mc() { srv "cat .stack/current/stack/.minecraft-version" && printf '%s' "$SRV_OUT" | tail -1 | tr -d '[:space:]' || printf 'unreadable'; }
 # server_on <5|6>: the server's stack is that major (a linked dev stack by its .minecraft-version).
 server_on() {
   local tag mc
@@ -273,17 +285,35 @@ server_on() {
   esac
   return 1
 }
-mc_running() {
-  srv "docker inspect -f '{{.State.Running}}' $MC_CT 2>/dev/null" || true
-  [[ "$(printf '%s' "$SRV_OUT" | tail -1)" == "true" ]]
+# mc_probe: MC_STATE is running, stopped, absent or unknown. absent needs a
+# listing that succeeded; a failed call, empty or unexpected output is unknown.
+MC_STATE=unknown
+mc_probe() {
+  local rc=0 out
+  srv "if docker inspect -f '{{.State.Status}}' $MC_CT 2>/dev/null; then :; else docker ps -a --format '{{.Names}}' >/dev/null && echo __ABSENT__; fi" || rc=$?
+  out="$(printf '%s\n' "$SRV_OUT" | sed '/^$/d')"
+  MC_STATE=unknown
+  [[ $SRV_REACHED -eq 1 && $rc -eq 0 ]] || return 0
+  case "$out" in
+    running | restarting | paused) MC_STATE=running ;;
+    exited | created | dead) MC_STATE=stopped ;;
+    __ABSENT__) MC_STATE=absent ;;
+  esac
 }
-players_online() {
-  rcon_q "list"
-  printf '%s' "$RCON_OUT" | grep -oE 'There are [0-9]+' | grep -oE '[0-9]+' | head -1 || true
+# require_mc_stopped: refuses unless mc is known to be stopped or absent.
+require_mc_stopped() {
+  mc_probe
+  case "$MC_STATE" in
+    stopped | absent) ok "mc is $MC_STATE" ;;
+    running) refuse "mc is running: $1" ;;
+    *) refuse "cannot tell whether mc is running (the probe failed or answered '$(printf '%s' "$SRV_OUT" | tail -1)'): $1" ;;
+  esac
 }
 require_nobody_online() {
   local n
-  n="$(players_online)"
+  rcon_q "list"
+  [[ $RCON_REACHED -eq 1 ]] || refuse "cannot reach the server to ask who is online:"$'\n'"$RCON_OUT"
+  n="$(printf '%s' "$RCON_OUT" | grep -oE 'There are [0-9]+' | grep -oE '[0-9]+' | head -1 || true)"
   if [[ -z "$n" ]]; then
     note "RCON is silent: autopaused (normal when empty) or mc is stopped"
   elif [[ "$n" -gt 0 ]]; then
@@ -294,8 +324,9 @@ require_nobody_online() {
 }
 no_run_in_progress() {
   [[ $LOCAL -eq 0 ]] || return 0
-  local busy
-  busy="$(cd "$CONSUMER_DIR" && gh run list --limit 3 --json status --jq '.[].status' 2> /dev/null | grep -vc '^completed$' || true)"
+  local runs busy
+  runs="$(cd "$CONSUMER_DIR" && gh run list --limit 3 --json status --jq '.[].status' 2>&1)" || refuse "cannot list the consumer's workflow runs (gh run list): $runs"
+  busy="$(printf '%s\n' "$runs" | sed '/^$/d' | grep -vc '^completed$' || true)"
   [[ "${busy:-0}" -eq 0 ]] || refuse "a workflow run is in progress in the consumer repo (gh run list --limit 3); wait for it"
   ok "no workflow run in progress"
 }
@@ -416,14 +447,13 @@ phase_preflight() {
     fi
   fi
   require_nobody_online
-  srv "df -Pk . | awk 'NR==2 { print \$4 }'; du -sk data/world 2>/dev/null | cut -f1" || true
+  srv_or_die "df -Pk . | awk 'NR==2 { print \$4 }'; du -sk data/world | cut -f1"
   local free need
   free="$(printf '%s\n' "$SRV_OUT" | sed -n 1p)"
   need="$(printf '%s\n' "$SRV_OUT" | sed -n 2p)"
-  if [[ "$free" =~ ^[0-9]+$ && "$need" =~ ^[0-9]+$ ]]; then
-    [[ "$free" -gt "$need" ]] || refuse "the cold world tar needs about ${need} KiB free; the server has ${free} KiB"
-    ok "disk: ${free} KiB free, data/world ${need} KiB"
-  fi
+  [[ "$free" =~ ^[0-9]+$ && "$need" =~ ^[0-9]+$ ]] || refuse "cannot read the free disk and the size of data/world: $SRV_OUT"
+  [[ "$free" -gt "$need" ]] || refuse "the cold world tar needs about ${need} KiB free; the server has ${free} KiB"
+  ok "disk: ${free} KiB free, data/world ${need} KiB"
   ensure_state_ignored
   finish
 }
@@ -528,15 +558,18 @@ phase_archive() {
   else
     tar="backups/world-1.21.1-$day.tar.gz"
     if doit stop-mc "stop mc ($STOP_MC) and leave it stopped, then tar data/world data/config to $tar"; then
+      srv_test "-f data/world/level.dat" || refuse "no data/world/level.dat on the server: there is no 1.21.1 world to archive"
+      ! srv_test "-e $tar" || refuse "$tar exists and is not the recorded tar: move it aside, then run archive again"
       require_nobody_online
       srv_or_die "$STOP_MC >/dev/null 2>&1"
       local i
       for ((i = 1; i <= ATTEMPTS; i++)); do
-        mc_running || break
+        mc_probe
+        [[ "$MC_STATE" == running ]] || break
         [[ $i -lt $ATTEMPTS ]] && sleep "$INTERVAL"
       done
-      ! mc_running || later "mc is still running after the stop"
-      ok "mc stopped"
+      [[ "$MC_STATE" != running ]] || later "mc is still running after the stop"
+      require_mc_stopped "the cold tar is taken only with mc stopped"
       srv_or_die "mkdir -p backups && tar czf $tar data/world data/config && sha256sum $tar | cut -d' ' -f1"
       sum="$(printf '%s' "$SRV_OUT" | tail -1)"
       [[ "$sum" =~ ^[0-9a-f]{64}$ ]] || refuse "no sha256 for $tar"
@@ -583,13 +616,13 @@ phase_host() {
   local changed=0 file name line
   for rules6 in 0 1; do
     if [[ $rules6 -eq 0 ]]; then file="$UFW_DIR/before.rules" name=mc-bedrock line="$line4"; else file="$UFW_DIR/before6.rules" name=mc-bedrock6 line="$line6"; fi
-    srv "test -f $file" || { note "no $file"; continue; }
-    srv "grep -c 'hashlimit-name $name ' $file || true"
+    srv_test "-f $file" || { note "no $file"; continue; }
+    srv_or_die "grep -c 'hashlimit-name $name ' $file || true"
     if [[ "$(printf '%s' "$SRV_OUT" | tail -1)" -ge 1 ]]; then
       ok "$file has the $name rate limit"
       continue
     fi
-    srv "grep -c '^# END RATE-LIMIT' $file || true"
+    srv_or_die "grep -c '^# END RATE-LIMIT' $file || true"
     [[ "$(printf '%s' "$SRV_OUT" | tail -1)" -eq 1 ]] || refuse "$file has no single '# END RATE-LIMIT' line: add the $name line by hand (harden.sh)"
     if doit firewall "back up $file, add the $name line before '# END RATE-LIMIT'"; then
       srv_or_die "sudo cp -p $file $file.bak.\$(date +%Y%m%d-%H%M%S) && sudo sed -i '/^# END RATE-LIMIT/i $line' $file && test \"\$(grep -c 'hashlimit-name $name ' $file)\" -eq 1"
@@ -613,8 +646,7 @@ phase_clean() {
   sum="$(st_get world_sha)"
   snap="$(st_get snapshot)"
   # Every check is made on the server now; the state file only says where to look.
-  ! mc_running || refuse "mc is running: the world is deleted only with mc stopped"
-  ok "mc is stopped"
+  require_mc_stopped "the world is deleted only with mc stopped"
   [[ -n "$tar" && -n "$sum" ]] || refuse "no cold world tar is recorded: run archive"
   srv "test -s $tar && sha256sum $tar | cut -d' ' -f1" || refuse "the world tar $tar is not on the server"
   [[ "$(printf '%s' "$SRV_OUT" | tail -1)" == "$sum" ]] || refuse "$tar no longer matches its recorded sha256 $sum"
@@ -630,14 +662,15 @@ phase_clean() {
 
   local paths="${CLEAN_PATHS[*]}"
   [[ $TIDY -eq 0 ]] || paths="$paths ${TIDY_PATHS[*]}"
-  srv "for p in $paths; do if [ -e \"\$p\" ]; then echo \"\$p\"; fi; done" || true
+  srv_or_die "for p in $paths; do if [ -e \"\$p\" ]; then echo \"\$p\"; fi; done"
   if [[ -z "$SRV_OUT" ]]; then
     ok "nothing left to remove"
   else
     printf '%s\n' "$SRV_OUT" | sed 's/^/    present  /'
     if doit clean "${SUDO:+$SUDO }rm -rf the $(printf '%s\n' "$SRV_OUT" | wc -l | tr -d ' ') paths above"; then
+      require_mc_stopped "the world is deleted only with mc stopped"
       srv_or_die "${SUDO:+$SUDO }rm -rf -- $paths"
-      srv "for p in $paths; do if [ -e \"\$p\" ]; then echo \"\$p\"; fi; done" || true
+      srv_or_die "for p in $paths; do if [ -e \"\$p\" ]; then echo \"\$p\"; fi; done"
       [[ -z "$SRV_OUT" ]] || refuse "still present after rm: $SRV_OUT"
       ok "removed"
     fi
@@ -652,9 +685,9 @@ phase_consumer() {
   owner_gate secrets
   head_line "D10 The consumer patch (confirm)"
   [[ "$TARGET" == v6.* ]] || refuse "the target is '${TARGET:-unknown}', not v6"
-  ! mc_running || refuse "mc is running"
-  srv "test -e data/world" && refuse "data/world exists on the server: run clean"
-  ok "mc stopped, no data/world"
+  require_mc_stopped "the v6 deploy must find mc stopped and no 1.21.1 world"
+  ! srv_test "-e data/world" || refuse "data/world exists on the server: run clean"
+  ok "no data/world"
   server_on 5 || note "the server's bundle is $(server_tag): the v6 deploy has started or run"
   if [[ -f "$CONSUMER_DIR/.env" ]] && grep -qE '^STACK_VERSION=' "$CONSUMER_DIR/.env"; then
     refuse ".env carries STACK_VERSION, which a v5 ./dev prefers to .stack-version: delete that line"
