@@ -1,0 +1,293 @@
+{
+  "input": {
+    "alpha": {
+      "type": "minecraft:blend_alpha"
+    },
+    "first": 0.0,
+    "second": {
+      "spline": {
+        "coordinate": "adventure:terrain/terrain_overworld_land_share/continents",
+        "points": [
+          {
+            "derivative": 0.0,
+            "location": -0.11,
+            "value": 0.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.03,
+            "value": {
+              "coordinate": "adventure:terrain/terrain_overworld_land_share/erosion",
+              "points": [
+                {
+                  "derivative": 0.0,
+                  "location": -1.0,
+                  "value": {
+                    "coordinate": "adventure:terrain/terrain_overworld_land_share/ridges_folded",
+                    "points": [
+                      {
+                        "derivative": 0.0,
+                        "location": 0.19999999,
+                        "value": 0.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": 0.44999996,
+                        "value": 0.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": 1.0,
+                        "value": {
+                          "coordinate": "adventure:terrain/terrain_overworld_land_share/ridges",
+                          "points": [
+                            {
+                              "derivative": 0.0,
+                              "location": -0.01,
+                              "value": 0.63
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": 0.01,
+                              "value": 0.3
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "derivative": 0.0,
+                  "location": -0.78,
+                  "value": {
+                    "coordinate": "adventure:terrain/terrain_overworld_land_share/ridges_folded",
+                    "points": [
+                      {
+                        "derivative": 0.0,
+                        "location": 0.19999999,
+                        "value": 0.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": 0.44999996,
+                        "value": 0.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": 1.0,
+                        "value": {
+                          "coordinate": "adventure:terrain/terrain_overworld_land_share/ridges",
+                          "points": [
+                            {
+                              "derivative": 0.0,
+                              "location": -0.01,
+                              "value": 0.315
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": 0.01,
+                              "value": 0.15
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "derivative": 0.0,
+                  "location": -0.5775,
+                  "value": {
+                    "coordinate": "adventure:terrain/terrain_overworld_land_share/ridges_folded",
+                    "points": [
+                      {
+                        "derivative": 0.0,
+                        "location": 0.19999999,
+                        "value": 0.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": 0.44999996,
+                        "value": 0.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": 1.0,
+                        "value": {
+                          "coordinate": "adventure:terrain/terrain_overworld_land_share/ridges",
+                          "points": [
+                            {
+                              "derivative": 0.0,
+                              "location": -0.01,
+                              "value": 0.315
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": 0.01,
+                              "value": 0.15
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "derivative": 0.0,
+                  "location": -0.375,
+                  "value": 0.0
+                }
+              ]
+            }
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.65,
+            "value": {
+              "coordinate": "adventure:terrain/terrain_overworld_land_share/erosion",
+              "points": [
+                {
+                  "derivative": 0.0,
+                  "location": -1.0,
+                  "value": {
+                    "coordinate": "adventure:terrain/terrain_overworld_land_share/ridges_folded",
+                    "points": [
+                      {
+                        "derivative": 0.0,
+                        "location": 0.19999999,
+                        "value": 0.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": 0.44999996,
+                        "value": {
+                          "coordinate": "adventure:terrain/terrain_overworld_land_share/ridges",
+                          "points": [
+                            {
+                              "derivative": 0.0,
+                              "location": -0.01,
+                              "value": 0.63
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": 0.01,
+                              "value": 0.3
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": 1.0,
+                        "value": {
+                          "coordinate": "adventure:terrain/terrain_overworld_land_share/ridges",
+                          "points": [
+                            {
+                              "derivative": 0.0,
+                              "location": -0.01,
+                              "value": 0.63
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": 0.01,
+                              "value": 0.3
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "derivative": 0.0,
+                  "location": -0.78,
+                  "value": {
+                    "coordinate": "adventure:terrain/terrain_overworld_land_share/ridges_folded",
+                    "points": [
+                      {
+                        "derivative": 0.0,
+                        "location": 0.19999999,
+                        "value": 0.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": 0.44999996,
+                        "value": 0.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": 1.0,
+                        "value": {
+                          "coordinate": "adventure:terrain/terrain_overworld_land_share/ridges",
+                          "points": [
+                            {
+                              "derivative": 0.0,
+                              "location": -0.01,
+                              "value": 0.63
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": 0.01,
+                              "value": 0.3
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "derivative": 0.0,
+                  "location": -0.5775,
+                  "value": {
+                    "coordinate": "adventure:terrain/terrain_overworld_land_share/ridges_folded",
+                    "points": [
+                      {
+                        "derivative": 0.0,
+                        "location": 0.19999999,
+                        "value": 0.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": 0.44999996,
+                        "value": 0.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": 1.0,
+                        "value": {
+                          "coordinate": "adventure:terrain/terrain_overworld_land_share/ridges",
+                          "points": [
+                            {
+                              "derivative": 0.0,
+                              "location": -0.01,
+                              "value": 0.63
+                            },
+                            {
+                              "derivative": 0.0,
+                              "location": 0.01,
+                              "value": 0.3
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "derivative": 0.0,
+                  "location": -0.375,
+                  "value": 0.0
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "type": "minecraft:spline"
+    },
+    "type": "minecraft:lerp"
+  },
+  "type": "minecraft:cache"
+}

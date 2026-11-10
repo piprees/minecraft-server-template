@@ -1,0 +1,16 @@
+{
+  "type": "adventure:checkerboard_void_cells",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:checkerboard",
+      "biomes": [
+        "minecraft:plains",
+        "minecraft:the_end",
+        "minecraft:desert"
+      ],
+      "scale": 2
+    },
+    "settings": "adventure:checkerboard_void_cells"
+  }
+}

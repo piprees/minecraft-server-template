@@ -148,6 +148,10 @@ tasks.named('test') {
 	systemProperty 'customdimensions.updateGolden', project.findProperty('updateGolden') ?: 'false'
 	inputs.dir file('../definitions')
 	inputs.dir file('src/test/resources/golden')
+	inputs.dir file('../schema')
+	inputs.dir file('../server/src/selftest/gallery')
+	inputs.dir file('../../../config/custom-dimensions/dimensions')
+	inputs.dir file('../../../docs/design/rebuild-26')
 }
 
 // Compiles definitions/ into build/datapack/customdimensions/ and its report.

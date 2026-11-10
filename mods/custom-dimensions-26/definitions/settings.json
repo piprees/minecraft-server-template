@@ -9,6 +9,12 @@
   },
   "defaults": {
     "frameBlock": "minecraft:mossy_stone_bricks",
+    "atmosphere": {
+      "dayLength": {
+        "dayMinutes": 45,
+        "nightMinutes": 15
+      }
+    },
     "borders": {
       "player": 8192,
       "generation": 2048

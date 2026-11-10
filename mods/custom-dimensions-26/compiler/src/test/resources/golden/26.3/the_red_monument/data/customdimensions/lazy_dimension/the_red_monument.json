@@ -1,13 +1,44 @@
 {
   "type": "adventure:the_red_monument",
   "generator": {
-    "type": "minecraft:flat",
-    "settings": {
-      "biome": "adventure:umbral_wastes",
-      "features": false,
-      "lakes": false,
-      "layers": [],
-      "structure_overrides": []
-    }
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "adventure:umbral_wastes",
+          "parameters": "sha1:a566935421900d39f6a6c3ead0fde0433df785a5"
+        },
+        {
+          "biome": "minecraft:small_end_islands",
+          "parameters": "sha1:1f174e9d789c02b9cd72cfd68b3bb26ed5c9fbd1"
+        },
+        {
+          "biome": "adventure:maple_woodland",
+          "parameters": "sha1:040fb04678bd7ab3f1bae764e6a682e9ac588f4f"
+        },
+        {
+          "biome": "minecraft:end_barrens",
+          "parameters": "sha1:56e507dc57858ed83019cc87da882d88d5fb8e2e"
+        },
+        {
+          "biome": "adventure:saguaro_desert",
+          "parameters": "sha1:201b162ae70adfb6550089b4ef7976ba973cc25c"
+        },
+        {
+          "biome": "minecraft:the_end",
+          "parameters": "sha1:b95b6afa4a085d8281ff947c361808f02c3d908d"
+        },
+        {
+          "biome": "minecraft:end_highlands",
+          "parameters": "sha1:8abb908535286471ee1a637ca3f2c6dc476d4776"
+        },
+        {
+          "biome": "adventure:ice_starfield",
+          "parameters": "sha1:c62cdeacb20aaa1ccec85f30996a1706c354175d"
+        }
+      ]
+    },
+    "settings": "adventure:the_red_monument"
   }
 }

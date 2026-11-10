@@ -7,6 +7,12 @@
         "minecraft:visual/fog_color": "#3a2352",
         "minecraft:visual/sky_color": "#6b4b9b"
       }
-    }
+    },
+    "timelines": [
+      "adventure:day_length/villager_schedule_54000_18000",
+      "adventure:day_length/day_54000_18000",
+      "adventure:day_length/moon_54000_18000",
+      "minecraft:early_game"
+    ]
   }
 }

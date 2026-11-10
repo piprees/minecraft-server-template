@@ -72,7 +72,7 @@ class TerrainWiringTest {
         assertTrue(assertThrows(IllegalArgumentException.class,
                 () -> Fixtures.compile("bad_one", OVERWORLD + "\"terrain\": {\"base\": \"canyons\", \"params\": {\"depth\": 999}}"))
                 .getMessage().startsWith("bad_one: terrain.params.depth = 999 is outside [8, 120]"));
-        assertEquals("nether_one: terrain.base spires cannot shape preset nether: its terrain is a cavern between a floor and a ceiling, not a surface",
+        assertEquals("nether_one: terrain.base spires cannot shape preset nether: its terrain is a cavern between a floor and a ceiling, not a surface; terrain.base roofed shapes it",
                 assertThrows(IllegalArgumentException.class, () -> Fixtures.compile("nether_one",
                         "\"generator\": {\"type\": \"noise\", \"preset\": \"nether\"}, \"terrain\": {\"base\": \"spires\"}")).getMessage());
     }

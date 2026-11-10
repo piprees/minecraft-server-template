@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public final class RegionLayout {
     public static final String MODE = "regions";
-    public static final List<String> FIELDS = List.of("mode", "axes", "weights", "roles", "sea");
+    public static final List<String> FIELDS = List.of("mode", "axes", "weights", "roles", "sea", "over");
     /** Axes a region may be cut on; depth varies down a column, so it stays with bound biomes. */
     public static final List<String> REGION_AXES = List.of("temperature", "humidity", "continentalness", "erosion", "weirdness");
     public static final List<String> DEFAULT_AXES = List.of("temperature", "humidity");
@@ -126,6 +126,73 @@ public final class RegionLayout {
         }
     }
 
+    /** {@code biomeLayout.over}: rank regions over every cell, or over land alone. */
+    public static final List<String> OVER = List.of("all", "land");
+    /** Router depth below an island's top at which its underside starts: 8 blocks at 128 a unit. */
+    static final double UNDERSIDE_DEPTH = 0.0625;
+    /** The End's island density from which vanilla's End lays its midlands: where its islands hold land. */
+    static final double END_LAND = -0.0625;
+
+    /**
+     * What the biomes of a dimension over a void stand on: the router {@code axis} that reads land, and the
+     * value from which it is land; whether the terrain shapes basins and has island undersides.
+     */
+    record Ground(String axis, double min, boolean basins, boolean undersides) {}
+
+    /**
+     * The ground of {@code def}: a terrain over a void reads land on its place cue
+     * ({@link com.customdimensions.compiler.terrain.TerrainFamily.Shape#place}), the End's own islands on its
+     * erosion, which is their density; null for a dimension on the ground.
+     */
+    static Ground ground(String slug, com.customdimensions.core.definition.Definition def) {
+        var spec = com.customdimensions.compiler.terrain.TerrainSpec.parse(slug, def.terrain());
+        if (spec != null && spec.airborne()) {
+            return new Ground("continentalness", com.customdimensions.compiler.terrain.TerrainFamily.PLACE_HELD,
+                    spec.family().shapesBasins(), true);
+        }
+        boolean end = "end".equals(def.generator().preset());
+        if (end && (spec == null || spec.family() == com.customdimensions.compiler.terrain.TerrainFamily.END)) {
+            return new Ground("erosion", END_LAND, false, false);
+        }
+        return null;
+    }
+
+    /** Whether {@code layout} ranks its regions over land alone ({@code over: land}). */
+    static boolean overLand(String slug, JsonObject layout) {
+        JsonElement e = layout.get("over");
+        if (e == null) return false;
+        if (!e.isJsonPrimitive() || !OVER.contains(e.getAsString())) throw error(slug, "biomeLayout.over must be one of " + OVER);
+        return "land".equals(e.getAsString());
+    }
+
+    /**
+     * What {@code def}'s biome layout asks of its terrain's router: the place cue where regions are ranked over
+     * land or a biome takes the basins, island depth where one takes the undersides.
+     */
+    static com.customdimensions.compiler.terrain.TerrainLibrary.Biomes biomes(String slug, com.customdimensions.core.definition.Definition def,
+                                                                              BiomeRoles roles) {
+        JsonObject layout = def.biomeLayout();
+        Ground ground = layout == null ? null : ground(slug, def);
+        if (ground == null || !"continentalness".equals(ground.axis())) return com.customdimensions.compiler.terrain.TerrainLibrary.Biomes.NONE;
+        boolean land = overLand(slug, layout);
+        Map<String, String> overrides = roles(slug, layout, def.biomes());
+        boolean basin = false, underside = false;
+        for (BiomeEntry b : def.biomes()) {
+            if (b.climate() != null) continue;
+            String r = role(b.id(), overrides, roles, land, ground);
+            basin |= BiomeRoles.BASIN.equals(r);
+            underside |= BiomeRoles.UNDERSIDE.equals(r);
+        }
+        return new com.customdimensions.compiler.terrain.TerrainLibrary.Biomes(land || basin, underside);
+    }
+
+    /** {@code id}'s role over a void: its own, but an ocean takes the basins of a terrain that shapes them when regions are over land. */
+    private static String role(String id, Map<String, String> overrides, BiomeRoles roles, boolean overLand, Ground ground) {
+        String r = overrides.containsKey(id) || roles == null ? overrides.getOrDefault(id, BiomeRoles.LAND) : roles.role(id, overrides);
+        if (overLand && ground != null && ground.basins() && BiomeRoles.OCEAN.equals(r) && !overrides.containsKey(id)) return BiomeRoles.BASIN;
+        return r;
+    }
+
     /** Depth a cave area starts at: vanilla's cave biomes' lowest. */
     static final double CAVE_DEPTH = 0.2;
     /** Role groups in carving order: the first wins where areas overlap. */
@@ -148,7 +215,21 @@ public final class RegionLayout {
         }
         var l = def.liquids();
         boolean water = l == null || ((l.defaultFluid() == null || "minecraft:water".equals(l.defaultFluid())) && !"dry".equals(l.aquifers()));
+        if (l != null && l.seaLevel() != null && seaUnderLand(spec, l.seaLevel())) water = false;
         return coast == null || water ? coast : coast.dry();
+    }
+
+    /** The open-ocean floor of the overworld presets' own terrain, as a library land terrain's {@code seaFloor} defaults to. */
+    static final double VANILLA_SEA_FLOOR = 36;
+    /** Blocks the overworld presets' deepest ocean basins lie below {@link #VANILLA_SEA_FLOOR}, as a library terrain's do. */
+    static final double VANILLA_BASIN_DEPTH = 20;
+
+    /**
+     * Whether a sea at {@code seaLevel} lies under the land: below the deepest ocean basin, where the terrain's
+     * sea-relative heights build from the sea floor instead ({@code Ctx.shore()}), so its ocean area is dry land.
+     */
+    static boolean seaUnderLand(com.customdimensions.compiler.terrain.TerrainSpec spec, int seaLevel) {
+        return spec != null ? spec.seaUnderLand(seaLevel) : seaLevel < VANILLA_SEA_FLOOR - VANILLA_BASIN_DEPTH;
     }
 
     /** As {@link #plan(String, List, JsonObject, int, BiomeLibrary.Known, CompileReport.Entry, Coast, BiomeRoles)} with no coast. */
@@ -164,13 +245,39 @@ public final class RegionLayout {
      */
     static Plan plan(String slug, List<BiomeEntry> biomes, JsonObject layout, int radius, BiomeLibrary.Known known,
                      CompileReport.Entry entry, Coast coast, BiomeRoles roles) {
+        return plan(slug, biomes, layout, radius, known, entry, coast, roles, null);
+    }
+
+    /**
+     * As {@link #plan(String, List, JsonObject, int, BiomeLibrary.Known, CompileReport.Entry, Coast, BiomeRoles)} over
+     * {@code ground}, a dimension over a void (null: on the ground). With {@code over: land} the runtime ranks the
+     * region axes over the cells that hold land; a biome with the role {@code underside} takes the islands below
+     * their tops and one with {@code basin} the open water of the basins, each ranked over its own ground.
+     */
+    static Plan plan(String slug, List<BiomeEntry> biomes, JsonObject layout, int radius, BiomeLibrary.Known known,
+                     CompileReport.Entry entry, Coast coast, BiomeRoles roles, Ground ground) {
         validate(slug, layout);
         List<String> axes = axes(slug, layout);
         Map<String, Double> weights = weights(slug, layout);
         Map<String, String> overrides = roles(slug, layout, biomes);
+        boolean overLand = overLand(slug, layout);
+        if (overLand && ground == null) {
+            throw error(slug, "biomeLayout.over land ranks regions over the islands of the end preset or of a terrain over a void; "
+                    + "on the ground, role areas already rank each biome over its own ground");
+        }
+        for (Map.Entry<String, String> o : overrides.entrySet()) {
+            if (BiomeRoles.BASIN.equals(o.getValue()) && (ground == null || !ground.basins())) {
+                throw error(slug, "biomeLayout.roles." + o.getKey() + " is basin, which is the open water of basin_islands' lake masses");
+            }
+            if (BiomeRoles.UNDERSIDE.equals(o.getValue()) && (ground == null || !ground.undersides())) {
+                throw error(slug, "biomeLayout.roles." + o.getKey() + " is underside, which is the underside of a terrain's islands over a void");
+            }
+        }
+        boolean landTakesSea = false;
         if (coast != null && !coast.water() && biomes.stream().allMatch(b -> b.climate() != null
                 || BiomeRoles.LAND.equals(group(roles.role(b.id(), overrides))))) {
             coast = null;
+            landTakesSea = true;
         }
         JsonArray bound = new JsonArray();
         List<String> regional = new ArrayList<>();
@@ -205,12 +312,52 @@ public final class RegionLayout {
         axes.forEach(axesJson::add);
         regions.add("axes", axesJson);
         String note;
-        if (coast == null) {
+        List<String> under = new ArrayList<>(), basin = new ArrayList<>(), held = new ArrayList<>();
+        if (ground != null) {
+            for (String id : regional) {
+                String r = role(id, overrides, roles, overLand, ground);
+                (BiomeRoles.UNDERSIDE.equals(r) ? under : BiomeRoles.BASIN.equals(r) ? basin : held).add(id);
+            }
+        }
+        if (overLand) {
+            JsonObject land = new JsonObject();
+            land.addProperty("axis", ground.axis());
+            land.addProperty("min", ground.min());
+            regions.add("land", land);
+        }
+        if (!under.isEmpty() || !basin.isEmpty()) {
+            double[] surface = under.isEmpty() ? null : new double[]{BiomeLayout.LOW, UNDERSIDE_DEPTH};
+            JsonArray areas = new JsonArray();
+            StringBuilder parts = new StringBuilder();
+            Object[][] groups = {
+                    {BiomeRoles.UNDERSIDE, under, null, new double[]{UNDERSIDE_DEPTH, BiomeLayout.HIGH}},
+                    {BiomeRoles.BASIN, basin, new double[]{ground.min(), com.customdimensions.compiler.terrain.TerrainFamily.PLACE_SHORE}, surface},
+                    {BiomeRoles.LAND, held, null, surface}};
+            for (Object[] g : groups) {
+                @SuppressWarnings("unchecked") List<String> ids = (List<String>) g[1];
+                if (ids.isEmpty()) continue;
+                double[] cont = (double[]) g[2], depth = (double[]) g[3];
+                Cells cells = cells(ids, weights, axes, area(cont, null, depth));
+                cells.entries().forEach(kept::add);
+                JsonObject a = new JsonObject();
+                a.addProperty("role", (String) g[0]);
+                if (cont != null) a.add("continentalness", BiomeLayout.range(cont[0], cont[1]));
+                if (depth != null) a.add("depth", BiomeLayout.range(depth[0], depth[1]));
+                if (!cells.cuts().isEmpty()) a.add("columns", cuts(cells.cuts()));
+                areas.add(a);
+                parts.append(parts.isEmpty() ? "" : "; ").append(g[0]).append(' ').append(cells.columns());
+            }
+            regions.add("areas", areas);
+            note = "Biome regions on " + String.join(" × ", axes) + " over a " + radius + "-block radius, by the islands' ground: " + parts
+                    + (overLand ? "; ranked over land" : "") + (overrides.isEmpty() ? "" : "; roles given: " + overrides);
+        } else if (coast == null) {
             Cells cells = cells(regional, weights, axes, area(null, null, null));
             cells.entries().forEach(kept::add);
             if (!cells.cuts().isEmpty()) regions.add("columns", cuts(cells.cuts()));
             note = "Biome regions on " + String.join(" × ", axes) + " over a " + radius + "-block radius: "
-                    + regional.size() + " regional biome(s) in " + cells.columns().size() + " column(s) " + cells.columns();
+                    + regional.size() + " regional biome(s) in " + cells.columns().size() + " column(s) " + cells.columns()
+                    + (overLand ? "; ranked over the cells whose " + ground.axis() + " is at least " + ground.min() + " (land)" : "")
+                    + (landTakesSea ? "; the land biomes take the sea too, which is not water" : "");
         } else {
             Map<String, List<String>> groups = new LinkedHashMap<>();
             GROUPS.forEach(g -> groups.put(g, new ArrayList<>()));

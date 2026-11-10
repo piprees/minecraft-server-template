@@ -13,5 +13,9 @@ public final class ZoneTypes {
         Registry.register(BuiltInRegistries.BIOME_SOURCE, Identifier.fromNamespaceAndPath(CustomDimensions.ID, "zoned"), ZonedBiomeSource.CODEC);
         Registry.register(BuiltInRegistries.DENSITY_FUNCTION_TYPE, Identifier.fromNamespaceAndPath(CustomDimensions.ID, "zone_distance"),
                 ZoneDistanceFunction.CODEC);
+        Registry.register(BuiltInRegistries.DENSITY_FUNCTION_TYPE, Identifier.fromNamespaceAndPath(CustomDimensions.ID, "land_share"),
+                LandShareFunction.CODEC);
+        Registry.register(BuiltInRegistries.DENSITY_FUNCTION_TYPE, Identifier.fromNamespaceAndPath(CustomDimensions.ID, "checker_cells"),
+                CheckerCellsFunction.CODEC);
     }
 }

@@ -37,7 +37,7 @@
       "properties": {
         "base": {
           "description": "A library terrain; null is the generator preset's own.",
-          "enum": [null, "continents", "erosion", "ridges", "terraces", "canyons", "rivers", "floating_islands", "basin_islands", "islands", "voids", "shattered", "spires"]
+          "enum": [null, "continents", "erosion", "ridges", "terraces", "canyons", "rivers", "floating_islands", "basin_islands", "islands", "voids", "shattered", "spires", "roofed", "end"]
         },
         "setting": {
           "description": "Starting values for the parameters: gentle (near vanilla), default, extreme.",
@@ -63,7 +63,7 @@
           "default": 1
         },
         "scales": {
-          "description": "Per-noise horizontal stretch, each multiplied with scale and applied to the router noise it names: continents (continentalness: continent and ocean size), erosion (range and valley width), ridges (weirdness: ridge, river and peak spacing), climate (temperature and vegetation: biome region size). Larger is broader. Library noises follow scale only. Biome climate boxes keep their bounds, so check every listed biome on a render after a change (T174). Without a base it shapes the overworld, large_biomes and amplified presets' own terrain.",
+          "description": "Per-noise horizontal stretch, each multiplied with scale and applied to the router noise it names: continents (continentalness: continent and ocean size), erosion (range and valley width), ridges (weirdness: ridge, river and peak spacing), climate (temperature and vegetation: biome region size). Larger is broader. Library noises follow scale only. Biome climate boxes keep their bounds, so check every listed biome on a render after a change (T174). Without a base it shapes the overworld, large_biomes and amplified presets' own terrain; on the nether, caves and end presets it takes climate alone, and so does a roofed terrain.",
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -73,8 +73,19 @@
             "climate": { "description": "Horizontal stretch of one router noise, multiplied with scale; 2 is twice as broad", "type": "number", "minimum": 0.25, "maximum": 4, "default": 1 }
           }
         },
+        "landShare": {
+          "description": "Share of the player border that is land, measured from each seed's continentalness when the level loads. The coast moves to where that share of a 96 x 96 grid over the border lies at or above it, so the share holds for any seed, scales and layout. Without a base it acts on the overworld, large_biomes and amplified presets' own terrain; with one, on a land terrain whose coast continentalness draws (not islands, roofed, end or a terrain over a void).",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "floor": {
+          "description": "What a spires terrain's columns stand on: land (the shared land, columns rising inland), sea (a sea floor at seaFloor with every column rising out of the sea), void (nothing between them: each column stands from the bottom of an open world) or islands (each column on a domed island of its own over a void). void and islands are terrains over a void, with no aquifers.",
+          "enum": ["land", "void", "sea", "islands"],
+          "default": "land"
+        },
         "layout": {
-          "description": "A large-scale shape added to continentalness (land and biomes both read it) so the bordered area composes as one place: radial is a continent (1 within radius, falling to -1 over falloff), ring is a crest at radius round a low centre, linear is a coast rising towards direction. The shape times strength adds to the noise, never replaces it. Without a base it shapes the overworld, large_biomes and amplified presets' own terrain.",
+          "description": "A large-scale shape added to continentalness (land and biomes both read it) so the bordered area composes as one place: radial is a continent (1 within radius, falling to -1 over falloff), ring is a crest at radius round a low centre, linear is a coast rising towards direction. The shape times strength adds to the noise, never replaces it. Without a base it shapes the overworld, large_biomes and amplified presets' own terrain. On a roofed terrain it places the pits instead: the shape times strength moves the pit noise, so radial is one pit round the centre. On floating_islands, basin_islands and spires over a void or a sea it moves the coverage noise (islands, lake masses, spires) by up to three of its deviations: radial gathers them round the centre and clears the sky past the falloff, ring sets them round a hollow. On an end terrain it adds the shape times 0.4 times strength to the island density.",
           "type": "object",
           "additionalProperties": false,
           "required": ["type"],
@@ -316,6 +327,40 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "roofed"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_roofed"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "end"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_end"
+              }
+            }
+          }
         }
       ]
     },
@@ -359,10 +404,15 @@
           "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
         },
         "roles": {
-          "description": "A listed biome's role, over the one its tags or library entry give. On a terrain with a coastline, regional land, peak and wetland biomes take regions on land only, ocean biomes in the sea only, cave biomes at depth only; shore and river biomes listed without a climate take the terrain's shore and river bands, divided among them by weight.",
+          "description": "A listed biome's role, over the one its tags or library entry give. On a terrain with a coastline, regional land, peak and wetland biomes take regions on land only, ocean biomes in the sea only, cave biomes at depth only; shore and river biomes listed without a climate take the terrain's shore and river bands, divided among them by weight. Over a void: underside takes the islands more than 8 blocks below their tops (hanging gardens), basin the open water of basin_islands' lake masses; the other biomes take the island tops, each group ranked over its own ground.",
           "type": "object",
           "propertyNames": { "$ref": "#/$defs/id" },
-          "additionalProperties": { "enum": ["land", "ocean", "shore", "river", "peak", "cave", "wetland"] }
+          "additionalProperties": { "enum": ["land", "ocean", "shore", "river", "peak", "cave", "wetland", "basin", "underside"] }
+        },
+        "over": {
+          "description": "Which cells the region axes are ranked over: all (default) or land, the cells that hold land, so each regional biome takes its weight's share of the islands and not of the void between. For the end preset (its own islands or an end terrain), whose erosion is the island density, and for a terrain over a void, whose router continentalness becomes its place cue (void, basin water, land); under land an ocean biome on basin_islands takes the basin role.",
+          "enum": ["all", "land"],
+          "default": "all"
         },
         "sea": {
           "description": "The biome of the sea when no ocean biome is listed, on a terrain with a coastline; absent: the vanilla ocean that suits the land biomes' mean temperature.",
@@ -394,7 +444,7 @@
       }
     },
     "materials": {
-      "description": "The material layer: the fallback block, a palette for the dimension and palettes per biome.",
+      "description": "The material layer: the fallback block, a palette for the dimension, palettes per biome and palettes by depth. A vanilla Nether biome listed on another preset takes its own ground (nylium, soul sand, netherrack, basalt) unless a palette names it; on the caves preset a biome with no floor of its own takes moss_block, not grass, unless the dimension's palette sets top.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -410,6 +460,25 @@
           "type": "object",
           "propertyNames": { "pattern": "^#?[a-z0-9_.-]+:[a-z0-9_./-]+$" },
           "additionalProperties": { "$ref": "#/$defs/palette" }
+        },
+        "bands": {
+          "description": "Palettes by depth, deepest first: each holds below its below (an absolute y, each above the last) and wins over the per-biome palettes and the dimension's there, so a world can turn hotter and harder downward.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["below"],
+            "properties": {
+              "below": { "description": "The band's top: it holds where y is below this.", "type": "integer" },
+              "top": { "$ref": "#/$defs/id" },
+              "filler": { "$ref": "#/$defs/id" },
+              "deep": { "$ref": "#/$defs/id" },
+              "cliffs": { "$ref": "#/$defs/id" },
+              "beaches": { "$ref": "#/$defs/id" },
+              "ceilings": { "$ref": "#/$defs/id" }
+            }
+          }
         }
       }
     },
@@ -470,8 +539,19 @@
         "fogColor": { "$ref": "#/$defs/colour" },
         "ambientLight": { "type": "number", "minimum": 0, "maximum": 1 },
         "fixedTime": { "type": "integer", "minimum": 0 },
-        "effects": { "$ref": "#/$defs/id" }
-      }
+        "effects": { "$ref": "#/$defs/id" },
+        "dayLength": {
+          "description": "Real minutes of day (sunrise to sunset) and night; the day's timelines are warped to it. settings.json's defaults.atmosphere.dayLength applies to every dimension with vanilla's day and no fixedTime.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dayMinutes", "nightMinutes"],
+          "properties": {
+            "dayMinutes": { "type": "number", "minimum": 1, "maximum": 600 },
+            "nightMinutes": { "type": "number", "minimum": 1, "maximum": 600 }
+          }
+        }
+      },
+      "not": { "required": ["fixedTime", "dayLength"] }
     },
     "rules": {
       "description": "What works here; unset rules keep the base type's.",
@@ -913,6 +993,13 @@
           "minimum": 0,
           "maximum": 62
         },
+        "voidBiomes": {
+          "description": "Checkerboard biomes whose cells carry no terrain: the final density is held at -1 in those cells. Each must be on the biome list, and not every one.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "minItems": 1,
+          "uniqueItems": true
+        },
         "biome": {
           "description": "The biome of a flat or single_biome world.",
           "$ref": "#/$defs/id"
@@ -951,7 +1038,7 @@
         },
         {
           "if": { "properties": { "type": { "const": "checkerboard" } } },
-          "else": { "properties": { "cellScale": false } }
+          "else": { "properties": { "cellScale": false, "voidBiomes": false } }
         },
         {
           "if": { "properties": { "type": { "const": "flat" } } },
@@ -2098,6 +2185,136 @@
           "minimum": 0,
           "maximum": 1,
           "default": 0.5
+        }
+      }
+    },
+    "terrain_end": {
+      "description": "The End's islands on the end preset's own router, grown or shrunk, raised taller, ridged along their tops and gathered by terrain.layout; the End's biome source reads the shaped islands, so its highlands follow them.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coverage": { "description": "Added to the End's island density: above 0 islands grow and join into masses, below 0 they shrink to fewer and smaller ones", "type": "number", "minimum": -0.3, "maximum": 0.3, "default": 0 },
+        "islandHeight": { "description": "Blocks higher the island tops reach: the End's top slide starts this much higher", "type": "number", "minimum": 0, "maximum": 48, "default": 0 },
+        "peaks": { "description": "Ridges raised along the island tops: 1 lifts a crest about 30 blocks", "type": "number", "minimum": 0, "maximum": 1, "default": 0 },
+        "peakWidth": { "description": "Ridge width, as a share of the ridge noise", "type": "number", "minimum": 0.02, "maximum": 0.3, "default": 0.08 }
+      }
+    },
+    "terrain_roofed": {
+      "description": "A cavern floor under a solid ceiling, on the nether or caves preset's own router: plains or rough country, with pits, chasms, sunken corridors, stepped ledges and floor-to-ceiling pillars.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.35
+        },
+        "floorHeight": {
+          "description": "Height of the cavern floor in blocks; below the preset's sea level it lies under the lava or water sea",
+          "type": "number",
+          "minimum": -60,
+          "maximum": 120,
+          "default": 40
+        },
+        "floorRelief": {
+          "description": "Blocks the floor rises and falls about floorHeight: 0 is flat plains, 40 rough country",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60,
+          "default": 12
+        },
+        "ceilingGap": {
+          "description": "Blocks of open height from floorHeight to the ceiling, which rises and falls by half the floor's relief",
+          "type": "number",
+          "minimum": 16,
+          "maximum": 160,
+          "default": 52
+        },
+        "flats": {
+          "description": "Share of the floor worn flat at floorHeight, its relief gone",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.9,
+          "default": 0
+        },
+        "pit": {
+          "description": "Share of the floor sunk into large pits; with terrain.layout, the layout's shape decides where",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.6,
+          "default": 0
+        },
+        "pitDepth": {
+          "description": "Blocks below floorHeight a pit's flat floor lies",
+          "type": "number",
+          "minimum": 4,
+          "maximum": 96,
+          "default": 32
+        },
+        "pitSize": {
+          "description": "Pit size; higher is larger and fewer",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "chasms": {
+          "description": "Width of the deep narrow chasms cut into the floor, as a share of the chasm noise; 0 none",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.3,
+          "default": 0
+        },
+        "chasmDepth": {
+          "description": "Blocks a chasm cuts below the floor round it",
+          "type": "number",
+          "minimum": 8,
+          "maximum": 120,
+          "default": 48
+        },
+        "corridors": {
+          "description": "Width of the long sunken corridors, as a share of the corridor noise; 0 none",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.3,
+          "default": 0
+        },
+        "corridorDepth": {
+          "description": "Blocks below floorHeight a corridor's flat bed lies",
+          "type": "number",
+          "minimum": 2,
+          "maximum": 60,
+          "default": 14
+        },
+        "ledges": {
+          "description": "How far slopes and walls break into flat shelves: 0 none, 1 every wall stepped",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        },
+        "ledgeStep": {
+          "description": "Blocks between shelves",
+          "type": "number",
+          "minimum": 3,
+          "maximum": 32,
+          "default": 8
+        },
+        "pillars": {
+          "description": "Share of the floor under floor-to-ceiling pillars",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.2,
+          "default": 0
+        },
+        "pillarSize": {
+          "description": "Pillar girth; higher is thicker",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
         }
       }
     }

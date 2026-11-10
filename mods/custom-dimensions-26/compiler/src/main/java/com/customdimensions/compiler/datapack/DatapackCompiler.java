@@ -83,6 +83,8 @@ public final class DatapackCompiler {
 
     /** Vanilla's checkerboard {@code scale} when a definition sets no {@code cellScale}. */
     static final int DEFAULT_CHECKERBOARD_SCALE = 2;
+    /** The density function type that marks a checkerboard's void cells. */
+    static final String CHECKER_CELLS = "customdimensions:checker_cells";
 
     /**
      * The compiled pack: pack-relative path to file text, the report, and each
@@ -103,6 +105,8 @@ public final class DatapackCompiler {
     private BiomeLibrary.Known known;
     private BiomeLibrary library;
     private BiomeRoles roles;
+    /** {@code settings.json}'s {@code defaults.atmosphere.dayLength}, or null. */
+    private Atmosphere.DayLength defaultDayLength;
 
     private DatapackCompiler(VanillaData vanilla, VersionTable.Version version, String namespace) {
         this.vanilla = vanilla;
@@ -126,7 +130,8 @@ public final class DatapackCompiler {
             definitions.put(name.substring(0, name.length() - ".json".length()), DefinitionReader.read(file));
         }
         Output output = compileAll(namespace, definitions, vanilla, version,
-                StructuresCompiler.Catalogue.of(vanilla, bridgesDir), BiomeLibrary.shipped());
+                StructuresCompiler.Catalogue.of(vanilla, bridgesDir), BiomeLibrary.shipped(),
+                Atmosphere.DayLength.fromDefaults(settings.defaults()));
         output.files().put("pack.mcmeta", JsonWriter.write(packMeta(version, output.report().entries().size())));
         return output;
     }
@@ -140,13 +145,21 @@ public final class DatapackCompiler {
     /** As {@link #compileAll(String, Map, VanillaData, VersionTable.Version)} over the given biome library. */
     static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
                              VersionTable.Version version, BiomeLibrary library) {
-        return compileAll(namespace, definitions, vanilla, version, StructuresCompiler.Catalogue.of(vanilla, null), library);
+        return compileAll(namespace, definitions, vanilla, version, StructuresCompiler.Catalogue.of(vanilla, null), library, null);
+    }
+
+    /** As {@link #compileAll(String, Map, VanillaData, VersionTable.Version)} with {@code settings.json}'s default day length. */
+    static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
+                             VersionTable.Version version, Atmosphere.DayLength dayLength) {
+        return compileAll(namespace, definitions, vanilla, version, StructuresCompiler.Catalogue.of(vanilla, null), BiomeLibrary.shipped(),
+                dayLength);
     }
 
     private static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
                                      VersionTable.Version version, StructuresCompiler.Catalogue catalogue,
-                                     BiomeLibrary library) {
+                                     BiomeLibrary library, Atmosphere.DayLength dayLength) {
         DatapackCompiler compiler = new DatapackCompiler(vanilla, version, namespace);
+        compiler.defaultDayLength = dayLength;
         compiler.structureCatalogue = catalogue;
         library.validate(vanilla, namespace);
         compiler.library = library;
@@ -386,7 +399,7 @@ public final class DatapackCompiler {
     }
 
     /**
-     * The clone with its source's generator and terrain; its own biome list
+     * The clone with its source's generator, and its own terrain when it has one, else its source's; its own biome list
      * and layout when it has a list, else its source's; its own seed, dimension type,
      * atmosphere and rules; its own liquids, default block, ores and carvers over the
      * source's, field by field.
@@ -406,7 +419,7 @@ public final class DatapackCompiler {
         JsonObject ores = overlay(source.ores(), clone.ores());
         JsonObject carvers = overlay(source.carvers(), clone.carvers());
         return new Definition(clone.schemaVersion(), clone.description(), clone.seed(), clone.spawn(), source.generator(),
-                source.terrain(), biomes, biomeLayout, liquids, materials, ores, carvers, clone.zones(), clone.dimensionType(),
+                clone.terrain() != null ? clone.terrain() : source.terrain(), biomes, biomeLayout, liquids, materials, ores, carvers, clone.zones(), clone.dimensionType(),
                 clone.atmosphere(), clone.rules(), clone.borders(), clone.difficulty(), clone.structures(), clone.portals(),
                 clone.exitPortal(), clone.exits(), clone.exitShrines(), clone.deaths(), clone.wins(), clone.roll());
     }
@@ -444,8 +457,41 @@ public final class DatapackCompiler {
         JsonObject type = vanilla.dimensionType(baseDimensionType(def.generator()));
         applyDimensionType(type, def.dimensionType());
         applyAtmosphere(type, def.atmosphere(), entry);
+        Atmosphere a = def.atmosphere();
+        if (a == null || a.fixedTime() == null) {
+            Atmosphere.DayLength d = a != null && a.dayLength() != null ? a.dayLength() : defaultDayLength;
+            if (d != null) applyDayLength(type, d, entry);
+        }
         applyRules(type, def.rules());
         return type;
+    }
+
+    /**
+     * {@code atmosphere.dayLength}, or the settings' default: in a dimension with vanilla's day, each timeline that
+     * repeats in whole days replaced by its warped copy ({@link DayLength}), shared by every dimension on that length.
+     */
+    private void applyDayLength(JsonObject type, Atmosphere.DayLength length, CompileReport.Entry entry) {
+        List<String> ids = vanilla.expandTimelines(type.get("timelines"));
+        if (!ids.contains("minecraft:day")) return;
+        DayLength d = new DayLength(length.dayMinutes(), length.nightMinutes());
+        JsonArray timelines = new JsonArray();
+        for (String id : ids) {
+            JsonObject timeline = vanilla.timeline(id);
+            if (!DayLength.applies(timeline)) {
+                timelines.add(id);
+                continue;
+            }
+            String warped = d.id(namespace, id);
+            put(dataPath(warped, "timeline"), sorted(d.apply(timeline)), entry);
+            timelines.add(warped);
+        }
+        type.add("timelines", timelines);
+        entry.note("Day length " + minutes(length.dayMinutes()) + " min day, " + minutes(length.nightMinutes())
+                + " min night: the day's timelines on a " + d.period() + "-tick period; random ticks and weather keep vanilla's pacing");
+    }
+
+    private static String minutes(double m) {
+        return m == Math.rint(m) ? String.valueOf((long) m) : String.valueOf(m);
     }
 
     /** {@code dimensionType}: each set field replaces the vanilla field of the same name in snake case. */
@@ -566,22 +612,23 @@ public final class DatapackCompiler {
 
     private JsonObject generator(String slug, Definition def, CompileReport.Entry entry) {
         Generator g = def.generator();
-        if (def.biomeLayout() != null && (!Generator.NOISE.equals(g.type()) || def.biomes().isEmpty())) {
-            throw new IllegalArgumentException(slug + ": biomeLayout lays out the biome list of a noise generator; this definition has "
+        boolean laysOut = Generator.NOISE.equals(g.type()) || Generator.VOID.equals(g.type());
+        if (def.biomeLayout() != null && (!laysOut || def.biomes().isEmpty())) {
+            throw new IllegalArgumentException(slug + ": biomeLayout lays out the biome list of a noise or void generator; this definition has "
                     + (def.biomes().isEmpty() ? "no biome list" : "a " + g.type() + " generator"));
         }
         return switch (g.type()) {
             case Generator.NOISE -> {
                 RegionLayout.Plan regions = def.biomeLayout() == null ? null : RegionLayout.plan(slug, def.biomes(), def.biomeLayout(),
                         RegionLayout.radius(def.borders()), known, entry,
-                        RegionLayout.coast(slug, def, RegionLayout.axes(slug, def.biomeLayout())), roles());
+                        RegionLayout.coast(slug, def, RegionLayout.axes(slug, def.biomeLayout())), roles(), RegionLayout.ground(slug, def));
                 yield noiseGenerator(slug, def, g.preset(), regions == null ? noiseBiomeSource(def, entry) : multiNoise(regions.entries()),
                         regions, entry);
             }
             case Generator.CHECKERBOARD -> noiseGenerator(slug, def, "overworld", checkerboard(def, entry), null, entry);
             case Generator.SINGLE_BIOME -> noiseGenerator(slug, def, g.noisePreset(), fixed(g.biome(), entry), null, entry);
             case Generator.FLAT -> flat(flatBiome(g.biome(), "minecraft:plains", entry), layers(g.layers()), def, entry);
-            case Generator.VOID -> flat(voidBiome(def, entry), new JsonArray(), def, entry);
+            case Generator.VOID -> placesBiomes(def) ? voidNoise(slug, def, entry) : flat(voidBiome(def, entry), new JsonArray(), def, entry);
             default -> throw new IllegalStateException("generator type " + g.type());
         };
     }
@@ -607,7 +654,7 @@ public final class DatapackCompiler {
      * definition's own entry for that biome wins.
      */
     private MaterialsCompiler.Spec withLibraryPalettes(MaterialsCompiler.Spec spec, Definition def, ZonesCompiler.Plan zones,
-                                                      CompileReport.Entry entry) {
+                                                      String preset, CompileReport.Entry entry) {
         List<String> listed = new ArrayList<>();
         def.biomes().forEach(b -> listed.add(b.id()));
         if (def.generator().biome() != null) listed.add(def.generator().biome());
@@ -625,9 +672,24 @@ public final class DatapackCompiler {
             biomes.put(id, palette);
             applied.add("`" + id + "`");
         }
-        if (applied.isEmpty()) return spec;
-        entry.note("Library palette(s) for " + String.join(", ", applied));
-        return new MaterialsCompiler.Spec(spec.dimension(), biomes);
+        if (!applied.isEmpty()) entry.note("Library palette(s) for " + String.join(", ", applied));
+        List<String> ground = new ArrayList<>();
+        if (!"nether".equals(preset)) {
+            for (String id : new LinkedHashSet<>(listed)) {
+                MaterialsCompiler.Palette palette = MaterialsCompiler.NETHER_GROUND.get(id);
+                if (palette == null || biomes.containsKey(id)) continue;
+                biomes.put(id, palette);
+                ground.add("`" + id + "`");
+            }
+            if (!ground.isEmpty()) entry.note("Nether ground for " + String.join(", ", ground) + " on the " + preset + " preset");
+        }
+        MaterialsCompiler.Spec out = spec.withBiomes(biomes);
+        if ("caves".equals(preset) && !spec.dimension().blocks().containsKey("top")) {
+            out = out.withFloor(MaterialsCompiler.SUNLESS_FLOOR, MaterialsCompiler.ownFloors(vanilla));
+            entry.note("Under the caves preset's ceiling, `" + MaterialsCompiler.SUNLESS_FLOOR + "` tops the dry floors of biomes with no "
+                    + "floor of their own and no palette top, where vanilla lays grass");
+        }
+        return out;
     }
 
     /**
@@ -645,11 +707,24 @@ public final class DatapackCompiler {
         TerrainSpec terrain = TerrainSpec.parse(slug, def.terrain());
         JsonObject settings = vanilla.noiseSettings(preset);
         com.customdimensions.compiler.terrain.TerrainShaping shaping = TerrainSpec.presetShaping(slug, def.terrain());
-        if (terrain != null) {
-            settings = terrain(slug, preset, terrain, settings, liquids, entry);
-        } else if (shaping != null) {
-            TerrainLibrary.Compiled compiled = TerrainLibrary.shapePreset(slug, namespace, slug, shaping, preset, settings, vanilla);
+        boolean climateOnly = shaping != null && TerrainLibrary.CLIMATE_ONLY.contains(preset);
+        if (climateOnly) {
+            TerrainLibrary.checkClimateOnly(slug, preset, shaping);
+        }
+        JsonObject voidCells = checkerVoid(slug, def, entry);
+        boolean shapesEnd = terrain != null && terrain.family() == com.customdimensions.compiler.terrain.TerrainFamily.END;
+        if (shapesEnd) {
+            TerrainLibrary.Compiled compiled = TerrainLibrary.compileEnd(slug, namespace, slug, terrain, preset, settings, !removesIsland);
             compiled.files().forEach((path, json) -> put(path, sorted(json), entry));
+            entry.note("Terrain `end` (" + terrain.setting() + ") under `" + namespace + ":terrain/" + slug + "/`: the End's islands"
+                    + (removesIsland ? " without the central island" : "") + ", which its biomes read as their shape");
+            settings = compiled.settings();
+            removesIsland = false;
+        } else if (terrain != null) {
+            settings = terrain(slug, preset, terrain, settings, liquids, def, entry);
+        } else if (shaping != null && !climateOnly) {
+            TerrainLibrary.Compiled compiled = TerrainLibrary.shapePreset(slug, namespace, slug, shaping, preset, settings, vanilla);
+            landShared(compiled.files(), slug, shaping, RegionLayout.Coast.VANILLA.line(), def, entry).forEach((path, json) -> put(path, sorted(json), entry));
             entry.note("Preset `" + preset + "` terrain shaped (scales, layout) under `" + namespace + ":terrain/" + slug + "/`");
             settings = compiled.settings();
         }
@@ -664,6 +739,19 @@ public final class DatapackCompiler {
                 }
             }
         }
+        double climate = climateOnly ? shaping.stretch("temperature")
+                : terrain != null && terrain.family().ownRouter() ? terrain.shaping().stretch("temperature") : 1;
+        if (climate != 1) {
+            TerrainLibrary.Climate stretched = TerrainLibrary.stretchClimate(namespace, slug, settings, climate, vanilla);
+            stretched.files().forEach((path, json) -> put(path, sorted(json), entry));
+            entry.note(stretched.stretched()
+                    ? "Climate (temperature, vegetation) stretched " + climate + "x under `" + namespace + ":terrain/" + slug + "/`"
+                    : "terrain.scales.climate has no effect: the " + preset + " preset's biomes read no climate without a biome list");
+        }
+        if (voidCells != null) {
+            JsonObject router = settings.getAsJsonObject("noise_router");
+            router.add("final_density", TerrainLibrary.voided(router.get("final_density"), voidCells));
+        }
         boolean changesZones = zones != null && zones.changesSettings();
         if (changesZones) {
             settings = ZonesCompiler.apply(zones, settings, preset, liquids != null ? liquids.seaLevel() : null, vanilla,
@@ -671,10 +759,10 @@ public final class DatapackCompiler {
         }
         int seaLevel = liquids != null && liquids.seaLevel() != null ? liquids.seaLevel() : settings.get("sea_level").getAsInt();
         JsonObject materialRule = MaterialsCompiler.compose(vanilla, settings.get("material_rule").getAsString(),
-                withLibraryPalettes(MaterialsCompiler.read(slug, def.materials()), def, zones, entry), OresCompiler.veins(OresCompiler.read(slug, def.ores()), vanilla),
-                seaLevel);
+                withLibraryPalettes(MaterialsCompiler.read(slug, def.materials()), def, zones, preset, entry), OresCompiler.veins(OresCompiler.read(slug, def.ores()), vanilla),
+                seaLevel, settings.has("default_block") ? settings.get("default_block").getAsString() : null, defaultBlock);
         if (!changesLiquids && defaultBlock == null && !removesIsland && materialRule == null && terrain == null && shaping == null
-                && !changesZones && !borrowsClimate) {
+                && !changesZones && !borrowsClimate && voidCells == null) {
             return "minecraft:" + preset;
         }
         if (removesIsland) {
@@ -703,17 +791,45 @@ public final class DatapackCompiler {
     }
 
     /** The settings with a library terrain's router; its density functions and noises go into the pack. */
-    private JsonObject terrain(String slug, String preset, TerrainSpec terrain, JsonObject settings, Liquids liquids,
+    private JsonObject terrain(String slug, String preset, TerrainSpec terrain, JsonObject settings, Liquids liquids, Definition def,
                                CompileReport.Entry entry) {
+        TerrainLibrary.Biomes biomes = RegionLayout.biomes(slug, def, roles());
         TerrainLibrary.Compiled compiled = TerrainLibrary.compile(slug, namespace, slug, terrain, preset, settings,
-                liquids != null ? liquids.seaLevel() : null, vanilla);
-        compiled.files().forEach((path, json) -> put(path, sorted(json), entry));
+                liquids != null ? liquids.seaLevel() : null, vanilla, biomes);
+        if (biomes.place()) entry.note("The router's continentalness is the terrain's place cue (void, basin water, land), which its biome regions follow");
+        if (biomes.underside()) entry.note("The router's depth is measured down from the islands' tops, so an underside biome takes the islands below them");
+        Map<String, JsonObject> files = compiled.files();
+        if (terrain.shaping().landShare() != null) {
+            if (terrain.family().shore(terrain) == null || terrain.family() == com.customdimensions.compiler.terrain.TerrainFamily.ISLANDS) {
+                throw new IllegalArgumentException(slug + ": terrain.landShare sets where continentalness meets the sea of a land terrain or "
+                        + "the overworld presets; " + terrain.family().id() + (terrain.airborne() ? " hangs over a void" : " draws its own coast"));
+            }
+            files = landShared(files, slug, terrain.shaping(), terrain.param("coast"), def, entry);
+        }
+        files.forEach((path, json) -> put(path, sorted(json), entry));
+        String roofed = "";
+        if (terrain.family().roofed()) {
+            JsonObject out = compiled.settings();
+            double sea = liquids != null && liquids.seaLevel() != null ? liquids.seaLevel() : out.get("sea_level").getAsInt();
+            String fluid = liquids != null && liquids.defaultFluid() != null ? liquids.defaultFluid() : out.get("default_fluid").getAsString();
+            roofed = ": " + TerrainLibrary.describeRoofed(terrain, sea, fluid.substring(fluid.indexOf(':') + 1));
+        }
         entry.note("Terrain `" + terrain.family().id() + "` (" + terrain.setting() + ") under `" + namespace + ":terrain/"
-                + slug + "/`" + (terrain.family().airborne() ? ", over a void with no aquifers" : ""));
+                + slug + "/`" + (terrain.airborne() ? ", over a void with no aquifers" : "") + roofed);
         return compiled.settings();
     }
 
     /** A density function by id, from this pack or vanilla's; null when neither has it. */
+    /** {@code files} with the terrain's continentalness held to {@code terrain.landShare} of the player border, noted in the report. */
+    private Map<String, JsonObject> landShared(Map<String, JsonObject> files, String slug, com.customdimensions.compiler.terrain.TerrainShaping shaping,
+                                               double coast, Definition def, CompileReport.Entry entry) {
+        if (shaping.landShare() == null) return files;
+        int radius = RegionLayout.radius(def.borders());
+        entry.note("Land share " + shaping.landShare() + ": at load the level's continentalness is shifted so that share of a " + radius
+                + "-block radius lies at or above the coast (" + coast + "), measured from the seed's own noise");
+        return TerrainLibrary.withLandShare(files, namespace, slug, shaping, coast, radius);
+    }
+
     private JsonObject densityFunction(String id) {
         String own = files.get(dataPath(id, "worldgen/density_function"));
         if (own != null) return com.google.gson.JsonParser.parseString(own).getAsJsonObject();
@@ -858,6 +974,35 @@ public final class DatapackCompiler {
         return source;
     }
 
+    /**
+     * {@code generator.voidBiomes}: a {@code customdimensions:checker_cells} function, 1 in the checkerboard cells of
+     * the listed biomes, which the router's final density is held at or below -1 in; null without the field.
+     */
+    private JsonObject checkerVoid(String slug, Definition def, CompileReport.Entry entry) {
+        List<String> listed = def.generator().voidBiomes();
+        if (listed == null || !Generator.CHECKERBOARD.equals(def.generator().type())) return null;
+        List<String> order = new ArrayList<>();
+        for (BiomeEntry b : def.biomes()) {
+            if (known.contains(b.id()) && !order.contains(b.id())) order.add(b.id());
+        }
+        JsonArray cells = new JsonArray();
+        for (String id : listed) {
+            int i = order.indexOf(id);
+            if (i < 0) throw new IllegalArgumentException(slug + ": generator.voidBiomes." + id + " is not a biome the checkerboard lays");
+            cells.add(i);
+        }
+        if (cells.size() == order.size()) throw new IllegalArgumentException(slug + ": generator.voidBiomes lists every biome; use the void generator");
+        Integer scale = def.generator().cellScale();
+        JsonObject f = new JsonObject();
+        f.addProperty("type", CHECKER_CELLS);
+        f.addProperty("scale", scale != null ? scale : DEFAULT_CHECKERBOARD_SCALE);
+        f.addProperty("count", order.size());
+        f.add("cells", cells);
+        entry.note("Checkerboard cells of " + listed + " carry no terrain: the final density is held at -1 there ("
+                + com.customdimensions.core.zone.CheckerCells.width(scale != null ? scale : DEFAULT_CHECKERBOARD_SCALE) + "-block cells)");
+        return f;
+    }
+
     private JsonObject fixed(String biome, CompileReport.Entry entry) {
         JsonObject source = new JsonObject();
         source.addProperty("type", "minecraft:fixed");
@@ -875,6 +1020,49 @@ public final class DatapackCompiler {
             return fallback;
         }
         return biome;
+    }
+
+    /** Whether a void world lays out its biomes: more than one known biome listed, or a biome layout. */
+    private boolean placesBiomes(Definition def) {
+        if (def.biomeLayout() != null) return true;
+        return def.biomes().stream().map(BiomeEntry::id).filter(known::contains).distinct().count() > 1;
+    }
+
+    /**
+     * A void world that places its listed biomes: a noise generator on the overworld's climate whose final
+     * density is -1 everywhere, so no block generates, with no aquifers and its sea at the bottom of the
+     * world; the biomes are laid out as a noise world's are, by climate box or {@code biomeLayout}.
+     */
+    private JsonObject voidNoise(String slug, Definition def, CompileReport.Entry entry) {
+        if (def.liquids() != null) entry.unsupported("liquids", "a void world has no sea or fluid");
+        if (def.materials() != null) {
+            for (String key : def.materials().keySet()) entry.unsupported("materials." + key, "a void world has no blocks");
+        }
+        if (def.ores() != null) entry.unsupported("ores", "a void world has no stone for ores");
+        if (def.terrain() != null) entry.unsupported("terrain", "a void world has no terrain");
+        RegionLayout.Plan regions = def.biomeLayout() == null ? null : RegionLayout.plan(slug, def.biomes(), def.biomeLayout(),
+                RegionLayout.radius(def.borders()), known, entry, null, roles(), null);
+        JsonObject biomeSource = regions == null ? filtered("overworld", def.biomes(), entry) : multiNoise(regions.entries());
+        ZonesCompiler.Plan zones = ZonesCompiler.plan(slug, namespace, def, known, entry);
+        if (zones != null && zones.changesSettings()) entry.unsupported("zones", "a void world's zones place biomes only, no terrain");
+        JsonObject source = zones == null ? biomeSource : ZonesCompiler.biomeSource(zones, biomeSource, "overworld", vanilla, known, version, entry);
+        JsonObject generator = new JsonObject();
+        generator.addProperty("type", "minecraft:noise");
+        generator.add("biome_source", regions == null ? source : ZonesCompiler.withRegions(source, regions.regions()));
+        JsonObject settings = vanilla.noiseSettings("overworld");
+        JsonObject router = settings.getAsJsonObject("noise_router");
+        router.addProperty("final_density", -1.0);
+        settings.remove("aquifers");
+        settings.remove("debug_functions");
+        settings.addProperty("sea_level", settings.getAsJsonObject("noise").get("min_y").getAsInt());
+        settings.addProperty("default_fluid", "minecraft:air");
+        if (!version.noiseSettingsDefaultBlock()) settings.remove("default_block");
+        String id = namespace + ":" + slug;
+        put(dataPath(id, "worldgen/noise_settings"), sorted(settings), entry);
+        generator.addProperty("settings", id);
+        entry.note("Void world placing its biomes: a noise generator on the overworld's climate with final density -1, so no block "
+                + "generates, no aquifers and its sea at the bottom of the world");
+        return generator;
     }
 
     /** A void world's biome: the first vanilla biome it lists, else {@code minecraft:the_void}. */

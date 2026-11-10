@@ -44,6 +44,22 @@ final class Ctx {
         return sea;
     }
 
+    /** What the spec's columns stand on ({@link TerrainSpec#FLOORS}). */
+    String floor() {
+        return spec.floor();
+    }
+
+    /**
+     * {@code sigmas} standard deviations of a noise whose own is {@code sigma}, times the layout's shape and
+     * strength: added to a coverage noise, it raises coverage where the shape is 1 and lowers it where it is -1;
+     * null without a layout.
+     */
+    JsonElement layoutShift(double sigma, double sigmas) {
+        TerrainShaping.Layout l = spec.shaping().layout();
+        if (l == null) return null;
+        return mul(TerrainShaping.shape(l), sigma * sigmas * l.strength());
+    }
+
     /** Blocks the deepest ocean basin lies below the sea floor. */
     static final double BASIN_DEPTH = 20;
 
@@ -54,7 +70,7 @@ final class Ctx {
      * instead of trenching down to its sea (T173).
      */
     double shore() {
-        return sea < p("seaFloor") - BASIN_DEPTH ? p("seaFloor") : sea;
+        return spec.seaUnderLand(sea) ? p("seaFloor") : sea;
     }
 
     int minY() {

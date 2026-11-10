@@ -11,10 +11,11 @@ import java.util.Set;
  * {@code of} names the dimension a {@code clone} copies;
  * {@code cellScale} sizes {@code checkerboard} cells; {@code layers} and
  * {@code biome} describe a {@code flat} world, and {@code biome} alone a
- * {@code single_biome} one; {@code endIsland} applies to the {@code end} preset.
+ * {@code single_biome} one; {@code endIsland} applies to the {@code end} preset;
+ * {@code voidBiomes} names the {@code checkerboard} biomes whose cells carry no terrain.
  */
 public record Generator(String type, String preset, String of, Integer cellScale,
-                        String biome, List<JsonObject> layers, Boolean endIsland) {
+                        String biome, List<JsonObject> layers, Boolean endIsland, List<String> voidBiomes) {
 
     public static final String NOISE = "noise";
     public static final String VOID = "void";
@@ -30,6 +31,11 @@ public record Generator(String type, String preset, String of, Integer cellScale
 
     public Generator {
         layers = layers == null ? null : List.copyOf(layers);
+        voidBiomes = voidBiomes == null ? null : List.copyOf(voidBiomes);
+    }
+
+    public Generator(String type, String preset, String of, Integer cellScale, String biome, List<JsonObject> layers, Boolean endIsland) {
+        this(type, preset, of, cellScale, biome, layers, endIsland, null);
     }
 
     /** The noise settings a noise-built generator uses: {@code preset}, else the overworld's. */

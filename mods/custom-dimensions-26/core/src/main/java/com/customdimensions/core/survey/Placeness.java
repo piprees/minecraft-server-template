@@ -98,6 +98,68 @@ public final class Placeness {
         return o;
     }
 
+    /**
+     * {@code heightAboveMedianBlocks} on each point of {@code placeness.at} inside the map: its cell's surface
+     * height minus the median of {@code heights} (NaN cells, the void, left out).
+     */
+    public void addRelief(JsonObject placeness, double[] heights) {
+        JsonObject at = placeness.getAsJsonObject("at");
+        if (at == null) return;
+        for (String key : at.keySet()) {
+            JsonObject p = at.getAsJsonObject(key);
+            int x = Math.round((p.get("x").getAsInt() - originX) / (float) step), z = Math.round((p.get("z").getAsInt() - originZ) / (float) step);
+            if (x < 0 || z < 0 || x >= side || z >= side) continue;
+            Double relief = SurveyMetrics.heightAboveMedian(heights[z * side + x], heights);
+            if (relief != null) p.addProperty("heightAboveMedianBlocks", relief);
+        }
+    }
+
+    /**
+     * The islands: 4-connected regions of {@code land} cells (specks included), their count, their sizes in
+     * hectares (p50, p90, max), and {@code dominantBiomePercent}, the mean over the islands, weighted by area,
+     * of each island's share of land in its own commonest biome ({@code biomes}, negative where none): 100 when
+     * every island is one place.
+     */
+    public JsonObject islandsJson(boolean[] land, int[] biomes) {
+        int[] labels = new int[land.length];
+        for (int i = 0; i < land.length; i++) labels[i] = land[i] ? 0 : -1;
+        Regions r = regions(labels);
+        double cellHa = (double) step * step / 10_000.0;
+        JsonObject o = new JsonObject();
+        o.addProperty("note", "4-connected land cells of the coarse map (" + step + "-block cells), specks included; dominantBiomePercent is the "
+                + "area-weighted mean share of each island's land in its own commonest biome");
+        o.addProperty("count", r.count());
+        double[] sizes = new double[r.count()];
+        for (int k = 0; k < sizes.length; k++) sizes[k] = r.areas()[k] * cellHa;
+        JsonObject ha = new JsonObject();
+        if (sizes.length > 0) {
+            ha.addProperty("p50", Stats.round1(Stats.percentile(sizes, 50)));
+            ha.addProperty("p90", Stats.round1(Stats.percentile(sizes, 90)));
+            ha.addProperty("max", Stats.round1(Arrays.stream(sizes).max().orElse(0)));
+        }
+        o.add("sizesHa", ha);
+        java.util.List<java.util.Map<Integer, Integer>> counts = new ArrayList<>();
+        for (int k = 0; k < r.count(); k++) counts.add(new java.util.HashMap<>());
+        for (int i = 0; i < labels.length; i++) {
+            if (r.region()[i] >= 0 && biomes[i] >= 0) counts.get(r.region()[i]).merge(biomes[i], 1, Integer::sum);
+        }
+        long top = 0, total = 0;
+        for (java.util.Map<Integer, Integer> c : counts) {
+            int sum = c.values().stream().mapToInt(Integer::intValue).sum();
+            total += sum;
+            top += c.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        }
+        o.addProperty("dominantBiomePercent", total == 0 ? 0 : Stats.percent(top, total));
+        return o;
+    }
+
+    /** Each biome's share of the void cells, sampled at a fixed height ({@code biomes}: a label per void cell, negative elsewhere). */
+    public JsonObject voidBiomesJson(int[] biomes, IntFunction<String> name) {
+        int cells = 0;
+        for (int b : biomes) if (b >= 0) cells++;
+        return shares(biomes, name, Math.max(1, cells));
+    }
+
     /** Every label's share of the grid, largest first, one decimal (at least 0.1 for a label present at all). */
     JsonObject shares(int[] labels, IntFunction<String> name) {
         return shares(labels, name, labels.length);

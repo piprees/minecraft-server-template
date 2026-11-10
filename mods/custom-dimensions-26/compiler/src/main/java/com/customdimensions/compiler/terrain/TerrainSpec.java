@@ -17,15 +17,18 @@ import java.util.stream.Collectors;
  * ({@code scales}, {@code layout}).
  */
 public record TerrainSpec(TerrainFamily family, String setting, Map<String, Double> params, double scale,
-                          double heightMultiplier, TerrainShaping shaping) {
+                          double heightMultiplier, TerrainShaping shaping, String floor) {
 
     public static final TerrainParam SCALE = new TerrainParam("scale", 0.25, 4, 1,
             "Horizontal stretch of every terrain noise and of the biome climate; 2 is twice as broad. scales multiply it per router noise");
     public static final TerrainParam HEIGHT_MULTIPLIER = new TerrainParam("heightMultiplier", 0.25, 3, 1,
             "Multiplies every height above or below sea level");
-    static final Set<String> KEYS = Set.of("base", "setting", "params", "scale", "heightMultiplier", "scales", "layout");
+    static final Set<String> KEYS = Set.of("base", "setting", "params", "scale", "heightMultiplier", "scales", "layout", "floor", "landShare");
+    /** What a {@code spires} terrain's columns stand on: the land, a void, a sea floor, or islands of their own over a void. */
+    public static final List<String> FLOORS = List.of("land", "void", "sea", "islands");
+    public static final String LAND_FLOOR = "land";
     /** Fields that shape a preset's own terrain, without a {@code base}. */
-    static final Set<String> PRESET_KEYS = Set.of("base", "scale", "scales", "layout");
+    static final Set<String> PRESET_KEYS = Set.of("base", "scale", "scales", "layout", "landShare");
 
     /** The terrain a definition asks for, or null when it keeps the preset's own ({@code base} absent or null). */
     public static TerrainSpec parse(String slug, JsonObject terrain) {
@@ -73,7 +76,19 @@ public record TerrainSpec(TerrainFamily family, String setting, Map<String, Doub
         double scale = terrain.has("scale") ? number(slug, "terrain.scale", terrain.get("scale"), SCALE) : 1;
         double height = terrain.has("heightMultiplier")
                 ? number(slug, "terrain.heightMultiplier", terrain.get("heightMultiplier"), HEIGHT_MULTIPLIER) : 1;
-        return new TerrainSpec(family, setting, Map.copyOf(values), scale, height, TerrainShaping.parse(slug, terrain, scale));
+        String floor = LAND_FLOOR;
+        if (terrain.has("floor")) {
+            JsonElement f = terrain.get("floor");
+            if (family != TerrainFamily.SPIRES) {
+                throw error(slug, "terrain.floor is for spires, which stand on land, a void, a sea floor or islands; " + family.id()
+                        + " has its own ground");
+            }
+            if (!f.isJsonPrimitive() || !f.getAsJsonPrimitive().isString() || !FLOORS.contains(f.getAsString())) {
+                throw error(slug, "terrain.floor must be one of " + String.join(", ", FLOORS));
+            }
+            floor = f.getAsString();
+        }
+        return new TerrainSpec(family, setting, Map.copyOf(values), scale, height, TerrainShaping.parse(slug, terrain, scale), floor);
     }
 
     /**
@@ -112,6 +127,17 @@ public record TerrainSpec(TerrainFamily family, String setting, Map<String, Doub
 
     private static IllegalArgumentException error(String slug, String message) {
         return new IllegalArgumentException(slug + ": " + message);
+    }
+
+    /** Whether the terrain hangs over a void: an airborne family, or spires standing on a void or on islands of their own. */
+    public boolean airborne() {
+        return family.airborne() || "void".equals(floor) || "islands".equals(floor);
+    }
+
+    /** Whether a sea at {@code sea} lies below the deepest ocean basin, so it holds no water and the land builds from the sea floor. */
+    public boolean seaUnderLand(double sea) {
+        Double floor = params.get("seaFloor");
+        return floor != null && sea < floor - Ctx.BASIN_DEPTH;
     }
 
     public double param(String name) {

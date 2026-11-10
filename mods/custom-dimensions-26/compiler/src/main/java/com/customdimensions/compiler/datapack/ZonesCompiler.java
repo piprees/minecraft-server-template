@@ -152,7 +152,7 @@ public final class ZonesCompiler {
                     spec = TerrainSpec.parse(where, zone.terrain());
                     if (spec == null) throw new IllegalArgumentException("terrain.base is required in a zone");
                     compiled = TerrainLibrary.compile(where, plan.namespace(), name, spec, preset,
-                            vanilla.noiseSettings(TerrainLibrary.PRESETS.contains(preset) ? preset : "overworld"), seaLevel, vanilla);
+                            vanilla.noiseSettings(TerrainLibrary.settingsPreset(preset, spec.family())), seaLevel, vanilla);
                 } catch (IllegalArgumentException e) {
                     throw new IllegalArgumentException(e.getMessage().startsWith(where) ? e.getMessage() : where + ": " + e.getMessage(), e);
                 }

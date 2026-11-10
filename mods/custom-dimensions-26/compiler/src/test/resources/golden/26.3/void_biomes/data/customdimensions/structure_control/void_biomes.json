@@ -1,0 +1,20 @@
+{
+  "level": "adventure:void_biomes",
+  "density": "normal",
+  "noise": false,
+  "suppressedReason": "type void enables no groups",
+  "radiusChunks": 256,
+  "spawnChunk": [0, 0],
+  "groups": {},
+  "mode": null,
+  "list": [],
+  "exclude": [],
+  "include": [],
+  "rarity": {},
+  "spacing": {},
+  "force": [],
+  "wants": [],
+  "shuns": [],
+  "replace": {},
+  "terrainAdaptation": {}
+}

@@ -16,8 +16,9 @@ import static com.customdimensions.compiler.terrain.Df.spline;
 /**
  * The large-scale controls of a definition's {@code terrain}, with or without
  * a library {@code base}: {@code scales}, a horizontal stretch per router
- * noise on top of {@code scale}, and {@code layout}, a shape added to
- * continentalness so the bordered area composes as one place.
+ * noise on top of {@code scale}, {@code layout}, a shape added to
+ * continentalness so the bordered area composes as one place, and
+ * {@code landShare}, the share of the player border that is land.
  */
 public final class TerrainShaping {
 
@@ -62,17 +63,24 @@ public final class TerrainShaping {
     public static final TerrainParam RADIUS = new TerrainParam("radius", 0, 8192, 512,
             "Blocks from the centre to where a radial shape starts to fall, or to a ring's crest");
 
+    public static final TerrainParam LAND_SHARE = new TerrainParam("landShare", 0, 1, 0.5,
+            "Share of the player border that is land, measured from each seed's continentalness when the level loads");
+    /** The density function type that shifts continentalness to a land share at load. */
+    public static final String LAND_SHARE_TYPE = "customdimensions:land_share";
+
     private final double scale;
     private final Scales scales;
     private final Layout layout;
+    private final Double landShare;
 
-    private TerrainShaping(double scale, Scales scales, Layout layout) {
+    private TerrainShaping(double scale, Scales scales, Layout layout, Double landShare) {
         this.scale = scale;
         this.scales = scales;
         this.layout = layout;
+        this.landShare = landShare;
     }
 
-    public static final TerrainShaping NONE = new TerrainShaping(1, Scales.NONE, null);
+    public static final TerrainShaping NONE = new TerrainShaping(1, Scales.NONE, null, null);
 
     public double scale() {
         return scale;
@@ -87,9 +95,29 @@ public final class TerrainShaping {
         return layout;
     }
 
-    /** Whether the shaping changes nothing: every stretch 1 and no layout. */
+    /** The share of the border that is land, or null for the noise's own. */
+    public Double landShare() {
+        return landShare;
+    }
+
+    /** Whether the shaping changes nothing: every stretch 1, no layout and no land share. */
     public boolean isNone() {
-        return scale == 1 && scales.equals(Scales.NONE) && layout == null;
+        return scale == 1 && scales.equals(Scales.NONE) && layout == null && landShare == null;
+    }
+
+    /**
+     * {@code continents} shifted at load so {@link #landShare} of the border ({@code radius} round the origin)
+     * lies at or above {@code coast}; unchanged without a land share.
+     */
+    public JsonElement withLandShare(JsonElement continents, double coast, int radius) {
+        if (landShare == null) return continents;
+        JsonObject f = new JsonObject();
+        f.addProperty("type", LAND_SHARE_TYPE);
+        f.add("argument", continents);
+        f.addProperty("share", landShare);
+        f.addProperty("coast", coast);
+        f.addProperty("radius", radius);
+        return f;
     }
 
     /** The stretch of a router entry: {@code scale} times its {@code scales} entry. */
@@ -117,7 +145,8 @@ public final class TerrainShaping {
         if (terrain.has("layout")) {
             layout = layout(slug, terrain.get("layout"));
         }
-        return new TerrainShaping(scale, scales, layout);
+        Double landShare = terrain.has("landShare") ? number(slug, "terrain.landShare", terrain.get("landShare"), LAND_SHARE) : null;
+        return new TerrainShaping(scale, scales, layout, landShare);
     }
 
     private static Layout layout(String slug, JsonElement e) {

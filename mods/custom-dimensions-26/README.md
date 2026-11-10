@@ -129,6 +129,14 @@ on generated chunks.
 | `fungal_fen` | overworld | Giant mushrooms standing in broad shallow pools of dark water on level ground, mycelium and mud with grassy tussocks, tall grass, large ferns and sugar cane at the pool edges, muddy roots, shelf fungi on fallen logs, lily pads on the water |
 | `dying_forest` | overworld | Spruces thinning, browning or bare, snapped trunks, fallen spruce logs, podzol and coarse dirt under snow, grey sky |
 | `sugi_forest` | overworld | Very tall straight red-barked trunks with flat stacked needle tiers, moss floors, ferns, mossy boulders, green mist |
+| `moonlight_grove` | overworld | Slim birch trunks under silver pale-oak crowns hung with pale moss, glow lichen on the trunks, fireflies, blue dusk fog |
+| `cedar_forest` | overworld | Tall narrow dark cones of dark oak leaves on spruce trunks, young cedars, fallen cedars, ferns on podzol, low grey fog |
+| `temperate_rainforest` | overworld | Vine-clad spruces and two-by-two giants on moss and mud, mossy fallen logs, deep ferns, rain |
+| `ashen_savanna` | overworld | Grey grass over coarse dirt, blackened forked acacias with few leaves, snags, dry grass, white ash |
+| `bayou` | overworld | Brown shallows over clay and mud, dark trees hung with pale moss, cypress knees, reed beds, lily pads |
+| `rock_pools` | overworld | Grey stone shelves at the water line with shallow clear pools of seagrass and sea pickles |
+| `old_growth_oakwood` | overworld | Two-by-two oaks with broad crowns and surface roots, young oaks, dark willows over clay ponds, leaf litter |
+| `sculk_spread` | overworld | Sculk patches and veins over the dimension's own ground, rare catalysts, bare dead trunks, teal gloom |
 | `crystal_hollows` | caves | Calcite and smooth basalt walls, open geodes in every chunk, budding amethyst seams, cluster-covered floor and ceiling patches, glow lichen, purple motes and amethyst chimes |
 | `lichen_caves` | caves | Tuff ceilings and walls, moss and mossy cobblestone floors, hanging roots, dripleaf pools, dense glow lichen, grey-green fog |
 | `bioshroom_caves` | caves | Giant mushrooms with shroomlight and froglight-speckled caps on mycelium and mud, small mushrooms, spores in blue-green fog |
@@ -138,6 +146,9 @@ on generated chunks.
 | `buried_dunes` | caves | Sandstone roofs and walls, sand drifts with dead bushes, cut-sandstone pillars, husks, falling sand dust |
 | `gelatinous_caves` | caves | Slime and honey pillars round coloured froglight cores floor to roof, slime and honey drips from calcite ceilings, honeycomb floor crusts, sea-pickle pools |
 | `root_hollows` | caves | Mangrove-root strands floor to roof and wall to wall, rooted dirt and mud floors, hanging roots, glow berries, dripstone |
+| `sculk_depths` | caves | Caverns grown over with sculk on floor, wall and roof, catalysts, sensors, bone seams, near-black teal fog |
+| `frosted_caves` | caves | Packed ice ceilings, ice and blue-ice walls, icicles, snow floors, powder snow, strays |
+| `salt_caves` | caves | Calcite and diorite walls seamed with pink and white terracotta, salt crusts, salt stalagmites and drips, brine pools |
 | `nether_grasslands` | nether | Netherrack plains under crimson and warped nylium patches, sprouts, roots, small fungi, glowstone mounds, orange haze |
 | `magma_land` | nether | Magma floors cracked with netherrack, obsidian-rimmed lava pools, fire, heavy red haze |
 | `gravel_desert` | nether | Gravel floors, buried and standing bone blocks, dead bushes in coarse dirt hollows, skeletons, pale dust |
@@ -150,6 +161,7 @@ on generated chunks.
 | `redstone_abyss` | nether | Redstone ore, cinnabar and blackstone seams, redstone ore and cinnabar outcrops on the floors, natural Nether light only, electric sparks, scarlet fog |
 | `mycotoxic_undergrowth` | nether | Moss floors, giant fungi with slime-block caps and verdant froglights, twisting vines, hanging green cave vines, poisonous green haze |
 | `nether_jungle` | nether | Tall stripped crimson and warped stems under wart canopies, dense weeping-vine lianas, twisting vines, nylium patches, red-green fog |
+| `bone_reef` | nether | Soul sand plains with curved bone ribs in loose cages, sunken spines, buried bone, skulls, bone-pale haze |
 | `chorus_forest` | end | Branching chorus close enough to be a forest, tall chorus stalks tipped with end rods, budding chorus flowers, purple fog and portal sparks |
 | `dust_wastelands` | end | Sand over sandstone heaped into dunes, half-buried end stone boulders, dead bushes and dry grass, yellow-grey dust haze |
 | `umbral_wastes` | end | Blackstone islands, obsidian spikes, long thin kinked cracks of crying obsidian through the ground, soul fire on soul soil, drifting ash |
@@ -162,11 +174,13 @@ on generated chunks.
 | `neon_oasis` | end | Cyan pools on level ground lit from below by sea lanterns, coral reefs in the pools and coral rims at the water's edge, sea-lantern-crowned dark prismarine pillars, sand shores, glow lichen |
 | `ice_starfield` | end | Snow-covered islands, packed-ice spikes, blue-ice shards, packed-ice sheets, snow drifts, white sparks and snowflakes |
 | `painted_mountains` | end | Islands banded in orange, white, pink and purple terracotta by height, stepped banded terracotta peaks, banded end-stone spires |
+| `sheared_highlands` | end | High island tops split by parallel fins of polished basalt, fallen basalt blades, tuff scree, bare end stone |
 | `sky_highlands` | sky | Pale grass over calcite cliffs, quartz outcrops, small round pale oaks, white and pale-blue flowers, sheep, white sky |
 | `golden_skygrove` | sky | Gold-tinted round oaks with bee nests and gold poplars on golden grass and podzol, leaf litter, golden dandelions, drifting gold leaves, gold light |
 | `windswept_isles` | sky | Bare stone with calcite cliffs, wind-bent spruces, cobblestone boulders, deep drifts of loose snow, snowflakes and wind |
 | `cloud_reef` | sky | Snow and calcite cloud islands with soft snow drifts, a bleached reef of dead grey coral and bone-block trees, claws and mushrooms hung with dead fans, a few end rods, close pale mist with drifting motes |
 | `hanging_gardens` | sky | Undersides hung with moss, long glow-berry cave vines and hanging roots, flowery grass tops with azaleas, green-gold light |
+| `mirage_isles` | sky | Sparse pale isles of calcite pavement through thin turf, lone silver pale oaks, mirror pools, warm white glare |
 
 ### Generators
 
@@ -175,12 +189,12 @@ the definition sets.
 
 | `generator` | Compiles to | Tuning |
 | --- | --- | --- |
-| `noise`, preset `overworld`, `large_biomes`, `amplified`, `caves`, `floating_islands`, `nether`, `end` | `minecraft:noise` with the preset's noise settings; a definition's `biomes` become a multi-noise layout with no overlaps (`BiomeLayout`: climate boxes first, then vanilla's entries, or a temperature-by-humidity grid when a listed biome has none); the End keeps `minecraft:the_end` unless it lists biomes, which then spread over the overworld's temperature and vegetation | `liquids.seaLevel` → `sea_level`, `liquids.defaultFluid` → `default_fluid`, `liquids.aquifers` → the `aquifers` object kept (`on`), removed (`off`, `flooded`) or removed with air as the fluid (`dry`), `liquids.lavaLevel` and `liquids.basins` → the runtime; `materials.defaultBlock` → `default_block` on 26.3 and the last entry of the material rule on 26.4; palettes (`top`, `filler`, `deep`, `cliffs`, `beaches`, `ceilings`, per-biome `biomes`) and `ores.veins` → the dimension's material rule; `ores.add` and `ores.remove` → placed features and the runtime; `endIsland: false` (End only) swaps vanilla's `end/islands` for a copy that keeps only `end_outer_islands`. Fields: [schema-v2.md](../../docs/design/rebuild-26/schema-v2.md#materials-liquids-and-ores) |
-| `checkerboard` | overworld noise, `minecraft:checkerboard` source | `cellScale` → `scale`: cells of 2^(cellScale+4) blocks; `liquids`, `materials` and `ores` as for `noise` |
+| `noise`, preset `overworld`, `large_biomes`, `amplified`, `caves`, `floating_islands`, `nether`, `end` | `minecraft:noise` with the preset's noise settings; a definition's `biomes` become a multi-noise layout with no overlaps (`BiomeLayout`: climate boxes first, then vanilla's entries, or a temperature-by-humidity grid when a listed biome has none); the End keeps `minecraft:the_end` unless it lists biomes, which then spread over the overworld's temperature and vegetation | `liquids.seaLevel` → `sea_level`, `liquids.defaultFluid` → `default_fluid`, `liquids.aquifers` → the `aquifers` object kept (`on`), removed (`off`, `flooded`) or removed with air as the fluid (`dry`), `liquids.lavaLevel` and `liquids.basins` → the runtime; `materials.defaultBlock` → `default_block` on 26.3 and the last entry of the material rule on 26.4, and in place of the preset rule's own fill of its default block (the End's rule is one unconditional `end_stone`, the Nether's ends in `netherrack`), so the ground no palette claims is the definition's; palettes (`top`, `filler`, `deep`, `cliffs`, `beaches`, `ceilings`, per-biome `biomes`, per-depth `bands`) and `ores.veins` → the dimension's material rule, with a listed vanilla Nether biome's own ground off the nether preset and `moss_block` on the caves preset's dry floors where vanilla lays grass; `ores.add` and `ores.remove` → placed features and the runtime; `endIsland: false` (End only) swaps vanilla's `end/islands` for a copy that keeps only `end_outer_islands`; `biomeLayout.over: land` ranks the regions over the End's islands (its erosion, the island density, from -0.0625) or a sky terrain's land (its place cue). Fields: [schema-v2.md](../../docs/design/rebuild-26/schema-v2.md#materials-liquids-and-ores) |
+| `checkerboard` | overworld noise, `minecraft:checkerboard` source | `cellScale` → `scale`: cells of 2^(cellScale+4) blocks; `voidBiomes` → the router's final density held at -1 in the cells of those biomes (`customdimensions:checker_cells`, vanilla's cell index), so they carry no terrain; `liquids`, `materials` and `ores` as for `noise` |
 | `single_biome` | the noise of its `preset` (overworld unless it names one, with that preset's dimension type), `minecraft:fixed` source | `biome`, `preset`; `liquids`, `materials` and `ores` as for `noise` |
 | `flat` | `minecraft:flat`, no features or lakes | `layers`, `biome` |
-| `void` | `minecraft:flat` with no layers | its first vanilla biome, else `minecraft:the_void` |
-| `clone` | the generator of the definition `of` names, under the clone's own dimension type, seed and atmosphere | its own `liquids` and `materials` over the source's; its own `biomes` are reported unused |
+| `void` | with one known biome or none, `minecraft:flat` with no layers; with more, or a `biomeLayout`, `minecraft:noise` on the overworld's climate with a final density of -1, no aquifers and its sea at the bottom of the world, so no block generates | its biome, else `minecraft:the_void`; a list laid out as a noise world's, by climate box or `biomeLayout` |
+| `clone` | the generator of the definition `of` names, under the clone's own dimension type, seed and atmosphere | its own `terrain` in place of the source's, compiling its own noise settings; its own `liquids` and `materials` over the source's; its own `biomes` and `biomeLayout` over the source's |
 
 `zones` lay shapes over any noise generator (`ZonesCompiler`, [worldgen.md § Zones](../../docs/design/rebuild-26/worldgen.md#zones)):
 each zone's mask is `<namespace>:zones/<slug>/<index>/mask`; a zone's terrain
@@ -189,10 +203,33 @@ the router; a zone that sets or swaps biomes wraps the biome source in
 `customdimensions:zoned`. A stamp of a biome the game lacks is a skipped biome
 in the report.
 
-`terrain` picks a terrain from the library for any noise generator but the
-`caves`, `nether` and `end` presets (`compiler/.../terrain/`, one enum constant
-per terrain with its parameters, ranges, defaults and `gentle`/`extreme`
-settings); the terrains and their parameters are in
+`terrain` picks a terrain from the library (`compiler/.../terrain/`, one enum
+constant per terrain with its parameters, ranges, defaults and
+`gentle`/`extreme` settings): a land terrain for any noise generator but the
+`caves`, `nether` and `end` presets, and `roofed`, a floor under a ceiling
+(`RoofedTerrain`), for `caves` and `nether`, where it replaces only the
+preset's 3D noise inside vanilla's slides, and `end` (`EndTerrain`) for the
+`end` preset, which shapes the End's island density and gives it to the router's
+erosion, so the End's biome source follows the shaped islands. `spires` takes
+`terrain.floor` (`land`, `sea`, `void`, `islands`); over a void or on islands it is a
+terrain over a void like `floating_islands`. On `floating_islands`, `basin_islands` and
+spires off the land, `terrain.layout` moves the coverage noise. A terrain over a
+void whose biome layout ranks over land or gives a biome the `basin` role writes
+its place cue (`<prefix>/place`: -1 void, -0.4 basin water, 0.5 land) as the router's
+continentalness; one with an `underside` biome writes `<prefix>/island_depth`, the
+depth below the islands' tops, as the router's depth. `terrain.landShare` (0–1)
+holds that share of the player border to land for any seed: the terrain's
+continentalness (`<prefix>/continents`, after its layout) is wrapped in
+`customdimensions:land_share`, which samples the seed's own continentalness on a
+96 × 96 grid over the border when the level loads and shifts it so the share
+lies at or above the coast (a land terrain's `coast`, the overworld presets'
+-0.19); terrain and biomes both read the shifted value. A sea under the land
+(`liquids.seaLevel` below the sea floor less 20 blocks: `seaFloor` on a land
+terrain, y 36 on the overworld presets) holds no water, so biome regions lay
+the land biomes on the ocean's area and add no default sea; a listed ocean or a
+`biomeLayout.roles` entry still takes it. Without a `base` those three presets
+take `terrain.scales.climate` alone, which stretches the climate their biomes
+are laid out on. The terrains and their parameters are in
 [worldgen.md § Terrain library](../../docs/design/rebuild-26/worldgen.md#terrain-library).
 
 A clone's `of` resolves to a slug: `paradise_lost:paradise_lost` to

@@ -47,9 +47,27 @@ public final class SurfaceGround {
     /** The {@code biomes} whose open land the rule lays in a {@code bare} block: their normal ground is rock. */
     public static Set<String> rockBiomes(JsonElement rule, Named named, Collection<String> biomes, String defaultBlock, int seaLevel, int minY,
                                          int height, Predicate<String> bare) {
+        return rockBiomesAt(rule, named, biomes, defaultBlock, groundY(seaLevel, false), minY, height, bare);
+    }
+
+    /** The island height of a void-natured dimension: the End's island tops and the usual sky-island layer lie above it. */
+    public static final int ISLAND_Y = 64;
+
+    /**
+     * The height a column's open ground is read at: {@link #ABOVE_SEA} over sea level, or on a void-natured
+     * dimension (the End, sky islands) no lower than {@link #ISLAND_Y}, so an End biome is read on its islands,
+     * where its rule lays End stone, and not in the void under them.
+     */
+    public static int groundY(int seaLevel, boolean voidNatured) {
+        return voidNatured ? Math.max(seaLevel + ABOVE_SEA, ISLAND_Y) : seaLevel + ABOVE_SEA;
+    }
+
+    /** {@link #rockBiomes} with each biome's open land read at {@code y}. */
+    public static Set<String> rockBiomesAt(JsonElement rule, Named named, Collection<String> biomes, String defaultBlock, int y, int minY,
+                                           int height, Predicate<String> bare) {
         Set<String> out = new HashSet<>();
         for (String id : biomes) {
-            if (bare.test(top(rule, named, id, defaultBlock, seaLevel + ABOVE_SEA, minY, height))) out.add(id);
+            if (bare.test(top(rule, named, id, defaultBlock, y, minY, height))) out.add(id);
         }
         return out;
     }
@@ -77,6 +95,7 @@ public final class SurfaceGround {
             }
             case "block" -> {
                 JsonElement s = o.get("result_state");
+                if (s != null && s.isJsonPrimitive()) return s.getAsString();
                 return s != null && s.isJsonObject() ? s.getAsJsonObject().get("Name").getAsString() : null;
             }
             case "bandlands" -> {

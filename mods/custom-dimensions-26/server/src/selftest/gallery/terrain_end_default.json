@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: end, default setting, on the end preset.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "end"
+  },
+  "terrain": {
+    "base": "end"
+  },
+  "borders": {
+    "player": 2048
+  }
+}

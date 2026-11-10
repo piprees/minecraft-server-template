@@ -440,4 +440,21 @@ class SurveyTest {
                 Set.of(), Set.of("minecraft:plains"), Set.of("minecraft:plains"), plan, Map.of("total", 1L)));
         assertEquals("[]", expected);
     }
+
+    @Test
+    void overAVoidNaturedDimensionABiomeIsJudgedOnItsIslands() {
+        List<PatchAnalysis> patches = new ArrayList<>();
+        for (int i = 0; i < 3; i++) patches.add(analyse(grid(i, false, (x, y, z) -> null)));
+        patches.add(analyse(grid(3, false, (x, y, z) -> y >= 50 && y < 64 ? STONE : null)));
+        List<SurveyPlan.Patch> plan = patches.stream().map(p -> p.patch).toList();
+        java.util.function.Function<Survey.Meta, JsonObject> biome = meta -> Survey.dossier(meta, null, patches, List.of())
+                .getAsJsonObject("biomeExpression").getAsJsonObject("biomes").getAsJsonObject("minecraft:plains");
+        JsonObject onGround = biome.apply(new Survey.Meta("adventure:test", 1, 0, 128, 63, false, new JsonObject(), List.of("minecraft:plains"),
+                Set.of(), Set.of("minecraft:plains"), Set.of(), plan, Map.of("total", 1L)));
+        assertEquals("[\"mostly void\"]", onGround.getAsJsonArray("flags").toString());
+        JsonObject islands = biome.apply(new Survey.Meta("adventure:test", 1, 0, 128, 0, false, new JsonObject(), List.of("minecraft:plains"),
+                Set.of(), Set.of("minecraft:plains"), Set.of(), plan, Map.of("total", 1L), true));
+        assertEquals("[]", islands.getAsJsonArray("flags").toString());
+        assertEquals("expressed", islands.get("state").getAsString());
+    }
 }

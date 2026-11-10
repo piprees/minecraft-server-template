@@ -29,6 +29,37 @@ class PlacenessTest {
     }
 
     @Test
+    void islandsAreCountedSizedAndJudgedOnTheirOwnBiomes() {
+        boolean[] land = new boolean[SIDE * SIDE];
+        int[] biomes = fill((x, z) -> -1);
+        for (int z = 0; z < 10; z++) for (int x = 0; x < 10; x++) {
+            land[z * SIDE + x] = true;
+            biomes[z * SIDE + x] = x < 5 ? 0 : 1;
+        }
+        for (int z = 20; z < 24; z++) for (int x = 20; x < 30; x++) {
+            land[z * SIDE + x] = true;
+            biomes[z * SIDE + x] = 2;
+        }
+        land[40 * SIDE + 40] = true;
+        biomes[40 * SIDE + 40] = 2;
+        JsonObject o = p.islandsJson(land, biomes);
+        assertEquals(3, o.get("count").getAsInt());
+        JsonObject ha = o.getAsJsonObject("sizesHa");
+        assertEquals(2.6, ha.get("max").getAsDouble(), "100 cells of 16 x 16 blocks");
+        assertEquals(1.0, ha.get("p50").getAsDouble());
+        // 50 of the first island's 100 cells, all 40 of the second's, the speck's one: 91 of 141
+        assertEquals(64.5, o.get("dominantBiomePercent").getAsDouble());
+    }
+
+    @Test
+    void voidBiomesAreSharesOfTheVoidCells() {
+        int[] biomes = fill((x, z) -> z < 2 ? (x < 48 ? 0 : 1) : -1);
+        JsonObject o = p.voidBiomesJson(biomes, k -> "b" + k);
+        assertEquals(75.0, o.get("b0").getAsDouble());
+        assertEquals(25.0, o.get("b1").getAsDouble());
+    }
+
+    @Test
     void oneBiomeIsOnePlace() {
         int[] one = fill((x, z) -> 0);
         JsonObject o = json(one, one, field(i -> 70), null, new int[]{0, 0});

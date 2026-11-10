@@ -260,12 +260,17 @@ public final class SurveyJob {
         timings.put("patches", generateMillis - scanMillis);
         timings.put("scanAndAnalyse", scanMillis);
         Survey.Meta meta = new Survey.Meta("adventure:" + slug, Sampler.defaultSeed(server, manager, slug), minY, height, seaLevel, ceiling,
-                atmosphere(server, type, definition), listed(definition), treeBiomes(server), rockBiomes(server, level, seaLevel),
-                waterBiomes(server, definition), plan, timings);
+                atmosphere(server, type, definition), listed(definition), treeBiomes(server),
+                rockBiomes(server, level, SurfaceGround.groundY(seaLevel, voidNatured(definition))), waterBiomes(server, definition), plan, timings,
+                voidNatured(definition));
         long t3 = System.nanoTime();
         JsonObject dossier = Survey.dossier(meta, landforms, analysed, checks);
         dossier.addProperty("dimension", level.dimension().identifier().toString());
-        dossier.add("placeness", placeness(sampler, coarse, landforms, grid, kind, definition, roleBiomes(server, definition, false)));
+        JsonObject placeness = placeness(sampler, coarse, landforms, grid, kind, definition, roleBiomes(server, definition, false));
+        dossier.add("placeness", placeness);
+        long tc = System.nanoTime();
+        dossier.add("structures", withCensus(dossier.getAsJsonObject("structures"), level, definition, radius));
+        timings.put("census", (System.nanoTime() - tc) / 1_000_000);
         if (dossier.has("landforms")) {
             dossier.getAsJsonObject("landforms").add("highGroundFine", highGroundFine != null ? highGroundFine
                     : withStep(landforms.highGroundJson(), step));
@@ -290,6 +295,28 @@ public final class SurveyJob {
      * {@link Placeness} over the coarse map: its biomes, landform classes, surface heights and the router's continentalness;
      * land biome regions over the dry cells outside {@code seaBiomes}.
      */
+    /**
+     * {@code structures} with {@code census}: every structure site inside the border from the level's structure
+     * placement (structure control applied), counted from spawn ({@link com.customdimensions.core.survey.SurveyMetrics#census}).
+     */
+    private static JsonObject withCensus(JsonObject structures, ServerLevel level, Definition definition, int radius) {
+        JsonObject out = structures != null ? structures : new JsonObject();
+        int sx = definition != null && definition.spawn() != null ? definition.spawn().x() : 0;
+        int sz = definition != null && definition.spawn() != null ? definition.spawn().z() : 0;
+        try {
+            List<com.customdimensions.core.survey.SurveyMetrics.Site> sites = StructureCensus.sites(level, radius);
+            JsonObject census = com.customdimensions.core.survey.SurveyMetrics.census(sites, sx, sz, radius);
+            census.addProperty("note", "sites from the structure placement over the " + radius + "-block border whose biome at the chunk "
+                    + "centre takes the structure (terrain checks not applied; a set's site counts for its first such structure); "
+                    + "distances from spawn (" + sx + ", " + sz + "); byRing bounds "
+                    + com.customdimensions.core.survey.SurveyMetrics.ringBounds(radius) + " blocks");
+            out.add("census", census);
+        } catch (RuntimeException e) {
+            out.addProperty("censusError", e.toString());
+        }
+        return out;
+    }
+
     /** High ground measured on {@code grid}, a finer map than the coarse one, with its step. */
     private static JsonObject highGround(RenderJob job, Sampler sampler, RenderGrid grid) throws Exception {
         java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(RenderJob.defaultThreads(), r -> {
@@ -325,7 +352,8 @@ public final class SurveyJob {
     static JsonObject placeness(Sampler sampler, ColumnSamples coarse, Landforms landforms, RenderGrid grid, byte[] kind, Definition definition,
                                 Set<String> seaBiomes) {
         int side = grid.side();
-        int[] biomes = new int[side * side], forms = new int[side * side], landBiomes = new int[side * side];
+        int[] biomes = new int[side * side], forms = new int[side * side], landBiomes = new int[side * side], voidBiomes = new int[side * side];
+        boolean[] land = new boolean[side * side];
         double[] heights = new double[side * side], continentalness = new double[side * side];
         Map<String, Integer> ids = new LinkedHashMap<>();
         List<String> names = new ArrayList<>();
@@ -338,15 +366,33 @@ public final class SurveyJob {
                     return names.size() - 1;
                 });
                 landBiomes[i] = kind[i] == 0 && b != null && !seaBiomes.contains(b) ? biomes[i] : -1;
+                land[i] = kind[i] != 2;
+                if (kind[i] == 2) {
+                    String v = sampler.biome(grid.x(px), VOID_BIOME_Y, grid.z(pz)).unwrapKey().map(k -> k.identifier().toString()).orElse(null);
+                    voidBiomes[i] = v == null ? -1 : ids.computeIfAbsent(v, k -> {
+                        names.add(k);
+                        return names.size() - 1;
+                    });
+                } else {
+                    voidBiomes[i] = -1;
+                }
                 forms[i] = landforms.form(px, pz).ordinal();
                 heights[i] = kind[i] == 2 ? Double.NaN : coarse.height(px, pz);
                 continentalness[i] = sampler.continentalness(grid.x(px), grid.z(pz));
             }
         }
         int[] spawn = definition != null && definition.spawn() != null ? new int[]{definition.spawn().x(), definition.spawn().z()} : null;
-        return new Placeness(side, grid.step(), grid.x(0), grid.z(0)).toJson(biomes, names::get, forms,
+        Placeness placeness = new Placeness(side, grid.step(), grid.x(0), grid.z(0));
+        JsonObject out = placeness.toJson(biomes, names::get, forms,
                 k -> Landforms.Form.values()[k].name().toLowerCase(java.util.Locale.ROOT), heights, continentalness, spawn, landBiomes);
+        placeness.addRelief(out, heights);
+        out.add("islands", placeness.islandsJson(land, biomes));
+        out.add("voidBiomesPercent", placeness.voidBiomesJson(voidBiomes, names::get));
+        return out;
     }
+
+    /** The height the biome of a void cell is read at. */
+    static final int VOID_BIOME_Y = 64;
 
     /** A generated chunk's copied sections and structure starts, taken on the server thread. */
     private record Snapshot(List<PalettedContainer<BlockState>> states, List<PalettedContainer<Holder<Biome>>> biomes, List<String> starts) {}
@@ -464,7 +510,14 @@ public final class SurveyJob {
         if (definition != null) {
             Gson gson = new Gson();
             try {
-                if (definition.atmosphere() != null) o.add("definitionAtmosphere", gson.toJsonTree(definition.atmosphere()));
+                if (definition.atmosphere() != null) {
+                    JsonObject a = gson.toJsonTree(definition.atmosphere()).getAsJsonObject();
+                    Double sky = com.customdimensions.core.survey.SurveyMetrics.luminance(definition.atmosphere().skyColor());
+                    Double fog = com.customdimensions.core.survey.SurveyMetrics.luminance(definition.atmosphere().fogColor());
+                    if (sky != null) a.addProperty("skyLuminance", sky);
+                    if (fog != null) a.addProperty("fogLuminance", fog);
+                    o.add("definitionAtmosphere", a);
+                }
                 if (definition.dimensionType() != null) o.add("definitionDimensionType", gson.toJsonTree(definition.dimensionType()));
             } catch (RuntimeException e) {
                 o.addProperty("definitionError", e.toString());
@@ -480,8 +533,23 @@ public final class SurveyJob {
         return out;
     }
 
-    /** Biomes whose surface rule lays bare rock on open land: rock is their normal ground. */
-    private static Set<String> rockBiomes(MinecraftServer server, ServerLevel level, int seaLevel) {
+    /**
+     * Whether the definition's nature is islands over a void: the end preset, or a terrain over a void, where a
+     * biome is judged on its land and the void between is no flag.
+     */
+    static boolean voidNatured(Definition definition) {
+        if (definition == null || definition.generator() == null) return false;
+        if ("end".equals(definition.generator().preset())) return true;
+        try {
+            com.customdimensions.compiler.terrain.TerrainSpec spec = com.customdimensions.compiler.terrain.TerrainSpec.parse("survey", definition.terrain());
+            return spec != null && spec.airborne();
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    /** Biomes whose surface rule lays bare rock on open land, read at {@code groundY}: rock is their normal ground. */
+    private static Set<String> rockBiomes(MinecraftServer server, ServerLevel level, int groundY) {
         if (!(level.getChunkSource().getGenerator() instanceof NoiseBasedChunkGenerator noise)) return Set.of();
         NoiseGeneratorSettings settings = noise.generatorSettings().value();
         RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, server.registryAccess());
@@ -495,7 +563,7 @@ public final class SurveyJob {
         List<String> ids = new ArrayList<>();
         server.registryAccess().lookupOrThrow(Registries.BIOME).listElements().forEach(h -> ids.add(h.key().identifier().toString()));
         String defaultBlock = BuiltInRegistries.BLOCK.getKey(settings.defaultBlock().getBlock()).toString();
-        return SurfaceGround.rockBiomes(rule, new SurfaceGround.Named(rules, conditions), ids, defaultBlock, seaLevel, level.getMinY(),
+        return SurfaceGround.rockBiomesAt(rule, new SurfaceGround.Named(rules, conditions), ids, defaultBlock, groundY, level.getMinY(),
                 level.getHeight(), id -> BuiltInRegistries.BLOCK.getOptional(Identifier.parse(id)).map(b -> info(b.defaultBlockState()).bareStone())
                         .orElse(false));
     }

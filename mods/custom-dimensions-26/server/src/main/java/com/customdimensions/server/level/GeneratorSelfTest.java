@@ -96,6 +96,8 @@ public final class GeneratorSelfTest {
         chain = step(chain, "flat", "the_canvas", square(-2, -2, 4), this::flat);
         chain = step(chain, "checkerboard", "the_tiled_expanse", clearOfZones("the_tiled_expanse", 8, 128), this::checkerboard);
         chain = step(chain, "void", "the_red_monument", square(-4, -4, 8), this::voidWorld);
+        chain = step(chain, "void biomes", "selftest_void_biomes", square(-4, -4, 8), this::voidWorld);
+        chain = step(chain, "checkerboard voidBiomes", "selftest_checker_void", square(-8, -8, 16), this::checkerVoid);
         chain = chain.thenRun(() -> lines.add("SKIP generator single_biome: no shipped definition uses it; "
                 + "GeneratorVariantsTest.singleBiomeIsAFixedSourceOnOverworldTerrain covers its compile"));
         String seaSlug = mostUnusualSeaLevel();
@@ -457,7 +459,42 @@ public final class GeneratorSelfTest {
                 }
             }
         }
-        return verdict(blocks == 0, c.area() + ": " + blocks + " non-air blocks (the mod builds no spawn platform)");
+        Set<String> biomes = new TreeSet<>();
+        for (LevelChunk chunk : c.chunks) {
+            for (int q = 0; q < 16; q += 4) {
+                for (int r = 0; r < 16; r += 4) {
+                    chunk.getNoiseBiome(QuartPos.fromBlock(q), QuartPos.fromBlock(64), QuartPos.fromBlock(r)).unwrapKey()
+                            .ifPresent(k -> biomes.add(k.identifier().toString()));
+                }
+            }
+        }
+        long listed = definition(c.slug).biomes().stream().map(b -> b.id()).distinct().count();
+        boolean placed = listed < 2 || biomes.size() >= 2;
+        return verdict(blocks == 0 && placed, c.area() + ": " + blocks + " non-air blocks (the mod builds no spawn platform); biomes at y 64 "
+                + biomes + " of " + listed + " listed");
+    }
+
+    /** Columns in the checkerboard cells of {@code generator.voidBiomes} hold no block; the other cells have ground. */
+    private String checkerVoid(Columns c) {
+        Definition def = definition(c.slug);
+        List<String> order = def.biomes().stream().map(b -> b.id()).distinct().toList();
+        Set<Integer> voids = new HashSet<>();
+        def.generator().voidBiomes().forEach(id -> voids.add(order.indexOf(id)));
+        int scale = def.generator().cellScale() != null ? def.generator().cellScale() : 2;
+        long voidColumns = 0, voidSolid = 0, landColumns = 0, landEmpty = 0;
+        for (Column col : c.columns) {
+            boolean empty = col.lowest() == null;
+            if (voids.contains(com.customdimensions.core.zone.CheckerCells.index(col.x(), col.z(), scale, order.size()))) {
+                voidColumns++;
+                if (!empty) voidSolid++;
+            } else {
+                landColumns++;
+                if (empty) landEmpty++;
+            }
+        }
+        return verdict(voidColumns > 0 && landColumns > 0 && voidSolid == 0 && landEmpty <= landColumns / 100, c.area() + ": "
+                + voidSolid + " of " + voidColumns + " void-cell columns hold a block; " + landEmpty + " of " + landColumns
+                + " other columns are empty");
     }
 
     private String seaLevel(Columns c) {

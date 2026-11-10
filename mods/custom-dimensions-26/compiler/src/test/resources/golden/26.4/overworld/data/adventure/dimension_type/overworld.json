@@ -1,4 +1,11 @@
 {
   "base": "minecraft:overworld",
-  "changed": {}
+  "changed": {
+    "timelines": [
+      "adventure:day_length/villager_schedule_54000_18000",
+      "adventure:day_length/day_54000_18000",
+      "adventure:day_length/moon_54000_18000",
+      "minecraft:early_game"
+    ]
+  }
 }

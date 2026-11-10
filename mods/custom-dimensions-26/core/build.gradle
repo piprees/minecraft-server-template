@@ -26,6 +26,13 @@ def noMinecraft = tasks.register('checkNoMinecraftImports') {
 }
 tasks.named('check') { dependsOn noMinecraft }
 
+// The tests read these folders from the source tree; as inputs, an edit to any of them re-runs the tests instead of serving a cached pass.
+tasks.named('test') {
+	['../schema', '../definitions', '../bridges', '../server/src/selftest/definitions', '../server/src/selftest/gallery',
+	 '../../../config/custom-dimensions/dimensions'].each { inputs.dir(file(it)).withPropertyName("fixtures:$it") }
+	inputs.file(file('../../../config/messages.json')).withPropertyName('fixtures:messages')
+}
+
 // -Pjar=<structure mod jar or datapack zip> -Pout=<dir> [-Pmod=<id>]: writes a first, unreviewed bridge for a human to tag.
 tasks.register('bridge', JavaExec) {
 	classpath = sourceSets.main.runtimeClasspath

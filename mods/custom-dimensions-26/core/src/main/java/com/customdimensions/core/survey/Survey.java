@@ -41,11 +41,19 @@ public final class Survey {
 
     /**
      * What the server knows that the patches do not. {@code rockBiomes}: biomes whose surface rule lays bare rock on
-     * open land ({@link SurfaceGround}); {@code waterBiomes}: biomes whose role is the sea or a river.
+     * open land ({@link SurfaceGround}); {@code waterBiomes}: biomes whose role is the sea or a river; {@code voidNatured}: the
+     * dimension's nature is islands over a void (the end preset, a terrain over a void), so a biome is judged on its land.
      */
     public record Meta(String dimension, long seed, int minY, int height, int seaLevel, boolean ceiling, JsonObject atmosphere,
                        List<String> listedBiomes, Set<String> treeBiomes, Set<String> rockBiomes, Set<String> waterBiomes,
-                       List<SurveyPlan.Patch> plan, Map<String, Long> timings) {
+                       List<SurveyPlan.Patch> plan, Map<String, Long> timings, boolean voidNatured) {
+
+        public Meta(String dimension, long seed, int minY, int height, int seaLevel, boolean ceiling, JsonObject atmosphere,
+                    List<String> listedBiomes, Set<String> treeBiomes, Set<String> rockBiomes, Set<String> waterBiomes,
+                    List<SurveyPlan.Patch> plan, Map<String, Long> timings) {
+            this(dimension, seed, minY, height, seaLevel, ceiling, atmosphere, listedBiomes, treeBiomes, rockBiomes, waterBiomes, plan, timings,
+                    false);
+        }
 
         public Meta(String dimension, long seed, int minY, int height, int seaLevel, boolean ceiling, JsonObject atmosphere,
                     List<String> listedBiomes, Set<String> treeBiomes, List<SurveyPlan.Patch> plan, Map<String, Long> timings) {
@@ -192,6 +200,8 @@ public final class Survey {
         Map<String, Long> biomes = new HashMap<>(), tops = new HashMap<>(), grounds = new HashMap<>(), fluids = new HashMap<>(), plants = new HashMap<>();
         long snow = 0, canopy = 0, bare = 0, none = 0, exposed = 0, rain = 0, snowy = 0, dry = 0, surfaced = 0;
         List<Integer> waterDepths = new ArrayList<>();
+        List<Integer> bandHeights = new ArrayList<>();
+        List<String> bandGrounds = new ArrayList<>();
         for (PatchAnalysis p : patches) {
             for (int c = 0; c < p.surface.length; c++) {
                 if (p.surface[c] == PatchAnalysis.NONE) {
@@ -199,6 +209,8 @@ public final class Survey {
                     continue;
                 }
                 surfaced++;
+                bandHeights.add(p.surface[c]);
+                bandGrounds.add(p.ground[c]);
                 biomes.merge(p.biome[c], 1L, Long::sum);
                 tops.merge(p.topBlock[c], 1L, Long::sum);
                 grounds.merge(p.ground[c], 1L, Long::sum);
@@ -221,6 +233,8 @@ public final class Survey {
         o.add("biomesPercent", shares(biomes, columns, 20));
         o.add("topBlocksPercent", shares(tops, columns, 15));
         o.add("groundBlocksPercent", shares(grounds, columns, 15));
+        o.add("groundBlocksPercentByBand", SurveyMetrics.groundByBand(bandHeights.stream().mapToInt(Integer::intValue).toArray(),
+                bandGrounds.toArray(new String[0]), 8));
         JsonObject f = new JsonObject();
         for (String k : List.of("water", "lava", "other")) f.addProperty(k, Stats.percent(fluids.getOrDefault(k, 0L), columns));
         o.add("fluidCoverPercent", f);
@@ -459,7 +473,7 @@ public final class Survey {
         Map<String, Long> cave = merge(patches, p -> p.undergroundBiomes);
         JsonObject o = new JsonObject();
         o.addProperty("method", "placement shares are % of the biome's own surface columns (plus sky-island tops); flags: mostly water or lava (but for a sea or river biome) or "
-                + "void (50%+), mostly bare rock (50%+ of land, but for a biome whose surface rule lays rock), a snowing climate (50%+) under 5% snow cover, a biome whose placed features are named for trees with "
+                + "void (50%+; over a void-natured dimension, the End or sky islands, a biome is judged on its own surface columns and void is no flag), mostly bare rock (50%+ of land, but for a biome whose surface rule lays rock), a snowing climate (50%+) under 5% snow cover, a biome whose placed features are named for trees with "
                 + "none on a quarter hectare or more of its land; judged from 100+ columns");
         JsonObject biomes = new JsonObject();
         int placed = 0, expressed = 0;
@@ -489,11 +503,12 @@ public final class Survey {
             carry.add("topBlocksPercent", shares(tops.getOrDefault(e.getKey(), Map.of()), a[0], 3));
             b.add("carries", carry);
             JsonArray flags = new JsonArray();
-            boolean judged = a[0] >= 100;
+            long ground = meta.voidNatured() ? a[0] - a[4] : a[0];
+            boolean judged = ground >= 100;
             if (judged) {
-                if (a[2] * 2 >= a[0] && !meta.waterBiomes().contains(e.getKey())) flags.add("mostly water");
-                if (a[3] * 2 >= a[0] && !meta.waterBiomes().contains(e.getKey())) flags.add("mostly lava");
-                if (a[4] * 2 >= a[0]) flags.add("mostly void");
+                if (a[2] * 2 >= ground && !meta.waterBiomes().contains(e.getKey())) flags.add("mostly water");
+                if (a[3] * 2 >= ground && !meta.waterBiomes().contains(e.getKey())) flags.add("mostly lava");
+                if (!meta.voidNatured() && a[4] * 2 >= a[0]) flags.add("mostly void");
                 if (a[1] > 0 && a[10] * 2 >= a[1] && !meta.rockBiomes().contains(e.getKey())) flags.add("mostly bare rock");
                 long wet = a[1] + a[2] + a[3];
                 if (wet > 0 && a[11] * 2 >= wet && a[7] * 20 < wet) flags.add("snowing climate but snow cover under 5%");

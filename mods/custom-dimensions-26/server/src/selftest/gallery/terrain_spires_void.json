@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: spires over a void: columns from the bottom of an open world, nothing between them.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "spires",
+    "floor": "void",
+    "params": {
+      "coverage": 0.06
+    }
+  },
+  "borders": {
+    "player": 2048
+  }
+}

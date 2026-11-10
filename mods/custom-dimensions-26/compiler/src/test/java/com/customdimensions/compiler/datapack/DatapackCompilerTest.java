@@ -340,7 +340,8 @@ class DatapackCompilerTest {
             assertEquals("minecraft:overworld/temperature", router.get("temperature").getAsString(), preset);
             assertEquals("minecraft:overworld/vegetation", router.get("vegetation").getAsString(), preset);
             DatapackCompiler.Output plain = Fixtures.compile("u", "\"generator\": {\"type\": \"noise\", \"preset\": \"" + preset + "\"}");
-            assertEquals("minecraft:" + preset, stem(plain, "u").getAsJsonObject("generator").get("settings").getAsString(), preset);
+            assertEquals("caves".equals(preset) ? "adventure:u" : "minecraft:" + preset,
+                    stem(plain, "u").getAsJsonObject("generator").get("settings").getAsString(), "caves lays a sunless floor: " + preset);
         }
     }
 
@@ -390,9 +391,9 @@ class DatapackCompilerTest {
     }
 
     @Test
-    void voidIsFlatWithNoLayersAndItsFirstVanillaBiome() {
+    void voidWithOneKnownBiomeIsFlatWithNoLayersAndThatBiome() {
         DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"void\"}, "
-                + "\"biomes\": [\"nullscape:void_barrens\", \"minecraft:small_end_islands\", \"minecraft:end_barrens\"], "
+                + "\"biomes\": [\"nullscape:void_barrens\", \"minecraft:small_end_islands\"], "
                 + "\"liquids\": {\"defaultFluid\": \"minecraft:lava\"}");
         JsonObject settings = stem(out, "t").getAsJsonObject("generator").getAsJsonObject("settings");
         assertEquals(0, settings.getAsJsonArray("layers").size());

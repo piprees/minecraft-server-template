@@ -253,7 +253,7 @@ class WorldgenLayersTest {
 
     @Test
     void badMaterialsAreErrorsNamingTheField() {
-        assertEquals("t: materials.roof: is not a materials field; known: defaultBlock, top, filler, deep, cliffs, beaches, ceilings, biomes",
+        assertEquals("t: materials.roof: is not a materials field; known: defaultBlock, top, filler, deep, cliffs, beaches, ceilings, biomes, bands",
                 failure(OVERWORLD + ", \"materials\": {\"roof\": \"minecraft:stone\"}"));
         assertTrue(failure(OVERWORLD + ", \"materials\": {\"top\": \"Stone\"}").startsWith("t: materials.top: must be a block id"));
         assertTrue(failure(OVERWORLD + ", \"materials\": {\"biomes\": {\"minecraft:desert\": {\"floor\": \"minecraft:sand\"}}}")

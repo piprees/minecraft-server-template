@@ -169,7 +169,46 @@ public enum TerrainFamily {
             Map.of("roughness", 0.4),
             Map.of("spireHeight", 36.0, "coverage", 0.03, "taper", 0.6, "thickness", 1.4),
             Map.of("spireHeight", 180.0, "coverage", 0.08, "taper", 0.1, "thickness", 0.7),
-            false, TerrainFamily::spires);
+            false, TerrainFamily::spires),
+
+    ROOFED("roofed", "A cavern floor under a solid ceiling, on the nether or caves preset's own router: plains or rough country, "
+            + "with pits, chasms, sunken corridors, stepped ledges and floor-to-ceiling pillars.",
+            List.of(TerrainParam.SHARED.get(4).withDefault(0.35)),
+            List.of(new TerrainParam("floorHeight", -60, 120, 40, "Height of the cavern floor in blocks; below the preset's sea level it lies under the lava or water sea"),
+                    new TerrainParam("floorRelief", 0, 60, 12, "Blocks the floor rises and falls about floorHeight: 0 is flat plains, 40 rough country"),
+                    new TerrainParam("ceilingGap", 16, 160, 52, "Blocks of open height from floorHeight to the ceiling, which rises and falls by half the floor's relief"),
+                    new TerrainParam("flats", 0, 0.9, 0, "Share of the floor worn flat at floorHeight, its relief gone"),
+                    new TerrainParam("pit", 0, 0.6, 0, "Share of the floor sunk into large pits; with terrain.layout, the layout's shape decides where"),
+                    new TerrainParam("pitDepth", 4, 96, 32, "Blocks below floorHeight a pit's flat floor lies"),
+                    new TerrainParam("pitSize", 0.25, 4, 1, "Pit size; higher is larger and fewer"),
+                    new TerrainParam("chasms", 0, 0.3, 0, "Width of the deep narrow chasms cut into the floor, as a share of the chasm noise; 0 none"),
+                    new TerrainParam("chasmDepth", 8, 120, 48, "Blocks a chasm cuts below the floor round it"),
+                    new TerrainParam("corridors", 0, 0.3, 0, "Width of the long sunken corridors, as a share of the corridor noise; 0 none"),
+                    new TerrainParam("corridorDepth", 2, 60, 14, "Blocks below floorHeight a corridor's flat bed lies"),
+                    new TerrainParam("ledges", 0, 1, 0, "How far slopes and walls break into flat shelves: 0 none, 1 every wall stepped"),
+                    new TerrainParam("ledgeStep", 3, 32, 8, "Blocks between shelves"),
+                    new TerrainParam("pillars", 0, 0.2, 0, "Share of the floor under floor-to-ceiling pillars"),
+                    new TerrainParam("pillarSize", 0.25, 4, 1, "Pillar girth; higher is thicker")),
+            Map.of("floorRelief", 5.0, "roughness", 0.15, "ceilingGap", 44.0),
+            Map.of("floorHeight", 36.0, "floorRelief", 30.0, "ceilingGap", 72.0, "roughness", 0.75, "pit", 0.12, "chasms", 0.05,
+                    "ledges", 0.5, "pillars", 0.03),
+            false, ctx -> {
+                throw new IllegalStateException("roofed compiles through RoofedTerrain");
+            }),
+
+    END("end", "The End's islands on the end preset's own router, grown or shrunk, raised taller, ridged along their tops "
+            + "and gathered by terrain.layout; the End's biome source reads the shaped islands, so its highlands follow them.",
+            List.of(),
+            List.of(new TerrainParam("coverage", -0.3, 0.3, 0, "Added to the End's island density: above 0 islands grow and join into "
+                            + "masses, below 0 they shrink to fewer and smaller ones"),
+                    new TerrainParam("islandHeight", 0, 48, 0, "Blocks higher the island tops reach: the End's top slide starts this much higher"),
+                    new TerrainParam("peaks", 0, 1, 0, "Ridges raised along the island tops: 1 lifts a crest about 30 blocks"),
+                    new TerrainParam("peakWidth", 0.02, 0.3, 0.08, "Ridge width, as a share of the ridge noise")),
+            Map.of("coverage", -0.08),
+            Map.of("coverage", 0.12, "islandHeight", 32.0, "peaks", 0.6),
+            false, ctx -> {
+                throw new IllegalStateException("end compiles through EndTerrain");
+            });
 
     /** The land parameters every terrain shares. */
     public static final List<TerrainParam> SHARED = TerrainParam.SHARED;
@@ -186,12 +225,14 @@ public enum TerrainFamily {
 
     TerrainFamily(String id, String purpose, List<TerrainParam> own, Map<String, Double> sharedDefaults,
                   Map<String, Double> gentle, Map<String, Double> extreme, boolean airborne, Function<Ctx, Shape> build) {
+        this(id, purpose, landShared(sharedDefaults), own, gentle, extreme, airborne, build);
+    }
+
+    TerrainFamily(String id, String purpose, List<TerrainParam> shared, List<TerrainParam> own,
+                  Map<String, Double> gentle, Map<String, Double> extreme, boolean airborne, Function<Ctx, Shape> build) {
         this.id = id;
         this.purpose = purpose;
-        List<TerrainParam> all = new ArrayList<>();
-        for (TerrainParam p : TerrainParam.SHARED) {
-            all.add(sharedDefaults.containsKey(p.name()) ? p.withDefault(sharedDefaults.get(p.name())) : p);
-        }
+        List<TerrainParam> all = new ArrayList<>(shared);
         all.addAll(own);
         this.params = List.copyOf(all);
         Map<String, Map<String, Double>> p = new LinkedHashMap<>();
@@ -203,8 +244,27 @@ public enum TerrainFamily {
         this.build = build;
     }
 
+    /** The shared land parameters, with a family's own defaults for some. */
+    private static List<TerrainParam> landShared(Map<String, Double> defaults) {
+        List<TerrainParam> out = new ArrayList<>();
+        for (TerrainParam p : TerrainParam.SHARED) {
+            out.add(defaults.containsKey(p.name()) ? p.withDefault(defaults.get(p.name())) : p);
+        }
+        return out;
+    }
+
     public String id() {
         return id;
+    }
+
+    /** A terrain under a ceiling, built on the nether or caves preset's router ({@link RoofedTerrain}). */
+    public boolean roofed() {
+        return this == ROOFED;
+    }
+
+    /** A terrain built on its preset's own router and settings: roofed on nether and caves, end on the end preset. */
+    public boolean ownRouter() {
+        return this == ROOFED || this == END;
     }
 
     /** Blocks under and over sea level a shore spans. */
@@ -217,8 +277,9 @@ public enum TerrainFamily {
      */
     public double[] shore(TerrainSpec spec) {
         double m = spec.heightMultiplier();
+        if (spec.airborne()) return null;
         return switch (this) {
-            case FLOATING_ISLANDS, BASIN_ISLANDS -> null;
+            case FLOATING_ISLANDS, BASIN_ISLANDS, ROOFED, END -> null;
             case ISLANDS -> {
                 // islands(): height over sea and continentalness along the island noise, in sigmas from the coverage threshold.
                 double peak = spec.param("islandHeight") * m;
@@ -299,10 +360,19 @@ public enum TerrainFamily {
      * continentalness as biomes should read it, the weight of vanilla's 3D
      * noise, a function that weighs it further where it varies (null:
      * none), a ceiling on the surface level the aquifers read (null: none), and ground no cave
-     * cuts, added to the final density as a maximum (null: none).
+     * cuts, added to the final density as a maximum (null: none). An airborne terrain also gives its
+     * {@code place}, the router continentalness biomes read when they follow its islands ({@link #PLACE_VOID}
+     * over the void, {@link #PLACE_BASIN} over a basin's water, {@link #PLACE_LAND} on land), and its islands'
+     * {@code top} in blocks, which an underside biome's depth is measured from (null: none).
      */
     record Shape(JsonElement height, JsonElement factor, JsonElement jaggedness, JsonElement cut, JsonElement plus,
-                 JsonElement continents, double noise3d, JsonElement noiseWeight, JsonElement aquiferCeiling, JsonElement solid) {
+                 JsonElement continents, double noise3d, JsonElement noiseWeight, JsonElement aquiferCeiling, JsonElement solid,
+                 JsonElement place, JsonElement top) {
+
+        Shape(JsonElement height, JsonElement factor, JsonElement jaggedness, JsonElement cut, JsonElement plus,
+              JsonElement continents, double noise3d, JsonElement noiseWeight, JsonElement aquiferCeiling, JsonElement solid) {
+            this(height, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling, solid, null, null);
+        }
 
         Shape(JsonElement height, JsonElement factor, JsonElement jaggedness, JsonElement cut, JsonElement plus,
               JsonElement continents, double noise3d, JsonElement noiseWeight, JsonElement aquiferCeiling) {
@@ -320,20 +390,39 @@ public enum TerrainFamily {
         }
 
         Shape withHeight(JsonElement h) {
-            return new Shape(h, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling, solid);
+            return new Shape(h, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling, solid, place, top);
         }
 
         Shape withFactor(JsonElement f) {
-            return new Shape(height, f, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling, solid);
+            return new Shape(height, f, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling, solid, place, top);
         }
 
         Shape withAquiferCeiling(JsonElement ceiling) {
-            return new Shape(height, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, ceiling, solid);
+            return new Shape(height, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, ceiling, solid, place, top);
         }
 
         Shape withSolid(JsonElement s) {
-            return new Shape(height, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling, s);
+            return new Shape(height, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling, s, place, top);
         }
+
+        Shape withPlace(JsonElement p, JsonElement t) {
+            return new Shape(height, factor, jaggedness, cut, plus, continents, noise3d, noiseWeight, aquiferCeiling, solid, p, t);
+        }
+    }
+
+    /** {@link Shape#place} over the void, over a basin's open water, and on land. */
+    public static final double PLACE_VOID = -1, PLACE_BASIN = -0.4, PLACE_LAND = 0.5;
+    /** The place cue's cut between the void and held ground, and between a basin's water and land. */
+    public static final double PLACE_HELD = -0.7, PLACE_SHORE = 0.05;
+    /** The island noise's {@code core} at which a column reads as land for its place. */
+    static final double PLACE_FROM = 0.02, PLACE_TO = 0.1;
+    /** Standard deviations a layout at strength 1 moves an airborne terrain's coverage noise by: coverage near 0 at the shape's -1. */
+    static final double AIRBORNE_LAYOUT = 3;
+
+    /** {@code n} with the layout's shift added ({@link Ctx#layoutShift}); unchanged without a layout. */
+    private static JsonElement laidOut(Ctx ctx, JsonElement n, double sigma) {
+        JsonElement shift = ctx.layoutShift(sigma, AIRBORNE_LAYOUT);
+        return shift == null ? n : add(n, shift);
     }
 
     /**
@@ -484,11 +573,16 @@ public enum TerrainFamily {
         return land.withHeight(min(land.height(), bed)).withAquiferCeiling(ceiling);
     }
 
+    /**
+     * Islands where the islands noise lies in its highest {@code coverage} share, with {@code terrain.layout}'s
+     * shape moving that noise by up to {@link #AIRBORNE_LAYOUT} of its deviations: radial gathers the islands
+     * round its centre and clears the sky past its falloff, ring sets them round a hollow.
+     */
     private static Shape floatingIslands(Ctx ctx) {
         double m = ctx.heightMultiplier();
         double sigma = Noises.sigma("islands");
         double t = Noises.threshold(ctx.p("coverage"), sigma);
-        JsonElement n = ctx.noise("islands", 1 / ctx.p("size"), 0);
+        JsonElement n = laidOut(ctx, ctx.noise("islands", 1 / ctx.p("size"), 0), sigma);
         JsonElement core = Df.cache(ramp(n, t, t + sigma));
         JsonElement layer = add(mul(ctx.noise("altitude", 1, 0), ctx.p("spread") * m / Noises.sigma("altitude")), ctx.p("altitude"));
         JsonElement top = add(add(layer, mul(sqrt(core), ctx.p("thickness") * m)), -2);
@@ -497,7 +591,8 @@ public enum TerrainFamily {
         JsonElement inside = min(add(top, y), sub(c(0), add(bottom, y)));
         JsonElement plus = mul(inside, 1 / 8.0);
         Shape shape = new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, plus, c(0.3), 0.1 + 0.6 * ctx.p("roughness"));
-        return shape;
+        JsonElement place = add(mul(ramp(core, PLACE_FROM, PLACE_TO), PLACE_LAND - PLACE_VOID), PLACE_VOID);
+        return shape.withPlace(place, top);
     }
 
     /** Where a basin's water may stand: above 0, and below 1 within reach of the rim, where its fluid is scheduled to flow. */
@@ -544,7 +639,7 @@ public enum TerrainFamily {
         double t = Noises.threshold(ctx.p("coverage"), sigma);
         double sl = Noises.sigma("lakes");
         double tl = Noises.threshold(ctx.p("lakeShare"), sl);
-        JsonElement lakes = ctx.named("lakes", ctx.noise("lakes", 1 / ctx.p("lakeSize"), 0));
+        JsonElement lakes = ctx.named("lakes", laidOut(ctx, ctx.noise("lakes", 1 / ctx.p("lakeSize"), 0), sl));
         double edge = tl;
         double risen = tl + 0.08 * sl;
         double crest = tl + 0.14 * sl;
@@ -552,7 +647,7 @@ public enum TerrainFamily {
         double shore = tl + 0.32 * sl;
         double heart = tl + 0.8 * sl;
         double ti = Noises.threshold(ctx.p("islandShare"), sigma);
-        JsonElement outerCore = mul(ramp(ctx.noise("islands", 1 / ctx.p("size"), 0), t, t + sigma),
+        JsonElement outerCore = mul(ramp(laidOut(ctx, ctx.noise("islands", 1 / ctx.p("size"), 0), sigma), t, t + sigma),
                 ramp(lakes, edge, edge - 0.1 * sl));
         JsonElement basin = Df.cache(ramp(lakes, shore, shore + 0.12 * sl));
         JsonElement innerCore = mul(ramp(ctx.noise("islands", INNER_ISLANDS / ctx.p("size"), 0), ti, ti + sigma), basin);
@@ -589,8 +684,13 @@ public enum TerrainFamily {
         ctx.named(BASIN, mul(add(lakes, -crest), 1 / (shore - crest)));
         JsonElement plus = mul(max(island, mass), 1 / 8.0);
         JsonElement sealed = mul(min(add(add(floor, -1), y), sub(c(0), add(massBottom, y))), 1 / 8.0);
+        JsonElement onIsland = ramp(core, PLACE_FROM, PLACE_TO);
+        JsonElement water = ramp(lakes, crest, shore);
+        JsonElement open = mul(water, sub(c(1), onIsland));
+        JsonElement held = max(onIsland, mul(inMass, sub(c(1), water)));
+        JsonElement place = add(add(mul(open, PLACE_BASIN - PLACE_VOID), mul(held, PLACE_LAND - PLACE_VOID)), PLACE_VOID);
         return new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, plus, c(0.3), 0.1 + 0.6 * ctx.p("roughness"))
-                .withSolid(sealed);
+                .withSolid(sealed).withPlace(place, max(top, floor));
     }
 
     private static Shape islands(Ctx ctx) {
@@ -663,7 +763,22 @@ public enum TerrainFamily {
         return land.withSolid(mul(band, 1 / 8.0));
     }
 
+    /** Blocks of island a spire on {@code terrain.floor} islands stands on: the platform's dome, and its underside below landHeight. */
+    static final double SPIRE_ISLAND_TOP = 6, SPIRE_ISLAND_UNDERSIDE = 18;
+    /** Standard deviations of the spire noise below a spire's threshold over which its island platform reaches out. */
+    static final double SPIRE_ISLAND_REACH = 0.8;
+    /** Router continentalness under a spire standing in a sea, and on the sea floor between: land biomes on the columns, sea biomes round them. */
+    static final double SPIRE_LAND = 0.2, SPIRE_SEA = -0.6;
+
+    /**
+     * Columns where the spire noise lies in its highest {@code coverage} share, {@code spireHeight} over
+     * {@code landHeight} at their crest. {@code terrain.floor} says what stands between them: {@code land}
+     * (the shared land, the columns rising inland), {@code sea} (the sea floor at {@code seaFloor}, every column
+     * rising out of the sea), {@code void} (nothing: each column stands from the bottom of an open world) or
+     * {@code islands} (each column on a domed island of its own, over a void).
+     */
     private static Shape spires(Ctx ctx) {
+        if (!LAND_FLOOR.equals(ctx.floor())) return spiresOver(ctx);
         Shape land = ctx.land();
         double sigma = Noises.sigma("spires");
         double t = Noises.threshold(ctx.p("coverage"), sigma);
@@ -674,5 +789,41 @@ public enum TerrainFamily {
         JsonElement h = add(land.height(), mul(profile, ctx.p("spireHeight")));
         JsonElement factor = lerp(column, land.factor(), c(24));
         return new Shape(h, factor, land.jaggedness(), null, null, land.continents(), land.noise3d());
+    }
+
+    private static final String LAND_FLOOR = TerrainSpec.LAND_FLOOR;
+
+    /** {@link #spires} on a sea floor, over a void, or on islands of their own. */
+    private static Shape spiresOver(Ctx ctx) {
+        double sigma = Noises.sigma("spires");
+        double t = Noises.threshold(ctx.p("coverage"), sigma);
+        JsonElement s = Df.cache(laidOut(ctx, ctx.noise("spires", 1 / ctx.p("thickness"), 0), sigma));
+        JsonElement a = Df.cache(ramp(s, t, t + 0.6 * sigma));
+        JsonElement column = clamp(mul(a, 6), 0, 1);
+        JsonElement profile = lerp(c(ctx.p("taper")), column, a);
+        double base = ctx.p("landHeight");
+        JsonElement crest = add(mul(profile, ctx.p("spireHeight")), base);
+        JsonElement present = ramp(s, t, t + 0.02 * sigma);
+        if ("sea".equals(ctx.floor())) {
+            JsonElement h = lerp(present, c(ctx.p("seaFloor")), crest);
+            JsonElement factor = lerp(column, ctx.factor(), c(24));
+            return new Shape(h, factor, c(0), null, null, lerp(present, c(SPIRE_SEA), c(SPIRE_LAND)), 0.1 + 0.6 * ctx.p("roughness"));
+        }
+        JsonElement y = negY(ctx.minY(), ctx.maxY());
+        JsonElement top, bottom, held;
+        if ("islands".equals(ctx.floor())) {
+            JsonElement platform = Df.cache(ramp(s, t - SPIRE_ISLAND_REACH * sigma, t));
+            top = max(crest, add(mul(sqrt(platform), SPIRE_ISLAND_TOP), base - 2));
+            bottom = sub(c(base + 2), add(mul(platform, SPIRE_ISLAND_UNDERSIDE), mul(column, 0.25 * ctx.p("spireHeight"))));
+            held = ramp(platform, PLACE_FROM, PLACE_TO);
+        } else {
+            top = lerp(present, c(ctx.minY() - 64.0), crest);
+            bottom = c(ctx.minY() - 64.0);
+            held = present;
+        }
+        JsonElement inside = min(add(top, y), sub(c(0), add(bottom, y)));
+        JsonElement place = add(mul(held, PLACE_LAND - PLACE_VOID), PLACE_VOID);
+        return new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, mul(inside, 1 / 8.0), c(0.3), 0.1 + 0.6 * ctx.p("roughness"))
+                .withPlace(place, top);
     }
 }

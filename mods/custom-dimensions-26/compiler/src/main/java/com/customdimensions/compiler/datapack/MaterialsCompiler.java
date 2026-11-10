@@ -50,17 +50,105 @@ public final class MaterialsCompiler {
         }
     }
 
-    /** The dimension's palette and the per-biome ones by biome id or {@code #tag}, in file order. */
-    public record Spec(Palette dimension, Map<String, Palette> biomes) {
+    /** A palette that holds below {@code below}, an absolute y. */
+    public record Band(int below, Palette palette) {
+    }
+
+    /**
+     * The dimension's palette, the per-biome ones by biome id or {@code #tag}
+     * in file order, the depth bands deepest first, and a floor (a block, or
+     * null) for every biome outside {@code ownFloors} that no palette tops.
+     */
+    public record Spec(Palette dimension, Map<String, Palette> biomes, List<Band> bands, String floor, List<String> ownFloors) {
+        public Spec(Palette dimension, Map<String, Palette> biomes) {
+            this(dimension, biomes, List.of(), null, List.of());
+        }
+
         public boolean isEmpty() {
-            return dimension.isEmpty() && biomes.isEmpty();
+            return dimension.isEmpty() && biomes.isEmpty() && bands.isEmpty() && floor == null;
         }
 
         /** Every block a palette names. */
         public Set<String> blocks() {
             Set<String> out = new java.util.TreeSet<>(dimension.blocks().values());
             biomes.values().forEach(p -> out.addAll(p.blocks().values()));
+            bands.forEach(b -> out.addAll(b.palette().blocks().values()));
+            if (floor != null) out.add(floor);
             return out;
+        }
+
+        public Spec withBiomes(Map<String, Palette> b) {
+            return new Spec(dimension, b, bands, floor, ownFloors);
+        }
+
+        public Spec withFloor(String block, List<String> keep) {
+            return new Spec(dimension, biomes, bands, block, keep);
+        }
+    }
+
+    public static final String BANDS = "bands";
+    public static final String BELOW = "below";
+
+    /**
+     * The ground of each vanilla Nether biome, laid by the Nether's own rule on
+     * the nether preset and by these palettes on any other, where the preset's
+     * rule has no clause for them.
+     */
+    public static final Map<String, Palette> NETHER_GROUND = Map.of(
+            "minecraft:crimson_forest", new Palette(Map.of("top", "minecraft:crimson_nylium", "filler", "minecraft:netherrack")),
+            "minecraft:warped_forest", new Palette(Map.of("top", "minecraft:warped_nylium", "filler", "minecraft:netherrack")),
+            "minecraft:soul_sand_valley", new Palette(Map.of("top", "minecraft:soul_sand", "filler", "minecraft:soul_soil")),
+            "minecraft:nether_wastes", new Palette(Map.of("top", "minecraft:netherrack", "filler", "minecraft:netherrack")),
+            "minecraft:basalt_deltas", new Palette(Map.of("top", "minecraft:basalt", "filler", "minecraft:blackstone",
+                    "cliffs", "minecraft:blackstone")));
+    /** The floor a biome with no floor of its own takes under the caves preset's ceiling, where vanilla's rule lays grass. */
+    public static final String SUNLESS_FLOOR = "minecraft:moss_block";
+    /** The vanilla rule whose biome conditions name every overworld biome with a floor of its own. */
+    static final String BIOME_SURFACE = "minecraft:overworld/biome_surface";
+
+    /** The rule round {@link #BIOME_SURFACE} whose biome clauses lay a block of their own before it (badlands terracotta, frozen-ocean ice). */
+    static final String SURFACE = "minecraft:overworld/surface";
+
+    /**
+     * The biomes vanilla's overworld surface gives a floor of their own: every
+     * biome {@link #BIOME_SURFACE} names, and every one a {@link #SURFACE}
+     * clause lays a block other than water for. Every other one falls to the
+     * grass of {@code biome_surface/default}.
+     */
+    public static List<String> ownFloors(VanillaData vanilla) {
+        Set<String> out = new java.util.TreeSet<>();
+        collectBiomes(vanilla.materialRule(BIOME_SURFACE), out, false);
+        collectBiomes(vanilla.materialRule(SURFACE), out, true);
+        return List.copyOf(out);
+    }
+
+    private static void collectBiomes(JsonElement e, Set<String> out, boolean byBlock) {
+        if (e.isJsonObject()) {
+            JsonObject o = e.getAsJsonObject();
+            JsonElement condition = o.get("if_true");
+            if (condition != null && condition.isJsonObject() && condition.getAsJsonObject().has("biome_is")) {
+                Set<String> blocks = new java.util.TreeSet<>();
+                if (byBlock) blocksOf(o.get("then_run"), blocks);
+                blocks.remove("minecraft:water");
+                if (!byBlock || !blocks.isEmpty()) {
+                    JsonElement b = condition.getAsJsonObject().get("biome_is");
+                    if (b.isJsonArray()) b.getAsJsonArray().forEach(x -> out.add(x.getAsString()));
+                    else out.add(b.getAsString());
+                }
+            }
+            o.entrySet().forEach(kv -> collectBiomes(kv.getValue(), out, byBlock));
+        } else if (e.isJsonArray()) {
+            e.getAsJsonArray().forEach(x -> collectBiomes(x, out, byBlock));
+        }
+    }
+
+    private static void blocksOf(JsonElement e, Set<String> out) {
+        if (e.isJsonObject()) {
+            JsonObject o = e.getAsJsonObject();
+            if (o.has("result_state") && o.get("result_state").isJsonPrimitive()) out.add(o.get("result_state").getAsString());
+            o.entrySet().forEach(kv -> blocksOf(kv.getValue(), out));
+        } else if (e.isJsonArray()) {
+            e.getAsJsonArray().forEach(x -> blocksOf(x, out));
         }
     }
 
@@ -73,9 +161,9 @@ public final class MaterialsCompiler {
             return new Spec(new Palette(Map.of()), Map.of());
         }
         for (String key : materials.keySet()) {
-            if (!PALETTE_FIELDS.contains(key) && !DEFAULT_BLOCK.equals(key) && !BIOMES.equals(key)) {
+            if (!PALETTE_FIELDS.contains(key) && !DEFAULT_BLOCK.equals(key) && !BIOMES.equals(key) && !BANDS.equals(key)) {
                 throw error(slug, key, "is not a materials field; known: " + DEFAULT_BLOCK + ", "
-                        + String.join(", ", PALETTE_FIELDS) + ", " + BIOMES);
+                        + String.join(", ", PALETTE_FIELDS) + ", " + BIOMES + ", " + BANDS);
             }
         }
         if (materials.has(DEFAULT_BLOCK) && !materials.get(DEFAULT_BLOCK).isJsonNull()) {
@@ -103,7 +191,38 @@ public final class MaterialsCompiler {
                 biomes.put(e.getKey(), p);
             }
         }
-        return new Spec(dimension, biomes);
+        return new Spec(dimension, biomes, bands(slug, materials.get(BANDS)), null, List.of());
+    }
+
+    /** {@code materials.bands}: palettes by depth, each below a y higher than the last. */
+    private static List<Band> bands(String slug, JsonElement e) {
+        if (e == null || e.isJsonNull()) return List.of();
+        if (!e.isJsonArray() || e.getAsJsonArray().isEmpty()) {
+            throw error(slug, BANDS, "must be a non-empty list of palettes, each with `below`, deepest first");
+        }
+        List<Band> out = new ArrayList<>();
+        Integer last = null;
+        for (int i = 0; i < e.getAsJsonArray().size(); i++) {
+            String field = BANDS + "[" + i + "]";
+            JsonElement b = e.getAsJsonArray().get(i);
+            if (!b.isJsonObject()) throw error(slug, field, "must be a palette object with `below`");
+            JsonObject o = b.getAsJsonObject().deepCopy();
+            JsonElement below = o.remove(BELOW);
+            if (below == null || !below.isJsonPrimitive() || !below.getAsJsonPrimitive().isNumber()
+                    || below.getAsDouble() != Math.rint(below.getAsDouble())) {
+                throw error(slug, field + "." + BELOW, "must be a whole y, the band's top");
+            }
+            int y = below.getAsInt();
+            if (y < -2032 || y > 2032) throw error(slug, field + "." + BELOW, y + " is outside the world");
+            if (last != null && y <= last) {
+                throw error(slug, field + "." + BELOW, y + " must lie above the band before it (" + last + "): bands run deepest first");
+            }
+            Palette p = palette(slug, field + ".", o, true);
+            if (p.isEmpty()) throw error(slug, field, "sets no palette field");
+            out.add(new Band(y, p));
+            last = y;
+        }
+        return List.copyOf(out);
     }
 
     /**
@@ -113,15 +232,30 @@ public final class MaterialsCompiler {
      * @param veins the ore-vein entries to use, or null to keep the preset's
      */
     static JsonObject compose(VanillaData vanilla, String presetRuleId, Spec spec, List<JsonElement> veins, int seaLevel) {
-        if (spec.isEmpty() && veins == null) {
-            return null;
-        }
+        return compose(vanilla, presetRuleId, spec, veins, seaLevel, null, null);
+    }
+
+    /**
+     * As {@link #compose(VanillaData, String, Spec, List, int)}; with a {@code defaultBlock}, the preset's
+     * {@link #fallsBackTo fallback} to its own default block {@code presetDefault} lays {@code defaultBlock}
+     * instead, so the ground no palette field claims is the definition's (the End's rule is that one block).
+     */
+    static JsonObject compose(VanillaData vanilla, String presetRuleId, Spec spec, List<JsonElement> veins, int seaLevel,
+                              String presetDefault, String defaultBlock) {
         JsonObject preset = vanilla.materialRule(presetRuleId);
         List<JsonElement> entries = new ArrayList<>();
         if ("minecraft:sequence".equals(preset.get("type").getAsString())) {
             preset.getAsJsonArray("sequence").forEach(entries::add);
         } else {
             entries.add(preset);
+        }
+        boolean refill = defaultBlock != null && !defaultBlock.equals(presetDefault)
+                && entries.stream().anyMatch(e -> fallsBackTo(e, presetDefault));
+        if (spec.isEmpty() && veins == null && !refill) {
+            return null;
+        }
+        if (refill) {
+            entries.replaceAll(e -> fallsBackTo(e, presetDefault) ? block(defaultBlock) : e);
         }
         List<JsonElement> bedrock = new ArrayList<>();
         List<JsonElement> presetVeins = new ArrayList<>();
@@ -139,14 +273,28 @@ public final class MaterialsCompiler {
         JsonArray sequence = new JsonArray();
         bedrock.forEach(sequence::add);
         (veins == null ? presetVeins : veins).forEach(sequence::add);
+        for (Band band : spec.bands()) {
+            sequence.add(when(not(yAbove(band.below())), paletteRule(band.palette(), gate, seaLevel)));
+        }
         for (Map.Entry<String, Palette> e : spec.biomes().entrySet()) {
             sequence.add(biomeRule(e.getKey(), e.getValue(), gate, seaLevel));
         }
         if (!spec.dimension().isEmpty()) {
             sequence.add(paletteRule(spec.dimension(), gate, seaLevel));
         }
+        if (spec.floor() != null) {
+            sequence.add(floorRule(spec.floor(), spec.ownFloors()));
+        }
         rest.forEach(sequence::add);
         return sequenceOf(sequence);
+    }
+
+    /** Whether {@code e} is an unconditional {@code minecraft:block} entry laying {@code block}: a preset's fill of its own default block. */
+    static boolean fallsBackTo(JsonElement e, String block) {
+        if (block == null || !e.isJsonObject()) return false;
+        JsonObject o = e.getAsJsonObject();
+        return "minecraft:block".equals(o.get("type").getAsString()) && o.get("result_state").isJsonPrimitive()
+                && block.equals(o.get("result_state").getAsString());
     }
 
     /** Whether a preset rule's entries gate their surface rules on {@code minecraft:above_preliminary_surface}. */
@@ -169,6 +317,18 @@ public final class MaterialsCompiler {
             condition.add("biome_is", ids);
         }
         return when(condition, paletteRule(palette, gate, seaLevel));
+    }
+
+    /** {@code block} on every dry floor of a biome outside {@code keep}. */
+    static JsonObject floorRule(String block, List<String> keep) {
+        JsonObject rule = when(ref("minecraft:on_floor"), when(ref("minecraft:not_underwater"), block(block)));
+        if (keep.isEmpty()) return rule;
+        JsonObject condition = new JsonObject();
+        condition.addProperty("type", "minecraft:biome");
+        JsonArray ids = new JsonArray();
+        keep.forEach(ids::add);
+        condition.add("biome_is", ids);
+        return when(not(condition), rule);
     }
 
     /** One palette as a sequence: ceilings, then the floor fields (gated when the preset gates), then deep. */

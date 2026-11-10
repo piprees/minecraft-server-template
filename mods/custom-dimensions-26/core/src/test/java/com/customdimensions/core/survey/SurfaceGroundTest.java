@@ -67,6 +67,23 @@ class SurfaceGroundTest {
     }
 
     @Test
+    void anEndBiomesGroundIsTheEndStoneItsRuleLaysOnItsIslands() {
+        JsonElement end = JsonParser.parseString(seq(
+                when(biome("adventure:umbral_wastes"), when("\"minecraft:on_floor\"", block("minecraft:sculk"))),
+                when("{\"type\": \"minecraft:y_above\", \"anchor\": {\"absolute\": 40}, \"surface_depth_multiplier\": 0, \"add_stone_depth\": false}",
+                        "{\"type\": \"minecraft:block\", \"result_state\": \"minecraft:end_stone\"}")));
+        SurfaceGround.Named named = new SurfaceGround.Named(java.util.Map.of(), java.util.Map.of("minecraft:on_floor", JsonParser.parseString(FLOOR)));
+        Set<String> bare = Set.of("minecraft:end_stone");
+        List<String> biomes = List.of("minecraft:end_highlands", "adventure:umbral_wastes");
+        assertEquals(Set.of(), SurfaceGround.rockBiomes(end, named, biomes, "minecraft:air", 0, 0, 256, bare::contains),
+                "read at sea level 0 + 8, under the islands, the End stone is not reached");
+        assertEquals(64, SurfaceGround.groundY(0, true));
+        assertEquals(71, SurfaceGround.groundY(63, false));
+        assertEquals(Set.of("minecraft:end_highlands"), SurfaceGround.rockBiomesAt(end, named, biomes, "minecraft:air",
+                SurfaceGround.groundY(0, true), 0, 256, bare::contains));
+    }
+
+    @Test
     void anUnknownRuleOrTestPlacesNothing() {
         JsonElement odd = JsonParser.parseString(seq("{\"type\": \"other:rule\"}", when("{\"type\": \"other:test\"}", block("minecraft:dirt"))));
         assertEquals("minecraft:stone", SurfaceGround.top(odd, "minecraft:plains", "minecraft:stone", 71, -64, 384));

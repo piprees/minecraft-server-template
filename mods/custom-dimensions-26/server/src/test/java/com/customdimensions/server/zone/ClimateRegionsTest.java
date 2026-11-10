@@ -12,6 +12,19 @@ class ClimateRegionsTest {
     private static final long[] SAMPLES = {-5000, -1000, 0, 0, 2000, 9000};
 
     @Test
+    void landDecodesFromTheCompilersRegionsAndIsOptional() {
+        com.google.gson.JsonElement json = com.google.gson.JsonParser.parseString(
+                "{\"axes\": [\"temperature\", \"humidity\"], \"radius\": 512, \"land\": {\"axis\": \"erosion\", \"min\": -0.0625}}");
+        ClimateRegions r = ClimateRegions.CODEC.parse(com.mojang.serialization.JsonOps.INSTANCE, json).getOrThrow();
+        assertEquals(Optional.of(new ClimateRegions.Land("erosion", -0.0625f)), r.land());
+        ClimateRegions none = ClimateRegions.CODEC.parse(com.mojang.serialization.JsonOps.INSTANCE,
+                com.google.gson.JsonParser.parseString("{\"axes\": [\"temperature\"], \"radius\": 512}")).getOrThrow();
+        assertEquals(Optional.empty(), none.land());
+        assertThrows(IllegalArgumentException.class, () -> new ClimateRegions(List.of("temperature"), List.of(), 512, List.of(),
+                Optional.of(new ClimateRegions.Land("depth", 0))));
+    }
+
+    @Test
     void theExtremesRankAtTheEnds() {
         assertEquals(Climate.quantizeCoord(-1f), ClimateRegions.rank(-5000, SAMPLES));
         assertEquals(Climate.quantizeCoord(-1f), ClimateRegions.rank(-20000, SAMPLES));

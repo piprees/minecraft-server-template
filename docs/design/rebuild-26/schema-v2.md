@@ -23,7 +23,7 @@ switch (RB-35). At the switch the v2 set moves to
   "seed": 12345,                       // or "env"
   "spawn": [0, 64, 0],
   "generator": { "type": "noise", "preset": "overworld" },
-  "terrain": { "base": "canyons", "setting": "extreme", "params": { "depth": 80 }, "scale": 1.5 },  // null base = the preset's own
+  "terrain": { "base": "canyons", "setting": "extreme", "params": { "depth": 80 }, "scale": 1.5, "landShare": 0.7 },  // null base = the preset's own
   "biomes": ["minecraft:plains", { "id": "…", "climate": { … } }],
   "biomeLayout": { "mode": "regions", "axes": ["temperature", "humidity"], "weights": { "minecraft:plains": 2 } },  // placeness.md § Biome regions
   "liquids": { "seaLevel": 63, "lavaLevel": -54, "defaultFluid": "minecraft:water", "aquifers": "on" },
@@ -31,7 +31,7 @@ switch (RB-35). At the switch the v2 set moves to
   "ores": { "veins": true, "add": [ { "id": "gilded", "block": "minecraft:gold_ore", "count": 8, "minY": -32, "maxY": 32 } ], "remove": ["minecraft:ore_diamond"] },
   "zones": [ … ],
   "dimensionType": { "minY": -64, "height": 384, "hasCeiling": false, … },
-  "atmosphere": { "skyColor": "#4A2C6B", "fogColor": "#2A1A3E", "ambientLight": 0.3, "fixedTime": 18000, "effects": "minecraft:the_end" },
+  "atmosphere": { "skyColor": "#4A2C6B", "fogColor": "#2A1A3E", "ambientLight": 0.3, "fixedTime": 18000, "effects": "minecraft:the_end" },  // or "dayLength": { "dayMinutes": 45, "nightMinutes": 15 }
   "rules": { "bedsWork": false, "respawnAnchorsWork": true, "piglinsZombify": true, "ultraWarm": false, "natural": false },
   "borders": { "player": 8192, "generation": 8192 },
   "difficulty": { … },                 // unchanged from v1
@@ -51,16 +51,16 @@ switch (RB-35). At the switch the v2 set moves to
 | *(none)* | `schemaVersion: 2` | Required. A file without it is v1 and is refused by the 26.3 mod. |
 | `description`, `seed`, `spawn`, `borders`, `difficulty` | same | Unchanged. |
 | `type` | `generator` | See the type table below. |
-| `noiseSettings` | `terrain.base` | `adventure:wide` and `adventure:compressed` are built from Terralith and Tectonic data, so they convert to `null` and are reported for W8. `adventure:void` converts to `generator.type: "void"`. `terrain` holds `base` (a library terrain, or null for the preset's own), `setting` (`gentle`, `default` or `extreme`), `params` (that terrain's parameters, each with a range) `scale` and `heightMultiplier`, and the large-scale `scales` and `layout` ([placeness.md](placeness.md)); the library and its parameters are in [worldgen.md](worldgen.md#terrain-library). |
+| `noiseSettings` | `terrain.base` | `adventure:wide` and `adventure:compressed` are built from Terralith and Tectonic data, so they convert to `null` and are reported for W8. `adventure:void` converts to `generator.type: "void"`. `terrain` holds `base` (a library terrain, or null for the preset's own), `setting` (`gentle`, `default` or `extreme`), `params` (that terrain's parameters, each with a range) `scale` and `heightMultiplier`, and the large-scale `scales` and `layout` ([placeness.md](placeness.md)); `roofed` is the one terrain for the `caves` and `nether` presets, and without a `base` those and `end` take `scales.climate` alone; the library and its parameters are in [worldgen.md](worldgen.md#terrain-library). |
 | `biomes` | `biomes` | Object entries' `parameters` become `climate`. Ids from cut mods are kept and reported; `definitions/id-mapping.csv` replaces them (§ Applying the id mapping). |
-| `checkerboardScale` | `generator.cellScale` | `checkerboard` only. |
+| `checkerboardScale` | `generator.cellScale` | `checkerboard` only. `generator.voidBiomes` (no v1 source) lists checkerboard biomes whose cells carry no terrain. |
 | `layers`, `flatBiome` | `generator.layers`, `generator.biome` | `flat` only. |
 | `settingsOverrides.seaLevel`, `.defaultFluid` | `liquids.seaLevel`, `liquids.defaultFluid` | `liquids.lavaLevel` and `liquids.aquifers` have no v1 source; see [Materials, liquids and ores](#materials-liquids-and-ores). |
 | `settingsOverrides.defaultBlock` | `materials.defaultBlock` | 26.4 removes `default_block` from noise settings; the compiler emits it as the material rules' fallback. |
 | `settingsOverrides.endIsland` | `generator.endIsland` | `end` preset only. |
 | `biomePatches` | `zones` | Each patch becomes a circle zone that sets `biomes` only: `x`/`z` → `centre`, `radius`, `blend`, `shape` kept. |
 | `environment` creation-time fields (`minY`, `height`, `logicalHeight`, `hasSkylight`, `hasCeiling`, `infiniburn`, `monsterSpawnLightLevel`, `monsterSpawnBlockLightLimit`) | `dimensionType` | 26.x dimension-type fields. |
-| `environment.skyColor`, `fogColor`, `ambientLight`, `fixedTime`, `effects` | `atmosphere` | The compiler writes environment attributes and a timeline. |
+| `environment.skyColor`, `fogColor`, `ambientLight`, `fixedTime`, `effects` | `atmosphere` | The compiler writes environment attributes and a timeline. `atmosphere.dayLength` (no v1 source; v1 ran Better Days) sets real minutes of day and night, refused beside `fixedTime`; `settings.json`'s `defaults.atmosphere.dayLength` applies to every dimension with vanilla's day that sets neither. |
 | `environment.bedWorks`, `respawnAnchorWorks`, `piglinSafe`, `ultraWarm`, `natural`, `hasRaids` | `rules` | Renamed to read as rules: `bedsWork`, `respawnAnchorsWork`, `piglinsZombify` (= not `piglinSafe`), `ultraWarm`, `natural`, `raids`. |
 | `structureDensity` | `structures.density` | |
 | `structures` | `structures` | Carried whole; the fields are in [Structures](#structures). `shuns` values are always `{}`. |
@@ -104,9 +104,10 @@ What each field does at run time: [worldgen.md § Structure control](worldgen.md
 | `liquids.defaultFluid` | `default_fluid`. |
 | `liquids.aquifers` | `on`: the preset's `aquifers` object (overworld, large biomes and amplified have one; any other preset is a compile error). `off`: no `aquifers` object, so every open cell below sea level holds `defaultFluid`. `flooded`: the same, and air as the fluid is an error. `dry`: no `aquifers` object, `default_fluid` air, and the runtime removes `minecraft:spring_water` and `minecraft:dripstone_cluster`. Absent: the preset's own. |
 | `liquids.basins` | `{ "level": <y>, "fluid": <id> }`: the fluid (water if absent) fills open cells inside a terrain's basins, from three blocks under the basin floor up to `level` (the terrain's `altitude` if absent), and nothing else, so the void and the sky stay air. Only `basin_islands` shapes basins: another terrain, or none, is a compile error, as is a `level` under the floor or over the rim. Water within reach of the rim is scheduled to flow, so a rim gap spills into the void. The runtime applies it. |
-| `materials.defaultBlock` | `default_block` on 26.3; the material rule's last entry on 26.4. |
+| `materials.defaultBlock` | `default_block` on 26.3; the material rule's last entry on 26.4; and in place of the preset rule's own fill of its default block (the End's one `end_stone` rule, the Nether's closing `netherrack`), so ground no palette claims is the definition's. |
 | `materials.top`, `filler`, `deep`, `cliffs`, `beaches`, `ceilings` | Blocks for the floor block not under water, the surface depth below a floor, every other solid block, steep floors, floors from sea level − 4 to + 2, and the blocks over an open space. Floor fields are gated on `minecraft:above_preliminary_surface` where the preset's rule is, so cave floors keep vanilla's. |
 | `materials.biomes` | A palette per biome id or `#tag`, checked before the dimension's palette; a field it leaves unset falls through to the dimension's palette, then vanilla. |
+| `materials.bands` | A list of palettes by depth, each with `below` (a whole y, each above the last): a band holds where y is below its `below`, the deepest listed first, and is checked before the per-biome palettes and the dimension's. |
 | `ores.veins` | `true` or absent keeps the preset's copper and iron veins, `false` removes them, a list replaces them: `like` (`copper` or `iron`, whose shape and heights it takes), `ore`, `rawOre` (default `ore`), `filler`, `rawOreChance`. |
 | `ores.add` | `id`, `block`, `deepBlock` (on deepslate; default `block`), `size` (default 8), `count` per chunk, `minY`, `maxY`, `shape` (`uniform` or `trapezoid`), `airExposure` (default 0). Each becomes `<ns>:ores/<slug>/<id>`, replacing stone and deepslate ore replaceables and the palette's own blocks, added to every vanilla biome's underground-ores step in that dimension only; a [library biome](worldgen.md#biome-library) keeps its own list. |
 | `ores.remove` | Placed feature ids taken out of every vanilla biome in that dimension only; an unknown `minecraft:` id is a compile error. |
@@ -152,7 +153,7 @@ fixtures in `server/src/selftest/definitions/` do.
 | `nether` | `noise`, preset `nether` |
 | `end` | `noise`, preset `end` |
 | `nether_islands` | `noise`, preset `end`, Nether biomes |
-| `void` | `void` |
+| `void` | `void`; with more than one biome it places them over no blocks |
 | `superflat` | `flat` |
 | `checkerboard` | `checkerboard` |
 | `single_biome` | `single_biome` (`generator.biome`) |
@@ -214,8 +215,9 @@ missing or the rewritten set does not compile.
 
 ## Clones
 
-A clone takes the generator and terrain of the definition its `of` names,
-and keeps its own seed, spawn, dimension type, atmosphere, rules and
+A clone takes the generator of the definition its `of` names, and its
+terrain unless it sets its own `terrain`, which it takes as its source would
+(compiling its own noise settings), and keeps its own seed, spawn, dimension type, atmosphere, rules and
 everything else. Its own `biomes` list, when it has one, replaces the
 source's on the source's generator, noise settings and router; a clone with
 no list takes the source's biome source. Its own `liquids` and `materials`

@@ -55,8 +55,8 @@ class GeneratorVariantsTest {
     // ---- liquids and materials -----------------------------------------------------------------
 
     @Test
-    void seaLevelIsTheOnlyChangeToTheNoiseSettings() {
-        assertEquals(json("{\"base\": \"minecraft:caves\", \"changed\": {\"sea_level\": 20}}"),
+    void seaLevelAndTheSunlessFloorAreTheOnlyChangesToTheCavesSettings() {
+        assertEquals(json("{\"base\": \"minecraft:caves\", \"changed\": {\"material_rule\": \"adventure:t\", \"sea_level\": 20}}"),
                 golden("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"caves\"}, \"liquids\": {\"seaLevel\": 20}",
                         SETTINGS, VersionTable.V26_3));
     }
@@ -70,14 +70,15 @@ class GeneratorVariantsTest {
 
     @Test
     void defaultBlockIsTheNoiseSettingsDefaultBlockIn263() {
-        assertEquals(json("{\"base\": \"minecraft:nether\", \"changed\": {\"default_block\": \"minecraft:blackstone\"}}"),
+        assertEquals(json("{\"base\": \"minecraft:nether\", \"changed\": {\"default_block\": \"minecraft:blackstone\", "
+                        + "\"material_rule\": \"adventure:t\"}}"),
                 golden("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"nether\"}, "
                         + "\"materials\": {\"defaultBlock\": \"minecraft:blackstone\"}", SETTINGS, VersionTable.V26_3));
     }
 
     @Test
     void defaultBlockIsTheMaterialRulesFallbackIn264() {
-        JsonObject rule = DatapackCompiler.withFallback(json("\"minecraft:nether\""), "minecraft:blackstone");
+        JsonObject rule = DatapackCompiler.withFallback(json("\"adventure:t\""), "minecraft:blackstone");
         JsonObject expected = new JsonObject();
         expected.addProperty("base", "minecraft:nether");
         JsonObject changed = new JsonObject();
@@ -86,7 +87,7 @@ class GeneratorVariantsTest {
         expected.add("removed", json("[\"default_block\"]"));
         assertEquals(expected, golden("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"nether\"}, "
                 + "\"materials\": {\"defaultBlock\": \"minecraft:blackstone\"}", SETTINGS, VersionTable.V26_4));
-        assertEquals(json("{\"type\": \"minecraft:sequence\", \"sequence\": [\"minecraft:nether\", "
+        assertEquals(json("{\"type\": \"minecraft:sequence\", \"sequence\": [\"adventure:t\", "
                 + "{\"type\": \"minecraft:block\", \"result_state\": \"minecraft:blackstone\"}]}"), rule);
     }
 

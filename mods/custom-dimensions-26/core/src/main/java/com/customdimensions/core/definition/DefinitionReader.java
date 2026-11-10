@@ -32,12 +32,12 @@ import java.util.function.BiFunction;
 public final class DefinitionReader {
 
     public static final List<String> GENERATOR_FIELDS =
-            List.of("type", "preset", "of", "cellScale", "biome", "layers", "endIsland");
+            List.of("type", "preset", "of", "cellScale", "biome", "layers", "endIsland", "voidBiomes");
     public static final List<String> LIQUIDS_FIELDS = List.of("seaLevel", "lavaLevel", "defaultFluid", "aquifers", "basins");
     public static final List<String> DIMENSION_TYPE_FIELDS = List.of("minY", "height", "logicalHeight",
             "hasSkylight", "hasCeiling", "infiniburn", "monsterSpawnLightLevel", "monsterSpawnBlockLightLimit");
     public static final List<String> ATMOSPHERE_FIELDS =
-            List.of("skyColor", "fogColor", "ambientLight", "fixedTime", "effects");
+            List.of("skyColor", "fogColor", "ambientLight", "fixedTime", "effects", "dayLength");
     public static final List<String> RULES_FIELDS =
             List.of("bedsWork", "respawnAnchorsWork", "piglinsZombify", "ultraWarm", "natural", "raids");
     public static final List<String> BORDERS_FIELDS = List.of("player", "generation");
@@ -89,7 +89,7 @@ public final class DefinitionReader {
                         o.get("monsterSpawnLightLevel"), c.integer(o, "monsterSpawnBlockLightLimit"))),
                 ctx.closed(root, "atmosphere", ATMOSPHERE_FIELDS, (c, o) -> new Atmosphere(
                         c.string(o, "skyColor"), c.string(o, "fogColor"), c.number(o, "ambientLight"),
-                        c.longValue(o, "fixedTime"), c.string(o, "effects"))),
+                        c.longValue(o, "fixedTime"), c.string(o, "effects"), dayLength(c, o))),
                 ctx.closed(root, "rules", RULES_FIELDS, (c, o) -> new Rules(
                         c.bool(o, "bedsWork"), c.bool(o, "respawnAnchorsWork"), c.bool(o, "piglinsZombify"),
                         c.bool(o, "ultraWarm"), c.bool(o, "natural"), c.bool(o, "raids"))),
@@ -281,6 +281,21 @@ public final class DefinitionReader {
         return new BlockPos(c[0], c[1], c[2]);
     }
 
+    private static Atmosphere.DayLength dayLength(Ctx ctx, JsonObject atmosphere) {
+        if (!atmosphere.has("dayLength")) return null;
+        if (atmosphere.has("fixedTime")) throw ctx.fail("atmosphere.dayLength", "a fixed time of day has no day length");
+        if (!atmosphere.get("dayLength").isJsonObject()) throw ctx.fail("atmosphere.dayLength", "must be {dayMinutes, nightMinutes}");
+        JsonObject d = atmosphere.getAsJsonObject("dayLength");
+        ctx.onlyKeys(d, "atmosphere.dayLength.", List.of("dayMinutes", "nightMinutes"));
+        Double day = ctx.number(d, "dayMinutes"), night = ctx.number(d, "nightMinutes");
+        if (day == null || night == null) throw ctx.fail("atmosphere.dayLength", "needs dayMinutes and nightMinutes");
+        try {
+            return new Atmosphere.DayLength(day, night);
+        } catch (IllegalArgumentException e) {
+            throw ctx.fail("atmosphere.dayLength", e.getMessage());
+        }
+    }
+
     private static Generator generator(Ctx ctx, JsonObject o) {
         ctx.onlyKeys(o, "generator.", GENERATOR_FIELDS);
         String type = ctx.string(o, "type");
@@ -315,7 +330,17 @@ public final class DefinitionReader {
         if (endIsland != null && !"end".equals(preset)) {
             throw ctx.fail("generator.endIsland", "applies to the end preset only");
         }
-        return new Generator(type, preset, of, cellScale, biome, o.has("layers") ? layers : null, endIsland);
+        List<String> voidBiomes = null;
+        if (o.has("voidBiomes")) {
+            if (!Generator.CHECKERBOARD.equals(type)) throw ctx.fail("generator.voidBiomes", "applies to the checkerboard type only");
+            if (!o.get("voidBiomes").isJsonArray()) throw ctx.fail("generator.voidBiomes", "must be a list of biome ids");
+            voidBiomes = new java.util.ArrayList<>();
+            for (com.google.gson.JsonElement e : o.getAsJsonArray("voidBiomes")) {
+                if (!e.isJsonPrimitive() || !e.getAsJsonPrimitive().isString()) throw ctx.fail("generator.voidBiomes", "must be a list of biome ids");
+                voidBiomes.add(e.getAsString());
+            }
+        }
+        return new Generator(type, preset, of, cellScale, biome, o.has("layers") ? layers : null, endIsland, voidBiomes);
     }
 
     private static List<BiomeEntry> biomes(Ctx ctx, JsonElement value) {

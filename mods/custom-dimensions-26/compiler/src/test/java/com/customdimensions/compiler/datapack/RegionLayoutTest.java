@@ -278,6 +278,43 @@ class RegionLayoutTest {
     }
 
     @Test
+    void aSeaUnderTheLandIsLand() {
+        String dry = ", \"liquids\": {\"seaLevel\": -55}";
+        JsonObject source = source("r", GENERATOR + dry + ", " + list(NINE) + ", \"biomeLayout\": {\"mode\": \"regions\"}");
+        JsonArray entries = source.getAsJsonObject("base").getAsJsonArray("biomes");
+        assertTrue(of(entries, "minecraft:ocean").isEmpty() && of(entries, "minecraft:warm_ocean").isEmpty(), entries.toString());
+        for (String id : NINE) {
+            for (JsonObject p : of(entries, id)) assertEquals(-2.0, p.getAsJsonArray("continentalness").get(0).getAsDouble(), 1e-9, id);
+        }
+        assertNull(source.getAsJsonObject("regions").get("areas"));
+        shares(entries, "temperature", "humidity").forEach((id, share) -> assertEquals(1 / 9.0, share, 1e-3, id));
+
+        JsonObject caves = source("r", GENERATOR + dry + ", " + list(List.of("minecraft:plains", "minecraft:desert", "minecraft:dripstone_caves"))
+                + ", \"biomeLayout\": {\"mode\": \"regions\"}");
+        JsonArray withCaves = caves.getAsJsonObject("base").getAsJsonArray("biomes");
+        assertTrue(of(withCaves, "minecraft:warm_ocean").isEmpty() && of(withCaves, "minecraft:ocean").isEmpty(), withCaves.toString());
+        for (JsonObject p : of(withCaves, "minecraft:plains")) assertEquals(-2.0, p.getAsJsonArray("continentalness").get(0).getAsDouble(), 1e-9);
+
+        JsonObject listed = source("r", GENERATOR + dry + ", " + list(List.of("minecraft:plains", "minecraft:warm_ocean"))
+                + ", \"biomeLayout\": {\"mode\": \"regions\"}");
+        for (JsonObject p : of(listed.getAsJsonObject("base").getAsJsonArray("biomes"), "minecraft:warm_ocean")) {
+            assertEquals(-0.19, p.getAsJsonArray("continentalness").get(1).getAsDouble(), 1e-9, "a listed ocean keeps the sea's area");
+        }
+        JsonObject forced = source("r", GENERATOR + dry + ", " + list(List.of("minecraft:plains", "minecraft:desert"))
+                + ", \"biomeLayout\": {\"mode\": \"regions\", \"roles\": {\"minecraft:desert\": \"ocean\"}}");
+        for (JsonObject p : of(forced.getAsJsonObject("base").getAsJsonArray("biomes"), "minecraft:desert")) {
+            assertEquals(-0.19, p.getAsJsonArray("continentalness").get(1).getAsDouble(), 1e-9, "a role given keeps its area");
+        }
+
+        JsonObject wet = source("r", GENERATOR + ", \"liquids\": {\"seaLevel\": 20}, " + list(NINE) + ", \"biomeLayout\": {\"mode\": \"regions\"}");
+        assertEquals(1, of(wet.getAsJsonObject("base").getAsJsonArray("biomes"), "minecraft:ocean").size(), "a sea above the basins is water");
+        JsonObject terrain = source("r", GENERATOR + ", \"terrain\": {\"base\": \"continents\", \"params\": {\"seaFloor\": 0}}, "
+                + "\"liquids\": {\"seaLevel\": -10}, " + list(NINE) + ", \"biomeLayout\": {\"mode\": \"regions\"}");
+        assertEquals(1, of(terrain.getAsJsonObject("base").getAsJsonArray("biomes"), "minecraft:ocean").size(),
+                "the terrain's own sea floor sets where the sea lies under the land");
+    }
+
+    @Test
     void oceanBiomesTakeTheSeaAndWeightsHoldPerRole() {
         JsonObject source = source("r", GENERATOR + ", " + list(List.of("minecraft:warm_ocean", "minecraft:plains", "minecraft:lukewarm_ocean",
                 "minecraft:desert")) + ", \"biomeLayout\": {\"mode\": \"regions\", \"weights\": {\"minecraft:warm_ocean\": 3, "

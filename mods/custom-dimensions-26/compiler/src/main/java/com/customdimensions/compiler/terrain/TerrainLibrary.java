@@ -41,9 +41,17 @@ public final class TerrainLibrary {
     public static final Set<String> PRESETS = Set.of("overworld", "large_biomes", "amplified", "floating_islands");
     /** Why the other presets keep their own terrain. */
     public static final Map<String, String> REFUSED = Map.of(
-            "caves", "its terrain is a cave system under a solid ceiling, not a surface",
-            "nether", "its terrain is a cavern between a floor and a ceiling, not a surface",
-            "end", "the End biome source reads the router's erosion as its island shape, which a terrain replaces");
+            "caves", "its terrain is a cave system under a solid ceiling, not a surface; terrain.base roofed shapes it",
+            "nether", "its terrain is a cavern between a floor and a ceiling, not a surface; terrain.base roofed shapes it",
+            "end", "the End biome source reads the router's erosion as its island shape, which a terrain replaces; terrain.base end shapes it");
+    /** Presets whose own terrain takes only {@code terrain.scales.climate} without a {@code base}: they have no land climate to stretch. */
+    public static final Set<String> CLIMATE_ONLY = Set.of("nether", "caves", "end");
+
+    /** The preset whose vanilla settings a terrain of {@code family} on {@code preset} starts from. */
+    public static String settingsPreset(String preset, TerrainFamily family) {
+        if (family.ownRouter()) return preset;
+        return PRESETS.contains(preset) ? preset : "overworld";
+    }
 
     /** Router entries taken from the preset and stretched by {@code scale}. */
     static final List<String> CLIMATE = List.of("continents", "erosion", "ridges", "temperature", "vegetation");
@@ -71,6 +79,35 @@ public final class TerrainLibrary {
      */
     public static Compiled compile(String slug, String namespace, String name, TerrainSpec spec, String preset,
                                    JsonObject settings, Integer seaLevel, VanillaData vanilla) {
+        return compile(slug, namespace, name, spec, preset, settings, seaLevel, vanilla, Biomes.NONE);
+    }
+
+    /**
+     * What a terrain's router gives its biomes beyond its own climate: {@code place}, the router's
+     * continentalness from the terrain's place cue (void, basin water, land; {@link TerrainFamily.Shape#place}),
+     * and {@code underside}, the router's depth measured down from the islands' tops, so a biome bound below
+     * the top takes their undersides. Each is for an airborne terrain; the End's own islands need neither.
+     */
+    public record Biomes(boolean place, boolean underside) {
+        public static final Biomes NONE = new Biomes(false, false);
+    }
+
+    /** Router depth per block below the islands' tops: as vanilla's, 1 per 128 blocks. */
+    static final double UNDERSIDE_DEPTH_BLOCKS = 128;
+
+    /** As {@link #compile(String, String, String, TerrainSpec, String, JsonObject, Integer, VanillaData)}, the router feeding {@code biomes}. */
+    public static Compiled compile(String slug, String namespace, String name, TerrainSpec spec, String preset,
+                                   JsonObject settings, Integer seaLevel, VanillaData vanilla, Biomes biomes) {
+        if (spec.family().roofed()) {
+            return RoofedTerrain.compile(slug, namespace, name, spec, preset, settings, seaLevel);
+        }
+        if (spec.family() == TerrainFamily.END) {
+            return EndTerrain.compile(slug, namespace, name, spec, preset, settings, true);
+        }
+        if ((biomes.place() || biomes.underside()) && !spec.airborne()) {
+            throw new IllegalArgumentException(slug + ": biomes follow the islands of a terrain over a void; " + spec.family().id()
+                    + " lies on the ground, where continentalness and depth already do");
+        }
         if (!PRESETS.contains(preset)) {
             throw new IllegalArgumentException(slug + ": terrain.base " + spec.family().id() + " cannot shape preset " + preset
                     + ": " + REFUSED.getOrDefault(preset, "it is not a surface preset"));
@@ -97,7 +134,7 @@ public final class TerrainLibrary {
         Ctx ctx = new Ctx(spec, namespace, prefix, sea, minY, maxY);
         TerrainFamily.Shape shape = spec.family().build(ctx);
         JsonElement height = shape.height();
-        if (!spec.family().airborne() && spec.heightMultiplier() != 1) {
+        if (!spec.airborne() && spec.heightMultiplier() != 1) {
             height = add(mul(add(height, -ctx.shore()), spec.heightMultiplier()), ctx.shore());
         }
         ctx.namedFunctions().forEach((key, f) -> functions.put(key, f.getAsJsonObject()));
@@ -109,7 +146,7 @@ public final class TerrainLibrary {
         functions.put("sloped_cheese", slopedCheese(prefix, shape, spec.scale()));
         JsonObject finalDensity = replace(vanilla.densityFunction("overworld/final_density"), ids);
         JsonObject preliminary = replace(vanilla.densityFunction("overworld/preliminary_surface_level"), ids);
-        if (spec.family().airborne()) {
+        if (spec.airborne()) {
             openFloor(finalDensity);
             openFloor(preliminary);
         }
@@ -132,7 +169,16 @@ public final class TerrainLibrary {
             outRouter.addProperty(key, prefix + "/" + key);
         }
         outRouter.addProperty("depth", prefix + "/biome_depth");
-        if (spec.family().airborne()) {
+        if (biomes.place() && shape.place() != null) {
+            functions.put("place", cache(shape.place()));
+            outRouter.addProperty("continents", prefix + "/place");
+        }
+        if (biomes.underside() && shape.top() != null) {
+            functions.put("island_top", cache(shape.top()));
+            functions.put("island_depth", cache(mul(add(ref(prefix + "/island_top"), Df.negY(minY, maxY)), 1 / UNDERSIDE_DEPTH_BLOCKS)));
+            outRouter.addProperty("depth", prefix + "/island_depth");
+        }
+        if (spec.airborne()) {
             out.remove("aquifers");
             out.addProperty("sea_level", minY);
         }
@@ -189,9 +235,85 @@ public final class TerrainLibrary {
         return new Compiled(out, files);
     }
 
+    /**
+     * Refuses a shaping of a {@link #CLIMATE_ONLY} preset's own terrain that
+     * sets anything but {@code scales.climate}.
+     */
+    public static void checkClimateOnly(String slug, String preset, TerrainShaping shaping) {
+        TerrainShaping.Scales s = shaping.scales();
+        if (shaping.scale() != 1 || s.continents() != 1 || s.erosion() != 1 || s.ridges() != 1 || shaping.layout() != null
+                || shaping.landShare() != null) {
+            throw new IllegalArgumentException(slug + ": the " + preset + " preset's own terrain takes only terrain.scales.climate, "
+                    + "which stretches the climate its biomes are laid out on"
+                    + ("end".equals(preset) ? "" : "; terrain.base roofed shapes its floor and ceiling"));
+        }
+    }
+
+    /** {@link EndTerrain}: an {@code end} terrain on the end preset, on the outer islands alone when {@code centralIsland} is false. */
+    public static Compiled compileEnd(String slug, String namespace, String name, TerrainSpec spec, String preset, JsonObject settings,
+                                      boolean centralIsland) {
+        return EndTerrain.compile(slug, namespace, name, spec, preset, settings, centralIsland);
+    }
+
+    /** A roofed terrain's floor, ceiling and what of it lies under the preset's sea, for the compile report. */
+    public static String describeRoofed(TerrainSpec spec, double sea, String fluid) {
+        return RoofedTerrain.describe(spec, sea, fluid);
+    }
+
+    /** The router's temperature and vegetation after a climate stretch: the stretched functions by pack path, and the router rewired. */
+    public record Climate(Map<String, JsonObject> files, boolean stretched) {
+    }
+
+    /**
+     * {@code settings}' router temperature and vegetation, each read from its
+     * id or written in place, stretched by {@code stretch} under
+     * {@code <namespace>:terrain/<name>/}; constants stay as they are.
+     */
+    public static Climate stretchClimate(String namespace, String name, JsonObject settings, double stretch, VanillaData vanilla) {
+        Map<String, JsonObject> files = new TreeMap<>();
+        if (stretch == 1) return new Climate(files, false);
+        JsonObject router = settings.getAsJsonObject("noise_router");
+        String prefix = namespace + ":terrain/" + name;
+        for (String key : List.of("temperature", "vegetation")) {
+            JsonElement e = router.get(key);
+            JsonObject function;
+            if (e.isJsonObject()) {
+                function = e.getAsJsonObject();
+            } else if (e.getAsJsonPrimitive().isString()) {
+                function = vanilla.densityFunction(path(e.getAsString()));
+            } else {
+                continue;
+            }
+            files.put(dataPath(prefix + "/" + key, "worldgen/density_function"), scaled(function, stretch));
+            router.addProperty(key, prefix + "/" + key);
+        }
+        return new Climate(files, !files.isEmpty());
+    }
+
     /** {@link #findTopSurface} below a preset's nominal height, which its {@code offset} gives as {@code height / 128 - 1}. */
     private static JsonObject findTopSurface(JsonElement density, JsonElement offset, JsonObject settings) {
         return findTopSurface(density, mul(add(offset, 1), 128), settings.getAsJsonObject("noise").get("min_y").getAsInt());
+    }
+
+    /**
+     * {@code files} with the terrain's continentalness ({@code <namespace>:terrain/<name>/continents}) shifted at
+     * load so the shaping's land share of a {@code radius} border lies at or above {@code coast}, where the terrain
+     * meets its sea; unchanged without a land share.
+     */
+    public static Map<String, JsonObject> withLandShare(Map<String, JsonObject> files, String namespace, String name,
+                                                        TerrainShaping shaping, double coast, int radius) {
+        if (shaping == null || shaping.landShare() == null) return files;
+        String path = dataPath(namespace + ":terrain/" + name + "/continents", "worldgen/density_function");
+        JsonObject continents = files.get(path);
+        if (continents == null) throw new IllegalStateException("no continents at " + path);
+        Map<String, JsonObject> out = new TreeMap<>(files);
+        out.put(path, cache(shaping.withLandShare(continents, coast, radius)));
+        return out;
+    }
+
+    /** {@code density} held at or below -1 where {@code mask} is 1, and unchanged in sign where it is 0. */
+    public static JsonObject voided(JsonElement density, JsonElement mask) {
+        return min(density, add(mul(mask, -2), 1));
     }
 
     /** {@code continents} with the shaping's layout added (cached), or unchanged without one. */

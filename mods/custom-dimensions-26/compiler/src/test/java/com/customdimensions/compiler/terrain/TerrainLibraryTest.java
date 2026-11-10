@@ -44,6 +44,11 @@ class TerrainLibraryTest {
         return TerrainLibrary.compile("t", "adventure", "t", spec, preset, vanilla().noiseSettings(preset), sea, vanilla());
     }
 
+    /** The preset a family is built for: nether for a roofed one, else overworld. */
+    static String home(TerrainFamily family) {
+        return family.roofed() ? "nether" : family == TerrainFamily.END ? "end" : "overworld";
+    }
+
     static TerrainLibrary.Compiled compile(String json) {
         return compile(spec(json), "overworld", null);
     }
@@ -53,7 +58,7 @@ class TerrainLibraryTest {
     }
 
     @ParameterizedTest
-    @EnumSource(TerrainFamily.class)
+    @EnumSource(value = TerrainFamily.class, names = {"ROOFED", "END"}, mode = EnumSource.Mode.EXCLUDE)
     void everyTerrainEmitsItsRouterFunctionsAndWiresTheRouter(TerrainFamily family) {
         TerrainLibrary.Compiled c = compile("{\"base\": \"" + family.id() + "\"}");
         for (String name : List.of("continents", "erosion", "ridges", "ridges_folded", "temperature", "vegetation", "height",
@@ -91,7 +96,7 @@ class TerrainLibraryTest {
     }
 
     @ParameterizedTest
-    @EnumSource(TerrainFamily.class)
+    @EnumSource(value = TerrainFamily.class, names = {"ROOFED", "END"}, mode = EnumSource.Mode.EXCLUDE)
     void airborneTerrainsOpenTheFloorAndDropAquifers(TerrainFamily family) {
         TerrainLibrary.Compiled c = compile("{\"base\": \"" + family.id() + "\"}");
         String fd = text(c.files().get(P + "final_density.json"));
@@ -433,8 +438,14 @@ class TerrainLibraryTest {
             terrain.addProperty("base", family.id());
             terrain.add("params", params);
             terrain.addProperty("scale", high ? 4 : 0.25);
-            terrain.addProperty("heightMultiplier", high ? 3 : 0.25);
-            compile(TerrainSpec.parse("t", terrain), "overworld", null);
+            if (family.roofed()) {
+                params.addProperty("floorHeight", high ? 60 : 4);
+                params.addProperty("floorRelief", high ? 30 : 0);
+                params.addProperty("ceilingGap", high ? 60 : 16);
+            } else if (family != TerrainFamily.END) {
+                terrain.addProperty("heightMultiplier", high ? 3 : 0.25);
+            }
+            compile(TerrainSpec.parse("t", terrain), home(family), null);
         }
     }
 
@@ -449,7 +460,7 @@ class TerrainLibraryTest {
         }));
         for (String setting : TerrainFamily.SETTINGS) {
             TerrainSpec s = spec("{\"base\": \"" + family.id() + "\", \"setting\": \"" + setting + "\"}");
-            compile(s, "overworld", null);
+            compile(s, home(family), null);
             family.presets().get(setting).forEach((name, v) -> assertEquals(v, s.param(name)));
         }
     }
@@ -470,7 +481,7 @@ class TerrainLibraryTest {
     @Test
     void badTerrainsAreErrorsNamingTheDefinition() {
         assertEquals("t: terrain.base \"mountains\" is not a library terrain; one of continents, erosion, ridges, terraces, "
-                + "canyons, rivers, floating_islands, basin_islands, islands, voids, shattered, spires", error("{\"base\": \"mountains\"}"));
+                + "canyons, rivers, floating_islands, basin_islands, islands, voids, shattered, spires, roofed, end", error("{\"base\": \"mountains\"}"));
         assertTrue(error("{\"base\": 3}").startsWith("t: terrain.base 3 is not a library terrain"));
         assertEquals("t: terrain.params.depth = 200 is outside [8, 120]", error("{\"base\": \"canyons\", \"params\": {\"depth\": 200}}"));
         assertEquals("t: terrain.params.depth = 1 is outside [8, 120]", error("{\"base\": \"canyons\", \"params\": {\"depth\": 1}}"));
@@ -481,7 +492,7 @@ class TerrainLibraryTest {
         assertEquals("t: terrain.heightMultiplier = 0 is outside [0.25, 3]", error("{\"base\": \"canyons\", \"heightMultiplier\": 0}"));
         assertEquals("t: terrain.setting \"wild\" is not one of gentle, default, extreme", error("{\"base\": \"canyons\", \"setting\": \"wild\"}"));
         assertEquals("t: terrain.params needs a terrain.base", error("{\"base\": null, \"params\": {\"depth\": 20}}"));
-        assertEquals("t: terrain.roughness is not a terrain field; fields: base, heightMultiplier, layout, params, scale, scales, setting",
+        assertEquals("t: terrain.roughness is not a terrain field; fields: base, floor, heightMultiplier, landShare, layout, params, scale, scales, setting",
                 error("{\"base\": \"canyons\", \"roughness\": 1}"));
         assertEquals("t: terrain.params must be an object", error("{\"base\": \"canyons\", \"params\": 3}"));
     }
@@ -535,6 +546,8 @@ class TerrainLibraryTest {
         assertEquals(expected, names);
         assertEquals(TerrainLibrary.numberSchema(TerrainSpec.SCALE), terrain.get("scale"));
         assertEquals(TerrainLibrary.numberSchema(TerrainSpec.HEIGHT_MULTIPLIER), terrain.get("heightMultiplier"));
+        assertEquals(TerrainShaping.LAND_SHARE.min(), terrain.getAsJsonObject("landShare").get("minimum").getAsDouble());
+        assertEquals(TerrainShaping.LAND_SHARE.max(), terrain.getAsJsonObject("landShare").get("maximum").getAsDouble());
         JsonObject scales = terrain.getAsJsonObject("scales").getAsJsonObject("properties");
         assertEquals(new TreeSet<>(TerrainShaping.SCALE_KEYS), new TreeSet<>(scales.keySet()));
         for (String k : TerrainShaping.SCALE_KEYS) {

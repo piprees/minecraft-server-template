@@ -35,7 +35,11 @@ public final class BiomeRoles {
     public static final String CAVE = "cave";
     public static final String WETLAND = "wetland";
     public static final String LAND = "land";
-    public static final List<String> ROLES = List.of(LAND, OCEAN, SHORE, RIVER, PEAK, CAVE, WETLAND);
+    /** The open water of a {@code basin_islands} lake mass; only by a definition role, or an ocean's under {@code over: land}. */
+    public static final String BASIN = "basin";
+    /** Sky islands' undersides, below their tops; only by a definition role. */
+    public static final String UNDERSIDE = "underside";
+    public static final List<String> ROLES = List.of(LAND, OCEAN, SHORE, RIVER, PEAK, CAVE, WETLAND, BASIN, UNDERSIDE);
     /** Vanilla's coast band on continentalness, where its beaches and stony shores sit. */
     static final double COAST_LOW = -0.19, COAST_HIGH = -0.11;
 
