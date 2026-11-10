@@ -474,9 +474,11 @@ BUNDLE_CONFIG="$STACK_DIR/config"
 if [[ -d "$BUNDLE_CONFIG" ]]; then
   local_data_cfg="$SERVER_DIR/data/config"
   mkdir -p "$local_data_cfg"
-  # Bridges are the bundle's set exactly: one deleted from the platform
-  # must stop adopting, and the copy below only adds and overwrites.
-  rm -rf "$local_data_cfg/custom-dimensions/bridges"
+  # Definitions and bridges are the bundle's set exactly (the consumer
+  # overlay is staged over them below): the copy only adds and overwrites,
+  # and the mod reads every *.json in dimensions/, refusing a start on one
+  # without "schemaVersion": 2, such as a 1.21.1 definition left behind.
+  rm -rf "$local_data_cfg/custom-dimensions/dimensions" "$local_data_cfg/custom-dimensions/bridges"
   cd "$BUNDLE_CONFIG"
   platform_config_files | while IFS= read -r f; do
     dest="$local_data_cfg/${f#./}"

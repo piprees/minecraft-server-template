@@ -1,13 +1,13 @@
 # The 26.3 switch: checklist
 
-The switch is the last commits on PR #29; merging the PR is the switch, `v6.0.0` ships it. `cutover/` (prepared at `/tmp/claude-0/p10a/cutover/`; copy it to the repo root untracked, or run it from there with `--repo`) holds `apply.sh`, which does every mechanical item of `docs/design/rebuild-26/cutover-removals.md`; the items it cannot do are in `not-automated.md` and come first.
+The switch is the last commits on PR #29; merging the PR is the switch, `v6.0.0` ships it. `cutover/` (tracked) holds `apply.sh`, which does every item of `docs/design/rebuild-26/cutover-removals.md` and the code ports (`not-automated.md` § The ports), and deletes `cutover/` as its last step; what it leaves is in `not-automated.md` § Judgement calls. A running server's own steps are `migration-notes.md`.
 
 ## Before
 
-1. **The code ports land first** (not-automated.md § Blocking): deploy.sh's dimension setup step, `platform_updates.py`, the dep-review partition and collect fixtures, `pack_files.py`'s tests, `mod-updates.yml`. Each lands as its own commit on the branch, green.
+1. **The ports are current:** `cutover/apply.sh --dry-run` prints no `!` line. A `!` means a repo file changed since its port was written: carry the change into the stored replacement, re-record it with `cutover/mkshas.sh <switched clone> <path>`, and re-run the rehearsal.
 2. **CI green on the branch head:** `gh run list --branch claude/minecraft-dependency-automation-n1w79q --limit 5 --json name,conclusion`; `Mod build (26.3)` and `Smoke Test (26.3)` both `success` (dispatch the smoke test if the last run predates the head: `gh workflow run smoke-test-26.yml --ref claude/minecraft-dependency-automation-n1w79q`).
 3. **Self-test green:** in `mods/custom-dimensions-26/`, `./gradlew :server:runServer -PselfTest=/tmp/st.txt` with `level-seed=20261022`: `grep -c '^FAIL' /tmp/st.txt` is 0.
-4. **Rehearse on a copy:** `git clone -q . /tmp/cutover-rehearsal && cutover/apply.sh --repo /tmp/cutover-rehearsal`, then in the copy `./scripts/test-scripts.sh --quick` and `python3 -m pytest -q scripts/tests mods/custom-dimensions-client-26/scripts` (needs pytest), and `cd mods/custom-dimensions-26 && ./gradlew build`.
+4. **Rehearse on a copy:** `git clone -q . /tmp/cutover-rehearsal && /tmp/cutover-rehearsal/cutover/apply.sh`, then in the copy `./scripts/test-scripts.sh --quick` and `python3 -m pytest -q scripts/tests mods/custom-dimensions-client-26/scripts` (needs pytest), and `./gradlew build` in `mods/custom-dimensions-26` and in `mods/custom-dimensions-client-26`.
 5. **Rehearse the stack on a linked local consumer** (`~/Projects/elfydd`; ask first, it is shared): `./dev link` it to the rehearsal copy, `./dev refresh-config` (T78: `data/config/` holds the 1.21.1 definitions), `./dev reset-world`, `./dev up`; then `./ops rcon "customdim list"`, `./ops rcon "customdim audit"`, a vanilla 26.3 client join, a Bedrock join, and one portal crossing into The Aviary. Measure P8's per-1,000-chunk figures here.
 6. **Rehearse deploy.sh**, which no 26.3 test runs: a full `./dev`-driven deploy of the rehearsal bundle to a throwaway droplet, or `scripts/deploy.sh` against the local consumer, read end to end.
 7. **Dry run on the branch:** `cutover/apply.sh --dry-run > /tmp/cutover-dry.txt`; no line starts `  !`.
@@ -15,11 +15,10 @@ The switch is the last commits on PR #29; merging the PR is the switch, `v6.0.0`
 ## The script
 
 ```bash
-git status --short                 # empty (an untracked cutover/ is the one exception: add it to .git/info/exclude)
-cutover/apply.sh                   # prints every add, change, delete and move; exits 1 on drift
-cutover/apply.sh --dry-run | tail -1   # "already done" only: the run is complete
+git status --short                 # empty
+cutover/apply.sh                   # prints every add, change, delete and move; exits 1 on drift; deletes cutover/ last
 git add -A -- .minecraft-version docker-compose.yml AGENTS.md README.md DEPENDENCIES.md \
-  .claude .github config docker docs examples mods modpack scripts   # explicit paths, never a bare -A
+  .claude .github config cutover docker docs examples mods modpack scripts   # explicit paths, never a bare -A
 git commit -m "feat!: switch the platform to Minecraft 26.3 [v6]"
 ```
 

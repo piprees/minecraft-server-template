@@ -22,6 +22,8 @@ Nothing under `files/` may be taken for a live file: a stored workflow must not 
 - a leading `.` of any path component becomes `dot-` (`files/dot-github/workflows/smoke-test.yml`, `files/dot-claude/skills/…`);
 - `AGENTS.md` becomes `AGENTS.next.md`.
 
+Base shas of the ports (the files changed after the edits, below the second comment in `files.sha256`) are the file as `apply.sh`'s edits leave it, so re-record those against a switched clone.
+
 The quick gate's linters read `scripts/`, `docker/`, `examples/consumer/` and `.github/workflows/` only, so `cutover/files/scripts/` is not linted as a shipped script; `tests/run.sh` lints it on the rehearsal clone, where it is.
 
 ## Rehearsal

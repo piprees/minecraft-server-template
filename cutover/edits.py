@@ -42,6 +42,9 @@ edit("version", ".github/workflows/deploy-reusable.yml",
      'emit MC_VERSION "${V_MC_VERSION:-1.21.1}"', 'emit MC_VERSION "${V_MC_VERSION:-26.3}"')
 edit("version", ".github/workflows/deploy-reusable.yml",
      "|| echo \\${MC_VERSION:-1.21.1})", "|| echo \\${MC_VERSION:-26.3})")
+# The scaffold's deploy calls the reusable workflow of the release's major.
+edit("version", "examples/consumer/.github/workflows/deploy.yml",
+     "deploy-reusable.yml@v5\n", "deploy-reusable.yml@v6\n")
 edit("version", "examples/consumer/dev",
      'echo "${MC_VERSION:-1.21.1}")', 'echo "${MC_VERSION:-26.3}")')
 edit("version", "scripts/minecraft-versions.tsv",
@@ -274,6 +277,30 @@ for name in ("ShippedDefinitionsLoadTest", "ShippedDimensionReachabilityTest"):
 edit("mod", T + "definition/DifficultyTest.java",
      'Path.of(System.getProperty("user.dir")).getParent().resolve("definitions")',
      'Path.of(System.getProperty("user.dir")).getParent().resolve("../../config/custom-dimensions/dimensions").normalize()')
+
+C = "mods/custom-dimensions-26/compiler/src/test/java/com/customdimensions/compiler/convert/"
+edit("mod", C + "ConvertDefinitionsTest.java",
+     '/** The converter over the real 1.21.1 definitions in {@code config/custom-dimensions/}. */',
+     '/** The converter over the real 1.21.1 definitions in {@code mods/custom-dimensions-26/definitions/v1/}. */')
+edit("mod", C + "ConvertDefinitionsTest.java",
+     'private static final Path CONFIG = REPO.resolve("config/custom-dimensions");',
+     'private static final Path CONFIG = Path.of("../definitions/v1");')
+edit("mod", C + "ApplyIdMappingTest.java",
+     "definitions.resolve(IdMapping.FILE)", 'Path.of("..", "definitions", IdMapping.FILE)', all=True)
+edit("mod", C + "ApplyIdMappingTest.java",
+     'definitions.resolveSibling("schema").resolve("definition.schema.json")',
+     'Path.of("..", "schema", "definition.schema.json")')
+edit("mod", "mods/custom-dimensions-26/compiler/build.gradle",
+     "// Rewrites definitions/ (schema v2) and its conversion report from the 1.21.1\n"
+     "// definitions in config/custom-dimensions/. The repository root is three levels up.\n",
+     "// Converts the 1.21.1 definitions kept in definitions/v1/ to schema v2, with its\n"
+     "// conversion report. The repository root is three levels up.\n")
+edit("mod", "mods/custom-dimensions-26/compiler/build.gradle",
+     "description = 'Converts config/custom-dimensions/ to schema v2 in build/converted-definitions/, beside the hand-edited set (RB-35).'",
+     "description = 'Converts definitions/v1/ (the 1.21.1 set) to schema v2 in build/converted-definitions/, beside the hand-edited set (RB-35).'")
+edit("mod", "mods/custom-dimensions-26/compiler/build.gradle",
+     "args '--config', new File(repoRoot, 'config/custom-dimensions').path,",
+     "args '--config', file('../definitions/v1').canonicalPath,")
 
 # --- discord: /mc border and /mc status -------------------------------------
 edit("discord", "scripts/discord-sync.py",

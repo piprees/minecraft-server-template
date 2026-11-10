@@ -374,6 +374,29 @@ class OverlayStagingTests(unittest.TestCase):
                 self.assertIn(overlay, text)
                 self.assertNotIn("custom-dimensions/overlay/${f#./}", text)
 
+    def test_deploy_seeds_exactly_the_bundle_s_definitions(self):
+        text = DEPLOY_SH.read_text()
+        clear = text.index('rm -rf "$local_data_cfg/custom-dimensions/dimensions" "$local_data_cfg/custom-dimensions/bridges"')
+        self.assertLess(clear, text.index("  platform_config_files | while IFS= read -r f; do", clear))
+        self.assertLess(clear, text.index('stage-dimensions.py" --platform'))
+
+    def test_dev_up_drops_pre_26_3_definitions_and_keeps_v2_ones(self):
+        text = (DEPLOY_SH.parent / "dev-up.sh").read_text()
+        start = text.index('V2_DIMS="$CONSUMER_DIR/data/config/custom-dimensions/dimensions"')
+        block = text[start:text.index("\nfi\n", start) + 4]
+        with tempfile.TemporaryDirectory() as tmp:
+            dims = Path(tmp) / "data/config/custom-dimensions/dimensions"
+            dims.mkdir(parents=True)
+            (dims / "paradise_lost.json").write_text('{"seed": 1}')
+            (dims / "the_gauntlet_thumb.json").write_text('{"seed": 2}')
+            (dims / "the_aviary.json").write_text('{"schemaVersion": 2}')
+            (dims / "notes.txt").write_text("kept")
+            proc = subprocess.run(["bash", "-c", "set -euo pipefail\n" + block], capture_output=True, text=True,
+                                  env={"PATH": "/usr/bin:/bin", "CONSUMER_DIR": tmp})
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertEqual(sorted(p.name for p in dims.iterdir()), ["notes.txt", "the_aviary.json"])
+            self.assertIn("Removed 2 pre-26.3 file(s)", proc.stdout)
+
     def test_the_stager_ships_in_the_bundle(self):
         self.assertIn("scripts/stage-dimensions.py",
                       (DEPLOY_SH.parent / "build-stack-bundle.sh").read_text())

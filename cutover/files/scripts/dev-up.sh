@@ -221,6 +221,22 @@ echo ""
 # --- Seed default mod configs into data/config/ ------------------------------
 # Copy platform default configs from the bundle into data/config/ without
 # overwriting existing files (mods or the player may have customised them).
+# The mod reads every *.json in dimensions/ and refuses a start on one
+# without "schemaVersion": 2, so a 1.21.1 definition or seed-viewer thumbnail
+# left in data/config goes before the skip-if-exists sync below puts the 26.3
+# file in its place. A v2 file stays, local picks included.
+V2_DIMS="$CONSUMER_DIR/data/config/custom-dimensions/dimensions"
+if [[ -d "$V2_DIMS" ]]; then
+  STALE=0
+  for f in "$V2_DIMS"/*.json; do
+    [[ -f "$f" ]] || continue
+    grep -q '"schemaVersion"' "$f" && continue
+    rm -f "$f"
+    STALE=$((STALE + 1))
+  done
+  [[ $STALE -gt 0 ]] && echo "  Removed $STALE pre-26.3 file(s) from data/config/custom-dimensions/dimensions/"
+fi
+
 BUNDLE_CONFIG="$STACK_DIR/config"
 if [[ -d "$BUNDLE_CONFIG" ]]; then
   echo "  Seeding default mod configs into data/config/..."

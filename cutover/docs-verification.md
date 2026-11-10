@@ -32,12 +32,12 @@ Every markdown link and every backticked repository path in the replacement docs
 
 ## Behaviour (run, not read)
 
-- `apply.sh` on a fresh clone: exit 0; a second `--dry-run` reports only "already done" (161 lines). `--dry-run` on the working branch: `dry-run.txt`.
-- After it: `./scripts/test-scripts.sh --quick` (Docker replaced by a failing shim, ShellCheck from `/tmp/claude-0/sc`) reports the same warnings as before the switch except the unit tests; `pytest scripts/tests mods/custom-dimensions-client-26/scripts`: 481 pass, 33 fail, every failure in `not-automated.md` § Blocking.
-- Not run (the brief forbids it): the Gradle build and self-test of the switched tree, the smoke test, the rig.
+- `apply.sh` on a fresh clone of the branch with the kit committed, run from the clone's own `cutover/`: exit 0, no drift, `cutover/` gone afterwards.
+- After it: `./scripts/test-scripts.sh --quick` exits 0 (Docker replaced by a shim that passes only `docker compose … config`, ShellCheck from `/tmp/claude-0/sc`, yamllint installed); `python3 -m pytest -q scripts/tests mods/custom-dimensions-client-26/scripts` all green; `./gradlew build` in `mods/custom-dimensions-26` (core, compiler and server tests) and in `mods/custom-dimensions-client-26` green.
+- Not run: the self-test, the smoke test, the rig and any server (`checklist.md` § Before 3, 5, 6).
 
 ## Not verified
 
-- The 26.3 SNBT of the bundle lines in `p7-proposal.md` (verify with `/starterkit set` in game).
+- The 26.3 SNBT of the starter kit's bundle lines (`config/starterkit/kits/Default.txt` slots 10 and 12; verify with `/starterkit set` in game).
 - Whether Chunky's tickets keep a lazy level open (`p8-pregen.md` says to confirm in the rehearsal).
 - Whether lazy levels follow the overworld's game rules (`p7-proposal.md` § 1).

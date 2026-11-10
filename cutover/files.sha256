@@ -48,3 +48,4 @@ ccae0d68fd445ebff4d887cbfd26c4da644a8a0b468f80c6c850d4d3e4722fd9 .claude/skills/
 3827748bea25b4eec44b3ea88e2bac120f9613df69a0743a25f2748bc612365a .claude/skills/server-mod-management/SKILL.md
 ae96cbe6d3f9954b7dc3ffc6fd6dc33163fe28eb6a973471717a19bde8adc333 .claude/skills/server-mod-management/references/dependency-resolution.md
 86b36fc4dd4efc1403fa918dfcaffecb35e1e10b77235c63475b621b269e3687 .claude/skills/server-mod-management/references/mod-list-formats.md
+2bf9f39cb3fdabb7e4e2657b91246a91367b49f5762b62b02aca108afdf747cb scripts/reset-seed.sh
