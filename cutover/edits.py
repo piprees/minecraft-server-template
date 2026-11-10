@@ -247,10 +247,10 @@ edit("mod", "mods/custom-dimensions-client-26/scripts/review-packet.py",
      "new_path = os.path.join(ROOT, 'config', 'custom-dimensions', 'dimensions', f'{slug}.json')")
 edit("mod", "mods/custom-dimensions-client-26/scripts/review-packet.py",
      "old_path = os.path.join(ROOT, 'config', 'custom-dimensions', 'dimensions', f'{slug}.json')",
-     "old_path = os.path.join(ROOT, 'mods', 'custom-dimensions-26', 'definitions', 'v1', f'{slug}.json')")
+     "old_path = os.path.join(ROOT, 'mods', 'custom-dimensions-26', 'definitions', 'v1', 'dimensions', f'{slug}.json')")
 edit("mod", "mods/custom-dimensions-client-26/scripts/review-packet.py",
      "  the 1.21.1 definition (config/custom-dimensions/dimensions/<slug>.json, read-only: RB-35): description, biome list,\n",
-     "  the 1.21.1 definition (mods/custom-dimensions-26/definitions/v1/<slug>.json): description, biome list,\n")
+     "  the 1.21.1 definition (mods/custom-dimensions-26/definitions/v1/dimensions/<slug>.json): description, biome list,\n")
 edit("mod", "mods/custom-dimensions-client-26/scripts/review-packet.py",
      "  the v2 definition (mods/custom-dimensions-26/definitions/<slug>.json): description, biomes, terrain, zones;\n",
      "  the v2 definition (config/custom-dimensions/dimensions/<slug>.json): description, biomes, terrain, zones;\n")
@@ -262,6 +262,18 @@ edit("mod", ".github/workflows/mod26.yml",
 edit("mod", ".github/workflows/mod26.yml",
      "        working-directory: .\n        env:\n          MC_VERSION_OVERRIDE: '26.3'\n        run: |\n",
      "        working-directory: .\n        run: |\n")
+
+# --- mod: core's v1 config tests read the 1.21.1 set where the switch keeps it -
+T = "mods/custom-dimensions-26/core/src/test/java/com/customdimensions/core/"
+for name in ("VanillaManagedPortalTest", "PortalFrameCollisionTest", "MultiPortalConfigTest", "ConsumesIgniterConfigTest"):
+    edit("mod", T + "config/" + name + ".java",
+         'Path.of("../../../config/custom-dimensions/dimensions")', 'Path.of("../definitions/v1/dimensions")')
+for name in ("ShippedDefinitionsLoadTest", "ShippedDimensionReachabilityTest"):
+    edit("mod", T + "config/" + name + ".java",
+         'Path.of("..", "..", "..", "config", "custom-dimensions")', 'Path.of("..", "definitions", "v1")')
+edit("mod", T + "definition/DifficultyTest.java",
+     'Path.of(System.getProperty("user.dir")).getParent().resolve("definitions")',
+     'Path.of(System.getProperty("user.dir")).getParent().resolve("../../config/custom-dimensions/dimensions").normalize()')
 
 # --- discord: /mc border and /mc status -------------------------------------
 edit("discord", "scripts/discord-sync.py",

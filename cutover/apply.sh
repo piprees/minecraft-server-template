@@ -383,17 +383,19 @@ edits seed
 step "4. The v2 definitions and bridges move into config/custom-dimensions/"
 CD=config/custom-dimensions
 if [[ -d mods/custom-dimensions-26/bridges ]] || ! grep -qs '"schemaVersion"' "$CD/dimensions/settings.json"; then
-  # The 1.21.1 definitions stay as the conversion's record beside the id
-  # mapping: review-packet.py reads each dimension's 1.21.1 description there.
+  # The 1.21.1 definitions and their settings.json stay as the conversion's
+  # record beside the id mapping, in the v1 layout: review-packet.py reads each
+  # dimension's 1.21.1 description there, and the v1 config tests of core/ load it.
   for f in "$CD"/dimensions/*.json; do
     [[ -f "$f" ]] || continue
     case "$f" in *_thumb.json) continue ;; esac
-    move "$f" "mods/custom-dimensions-26/definitions/v1/$(basename "$f")"
+    move "$f" "mods/custom-dimensions-26/definitions/v1/dimensions/$(basename "$f")"
   done
+  [[ ! -f "$CD/settings.json" ]] || move "$CD/settings.json" "mods/custom-dimensions-26/definitions/v1/settings.json"
   # The 1.21.1 set and the data only the 1.21.1 mod and its tools read.
   # extractors/ stays: gen-unmined-blocktags.py and gen-open-water-guard.py
   # read it (it is never synced to data/config).
-  del "$CD/dimensions" "$CD/settings.json" "$CD/display-names.json" "$CD/climate-axes.json" \
+  del "$CD/dimensions" "$CD/display-names.json" "$CD/climate-axes.json" \
     "$CD/structure-groups.json" "$CD/structure-sizes.json" "$CD/structure-type-defaults.json" \
     "$CD/grids-41"
   for f in mods/custom-dimensions-26/definitions/*.json; do
