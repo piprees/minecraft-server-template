@@ -1596,6 +1596,34 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t207"></a>
+### T207 — Biome regions on continentalness follow the noise, not a weak layout
+
+- **Symptom:** the_basalt_spires with `biomeLayout` axes `[continentalness, temperature]` and its biomes listed from the lava side inward shows large regions that cross the land and lava edge instead of rings round the bastion.
+- **Cause:** its `terrain.layout` radial adds at most 0.3 to continentalness; inside the border the continentalness noise varies by more, so rank order on continentalness is mostly the noise's.
+- **Fix:** order biomes by distance only where the layout dominates the axis (strength near 1, or a terrain whose land is the layout); otherwise lay regions on temperature × humidity and put neighbours next to each other in the list.
+
+<a id="t206"></a>
+### T206 — A deliberately broken level can be broken by its biome bands
+
+- **Symptom:** `biomeLayout` regions on the_overgrowth drop `placeness.biomeRegions.edgeKmPerKm2` from 61 to 9 and its specks from 38% to 2%: the tangle is gone.
+- **Cause:** the_overgrowth's brokenness is its interleaved weirdness bands (jungle, sparse jungle and cloud forest repeated across 0.04-wide slices), not its terrain.
+- **Fix:** keep the bands where the noise is the point; give regions to levels whose terrain carries the brokenness (the_crucible, the_gauntlet, the_gritlands, the_needlefall keep their W9e targets under regions).
+
+<a id="t205"></a>
+### T205 — A biome region's share holds only through `customdimensions:zoned`'s `regions`
+
+- **Symptom:** a `biomeLayout` level's biome shares drift from their weights, or one biome takes most of the level, after its compiled pack is edited or its source copied elsewhere.
+- **Cause:** the compiled boxes are in rank space (−1 to 1 between the lowest and highest value the seed reaches inside the border); the `regions` object on the biome source is what maps the sampled climate there, measured per level from its own random state. A plain `minecraft:multi_noise` with those boxes reads raw climate, where the box edges mean nothing.
+- **Fix:** keep the `regions` object with the boxes; log line `biome regions: measured [...] over a N-block radius` appears once per level (and once per survey or render sampler).
+
+<a id="t204"></a>
+### T204 — The survey's coarse map covers the world border, not the generation border
+
+- **Symptom:** a biome measured to take 16% of a level shows 31% in `placeness.biomesPercent` (the_crimson_nexus, the_frozen_hearth: player border 4096, generation 2048); a level whose two borders match (the_darkpine_depths, 1024) agrees.
+- **Cause:** `/customdim survey` passes the level's world-border radius (`borders.player`) to the coarse map; `borders.generation` is only its fallback. Anything measured over the generation border describes the inner quarter of what the survey and the players see.
+- **Fix:** measure over `borders.player`, then `borders.generation` (`RegionLayout.radius`); read `placeness` as the world border's.
+
 <a id="t203"></a>
 ### T203 — A layout that lowers the centre of a land terrain floods it
 
