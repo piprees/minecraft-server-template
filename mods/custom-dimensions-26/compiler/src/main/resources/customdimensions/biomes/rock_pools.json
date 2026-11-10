@@ -668,7 +668,10 @@
                 "type": "minecraft:matching_blocks",
                 "blocks": [
                   "minecraft:stone",
-                  "minecraft:andesite"
+                  "minecraft:andesite",
+                  "minecraft:gravel",
+                  "minecraft:sand",
+                  "minecraft:clay"
                 ],
                 "offset": [
                   0,
@@ -762,22 +765,7 @@
       "feature": {
         "type": "minecraft:simple_block",
         "to_place": {
-          "type": "minecraft:weighted",
-          "entries": [
-            {
-              "data": "minecraft:seagrass",
-              "weight": 4
-            },
-            {
-              "data": {
-                "id": "minecraft:tall_seagrass",
-                "properties": {
-                  "half": "lower"
-                }
-              },
-              "weight": 1
-            }
-          ]
+          "id": "minecraft:seagrass"
         }
       },
       "placement": [
@@ -831,15 +819,6 @@
                 "offset": [
                   0,
                   0,
-                  0
-                ]
-              },
-              {
-                "type": "minecraft:matching_fluids",
-                "fluids": "minecraft:water",
-                "offset": [
-                  0,
-                  1,
                   0
                 ]
               },

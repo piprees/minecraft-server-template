@@ -54,6 +54,8 @@ public final class GeneratorSelfTest {
     static final int LOAD_CAP_TICKS = 6000;
     /** A void world's biomes are read from its biome source every {@link #BIOME_STEP} blocks out to this many: one climate region can cover a whole chunk sample. */
     static final int BIOME_REACH = 1024, BIOME_STEP = 64;
+    /** Void-cell columns a void biome's own features (an End spike) and the next cells' structures may fill, as a percentage. */
+    static final int FEATURE_REACH_PERCENT = 5;
     /** Each preset's own sea level, to find the definition whose {@code liquids.seaLevel} departs furthest from it. */
     static final Map<String, Integer> PRESET_SEA_LEVELS = Map.of("overworld", 63, "large_biomes", 63, "amplified", 63,
             "caves", 32, "floating_islands", -64, "nether", 32, "end", 0);
@@ -484,6 +486,7 @@ public final class GeneratorSelfTest {
         int scale = def.generator().cellScale() != null ? def.generator().cellScale() : 2;
         long voidColumns = 0, voidTerrain = 0, voidFeature = 0, landColumns = 0, landEmpty = 0;
         Map<String, Integer> features = new java.util.TreeMap<>();
+        List<String> terrainAt = new ArrayList<>();
         for (Column col : c.columns) {
             boolean empty = col.lowest() == null;
             if (voids.contains(com.customdimensions.core.zone.CheckerCells.index(col.x(), col.z(), scale, order.size()))) {
@@ -492,9 +495,13 @@ public final class GeneratorSelfTest {
                 boolean terrain = false;
                 for (int y = col.lowest(); y <= col.surface() && !terrain; y++) {
                     BlockState s = col.chunk().getBlockState(new BlockPos(col.x(), y, col.z()));
-                    terrain = s.is(Blocks.STONE) || s.is(Blocks.DEEPSLATE) || s.is(Blocks.BEDROCK) || !s.getFluidState().isEmpty();
+                    String id = BuiltInRegistries.BLOCK.getKey(s.getBlock()).toString();
+                    terrain = com.customdimensions.core.zone.VoidCellBlocks.terrain(id, y, c.level.getMinY());
                 }
-                if (terrain) voidTerrain++;
+                if (terrain) {
+                    voidTerrain++;
+                    if (terrainAt.size() < 8) terrainAt.add(col.x() + "," + col.z() + " y" + col.lowest() + ".." + col.surface());
+                }
                 else {
                     voidFeature++;
                     features.merge(BuiltInRegistries.BLOCK.getKey(col.top().getBlock()).getPath(), 1, Integer::sum);
@@ -504,11 +511,12 @@ public final class GeneratorSelfTest {
                 if (empty) landEmpty++;
             }
         }
-        return verdict(voidColumns > 0 && landColumns > 0 && voidTerrain * 1000 <= voidColumns && landEmpty <= landColumns / 100, c.area() + ": "
-                + voidTerrain + " of " + voidColumns + " void-cell columns hold terrain (stone, deepslate, bedrock or a fluid; at most 0.1%, what a "
-                + "neighbouring cell's features carry over the edge); " + landEmpty
-                + " of " + landColumns + " other columns are empty; " + voidFeature + " void-cell columns hold only features or structures"
-                + (features.isEmpty() ? "" : ", by top block " + features.entrySet().stream().sorted((x, y) -> y.getValue() - x.getValue()).limit(6).toList()));
+        return verdict(voidColumns > 0 && landColumns > 0 && voidTerrain == 0 && voidFeature * 100 <= voidColumns * FEATURE_REACH_PERCENT
+                        && landEmpty <= landColumns / 100, c.area() + ": "
+                + voidTerrain + " of " + voidColumns + " void-cell columns hold terrain (stone, deepslate, a fluid, the bedrock floor; want 0) "
+                + terrainAt + "; " + voidFeature + " hold only features or structures (want at most " + FEATURE_REACH_PERCENT + "%)"
+                + (features.isEmpty() ? "" : ", by top block " + features.entrySet().stream().sorted((x, y) -> y.getValue() - x.getValue()).limit(6).toList())
+                + "; " + landEmpty + " of " + landColumns + " other columns are empty");
     }
 
     private String seaLevel(Columns c) {

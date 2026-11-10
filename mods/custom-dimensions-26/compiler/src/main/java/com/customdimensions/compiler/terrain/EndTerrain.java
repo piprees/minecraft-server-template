@@ -27,8 +27,9 @@ import static com.customdimensions.compiler.terrain.Df.type;
  * follow the shaped islands.
  *
  * <p>{@code <prefix>/islands} is vanilla's island density (without the central
- * dome when the definition removes it) plus {@code coverage}, plus the layout's
- * shape times {@link #LAYOUT} and its strength. {@code peaks} adds ridges where
+ * dome when the definition removes it) plus {@code coverage}; a layout blends it
+ * into islands of the terrain's own where its shape is positive and clears
+ * vanilla's where it is negative ({@link #laidOut}). {@code peaks} adds ridges where
  * the island density lies above 0; {@code islandHeight} starts the top slide
  * that many blocks higher, so the island tops reach higher.
  */
@@ -37,8 +38,12 @@ final class EndTerrain {
     static final String SLOPED_CHEESE = "minecraft:end/sloped_cheese";
     static final String ISLANDS = "minecraft:end/islands";
     static final String BASE_3D_NOISE = "minecraft:end/base_3d_noise";
-    /** Island density a layout at strength 1 moves the islands by: enough to clear or fill a whole island. */
+    /** Island density a layout at strength 1 takes off where its shape is -1: enough to clear a whole island. */
     static final double LAYOUT = 0.4;
+    /** The {@code islands} noise's frequency under a layout: islands about 80 blocks across (about 128 at 1). */
+    static final double OWN_ISLAND_FREQUENCY = 1.6;
+    /** A layout's own island density per standard deviation of its noise, and the offset under it: about 40% of the ground is island. */
+    static final double OWN_ISLAND_DENSITY = 0.5, OWN_ISLAND_OFFSET = -0.12;
     /** Density a ridge adds at {@code peaks} 1: about 30 blocks of crest against the top slide. */
     static final double PEAK_DENSITY = 3;
     /** Island density over which a ridge rises from an island's edge to its full height. */
@@ -65,7 +70,7 @@ final class EndTerrain {
         JsonElement islands = base;
         if (ctx.p("coverage") != 0) islands = add(islands, ctx.p("coverage"));
         TerrainShaping.Layout layout = spec.shaping().layout();
-        if (layout != null) islands = add(islands, mul(TerrainShaping.shape(layout), LAYOUT * layout.strength()));
+        if (layout != null) islands = laidOut(ctx, islands, layout);
         Map<String, JsonObject> functions = new LinkedHashMap<>();
         functions.put("islands", cache(islands));
         JsonElement cheese = add(ref(prefix + "/islands"), ref(BASE_3D_NOISE));
@@ -110,6 +115,21 @@ final class EndTerrain {
             throw new IllegalArgumentException(slug + ": terrain.scales takes only climate on the end preset: its router has no "
                     + "continents or ridges, and its erosion is the island shape");
         }
+    }
+
+    /**
+     * {@code islands} under a layout. Where the layout's shape is positive the density blends, by shape times strength,
+     * into islands of the terrain's own: {@code coverage} plus the {@code islands} noise, which carries islands where
+     * vanilla's empty ring holds its density near -0.84 and has none to raise; where the shape is negative,
+     * {@link #LAYOUT} times strength is taken off, clearing vanilla's islands.
+     */
+    private static JsonElement laidOut(Ctx ctx, JsonElement islands, TerrainShaping.Layout layout) {
+        JsonElement shape = Df.cache(TerrainShaping.shape(layout));
+        JsonElement own = add(mul(ctx.noise("islands", OWN_ISLAND_FREQUENCY, 0), OWN_ISLAND_DENSITY / Noises.sigma("islands")),
+                OWN_ISLAND_OFFSET + ctx.p("coverage"));
+        JsonElement pull = mul(Df.clamp(shape, 0, 1), layout.strength());
+        JsonElement clear = mul(Df.min(shape, Df.c(0)), LAYOUT * layout.strength());
+        return add(Df.lerp(pull, islands, own), clear);
     }
 
     /** Moves the top slide (the y gradient from {@link #TOP_SLIDE_FROM}) up by {@code blocks}; false when there is none. */

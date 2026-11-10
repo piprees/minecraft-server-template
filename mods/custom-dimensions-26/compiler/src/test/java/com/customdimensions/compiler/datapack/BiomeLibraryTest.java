@@ -326,6 +326,23 @@ class BiomeLibraryTest {
         assertTrue(climate.getMessage().contains("ashen_woodland") && climate.getMessage().contains("height"), climate.getMessage());
     }
 
+    /** The tide pools lay gravel, sand or clay round and under their water; the rim moss and pool life must stand on it. */
+    @Test
+    void rockPoolRimsAndLifeStandOnTheGroundThePoolsLay() {
+        JsonObject o = JsonParser.parseString(shippedText("rock_pools")).getAsJsonObject();
+        java.util.Set<String> laid = new java.util.TreeSet<>();
+        for (var e : feature(o, "tide_pools").getAsJsonObject("ground_state").getAsJsonArray("entries")) {
+            laid.add(e.getAsJsonObject().getAsJsonObject("data").get("id").getAsString());
+        }
+        for (String name : java.util.List.of("rim_moss", "pool_life")) {
+            JsonArray placement = o.getAsJsonObject("features").getAsJsonObject(name).getAsJsonArray("placement");
+            String filter = placement.get(placement.size() - 1).toString();
+            for (String block : laid) assertTrue(filter.contains(block), name + " does not stand on " + block + ": " + filter);
+        }
+        String life = o.getAsJsonObject("features").getAsJsonObject("pool_life").toString();
+        assertFalse(life.contains("[0,1,0]"), "a tide pool's water is one block deep; pool life cannot ask for water above it");
+    }
+
     @Test
     void theShippedBiomesMeetTheSchema() throws IOException {
         com.networknt.schema.Schema schema = com.networknt.schema.SchemaRegistry

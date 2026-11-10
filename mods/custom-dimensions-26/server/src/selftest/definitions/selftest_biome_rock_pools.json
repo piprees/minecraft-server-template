@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "description": "Self-test fixture and showcase: the biome library's rock pools filling a whole level on low islands at sea level, its rock shelves and pools, for the biomes section's per-biome checks, renders and screenshots.",
+  "description": "Self-test fixture and showcase: the biome library's rock pools filling a whole level on flat rock a few blocks above sea level, its rock shelves and pools, for the biomes section's per-biome checks, renders and screenshots.",
   "seed": 19,
   "spawn": [
     0,
@@ -12,11 +12,14 @@
     "biome": "adventure:rock_pools"
   },
   "terrain": {
-    "base": "islands",
+    "base": "erosion",
     "params": {
-      "coverage": 0.55,
-      "islandHeight": 6,
-      "archipelago": 0.6
+      "basinShare": 0.5,
+      "hillHeight": 4,
+      "steepness": 0,
+      "landHeight": 65,
+      "roughness": 0,
+      "relief": 0
     }
   },
   "borders": {

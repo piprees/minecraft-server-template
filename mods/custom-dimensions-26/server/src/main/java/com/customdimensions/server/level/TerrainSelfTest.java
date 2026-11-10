@@ -68,6 +68,9 @@ public final class TerrainSelfTest {
     static final int CAVE_BELOW_SEA = 8;
     /** Roofed terrain: blocks of open air between a roof's underside and the floor that count as a cavern, not a crack. */
     static final int ROOFED_GAP = 8;
+    /** The End layout line: the ring it reads, the island share it needs there and the height the island tops reach. */
+    static final int CLUSTER_INNER = 150, CLUSTER_OUTER = 450, CLUSTER_TOP = 80;
+    static final double CLUSTER_LAND = 0.15;
     /** Single precision: two terrains also rendered block by block around 30,000, -30,000 to show any banding or seam. */
     static final int FAR = 30_000;
     static final List<String> FAR_RENDERS = List.of("terrain_terraces_default", "terrain_canyons_default");
@@ -160,6 +163,7 @@ public final class TerrainSelfTest {
         chain = family(chain, "spires", this::spires, "highest");
         chain = family(chain, "roofed", this::roofed, "spaced");
         chain = family(chain, "end", this::end, "spaced");
+        chain = chain.thenCompose(v -> endCluster());
         chain = chain.thenRun(this::performance);
         String gallery = System.getProperty(GALLERY, "");
         if (!gallery.isEmpty()) {
@@ -702,6 +706,45 @@ public final class TerrainSelfTest {
         return verdict(here[0] >= 0.05 && here[2] >= 0.3 && ground >= 0.5, m.area() + ": " + pct(here[0])
                 + " of columns carry land (needs 5%); " + pct(here[2]) + " are empty to the bottom (needs 30%; continents " + pct(c.hanging()[2])
                 + "); " + pct(ground) + " of the land's ground is end stone (needs 50%); " + pct(here[1]) + " of the land hangs over open air");
+    }
+
+    /**
+     * An End layout's own islands: in {@code selftest_end_cluster} (radial, radius 300) land covers a share of the ring
+     * from {@link #CLUSTER_INNER} to {@link #CLUSTER_OUTER} blocks that vanilla's empty ring leaves bare, in islands
+     * whose tops reach {@link #CLUSTER_TOP}.
+     */
+    private CompletableFuture<Void> endCluster() {
+        String slug = "selftest_end_cluster";
+        String name = "terrain end layout (" + slug + ")";
+        if (!manager.index().lazy().containsKey(slug)) {
+            lines.add("FAIL " + name + ": no fixture " + slug + " in the definitions");
+            return CompletableFuture.completedFuture(null);
+        }
+        return manager.activate(slug).thenCompose(a -> CompletableFuture.supplyAsync(() -> scan(a.level(), CLUSTER_OUTER, 8), worker))
+                .thenAcceptAsync(scan -> {
+                    int ring = 0, land = 0, top = scan.minY();
+                    for (int i = 0; i < scan.size(); i++) {
+                        for (int j = 0; j < scan.size(); j++) {
+                            double r = Math.hypot(scan.x(i), scan.x(j));
+                            if (r < CLUSTER_INNER || r > CLUSTER_OUTER) continue;
+                            ring++;
+                            int h = scan.heights()[i][j];
+                            if (h > scan.minY()) {
+                                land++;
+                                top = Math.max(top, h);
+                            }
+                        }
+                    }
+                    double share = (double) land / Math.max(1, ring);
+                    lines.add(verdict(share >= CLUSTER_LAND && top >= CLUSTER_TOP, name + ": " + pct(share) + " of the ring "
+                            + CLUSTER_INNER + " to " + CLUSTER_OUTER + " blocks out is island (needs " + pct(CLUSTER_LAND)
+                            + "; vanilla leaves it empty), tops to y " + top + " (needs " + CLUSTER_TOP + ")"));
+                }, server)
+                .thenCompose(x -> manager.deactivate(slug).thenAccept(t -> {}))
+                .exceptionally(error -> {
+                    lines.add("FAIL " + name + ": " + cause(error));
+                    return null;
+                });
     }
 
     private void performance() {
