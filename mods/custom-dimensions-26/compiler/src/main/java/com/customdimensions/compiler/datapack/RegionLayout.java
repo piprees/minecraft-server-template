@@ -274,6 +274,11 @@ public final class RegionLayout {
         }
         regions.addProperty("radius", radius);
         entry.note(note + (boundIds.isEmpty() ? "" : "; bound by their climate: " + boundIds));
+        List<String> shadowed = new ArrayList<>(regional);
+        carved.forEach(e -> shadowed.remove(e.getAsJsonObject().get("biome").getAsString()));
+        if (!shadowed.isEmpty()) {
+            entry.note("Regional biome(s) " + shadowed + " are never placed: bound climate boxes cover their whole area; narrow those boxes");
+        }
         return new Plan(carved, regions);
     }
 

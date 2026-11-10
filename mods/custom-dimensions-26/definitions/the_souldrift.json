@@ -12,14 +12,14 @@
       "id": "adventure:crystal_hollows",
       "climate": {
         "humidity": [-2.0, 0.01],
-        "depth": [0.2, 2.0]
+        "depth": [0.2, 0.7]
       }
     },
     {
       "id": "adventure:cinnabar_veins",
       "climate": {
         "humidity": [0.01, 2.0],
-        "depth": [0.2, 2.0]
+        "depth": [0.2, 0.7]
       }
     },
     "adventure:gravel_desert",

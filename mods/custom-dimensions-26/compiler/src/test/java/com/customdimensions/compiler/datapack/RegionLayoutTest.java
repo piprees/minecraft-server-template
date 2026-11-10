@@ -120,6 +120,18 @@ class RegionLayoutTest {
     }
 
     @Test
+    void aRegionalBiomeShadowedByBoundBoxesIsReported() {
+        String caves = GENERATOR + ", \"biomes\": [\"minecraft:plains\", \"minecraft:deep_dark\", "
+                + "{\"id\": \"minecraft:lush_caves\", \"climate\": {\"depth\": [0.2, %s]}}], \"biomeLayout\": {\"mode\": \"regions\"}";
+        DatapackCompiler.Output covered = Fixtures.compile("r", String.format(caves, "2"));
+        assertTrue(covered.reportText().contains("Regional biome(s) [minecraft:deep_dark] are never placed"), covered.reportText());
+        assertFalse(source("r", String.format(caves, "2")).toString().contains("\"minecraft:deep_dark\""));
+        DatapackCompiler.Output deep = Fixtures.compile("r", String.format(caves, "0.7"));
+        assertFalse(deep.reportText().contains("never placed"), deep.reportText());
+        assertTrue(source("r", String.format(caves, "0.7")).toString().contains("\"minecraft:deep_dark\""), "deep dark keeps the depth below 0.7");
+    }
+
+    @Test
     void boundBiomesKeepTheirBoxAndWin() {
         String body = GENERATOR + ", \"biomes\": [{\"id\": \"minecraft:ocean\", \"climate\": {\"continentalness\": [-2, -0.2]}}, "
                 + "\"minecraft:plains\", \"minecraft:forest\", "
