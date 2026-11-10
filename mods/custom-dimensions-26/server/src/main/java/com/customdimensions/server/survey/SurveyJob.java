@@ -1,13 +1,16 @@
 package com.customdimensions.server.survey;
 
+import com.customdimensions.compiler.datapack.BiomeLibrary;
+import com.customdimensions.compiler.datapack.BiomeRoles;
 import com.customdimensions.core.definition.BiomeEntry;
 import com.customdimensions.core.definition.Definition;
 import com.customdimensions.core.render.ColumnSamples;
 import com.customdimensions.core.render.RenderGrid;
 import com.customdimensions.core.survey.Landforms;
-import com.customdimensions.core.survey.Placeness;
 import com.customdimensions.core.survey.PatchAnalysis;
 import com.customdimensions.core.survey.PatchGrid;
+import com.customdimensions.core.survey.Placeness;
+import com.customdimensions.core.survey.SurfaceGround;
 import com.customdimensions.core.survey.Survey;
 import com.customdimensions.core.survey.SurveyPlan;
 import com.customdimensions.server.CustomDimensions;
@@ -15,10 +18,12 @@ import com.customdimensions.server.level.LevelManager;
 import com.customdimensions.server.render.RenderJob;
 import com.customdimensions.server.render.Sampler;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
@@ -37,9 +42,11 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.ChunkPos;
@@ -52,6 +59,10 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.PalettedContainerRO;
 import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
+import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
+import net.minecraft.world.level.levelgen.material.condition.MaterialCondition;
+import net.minecraft.world.level.levelgen.material.rule.MaterialRule;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.material.FluidState;
 
@@ -228,7 +239,8 @@ public final class SurveyJob {
         timings.put("patches", generateMillis - scanMillis);
         timings.put("scanAndAnalyse", scanMillis);
         Survey.Meta meta = new Survey.Meta("adventure:" + slug, Sampler.defaultSeed(server, manager, slug), minY, height, seaLevel, ceiling,
-                atmosphere(server, type, definition), listed(definition), treeBiomes(server), plan, timings);
+                atmosphere(server, type, definition), listed(definition), treeBiomes(server), rockBiomes(server, level, seaLevel),
+                waterBiomes(server, definition), plan, timings);
         long t3 = System.nanoTime();
         JsonObject dossier = Survey.dossier(meta, landforms, analysed, checks);
         dossier.addProperty("dimension", level.dimension().identifier().toString());
@@ -403,6 +415,46 @@ public final class SurveyJob {
     private static List<String> listed(Definition definition) {
         List<String> out = new ArrayList<>();
         if (definition != null && definition.biomes() != null) for (BiomeEntry b : definition.biomes()) out.add(b.id());
+        return out;
+    }
+
+    /** Biomes whose surface rule lays bare rock on open land: rock is their normal ground. */
+    private static Set<String> rockBiomes(MinecraftServer server, ServerLevel level, int seaLevel) {
+        if (!(level.getChunkSource().getGenerator() instanceof NoiseBasedChunkGenerator noise)) return Set.of();
+        NoiseGeneratorSettings settings = noise.generatorSettings().value();
+        RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, server.registryAccess());
+        JsonElement rule = MaterialRule.DIRECT_CODEC.encodeStart(ops, settings.materialRule().value()).result().orElse(null);
+        if (rule == null) return Set.of();
+        Map<String, JsonElement> rules = new HashMap<>(), conditions = new HashMap<>();
+        server.registryAccess().lookupOrThrow(Registries.MATERIAL_RULE).listElements().forEach(h ->
+                MaterialRule.DIRECT_CODEC.encodeStart(ops, h.value()).result().ifPresent(j -> rules.put(h.key().identifier().toString(), j)));
+        server.registryAccess().lookupOrThrow(Registries.MATERIAL_CONDITION).listElements().forEach(h ->
+                MaterialCondition.DIRECT_CODEC.encodeStart(ops, h.value()).result().ifPresent(j -> conditions.put(h.key().identifier().toString(), j)));
+        List<String> ids = new ArrayList<>();
+        server.registryAccess().lookupOrThrow(Registries.BIOME).listElements().forEach(h -> ids.add(h.key().identifier().toString()));
+        String defaultBlock = BuiltInRegistries.BLOCK.getKey(settings.defaultBlock().getBlock()).toString();
+        return SurfaceGround.rockBiomes(rule, new SurfaceGround.Named(rules, conditions), ids, defaultBlock, seaLevel, level.getMinY(),
+                level.getHeight(), id -> BuiltInRegistries.BLOCK.getOptional(Identifier.parse(id)).map(b -> info(b.defaultBlockState()).bareStone())
+                        .orElse(false));
+    }
+
+    /** Biomes whose role is the sea or a river: vanilla's ocean and river tags, the library's roles, the definition's own. */
+    private static Set<String> waterBiomes(MinecraftServer server, Definition definition) {
+        Set<String> out = new HashSet<>();
+        server.registryAccess().lookupOrThrow(Registries.BIOME).listElements().forEach(h -> {
+            if (h.is(BiomeTags.IS_OCEAN) || h.is(BiomeTags.IS_RIVER)) out.add(h.key().identifier().toString());
+        });
+        BiomeLibrary.shipped().entries().values().forEach(e -> {
+            if (BiomeRoles.OCEAN.equals(e.role()) || BiomeRoles.RIVER.equals(e.role())) out.add("adventure:" + e.id());
+        });
+        JsonObject layout = definition == null ? null : definition.biomeLayout();
+        if (layout != null && layout.has("roles") && layout.get("roles").isJsonObject()) {
+            layout.getAsJsonObject("roles").entrySet().forEach(kv -> {
+                String role = kv.getValue().getAsString();
+                if (BiomeRoles.OCEAN.equals(role) || BiomeRoles.RIVER.equals(role)) out.add(kv.getKey());
+                else out.remove(kv.getKey());
+            });
+        }
         return out;
     }
 

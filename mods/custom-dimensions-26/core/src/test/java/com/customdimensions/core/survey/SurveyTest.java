@@ -424,4 +424,20 @@ class SurveyTest {
         String s = Survey.describe(List.of("height", "canopy"), new double[] {70, 0.8}, new double[] {70, 0.2}, new double[] {1, 0.3}, dominant, 5, 10);
         assertEquals("50.0% of cells; biome plains; height 70; canopy 80% (layer 20%)", s);
     }
+
+    @Test
+    void aBiomeIsNotFlaggedForTheGroundItBelongsTo() {
+        List<PatchAnalysis> patches = new ArrayList<>();
+        for (int i = 0; i < 2; i++) patches.add(analyse(grid(i, false, (x, y, z) -> y < 50 ? STONE : y <= 62 ? WATER : null)));
+        for (int i = 2; i < 4; i++) patches.add(analyse(grid(i, false, (x, y, z) -> y < 64 ? STONE : null)));
+        List<SurveyPlan.Patch> plan = patches.stream().map(p -> p.patch).toList();
+        java.util.function.Function<Survey.Meta, String> flags = meta -> Survey.dossier(meta, null, patches, List.of())
+                .getAsJsonObject("biomeExpression").getAsJsonObject("biomes").getAsJsonObject("minecraft:plains").getAsJsonArray("flags").toString();
+        String plain = flags.apply(new Survey.Meta("adventure:test", 1, 0, 128, 63, false, new JsonObject(), List.of("minecraft:plains"),
+                Set.of(), plan, Map.of("total", 1L)));
+        assertTrue(plain.contains("mostly water") && plain.contains("mostly bare rock"), plain);
+        String expected = flags.apply(new Survey.Meta("adventure:test", 1, 0, 128, 63, false, new JsonObject(), List.of("minecraft:plains"),
+                Set.of(), Set.of("minecraft:plains"), Set.of("minecraft:plains"), plan, Map.of("total", 1L)));
+        assertEquals("[]", expected);
+    }
 }

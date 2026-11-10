@@ -39,9 +39,19 @@ public final class Survey {
     /** Land columns (a quarter hectare) a tree biome must cover before having no trees flags it. */
     public static final int TREELESS_COLUMNS = 2500;
 
-    /** What the server knows that the patches do not. */
+    /**
+     * What the server knows that the patches do not. {@code rockBiomes}: biomes whose surface rule lays bare rock on
+     * open land ({@link SurfaceGround}); {@code waterBiomes}: biomes whose role is the sea or a river.
+     */
     public record Meta(String dimension, long seed, int minY, int height, int seaLevel, boolean ceiling, JsonObject atmosphere,
-                       List<String> listedBiomes, Set<String> treeBiomes, List<SurveyPlan.Patch> plan, Map<String, Long> timings) {}
+                       List<String> listedBiomes, Set<String> treeBiomes, Set<String> rockBiomes, Set<String> waterBiomes,
+                       List<SurveyPlan.Patch> plan, Map<String, Long> timings) {
+
+        public Meta(String dimension, long seed, int minY, int height, int seaLevel, boolean ceiling, JsonObject atmosphere,
+                    List<String> listedBiomes, Set<String> treeBiomes, List<SurveyPlan.Patch> plan, Map<String, Long> timings) {
+            this(dimension, seed, minY, height, seaLevel, ceiling, atmosphere, listedBiomes, treeBiomes, Set.of(), Set.of(), plan, timings);
+        }
+    }
 
     /** One render-versus-world comparison at a column. */
     public record Check(int x, int z, int renderHeight, String renderBiome, int worldHeight, String worldBiome) {}
@@ -448,8 +458,8 @@ public final class Survey {
         }
         Map<String, Long> cave = merge(patches, p -> p.undergroundBiomes);
         JsonObject o = new JsonObject();
-        o.addProperty("method", "placement shares are % of the biome's own surface columns (plus sky-island tops); flags: mostly water, lava or "
-                + "void (50%+), mostly bare rock (50%+ of land), a snowing climate (50%+) under 5% snow cover, a biome whose placed features are named for trees with "
+        o.addProperty("method", "placement shares are % of the biome's own surface columns (plus sky-island tops); flags: mostly water (but for a sea or river biome), lava or "
+                + "void (50%+), mostly bare rock (50%+ of land, but for a biome whose surface rule lays rock), a snowing climate (50%+) under 5% snow cover, a biome whose placed features are named for trees with "
                 + "none on a quarter hectare or more of its land; judged from 100+ columns");
         JsonObject biomes = new JsonObject();
         int placed = 0, expressed = 0;
@@ -481,10 +491,10 @@ public final class Survey {
             JsonArray flags = new JsonArray();
             boolean judged = a[0] >= 100;
             if (judged) {
-                if (a[2] * 2 >= a[0]) flags.add("mostly water");
+                if (a[2] * 2 >= a[0] && !meta.waterBiomes().contains(e.getKey())) flags.add("mostly water");
                 if (a[3] * 2 >= a[0]) flags.add("mostly lava");
                 if (a[4] * 2 >= a[0]) flags.add("mostly void");
-                if (a[1] > 0 && a[10] * 2 >= a[1]) flags.add("mostly bare rock");
+                if (a[1] > 0 && a[10] * 2 >= a[1] && !meta.rockBiomes().contains(e.getKey())) flags.add("mostly bare rock");
                 long wet = a[1] + a[2] + a[3];
                 if (wet > 0 && a[11] * 2 >= wet && a[7] * 20 < wet) flags.add("snowing climate but snow cover under 5%");
                 if (meta.treeBiomes().contains(e.getKey()) && a[1] >= TREELESS_COLUMNS && density == 0) {
