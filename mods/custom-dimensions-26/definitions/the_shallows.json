@@ -17,7 +17,8 @@
       "coverage": 0.25,
       "relief": 0,
       "roughness": 0
-    }
+    },
+    "heightMultiplier": 0.5
   },
   "biomes": [
     "minecraft:warm_ocean",

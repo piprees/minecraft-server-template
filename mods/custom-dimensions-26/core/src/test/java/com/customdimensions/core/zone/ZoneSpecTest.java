@@ -21,6 +21,19 @@ class ZoneSpecTest {
     }
 
     @Test
+    void aMassReadsItsBandAndRefusesABadOne() {
+        ZoneSpec zone = read("{\"radius\": 12, \"mass\": {\"bottom\": 120, \"top\": 250, \"taper\": 0.4}}");
+        assertEquals(new ZoneSpec.Mass(120, 250, 0.4), zone.mass());
+        assertNull(read("{\"radius\": 12}").mass());
+        assertTrue(assertThrows(IllegalArgumentException.class, () -> read("{\"radius\": 5, \"mass\": {\"bottom\": 90, \"top\": 80}}"))
+                .getMessage().contains("not above"));
+        assertTrue(assertThrows(IllegalArgumentException.class, () -> read("{\"radius\": 5, \"mass\": {\"top\": 80}}"))
+                .getMessage().contains("bottom and top"));
+        assertTrue(assertThrows(IllegalArgumentException.class, () -> read("{\"radius\": 5, \"mass\": {\"bottom\": 1, \"top\": 80, \"tilt\": 1}}"))
+                .getMessage().contains("mass.tilt"));
+    }
+
+    @Test
     void convertedBiomePatchReadsAsACircleStamp() {
         ZoneSpec zone = read("{\"shape\": \"circle\", \"centre\": [287, -64], \"radius\": 160, \"blend\": 32, \"biomes\": [\"minecraft:crimson_forest\"]}");
         assertInstanceOf(ZoneShape.Circle.class, zone.mask().shape());

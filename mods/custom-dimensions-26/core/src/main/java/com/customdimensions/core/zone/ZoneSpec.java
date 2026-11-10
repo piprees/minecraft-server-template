@@ -20,11 +20,20 @@ import java.util.Set;
  * to 0, 0 when it has none.
  */
 public record ZoneSpec(int index, String shapeName, ZoneMask mask, JsonObject terrain, List<BiomeEntry> biomes,
-                       Map<String, String> swap, String aquifers, JsonObject structures) {
+                       Map<String, String> swap, String aquifers, JsonObject structures, Mass mass) {
+
+    /**
+     * A floating mass: solid ground from {@code bottom} to {@code top} inside the zone's shape, over whatever lies
+     * beneath, so open air separates it from the ground below; its side lies where the zone's mask is 0.5, and
+     * {@code taper} (0-1) moves it inwards towards the top, to where the mask is 0.5 + taper / 2.
+     */
+    public record Mass(int bottom, int top, double taper) {
+        static final Set<String> KEYS = Set.of("bottom", "top", "taper");
+    }
 
     public static final double DEFAULT_BLEND = 32;
     static final Set<String> KEYS = Set.of("shape", "centre", "radius", "inner", "outer", "halfSize", "angles", "points",
-            "blend", "edgeJitter", "terrain", "biomes", "swap", "liquids", "structures");
+            "blend", "edgeJitter", "terrain", "biomes", "swap", "liquids", "structures", "mass");
     static final Set<String> SHAPES = Set.of("circle", "ring", "square", "box", "sector", "polygon", "all");
 
     public ZoneSpec {
@@ -105,7 +114,19 @@ public record ZoneSpec(int index, String shapeName, ZoneMask mask, JsonObject te
         if (shape instanceof ZoneShape.All && (terrain != null || aquifers != null)) {
             throw new IllegalArgumentException("a zone of shape all only swaps or sets biomes; terrain and liquids belong to the definition");
         }
-        return new ZoneSpec(index, shapeName, mask, terrain, biomes, swap, aquifers, structures);
+        Mass mass = null;
+        if (zone.has("mass") && !zone.get("mass").isJsonNull()) {
+            JsonObject m = zone.getAsJsonObject("mass");
+            for (String key : m.keySet()) {
+                if (!Mass.KEYS.contains(key)) throw new IllegalArgumentException("mass." + key + " is not a field (bottom, top, taper)");
+            }
+            if (!m.has("bottom") || !m.has("top")) throw new IllegalArgumentException("mass needs bottom and top");
+            mass = new Mass(m.get("bottom").getAsInt(), m.get("top").getAsInt(), m.has("taper") ? m.get("taper").getAsDouble() : 0);
+            if (mass.top() <= mass.bottom()) throw new IllegalArgumentException("mass.top " + mass.top() + " is not above mass.bottom " + mass.bottom());
+            if (mass.taper() < 0 || mass.taper() > 1) throw new IllegalArgumentException("mass.taper " + mass.taper() + " is outside 0-1");
+            if (shape instanceof ZoneShape.All) throw new IllegalArgumentException("a zone of shape all cannot hold a mass");
+        }
+        return new ZoneSpec(index, shapeName, mask, terrain, biomes, swap, aquifers, structures, mass);
     }
 
     static double[] centre(JsonElement value, BlockPos spawn) {

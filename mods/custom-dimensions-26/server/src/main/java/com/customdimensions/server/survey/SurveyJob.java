@@ -72,7 +72,10 @@ import net.minecraft.world.level.material.FluidState;
  * adaptive picks), then every planned chunk generated one at a time on the
  * server thread (a forced ticket, polled each tick, never two at once: K6),
  * its sections copied there, scanned and analysed on the job's thread, and the
- * render cross-checked at every eighth column. Writes
+ * render cross-checked at every eighth column. Where the coarse map's step is
+ * over {@link #FINE_STEP}, high-ground connectivity is measured again on a map
+ * of at most {@link #FINE_SIDE} cells a side ({@code landforms.highGroundFine}),
+ * so a crest narrower than the coarse step stays one region (T197). Writes
  * {@code <game dir>/customdim-survey/<dimension>/}.
  */
 public final class SurveyJob {
@@ -80,6 +83,9 @@ public final class SurveyJob {
     static final int CHUNK_CAP_TICKS = 6000;
     /** Coarse map cells a side at most. */
     static final int COARSE_SIDE = 256;
+    /** The high-ground map's finest step and its cells a side at most. */
+    static final int FINE_STEP = 8;
+    static final int FINE_SIDE = 1024;
     static final int CHECK_STRIDE = 8;
 
     private record Pending(ServerLevel level, ChunkPos pos, CompletableFuture<LevelChunk> done, int[] ticks) {}
@@ -176,6 +182,13 @@ public final class SurveyJob {
         Landforms landforms = new Landforms(side, step, grid.x(0), grid.z(0), heights, kind);
         if (definition != null) landforms.withZones(com.customdimensions.core.zone.ZoneQuery.of(slug, definition).zones());
         timings.put("coarse", (System.nanoTime() - start) / 1_000_000);
+        int fineStep = Math.max(FINE_STEP, (int) Math.ceil(2.0 * radius / FINE_SIDE));
+        JsonObject highGroundFine = null;
+        if (fineStep < step) {
+            long tf = System.nanoTime();
+            highGroundFine = highGround(job, sampler, RenderGrid.of(0, 0, radius, fineStep));
+            timings.put("highGroundFine", (System.nanoTime() - tf) / 1_000_000);
+        }
         double[] lh = land.stream().mapToDouble(Double::doubleValue).toArray();
         int p50 = lh.length == 0 ? sampler.seaLevel() : (int) com.customdimensions.core.survey.Stats.percentile(lh, 50);
         int p95 = lh.length == 0 ? sampler.seaLevel() : (int) com.customdimensions.core.survey.Stats.percentile(lh, 95);
@@ -245,6 +258,10 @@ public final class SurveyJob {
         JsonObject dossier = Survey.dossier(meta, landforms, analysed, checks);
         dossier.addProperty("dimension", level.dimension().identifier().toString());
         dossier.add("placeness", placeness(sampler, coarse, landforms, grid, kind, definition, roleBiomes(server, definition, false)));
+        if (dossier.has("landforms")) {
+            dossier.getAsJsonObject("landforms").add("highGroundFine", highGroundFine != null ? highGroundFine
+                    : withStep(landforms.highGroundJson(), step));
+        }
         timings.put("dossier", (System.nanoTime() - t3) / 1_000_000);
         long total = (System.nanoTime() - start) / 1_000_000;
         timings.put("total", total);
@@ -265,6 +282,38 @@ public final class SurveyJob {
      * {@link Placeness} over the coarse map: its biomes, landform classes, surface heights and the router's continentalness;
      * land biome regions over the dry cells outside {@code seaBiomes}.
      */
+    /** High ground measured on {@code grid}, a finer map than the coarse one, with its step. */
+    private static JsonObject highGround(RenderJob job, Sampler sampler, RenderGrid grid) throws Exception {
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(RenderJob.defaultThreads(), r -> {
+            Thread t = new Thread(r, "customdim-survey-fine");
+            t.setDaemon(true);
+            t.setPriority(Thread.MIN_PRIORITY);
+            return t;
+        });
+        ColumnSamples fine;
+        try {
+            fine = job.sample(sampler, grid, pool, p -> {}, (px, py) -> true, null);
+        } finally {
+            pool.shutdown();
+        }
+        int side = grid.side();
+        int[] heights = new int[side * side];
+        byte[] kind = new byte[side * side];
+        for (int pz = 0; pz < side; pz++) {
+            for (int px = 0; px < side; px++) {
+                int i = pz * side + px;
+                heights[i] = fine.height(px, pz);
+                kind[i] = fine.empty(px, pz) ? (byte) 2 : fine.fluid(px, pz) != ColumnSamples.Fluid.NONE ? (byte) 1 : 0;
+            }
+        }
+        return withStep(new Landforms(side, grid.step(), grid.x(0), grid.z(0), heights, kind).highGroundJson(), grid.step());
+    }
+
+    private static JsonObject withStep(JsonObject highGround, int step) {
+        highGround.addProperty("step", step);
+        return highGround;
+    }
+
     static JsonObject placeness(Sampler sampler, ColumnSamples coarse, Landforms landforms, RenderGrid grid, byte[] kind, Definition definition,
                                 Set<String> seaBiomes) {
         int side = grid.side();

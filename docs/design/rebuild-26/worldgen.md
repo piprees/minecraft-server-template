@@ -68,6 +68,7 @@ A zone replaces layers inside a shape centred on spawn or a point, with a blend 
 | `terrain` | A library terrain (its name, or an object as the definition's `terrain`) |
 | `biomes` | The zone's biome list, laid out as the definition's are |
 | `swap` | Biome to biome inside the zone; on shape `all`, everywhere and over every zone |
+| `mass` | A floating mass: `bottom` and `top` (y) bound a band that is solid inside the zone's shape, added over the terrain beneath as a maximum, so open air lies between it and the ground below; its side lies where the mask is 0.5, mid-blend, and `taper` (0–1, default 0) moves it inwards towards the top, to where the mask is 0.5 + taper / 2, so a wide blend gives a tapering mass. Its blocks are the zone biome's materials: `top` and `filler` on its cap, `ceilings` under it, `deep` through it |
 | `liquids.aquifers` | `on` (the dimension's) or `dry`: no aquifer water or lava and no sea in the open cells of the zone and its blend |
 | `structures` | `wants` and `shuns` scoped to the zone, for structure control: a top-level want for a structure the zone wants lands where the zone's weight is at least 0.5, and a structure the zone shuns does not start there |
 

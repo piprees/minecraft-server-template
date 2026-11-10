@@ -22,6 +22,9 @@
       "radius": 700,
       "falloff": 900,
       "strength": 0.35
+    },
+    "params": {
+      "coast": -0.45
     }
   },
   "biomes": [
@@ -83,7 +86,7 @@
       "adventure:barley_fields": 2.3,
       "adventure:maple_woodland": 2.8,
       "minecraft:forest": 3.2,
-      "minecraft:cherry_grove": 10.1,
+      "minecraft:cherry_grove": 14,
       "minecraft:flower_forest": 13.4,
       "adventure:magnolia_woodland": 5.8,
       "adventure:sugi_forest": 6.7,

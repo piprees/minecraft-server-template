@@ -44,6 +44,9 @@
       "minecraft:nether_wastes": 16.1,
       "adventure:magma_land": 17.6,
       "minecraft:basalt_deltas": 19.1
+    },
+    "roles": {
+      "minecraft:basalt_deltas": "ocean"
     }
   },
   "liquids": {
@@ -51,7 +54,21 @@
     "defaultFluid": "minecraft:lava"
   },
   "materials": {
-    "defaultBlock": "minecraft:blackstone"
+    "defaultBlock": "minecraft:blackstone",
+    "biomes": {
+      "minecraft:nether_wastes": {
+        "top": "minecraft:netherrack",
+        "filler": "minecraft:netherrack"
+      },
+      "minecraft:soul_sand_valley": {
+        "top": "minecraft:soul_sand",
+        "filler": "minecraft:soul_soil"
+      },
+      "minecraft:basalt_deltas": {
+        "top": "minecraft:basalt",
+        "filler": "minecraft:blackstone"
+      }
+    }
   },
   "dimensionType": {
     "minY": 0,

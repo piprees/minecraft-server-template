@@ -48,7 +48,7 @@ public final class ZonesCompiler {
     public record Plan(String slug, String namespace, List<ZoneSpec> zones, Map<String, JsonObject> files) {
         /** Whether the zones change the noise settings (any zone's terrain, aquifers or biomes). */
         public boolean changesSettings() {
-            return zones.stream().anyMatch(z -> z.terrain() != null || "dry".equals(z.aquifers()) || channelled(z));
+            return zones.stream().anyMatch(z -> z.terrain() != null || z.mass() != null || "dry".equals(z.aquifers()) || channelled(z));
         }
 
         String maskId(ZoneSpec zone) {
@@ -76,6 +76,47 @@ public final class ZonesCompiler {
             }
         }
         return new Plan(slug, namespace, zones, new TreeMap<>());
+    }
+
+    /** Blocks of density per unit: the band's density is its distance inside the band over this, as a terrain's. */
+    static final double MASS_SCALE = 8;
+    /** Density per unit of mask: the mass's side, where the mask is 0.5 (or more with a taper), is sharp. */
+    static final double MASS_EDGE = 16;
+
+    /**
+     * {@code finalDensity} with a floating mass added as a maximum: the lesser of the distance inside the band from
+     * {@code bottom} to {@code top} (over {@link #MASS_SCALE}) and the mask's excess over its side, which lies where the
+     * mask is 0.5 at the bottom and moves inwards with height to 0.5 + taper / 2 at the top.
+     */
+    static JsonElement mass(ZoneSpec.Mass mass, JsonPrimitive mask, JsonElement finalDensity) {
+        double span = mass.top() - mass.bottom(), pad = 64;
+        JsonObject up = gradient(mass.bottom() - pad, mass.top() + pad, -pad / MASS_SCALE, (span + pad) / MASS_SCALE);
+        JsonObject down = gradient(mass.bottom() - pad, mass.top() + pad, (span + pad) / MASS_SCALE, -pad / MASS_SCALE);
+        JsonElement band = binary("minecraft:min", up, down);
+        JsonElement side = binary("minecraft:add", mask, new JsonPrimitive(-0.5));
+        if (mass.taper() > 0) {
+            side = binary("minecraft:add", side, gradient(mass.bottom(), mass.top(), 0, -mass.taper() / 2));
+        }
+        JsonElement density = binary("minecraft:min", band, binary("minecraft:mul", side, new JsonPrimitive(MASS_EDGE)));
+        return binary("minecraft:max", finalDensity, density);
+    }
+
+    private static JsonObject gradient(double fromY, double toY, double fromValue, double toValue) {
+        JsonObject o = new JsonObject();
+        o.addProperty("type", "minecraft:y_clamped_gradient");
+        o.addProperty("from_y", (int) Math.round(fromY));
+        o.addProperty("to_y", (int) Math.round(toY));
+        o.addProperty("from_value", fromValue);
+        o.addProperty("to_value", toValue);
+        return o;
+    }
+
+    private static JsonObject binary(String type, JsonElement a, JsonElement b) {
+        JsonObject o = new JsonObject();
+        o.addProperty("type", type);
+        o.add("argument1", a);
+        o.add("argument2", b);
+        return o;
     }
 
     /** Whether a zone takes a biome channel: it sets biomes or swaps them inside its shape. */
@@ -130,6 +171,11 @@ public final class ZonesCompiler {
                 }
                 entry.note("zones[" + zone.index() + "]: terrain `" + spec.family().id() + "` (" + spec.setting() + ") under `"
                         + plan.namespace() + ":terrain/" + name + "/`, blended over " + (int) zone.mask().blend() + " blocks");
+            }
+            if (zone.mass() != null) {
+                router.add("final_density", mass(zone.mass(), maskRef, router.get("final_density")));
+                entry.note("zones[" + zone.index() + "]: a floating mass from y " + zone.mass().bottom() + " to " + zone.mass().top()
+                        + (zone.mass().taper() > 0 ? ", its side tapering inwards by " + zone.mass().taper() + " of the blend's inner half" : ""));
             }
             if ("dry".equals(zone.aquifers())) {
                 if (aquifers == null) {
@@ -299,7 +345,7 @@ public final class ZonesCompiler {
             }
         }
         return new ZoneSpec(zone.index(), zone.shapeName(), zone.mask(), zone.terrain(), biomes, knownSwaps(zone, known, entry),
-                zone.aquifers(), zone.structures());
+                zone.aquifers(), zone.structures(), zone.mass());
     }
 
     private static Map<String, String> knownSwaps(ZoneSpec zone, BiomeLibrary.Known known, CompileReport.Entry entry) {

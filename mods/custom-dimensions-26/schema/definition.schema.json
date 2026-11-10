@@ -1089,6 +1089,17 @@
             "$ref": "#/$defs/id"
           }
         },
+        "mass": {
+          "description": "A floating mass: solid ground from bottom to top inside the zone's shape, with open air between it and the ground below; its side lies mid-blend, and taper moves it inwards towards the top, to where the mask is 0.5 + taper / 2.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["bottom", "top"],
+          "properties": {
+            "bottom": {"type": "integer", "minimum": -64, "maximum": 320},
+            "top": {"type": "integer", "minimum": -64, "maximum": 320},
+            "taper": {"type": "number", "minimum": 0, "maximum": 1, "default": 0}
+          }
+        },
         "liquids": {
           "type": "object",
           "additionalProperties": false,

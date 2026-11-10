@@ -84,6 +84,19 @@ class ZonesCompilerTest {
     }
 
     @Test
+    void aFloatingMassIsAddedOverTheFinalDensityInsideTheMask() {
+        DatapackCompiler.Output out = Fixtures.compile("t", OVERWORLD + ", \"zones\": [{\"radius\": 12, \"blend\": 8, "
+                + "\"mass\": {\"bottom\": 120, \"top\": 250, \"taper\": 0.5}}]");
+        JsonObject fd = settings(out, "t").getAsJsonObject("noise_router").getAsJsonObject("final_density");
+        assertEquals("minecraft:max", fd.get("type").getAsString());
+        String mass = fd.get("argument2").toString();
+        assertTrue(mass.contains("adventure:zones/t/0/mask"), mass);
+        for (String part : new String[] {"\"from_y\":56", "\"to_y\":314", "\"from_y\":120", "\"to_y\":250", "\"to_value\":-0.25", "16.0"}) {
+            assertTrue(mass.contains(part), part + " in " + mass);
+        }
+    }
+
+    @Test
     void everyShapeCompilesAndChannelsFollowZoneOrder() {
         DatapackCompiler.Output out = Fixtures.compile("t", OVERWORLD + ", \"zones\": ["
                 + "{\"shape\": \"box\", \"halfSize\": [3000, 300], \"blend\": 96, \"terrain\": \"canyons\", \"biomes\": [\"minecraft:badlands\", \"minecraft:desert\"]},"

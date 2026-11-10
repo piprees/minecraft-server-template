@@ -152,5 +152,8 @@
       "tavern",
       "nova_structures:remnant_ruin_farmer"
     ]
+  },
+  "materials": {
+    "cliffs": "minecraft:moss_block"
   }
 }

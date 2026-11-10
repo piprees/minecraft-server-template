@@ -44,13 +44,13 @@
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:withered_forest": 27.1,
-      "adventure:mycotoxic_undergrowth": 4.7,
-      "minecraft:soul_sand_valley": 5.2,
-      "minecraft:warped_forest": 15.7,
-      "adventure:upside_down_forest": 4.5,
-      "adventure:orchid_marsh": 5.2,
-      "adventure:ash_barrens": 35.8
+      "adventure:withered_forest": 20,
+      "adventure:mycotoxic_undergrowth": 10,
+      "minecraft:soul_sand_valley": 6,
+      "minecraft:warped_forest": 30,
+      "adventure:upside_down_forest": 8,
+      "adventure:orchid_marsh": 5,
+      "adventure:ash_barrens": 15
     }
   },
   "liquids": {
@@ -131,5 +131,17 @@
     "terrain": "hilly",
     "heightRange": [0, 260],
     "water": "none"
+  },
+  "materials": {
+    "biomes": {
+      "minecraft:warped_forest": {
+        "top": "minecraft:warped_nylium",
+        "filler": "minecraft:netherrack"
+      },
+      "minecraft:soul_sand_valley": {
+        "top": "minecraft:soul_soil",
+        "filler": "minecraft:soul_sand"
+      }
+    }
   }
 }

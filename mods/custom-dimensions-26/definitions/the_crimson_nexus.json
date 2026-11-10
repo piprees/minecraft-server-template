@@ -94,6 +94,13 @@
       "minecraft:eroded_badlands": {
         "top": "minecraft:mud",
         "filler": "minecraft:packed_mud"
+      },
+      "minecraft:basalt_deltas": {
+        "top": "minecraft:crying_obsidian",
+        "filler": "minecraft:nether_bricks",
+        "deep": "minecraft:blackstone",
+        "ceilings": "minecraft:basalt",
+        "cliffs": "minecraft:nether_bricks"
       }
     }
   },
@@ -128,20 +135,16 @@
     {
       "shape": "circle",
       "centre": [287, -64],
-      "radius": 9,
-      "blend": 3,
-      "terrain": {
-        "base": "continents",
-        "params": {
-          "coast": -0.6,
-          "landHeight": 200,
-          "relief": 0,
-          "roughness": 0.1
-        }
-      },
+      "radius": 14,
+      "blend": 12,
       "biomes": [
-        "adventure:blackstone_basin"
-      ]
+        "minecraft:basalt_deltas"
+      ],
+      "mass": {
+        "bottom": 115,
+        "top": 245,
+        "taper": 0.8
+      }
     },
     {
       "shape": "circle",
