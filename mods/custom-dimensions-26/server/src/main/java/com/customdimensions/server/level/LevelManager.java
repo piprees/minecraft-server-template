@@ -73,6 +73,8 @@ public final class LevelManager {
     private final MinecraftServer server;
     private final LevelIndex index;
     private final IdlePolicy idle;
+    /** Jobs using an open level's chunks (a survey), by slug: a held level counts as occupied and is never idle-unloaded. */
+    private final Map<String, Integer> holds = new java.util.concurrent.ConcurrentHashMap<>();
     private final ActivationQueue<String> queue = new ActivationQueue<>();
     private final Map<String, CompletableFuture<Activation>> waiting = new HashMap<>();
     private final Map<String, Open> open = new LinkedHashMap<>();
@@ -348,10 +350,20 @@ public final class LevelManager {
         return !server.levelKeys().contains(c.key) && (!c.delete || !Files.exists(dimensionPath(c.key)));
     }
 
-    private void tickIdle() {
+    /** Keeps {@code slug} open while a job generates its chunks; each hold needs its {@link #release}. */
+    public void hold(String slug) {
+        holds.merge(slug, 1, Integer::sum);
+    }
+
+    public void release(String slug) {
+        holds.computeIfPresent(slug, (k, n) -> n > 1 ? n - 1 : null);
+    }
+
+        private void tickIdle() {
         List<String> due = new ArrayList<>();
         for (Map.Entry<String, Open> e : open.entrySet()) {
-            if (idle.observe(e.getKey(), !e.getValue().handle.asLevel().players().isEmpty())) due.add(e.getKey());
+            boolean occupied = !e.getValue().handle.asLevel().players().isEmpty() || holds.getOrDefault(e.getKey(), 0) > 0;
+            if (idle.observe(e.getKey(), occupied)) due.add(e.getKey());
         }
         for (String slug : due) {
             CustomDimensions.LOG.info("unloading {}: no players for {} min", slug, index.idleUnloadMinutes());

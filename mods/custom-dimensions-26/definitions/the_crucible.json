@@ -15,8 +15,8 @@
       "landHeight": 110,
       "relief": 80,
       "faultHeight": 48,
-      "lift": 0.6,
-      "roughness": 0.7
+      "lift": 1,
+      "roughness": 0.9
     },
     "scale": 0.6,
     "scales": {
@@ -34,14 +34,14 @@
       "id": "minecraft:lush_caves",
       "climate": {
         "weirdness": [-2.0, -0.0155],
-        "depth": [0.2, 2.0]
+        "depth": [0.6, 2.0]
       }
     },
     {
       "id": "adventure:root_hollows",
       "climate": {
         "weirdness": [-0.0155, 2.0],
-        "depth": [0.2, 2.0]
+        "depth": [0.6, 2.0]
       }
     }
   ],

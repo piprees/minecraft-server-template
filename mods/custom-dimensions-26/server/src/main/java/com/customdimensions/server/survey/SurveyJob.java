@@ -72,7 +72,8 @@ import net.minecraft.world.level.material.FluidState;
  * adaptive picks), then every planned chunk generated one at a time on the
  * server thread (a forced ticket, polled each tick, never two at once: K6),
  * its sections copied there, scanned and analysed on the job's thread, and the
- * render cross-checked at every eighth column. Where the coarse map's step is
+ * render cross-checked at every eighth column. The level is held open for the
+ * survey's length, so the idle unload never closes it mid-run. Where the coarse map's step is
  * over {@link #FINE_STEP}, high-ground connectivity is measured again on a map
  * of at most {@link #FINE_SIDE} cells a side ({@code landforms.highGroundFine}),
  * so a crest narrower than the coarse step stays one region (T197). Writes
@@ -136,7 +137,14 @@ public final class SurveyJob {
         register();
         long units = (long) request.patches() * 4 / 3 + 1;
         return RenderJob.startWork(server, new RenderJob.Request(slug, null, null, request.outputDir()), units,
-                (job, pool) -> run(server, manager, slug, definition, border, level.get(10, TimeUnit.MINUTES), request, job, progress),
+                (job, pool) -> {
+                    manager.hold(slug);
+                    try {
+                        return run(server, manager, slug, definition, border, level.get(10, TimeUnit.MINUTES), request, job, progress);
+                    } finally {
+                        manager.release(slug);
+                    }
+                },
                 r -> {
                     close.run();
                     finished.accept(r);
