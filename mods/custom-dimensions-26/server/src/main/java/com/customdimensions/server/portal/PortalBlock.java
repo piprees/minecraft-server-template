@@ -1,7 +1,7 @@
 package com.customdimensions.server.portal;
 
 import com.customdimensions.core.portal.PortalTints;
-import eu.pb4.polymer.core.api.block.PolymerBlock;
+import eu.pb4.polymer.blocks.api.PolymerTexturedBlock;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,13 +31,16 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * The one portal block ({@code customdimensions:portal}). Upright on the X or
  * Z axis a vanilla client sees a Nether portal on that axis; flat (Y) it sees
  * an End portal. A client that loaded the server pack sees a pane in the
- * cell's {@code tint} instead ({@link PortalTintStates}). The vanilla
+ * cell's {@code tint} instead ({@link PortalTintStates}); as a
+ * {@link PolymerTexturedBlock} that tripwire state reaches the client as sent,
+ * where Polymer maps any other block's claimed tripwire state back to plain
+ * string. The vanilla
  * {@link Portal} interface does the teleport; {@link PortalTravel} decides where to.
  * <p>
  * It never pops itself on a neighbour update: a change beside it schedules a
  * check of its zone's frame, and the zone breaks as one ({@link Portals#validateAt}).
  */
-public final class PortalBlock extends Block implements PolymerBlock, Portal {
+public final class PortalBlock extends Block implements PolymerTexturedBlock, Portal {
     public static final String NAME_KEY = "portal.block.name";
 
     /** A literal name: an unmodded client has no translation for this block's key. */
