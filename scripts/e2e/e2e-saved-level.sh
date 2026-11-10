@@ -12,7 +12,10 @@
 #                    a server restart in its place covers the restart case;
 #            back    (inside a second vanilla-join.sh --during) asserts the
 #                    player is in SLUG at the recorded spot and that the mod
-#                    logged opening it for them.
+#                    logged opening it for them;
+#            gone    (in place of back, after SLUG's definition is removed
+#                    and mc restarted) asserts the player is at the world
+#                    spawn in the overworld, alive, and the mod logged why.
 # Context: template-only, 26.x, a linked consumer holding scripts/e2e/rig-26/
 #          (README § On 26.x) with JVM_DD_OPTS='customdimensions.e2e=true'.
 #          Facts are e2e-state's and the server log's.
@@ -115,7 +118,28 @@ case "$PHASE" in
       _record ok "the player was not sent to the world spawn" none none
     fi
     ;;
-  *) note "PHASE is leave, unload or back, not '$PHASE'"; finish; exit 2 ;;
+  gone)
+    require_player_online
+    [ -f "$SAVED_FILE" ] || { note "no $SAVED_FILE: run PHASE=leave first"; finish; exit 2; }
+    say "The player's level is gone: they are at the world spawn, alive"
+    state_refresh
+    assert_player_dimension "the player rejoined in the overworld" "minecraft:overworld"
+    want="$(jq -c .pos "$SAVED_FILE")"
+    assert_state "the player is not at the saved coordinates" \
+      "($PLAYER_SELECT | .pos) as \$p | $want as \$w | [range(3)] | any(((\$p[.] - \$w[.]) | fabs) > 4)" true
+    health="$(rcon "data get entity $PLAYER Health" | grep -oE '[0-9.]+f$' | tr -d f)"
+    if awk -v h="${health:-0}" 'BEGIN { exit !(h + 0 > 0) }'; then
+      _record ok "the player is alive" "> 0" "$health"
+    else
+      _record fail "the player is alive" "> 0" "${health:-unread}"
+    fi
+    report_metric "position on rejoin" "$(state_read "$PLAYER_SELECT | .pos | map(. * 10 | round / 10) | join(\",\")")"
+    since="$(jq -r '.since // "10m"' "$SAVED_FILE")"
+    lines="$RUN_DIR/login-lines.log"
+    docker logs mc --since "$since" 2>&1 | grep -E "login: " > "$lines" || true
+    assert_file_contains "the mod placed them at the world spawn" "$lines" "login: $PLAYER was saved in $DIM, which is not open"
+    ;;
+  *) note "PHASE is leave, unload, back or gone, not '$PHASE'"; finish; exit 2 ;;
 esac
 
 finish
