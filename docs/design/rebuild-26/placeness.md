@@ -4,7 +4,7 @@ The area inside a dimension's border reads as one coherent place, or as a delibe
 
 ## Measuring it
 
-`/customdim survey <slug>` writes `placeness` into the dossier, from the coarse map over the generation border (`core/.../survey/Placeness.java`). `/customdim survey <slug> 1 1` measures it in about 15 seconds.
+`/customdim survey <slug>` writes `placeness` into the dossier, from the coarse map over the world border (`core/.../survey/Placeness.java`). `/customdim survey <slug> 1 1` measures it in about 15 seconds.
 
 | Key | What it says |
 | --- | --- |
@@ -24,6 +24,16 @@ Both live in `terrain`, with or without a `base`; without one they shape the `ov
 - **`terrain.layout`** adds a shape to continentalness, which both the land and the biomes read: `radial` (1 within `radius` of `centre`, falling to −1 over `falloff`: a continent), `ring` (1 at `radius`, −1 a `falloff` either side: a rim round a basin), `linear` (−1 to 1 across a band `falloff` wide through `centre`, rising towards `direction`: a coast). `strength` (0–1) scales the shape before it is added; the noise stays.
 - Zones stay the tool for landmarks.
 
+## Biome regions
+
+`biomeLayout` `{"mode": "regions"}` lays a noise generator's biome list out as large regions instead of bands (`compiler/.../RegionLayout.java`, `server/.../zone/ClimateRegions.java`).
+
+- A listed biome **without** a `climate` is regional: it takes one cell of the region `axes` (default temperature × humidity), a share of the world border (`borders.player`, else `borders.generation`) equal to its `weights` entry (default 1) over the sum. The share holds for any seed and any `scales`: `customdimensions:zoned` samples the seed's climate on a 96 × 96 grid over the border once per level and maps each point to its rank there, the second axis ranked within the first axis's column.
+- A listed biome **with** a `climate` is bound to the land and keeps its box, which wins over every region: oceans on continentalness, rivers and peaks on their weirdness or erosion band, caves on depth. A bound box on a region axis reads it in rank space.
+- With two axes the regional biomes fill columns along the first axis in list order and rows along the second, the direction alternating by column: consecutive biomes in the list share a border. Put a biome between the two it should sit between.
+- Region size follows the axes' own noise: `terrain.scales.climate` stretches temperature and humidity for fewer, larger regions. More regional biomes means more, smaller regions.
+- Zones keep their channels over the regions; a zone with its own `biomes` reads the raw climate.
+
 ## Choosing them
 
 - Stretch the noise the biome list is cut on. A list banded on weirdness grows its regions with `scales.ridges`; a temperature-by-humidity grid with `scales.climate`. A scale on an axis no box names changes no biome.
@@ -38,29 +48,29 @@ Both live in `terrain`, with or without a `base`; without one they shape the `ov
 
 ## Each dimension
 
-Fast surveys of the definitions without and with their `scales` and `layout`:
+Fast surveys of the definitions with their biome lists as bands and without `scales` or `layout`, and with the settings below (regions: `biomeLayout`, weights from the banded shares):
 
 | Dimension | Why | Setting | Biome largest / top 3 % | Landform largest / top 3 % | Reads |
 |---|---|---|---|---|---|
 | `overworld` | The 1.21.1 wide tune | `scales` continents 1.3, erosion 2.08, ridges 1.39, climate 1.67 | 2.9 / 7.8 → 4.6 / 12.1 | 11.3 / 28.4 → 17.1 / 35.9 | noise |
-| `the_basalt_spires` | One basalt land round the central bastion, lava beyond | `layout` radial at [0, 0], radius 500, falloff 900, strength 0.3 | 10.6 / 28.8 | 39.4 / 54.9 → 66.6 / 70.9 | noise → place |
-| `the_blossom_gardens` | Everything built round the gate: a continent centred on spawn, wide tune | `scales` continents 1.3, erosion 2.0, ridges 1.4, climate 1.5; `layout` radial at [768, 640], radius 700, falloff 900, strength 0.35 | 2.2 / 6.1 → 5.6 / 12.5 | 10.0 / 27.4 → 64.8 / 73.9 | noise → place |
-| `the_crimson_nexus` | A meeting of many biomes; its 14 weirdness bands stay narrow, `ridges` thins the specks | `scales` ridges 1.4 | 0.8 / 1.6 → 0.8 / 2.0 | 6.7 / 17.2 → 9.5 / 18.6 | noise |
-| `the_crucible` | Deliberately broken | unchanged | 58.2 / 59.0 | 7.2 / 17.4 | place |
-| `the_crystal_vale` | A vale between peaks | `scales` ridges 1.3 | 8.6 / 20.5 → 8.5 / 22.0 | 47.4 / 55.0 → 50.1 / 56.2 | noise → place |
-| `the_darkpine_depths` | One dark wood | `scales` erosion 1.3, ridges 1.5 | 14.2 / 32.5 → 40.4 / 55.8 | 19.9 / 37.7 | noise |
-| `the_frozen_hearth` | One frozen world: wide tune, broad weirdness bands | `scales` continents 1.3, erosion 2.0, ridges 1.8, climate 1.5 | 2.1 / 5.1 → 11.7 / 18.6 | 29.1 / 40.8 → 44.3 / 46.4 | noise |
-| `the_frozen_strait` | Library islands follow `scale`; 1.3 and 1.6 drop listed biomes | unchanged | 16.1 / 29.1 | 21.6 / 46.7 | noise |
-| `the_gauntlet` | Deliberately broken | unchanged | 7.9 / 17.1 | 35.1 / 40.0 | noise |
-| `the_greenreach` | Already a place; `ridges` 1.3 drops two listed biomes | unchanged | 41.6 / 57.9 | 51.9 / 61.5 | place |
-| `the_gritlands` | Deliberately broken | unchanged | 17.8 / 32.5 | 46.1 / 74.0 | meeting |
-| `the_highland_crossing` | Highlands meeting at passes; the ridge web stays | `scales` climate 2.0 | 4.2 / 9.4 → 8.1 / 19.0 | 24.9 / 34.0 | noise |
-| `the_needlefall` | Deliberately broken | unchanged | 24.6 / 59.6 | 48.6 / 59.6 | noise |
-| `the_overgrowth` | Deliberately broken | unchanged | 8.4 / 19.0 | 13.5 / 30.4 | noise |
-| `the_scorched_mesa` | Painted canyon country | `scales` ridges 1.5 | 20.7 / 46.3 → 26.8 / 51.5 | 29.7 / 38.9 → 43.3 / 50.3 | noise |
-| `the_shallows` | Already a place (water) | unchanged | 15.7 / 40.7 | 77.3 / 80.8 | place |
-| `the_stonemantle` | Quarry country | `scales` ridges 1.5 | 17.2 / 49.3 → 23.3 / 47.1 | 36.0 / 58.0 → 36.0 / 58.7 | noise |
-| `the_sun_kingdoms` | Kingdoms on one continent; `scales` shrink its biome regions, so a layout | `layout` radial at [0, 0], radius 900, falloff 1200, strength 0.3 | 7.6 / 17.0 → 6.5 / 13.6 | 13.3 / 27.7 → 31.3 / 56.7 | noise |
-| `the_twisted_groves` | Groves stacked into ridges | `scales` ridges 1.5 | 8.8 / 25.3 → 11.7 / 29.2 | 13.3 / 22.5 → 13.0 / 23.2 | noise |
-| `the_verdant_hollow` | Broad valleys; a ring floods the hollow, so scales only | `scales` erosion 1.3, ridges 1.5 | 13.9 / 34.7 → 13.7 / 39.7 | 20.5 / 41.8 | noise |
-| `the_whitestone_ford` | Already a place; `continents` and `erosion` drop a listed biome | unchanged | 60.1 / 93.2 | 36.3 / 41.9 | place |
+| `the_basalt_spires` | One basalt land round the central bastion, lava beyond: biome rings on the layout's continentalness, magma land and deltas on the lava side, ash barrens at the bastion | regions on continentalness × temperature; `scales` climate 2; `layout` radial at [0, 0], radius 500, falloff 900, strength 0.3 | 10.6 / 28.8 → 15.2 / 36.7 | 39.4 / 54.9 → 66.6 / 70.9 | place |
+| `the_blossom_gardens` | Everything built round the gate: a continent centred on spawn, wide tune | regions; `scales` continents 1.3, erosion 2, ridges 1.4, climate 3; `layout` radial at [768, 640], radius 700, falloff 900, strength 0.35 | 2.2 / 6.1 → 7.2 / 18.3 | 10.0 / 27.4 → 64.8 / 73.9 | place |
+| `the_crimson_nexus` | A meeting of many biomes: twelve regions, a few each, caves bound on depth | regions; `scales` ridges 1.4, climate 3 | 0.8 / 1.6 → 14.6 / 34.0 | 6.7 / 17.2 → 9.5 / 18.6 | noise |
+| `the_crucible` | Deliberately broken | regions; `scales` climate 2 | 58.2 / 59.0 → 60.0 / 63.0 | 7.2 / 17.4 | place |
+| `the_crystal_vale` | A vale between peaks | regions; `scales` ridges 1.3 | 8.6 / 20.5 → 17.0 / 44.5 | 47.4 / 55.0 → 50.1 / 56.2 | place |
+| `the_darkpine_depths` | One dark wood | regions; `scales` erosion 1.3, ridges 1.5 | 14.2 / 32.5 → 43.0 / 72.3 | 19.9 / 37.7 | noise |
+| `the_frozen_hearth` | One frozen world: wide tune; peaks, river and beach bound on their weirdness bands | regions; `scales` continents 1.3, erosion 2, ridges 1.8, climate 3 | 2.1 / 5.1 → 15.5 / 35.4 | 29.1 / 40.8 → 44.3 / 46.4 | noise |
+| `the_frozen_strait` | Library islands follow `scale`; 1.3 and 1.6 drop listed biomes | regions | 16.1 / 29.1 → 16.2 / 29.7 | 21.6 / 46.7 | noise |
+| `the_gauntlet` | Deliberately broken | regions; `scales` climate 2 | 7.9 / 17.1 → 11.5 / 23.6 | 35.1 / 40.0 | noise |
+| `the_greenreach` | Already a place; `ridges` 1.3 drops two listed biomes, and regions raise the prairie's lone oaks past the treeless target (1.3 → 3.6 per hectare) | unchanged | 41.6 / 57.9 | 51.9 / 61.5 | place |
+| `the_gritlands` | Deliberately broken | regions | 17.8 / 32.5 → 39.0 / 72.4 | 46.1 / 74.0 | meeting |
+| `the_highland_crossing` | Highlands meeting at passes; the ridge web stays, peaks and slopes bound on erosion | regions; `scales` climate 4 | 4.2 / 9.4 → 8.6 / 18.3 | 24.9 / 34.0 | noise |
+| `the_needlefall` | Deliberately broken | regions | 24.6 / 59.6 → 24.6 / 59.3 | 48.6 / 59.6 | noise |
+| `the_overgrowth` | Deliberately broken, by its interleaved biome bands: regions take the tangle away (edges 61 → 9 km/km²) | unchanged | 8.4 / 19.0 | 13.5 / 30.4 | noise |
+| `the_scorched_mesa` | Painted canyon country | regions; `scales` ridges 1.5 | 20.7 / 46.3 → 46.5 / 78.2 | 29.7 / 38.9 → 43.3 / 50.3 | meeting |
+| `the_shallows` | Already a place (water); the islands are library noise, so the oceans are regions | regions | 15.7 / 40.7 → 40.8 / 76.6 | 77.3 / 80.8 | place |
+| `the_stonemantle` | Quarry country; its peak and shore slices are regions, not terrain | regions; `scales` ridges 1.5 | 17.2 / 49.3 → 37.6 / 72.3 | 36.0 / 58.0 → 36.0 / 58.7 | noise |
+| `the_sun_kingdoms` | Kingdoms on one continent; rivers, shores and badlands bound to the land | regions; `scales` climate 3; `layout` radial at [0, 0], radius 900, falloff 1200, strength 0.3 | 7.6 / 17.0 → 17.7 / 27.3 | 13.3 / 27.7 → 31.3 / 56.7 | noise |
+| `the_twisted_groves` | Groves stacked into ridges | regions; `scales` ridges 1.5 | 8.8 / 25.3 → 25.8 / 62.6 | 13.3 / 22.5 → 13.0 / 23.2 | noise |
+| `the_verdant_hollow` | Broad valleys; a ring floods the hollow, so scales only | regions; `scales` erosion 1.3, ridges 1.5 | 13.9 / 34.7 → 35.0 / 75.6 | 20.5 / 41.8 | noise |
+| `the_whitestone_ford` | Already a place; `continents` and `erosion` drop a listed biome | regions | 60.1 / 93.2 → 60.4 / 93.5 | 36.3 / 41.9 | place |
