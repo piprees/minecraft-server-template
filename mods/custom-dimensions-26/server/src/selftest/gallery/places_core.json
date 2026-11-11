@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 2,
+  "description": "Places gallery: floating islands with a cherry grove core and three places round it; every island in a place takes its biome.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "floating_islands"
+  },
+  "biomes": [
+    "minecraft:cherry_grove",
+    "minecraft:meadow",
+    "minecraft:flower_forest",
+    "minecraft:birch_forest"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "over": "land",
+    "weights": {
+      "minecraft:cherry_grove": 2
+    },
+    "places": {
+      "arrangement": "core",
+      "direction": 45
+    }
+  },
+  "borders": {
+    "player": 1024
+  }
+}

@@ -435,6 +435,97 @@
         "sea": {
           "description": "The biome of the sea when no ocean biome is listed, on a terrain with a coastline; absent: the vanilla ocean that suits the land biomes' mean temperature.",
           "$ref": "#/$defs/id"
+        },
+        "places": {
+          "description": "Lay the regional land biomes (all regional biomes on a terrain with no coastline) out as places: each biome, or each named group, takes ONE contiguous region of the border whose share is its weight over the sum, by a power (weighted Voronoi) diagram instead of a climate noise. The router's first region axis (temperature or humidity) becomes the place field, one value per place, read as it is; a group's biomes are mixed inside their place by the second axis's ranked noise. Ocean, shore, river, cave, underside and basin biomes keep their role areas, a place's own members in its column and the rest in every column; bound biomes, zones and over: land work as with regions. Without at or a named arrangement the sites are automatic: four layouts solved at compile time, and the level's seed picks one of them and one of the square's eight symmetries, so rolling seeds gives different arrangements with the same shares.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "groups": {
+              "description": "Named places of several biomes: name (lowercase letters, digits, _) to a list of listed biomes without a climate. A group's share is the sum of its land biomes' weights; a group may also name ocean, shore or other role biomes, which then take that place's column of their role area.",
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[a-z0-9_]+$"
+              },
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/id"
+                },
+                "minItems": 1
+              }
+            },
+            "arrangement": {
+              "description": "Where the places' sites go: auto (default; deterministic sites relaxed to round places, chosen by the seed), ring (round a ring in list order, meeting near the centre), sectors (wedges round the centre as wide as their shares), bands (parallel bands across the border along direction, in list order, as wide as their shares), core (the first place at the centre, the rest round it).",
+              "enum": [
+                "auto",
+                "ring",
+                "sectors",
+                "bands",
+                "core"
+              ],
+              "default": "auto"
+            },
+            "direction": {
+              "description": "Compass degrees (0 north, 90 east) of the first place of a ring, sectors or core, or the way bands run; default 0.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 360
+            },
+            "at": {
+              "description": "A place's site in blocks, [x, z], inside 95% of the border: place name (a group's or a biome id) to its site. Given for every place, the places hold those sites for every seed; given for some, the rest are automatic. Not with a named arrangement.",
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "neighbours": {
+              "description": "Pairs of places that must share a border: the automatic search honours them, and a named arrangement or at that breaks one is refused at compile time. Consecutive places in the list share a border where they can without it.",
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "apart": {
+              "description": "Pairs of places that must not share a border, honoured or refused as neighbours are.",
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "warp": {
+              "description": "How far place edges wander: the sampling point moves by up to blocks (two standard deviations) over features wavelength blocks across, tapered to nothing at the border. blocks at most a quarter of wavelength, which keeps every place one region. Absent: terrain.climateWarp when it warps, else blocks 0.15 of a wavelength of half the border's radius.",
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "blocks": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1024
+                },
+                "wavelength": {
+                  "type": "number",
+                  "minimum": 64,
+                  "maximum": 4096
+                }
+              }
+            }
+          }
         }
       }
     },

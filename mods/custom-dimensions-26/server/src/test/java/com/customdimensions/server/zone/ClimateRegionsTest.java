@@ -100,6 +100,28 @@ class ClimateRegionsTest {
     }
 
     @Test
+    void aPlaceFieldIsReadAsItIsAndTheSecondAxisRankedWithinItsColumn() {
+        ClimateRegions regions = ClimateRegions.CODEC.parse(com.mojang.serialization.JsonOps.INSTANCE, com.google.gson.JsonParser.parseString(
+                "{\"axes\": [\"temperature\", \"humidity\"], \"columns\": [0.0], \"radius\": 512, \"places\": true}")).getOrThrow();
+        assertEquals(true, regions.places());
+        assertEquals(false, ClimateRegions.CODEC.parse(com.mojang.serialization.JsonOps.INSTANCE, com.google.gson.JsonParser.parseString(
+                "{\"axes\": [\"temperature\"], \"radius\": 512}")).getOrThrow().places());
+        // Two places at -0.5 and 0.5; humidity in the first runs 0..1500, in the second 1000..2500.
+        long west = Climate.quantizeCoord(-0.5f), east = Climate.quantizeCoord(0.5f);
+        long[][] samples = new long[2][32];
+        for (int s = 0; s < 32; s++) {
+            samples[0][s] = s < 16 ? west : east;
+            samples[1][s] = (s % 16) * 100 + (s < 16 ? 0 : 1000);
+        }
+        ClimateRegions.AreaRanks area = ClimateRegions.measureArea(samples, List.of(0f), true);
+        ClimateRegions.Ranks ranks = new ClimateRegions.Ranks(List.of(area));
+        Climate.TargetPoint inEast = new Climate.TargetPoint(east, 1000, 0, 0, 0, 0);
+        assertEquals(east, regions.ranked(inEast, ranks).temperature());
+        assertEquals(Climate.quantizeCoord(-1f), regions.ranked(inEast, ranks).humidity());
+        assertEquals(Climate.quantizeCoord(1f), regions.ranked(new Climate.TargetPoint(west, 1500, 0, 0, 0, 0), ranks).humidity());
+    }
+
+    @Test
     void withoutAreasOneAreaCoversEverything() {
         ClimateRegions regions = new ClimateRegions(List.of("temperature", "humidity"), List.of(0f), 1024);
         assertEquals(1, regions.effectiveAreas().size());

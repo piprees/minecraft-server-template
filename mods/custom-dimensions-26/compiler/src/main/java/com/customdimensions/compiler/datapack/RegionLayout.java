@@ -32,15 +32,18 @@ import java.util.Map;
  */
 public final class RegionLayout {
     public static final String MODE = "regions";
-    public static final List<String> FIELDS = List.of("mode", "axes", "weights", "roles", "sea", "over");
+    public static final List<String> FIELDS = List.of("mode", "axes", "weights", "roles", "sea", "over", "places");
     /** Axes a region may be cut on; depth varies down a column, so it stays with bound biomes. */
     public static final List<String> REGION_AXES = List.of("temperature", "humidity", "continentalness", "erosion", "weirdness");
     public static final List<String> DEFAULT_AXES = List.of("temperature", "humidity");
     /** The radius regions are measured over when a definition gives no border. */
     public static final int DEFAULT_RADIUS = 1024;
 
-    /** The multi-noise entries, and the runtime's {@code regions} object for {@code customdimensions:zoned}. */
-    public record Plan(JsonArray entries, JsonObject regions) {}
+    /**
+     * The multi-noise entries, the runtime's {@code regions} object for {@code customdimensions:zoned}, and the
+     * places whose field becomes the router's first region axis (null without {@code places}).
+     */
+    public record Plan(JsonArray entries, JsonObject regions, PlaceLayout.Places places) {}
 
     private RegionLayout() {
     }
@@ -256,6 +259,12 @@ public final class RegionLayout {
      */
     static Plan plan(String slug, List<BiomeEntry> biomes, JsonObject layout, int radius, BiomeLibrary.Known known,
                      CompileReport.Entry entry, Coast coast, BiomeRoles roles, Ground ground) {
+        return plan(slug, biomes, layout, radius, known, entry, coast, roles, ground, radius);
+    }
+
+    /** As above, laying out {@code places} over a {@code placeRadius}-block border. */
+    static Plan plan(String slug, List<BiomeEntry> biomes, JsonObject layout, int radius, BiomeLibrary.Known known,
+                     CompileReport.Entry entry, Coast coast, BiomeRoles roles, Ground ground, int placeRadius) {
         validate(slug, layout);
         List<String> axes = axes(slug, layout);
         Map<String, Double> weights = weights(slug, layout);
@@ -312,6 +321,7 @@ public final class RegionLayout {
         axes.forEach(axesJson::add);
         regions.add("axes", axesJson);
         String note;
+        PlaceLayout.Places places = null;
         List<String> under = new ArrayList<>(), basin = new ArrayList<>(), held = new ArrayList<>();
         if (ground != null) {
             for (String id : regional) {
@@ -329,6 +339,7 @@ public final class RegionLayout {
             double[] surface = under.isEmpty() ? null : new double[]{BiomeLayout.LOW, UNDERSIDE_DEPTH};
             JsonArray areas = new JsonArray();
             StringBuilder parts = new StringBuilder();
+            places = places(slug, layout, axes, held, regional, weights, biomes, placeRadius);
             Object[][] groups = {
                     {BiomeRoles.UNDERSIDE, under, null, new double[]{UNDERSIDE_DEPTH, BiomeLayout.HIGH}},
                     {BiomeRoles.BASIN, basin, new double[]{ground.min(), com.customdimensions.compiler.terrain.TerrainFamily.PLACE_SHORE}, surface},
@@ -337,7 +348,7 @@ public final class RegionLayout {
                 @SuppressWarnings("unchecked") List<String> ids = (List<String>) g[1];
                 if (ids.isEmpty()) continue;
                 double[] cont = (double[]) g[2], depth = (double[]) g[3];
-                Cells cells = cells(ids, weights, axes, area(cont, null, depth));
+                Cells cells = cells(places, ids, weights, axes, area(cont, null, depth));
                 cells.entries().forEach(kept::add);
                 JsonObject a = new JsonObject();
                 a.addProperty("role", (String) g[0]);
@@ -351,7 +362,8 @@ public final class RegionLayout {
             note = "Biome regions on " + String.join(" × ", axes) + " over a " + radius + "-block radius, by the islands' ground: " + parts
                     + (overLand ? "; ranked over land" : "") + (overrides.isEmpty() ? "" : "; roles given: " + overrides);
         } else if (coast == null) {
-            Cells cells = cells(regional, weights, axes, area(null, null, null));
+            places = places(slug, layout, axes, regional, regional, weights, biomes, placeRadius);
+            Cells cells = cells(places, regional, weights, axes, area(null, null, null));
             cells.entries().forEach(kept::add);
             if (!cells.cuts().isEmpty()) regions.add("columns", cuts(cells.cuts()));
             note = "Biome regions on " + String.join(" × ", axes) + " over a " + radius + "-block radius: "
@@ -369,6 +381,7 @@ public final class RegionLayout {
                 sea = seaField != null ? seaField.getAsString() : BiomeRoles.sea(meanTemperature(groups.get(BiomeRoles.LAND), weights, roles));
                 groups.get(BiomeRoles.OCEAN).add(sea);
             }
+            places = places(slug, layout, axes, groups.get(BiomeRoles.LAND), regional, weights, biomes, placeRadius);
             boolean caves = !groups.get(BiomeRoles.CAVE).isEmpty();
             boolean landless = groups.get(BiomeRoles.LAND).isEmpty();
             boolean sealess = groups.get(BiomeRoles.OCEAN).isEmpty() && !boundOcean;
@@ -392,7 +405,7 @@ public final class RegionLayout {
                     default -> cont = new double[]{BiomeLayout.LOW, landless ? BiomeLayout.HIGH : coast.line()};
                 }
                 if (caves && (g.equals(BiomeRoles.LAND) || g.equals(BiomeRoles.OCEAN))) depth = new double[]{BiomeLayout.LOW, CAVE_DEPTH};
-                Cells cells = cells(ids, w, axes, area(cont, weird, depth));
+                Cells cells = cells(places, ids, w, axes, area(cont, weird, depth));
                 cells.entries().forEach(kept::add);
                 JsonObject a = new JsonObject();
                 a.addProperty("role", g);
@@ -420,13 +433,18 @@ public final class RegionLayout {
             throw new IllegalStateException("multi-noise entries " + pair[0] + " and " + pair[1] + " still overlap");
         }
         regions.addProperty("radius", radius);
+        if (places != null) {
+            regions.addProperty("places", true);
+            regions.addProperty("radius", placeRadius);
+            note += "; laid out as " + PlaceLayout.describe(places);
+        }
         entry.note(note + (boundIds.isEmpty() ? "" : "; bound by their climate: " + boundIds));
         List<String> shadowed = new ArrayList<>(regional);
         carved.forEach(e -> shadowed.remove(e.getAsJsonObject().get("biome").getAsString()));
         if (!shadowed.isEmpty()) {
             entry.note("Regional biome(s) " + shadowed + " are never placed: bound climate boxes cover their whole area; narrow those boxes");
         }
-        return new Plan(carved, regions);
+        return new Plan(carved, regions, places);
     }
 
     /** The layout group a role's regional biomes share: peaks and wetlands are land. */
@@ -485,6 +503,19 @@ public final class RegionLayout {
         JsonArray out = new JsonArray();
         cuts.forEach(out::add);
         return out;
+    }
+
+    /** The places of {@code layout} over {@code placeable}, or null without {@code places}. */
+    private static PlaceLayout.Places places(String slug, JsonObject layout, List<String> axes, List<String> placeable, List<String> regional,
+                                             Map<String, Double> weights, List<BiomeEntry> biomes, int radius) {
+        return PlaceLayout.present(layout) ? PlaceLayout.build(slug, layout, axes, placeable, regional, weights, biomes, radius) : null;
+    }
+
+    /** {@code ids} cut by place when there are {@code places}, else into rank cells. */
+    private static Cells cells(PlaceLayout.Places places, List<String> ids, Map<String, Double> weights, List<String> axes, JsonObject area) {
+        if (places == null) return cells(ids, weights, axes, area);
+        PlaceLayout.Cells c = PlaceLayout.cells(places, ids, weights, axes, area);
+        return new Cells(c.entries(), c.cuts(), c.columns());
     }
 
     /** {@code ids} cut into rank cells of {@code area} on {@code axes}, each a share of its weight over the group's sum. */
