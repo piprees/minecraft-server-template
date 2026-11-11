@@ -250,8 +250,8 @@ edit("mod", "mods/custom-dimensions-client-26/scripts/review-packet.py",
      "new_path = os.path.join(ROOT, 'mods', 'custom-dimensions-26', 'definitions', f'{slug}.json')",
      "new_path = os.path.join(ROOT, 'config', 'custom-dimensions', 'dimensions', f'{slug}.json')")
 edit("mod", "mods/custom-dimensions-client-26/scripts/review-packet.py",
-     "old_path = os.path.join(ROOT, 'config', 'custom-dimensions', 'dimensions', f'{slug}.json')",
-     "old_path = os.path.join(ROOT, 'mods', 'custom-dimensions-26', 'definitions', 'v1', 'dimensions', f'{slug}.json')")
+     "old_path = old_override or os.path.join(ROOT, 'config', 'custom-dimensions', 'dimensions', f'{slug}.json')",
+     "old_path = old_override or os.path.join(ROOT, 'mods', 'custom-dimensions-26', 'definitions', 'v1', 'dimensions', f'{slug}.json')")
 edit("mod", "mods/custom-dimensions-client-26/scripts/review-packet.py",
      "  the 1.21.1 definition (config/custom-dimensions/dimensions/<slug>.json, read-only: RB-35): description, biome list,\n",
      "  the 1.21.1 definition (mods/custom-dimensions-26/definitions/v1/dimensions/<slug>.json): description, biome list,\n")
