@@ -1,0 +1,7 @@
+{
+  "base": "minecraft:nether",
+  "changed": {
+    "material_rule": "adventure:the_nether",
+    "noise_router": "sha1:161d44975e521ad5f01eda1d1492fbe07b2a0a05"
+  }
+}
