@@ -1,0 +1,12 @@
+{
+ "slug": "the_aviary",
+ "targets": [
+  {"key": "surface.voidPercent", "op": "between", "value": [15, 60], "from": "\"Wisteria drifts on the updrafts between plateaus\": open sky between the masses"},
+  {"key": "landforms.sharesPercent.plateaus + landforms.sharesPercent.plains", "per": "vertical.layerColumnsPercent.surface", "op": ">=", "value": 0.35, "from": "\"between plateaus\": flat-topped land, over land columns (the w10t form counts void columns, which a sky world cannot fill)"},
+  {"key": "surface.biomesPercent.adventure:wisteria_grove", "per": "vertical.layerColumnsPercent.surface", "op": ">=", "value": 0.08, "from": "\"Wisteria drifts on the updrafts\", over land columns"},
+  {"key": "surface.biomesPercent.adventure:sky_highlands + surface.biomesPercent.adventure:golden_skygrove + surface.biomesPercent.minecraft:forest + surface.biomesPercent.minecraft:flower_forest + surface.biomesPercent.minecraft:meadow + surface.biomesPercent.minecraft:cherry_grove + surface.biomesPercent.adventure:wisteria_grove", "per": "vertical.layerColumnsPercent.surface", "op": ">=", "value": 0.5, "from": "1.21.1 spawnFilter highlands, highlands_forest, wisteria_woods: skyland groves, over land columns"},
+  {"key": "placeness.islands.sizesHa.max", "op": ">=", "value": 300, "from": "place kind meeting: a few large plateaus, not a scatter of islets"},
+  {"key": "placeness.islands.dominantBiomePercent", "op": ">=", "value": 55, "from": "place kind meeting: each plateau mostly one grove (the w10t largest-three-regions form cannot hold with open sky cutting every region)"},
+  {"key": "placeness.landBiomeRegions.specksPercent", "op": "<=", "value": 5, "from": "place kind meeting: no scatter of biome specks"}
+ ]
+}
