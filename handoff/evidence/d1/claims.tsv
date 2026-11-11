@@ -1,0 +1,69 @@
+file	line	claim	checked against	verdict
+mods/custom-dimensions-26/README.md	34	-PselfTestOnly values exits..rollperf, mixins	SelfTest.java:83,120-137 (17 sections)	wrong: missing generators, difficulty, survey, seeds, gamerules; fixed
+mods/custom-dimensions-26/README.md	34	mixin lines; structures and zones sections name the other four	MixinSelfTest.java (7 lines), StructureSelfTest, ZoneSelfTest, LevelSeedSelfTest:143-150 (6), mixins.json (17)	incomplete: six seed/game-rule/weather mixins unmentioned; fixed
+mods/custom-dimensions-26/README.md	376-389	/customdim command table	command/*.java attach() literals	wrong: survey, e2e-state, use missing; render centreX centreZ missing; fixed
+mods/custom-dimensions-26/README.md	385	roll default 100, at most 500	Roll.DEFAULT_COUNT/MAX_COUNT use	ok
+mods/custom-dimensions-26/README.md	78	compiler outputs table	DatapackCompiler.applyDayLength:477-495, DayLength.id/clockId	missing day-length clock and timelines; fixed
+mods/custom-dimensions-26/README.md	720,731	keepInventory	26.3 rule id keep_inventory (RB-38)	stale name; fixed
+mods/custom-dimensions-26/README.md	340	idle unload after idleUnloadMinutes	DimensionConfigLoader.java:49	ok
+mods/custom-dimensions-26/README.md	633	difficulty: no mixin	mixins.json	ok
+mods/custom-dimensions-26/README.md	761	one mixin on ServerChunkCache.blockChanged	ChunkBlockChangedMixin @Mixin(ServerChunkCache)	ok
+mods/custom-dimensions-26/README.md	413-460	game rules: refusal of advance_time, three client rules, weather mixin	schema gameRules desc, mixins.json	ok
+mods/custom-dimensions-26/README.md	79	base worlds overworld/the_nether/the_end + adventure:the_aviary	DefinitionConverter.AVIARY_ID	ok
+mods/custom-dimensions-26/server/build.gradle	127	selfTestOnly list comment	SelfTest.java:83	wrong: survey missing; fixed
+mods/custom-dimensions-26/server/.../MixinSelfTest.java	31-33	aquifer mixins read by materials section	ZoneSelfTest names them	wrong; fixed (javadoc)
+mods/custom-dimensions-26/schema/definition.schema.json	*	263 descriptions: history words, seed/gameRules/dayLength/landShare/layout/bands/deaths	ShippedDefinitionsSchemaTest, Atmosphere.DayLength MIN/MAX, README § Game rules	ok
+mods/custom-dimensions-client-26/README.md	8-11	Loader 0.20.1, API 0.164.0+26.3, Loom 1.19.3, no mixins, version = server mod_version	gradle.properties both projects (0.1.0)	ok
+mods/custom-dimensions-client-26/README.md	176-183	FrameGate thresholds	FrameGate.java constants	ok
+mods/custom-dimensions-client-26/README.md	98,266-279	rig port 25665, seed 20261022, --definitions --dh --render-distance	scripts/rig.sh:43,54-59,92	ok
+mods/custom-dimensions-client-26/README.md	81-89	Iris/DH not run on the rig; 23 fps	/tmp/claude-0/v2/results.md	ok
+scripts/e2e/README.md	56-131	On 26.x: every script named exists; vanilla-join flags; matrix --resume/--only; rig-26 four levels	scripts/e2e/*, vanilla-join.sh header, e2e-portal-matrix.sh:27,37	ok
+scripts/e2e/README.md	138-188	e2e-state and bridge field names	E2eStateCommand, DevBridge.java, ApertureCensus.java	ok
+scripts/e2e/RIG.md	9-31	On 26.x: /portals fields, rig-26 levels, Iris/DH not run	DevBridge.java field names, v2 results	ok (rest of RIG.md is the 1.21.1 pixel plan, out of 26.3 scope)
+docs/design/rebuild-26/README.md	5	Status: F0–F3, M1–M6b done; 1005 tests; next M, W, P streams week 4	HANDOFF.md § State (M1–M10, W1–W7, P1–P6 done; 1245+ tests)	stale; reworded without a test count
+docs/design/rebuild-26/README.md	11	About 32,000 lines and 12 or fewer mixins	mixins.json (17); wc of main sources (~55,000)	wrong; fixed
+docs/design/rebuild-26/architecture.md	3	subprojects core, compiler, server and client	settings.gradle; client is mods/custom-dimensions-client-26	wrong; fixed
+docs/design/rebuild-26/architecture.md	28-30	12 or fewer mixins, ~32,000 lines target	mixins.json 17; line count	wrong; fixed
+docs/design/rebuild-26/architecture.md	32	commands create|list|info|tp|render|roll|pick|audit	CustomDimCommands.register	incomplete; fixed
+docs/design/rebuild-26/architecture.md	36	Stay list: mob scaling, respawn redirect, End/Nether portal suppression, frame-break mixins	mixins.json; difficulty and exits use Fabric events	wrong; replaced with the 17 actual mixins
+docs/design/rebuild-26/architecture.md	45	per-level seed mixin replaced by Fantasy setSeed	ServerLevelSeedMixin (RB-37)	incomplete; fixed
+docs/design/rebuild-26/architecture.md	63-64	base four eager, other 78 lazy	82 definitions	ok
+docs/design/rebuild-26/decisions.md	*	RB numbering unique; every RB cited in scope exists	grep RB-01..RB-38	ok
+mods/custom-dimensions-26/README.md	230	without a base those three [overworld] presets take scales.climate alone	TerrainLibrary.CLIMATE_ONLY = nether, caves, end	wrong; fixed
+docs/design/rebuild-26/schema-v2.md	54	terrain fields: base, setting, params, scale, heightMultiplier, scales, layout; roofed only library terrain for caves/nether	schema terrain properties (landShare, floor); end terrain for end preset	incomplete; fixed
+docs/design/rebuild-26/schema-v2.md	72-77	roll family/spawnRadius/locateCap dropped	schema roll.family etc = false; DefinitionConverter:69	ok
+docs/design/rebuild-26/worldgen.md	29	end preset refuses every terrain	TerrainLibrary / README (end terrain on the end preset), worldgen.md:46	wrong; fixed
+docs/design/rebuild-26/worldgen.md	68	gallery fixture list	server/src/selftest/gallery/ (58 files)	incomplete; fixed
+docs/design/rebuild-26/worldgen.md	236	compiler records the sampling window with each layout	no such code in compiler/core	wrong; reworded to what holds
+docs/design/rebuild-26/worldgen.md	238	worldgen change on a live world is refused	PackInstaller:134 logs a WARN (D2); LevelSeeds keeps the recorded seed	wrong; fixed
+docs/design/rebuild-26/worldgen.md	16	defaults.atmosphere.dayLength 45/15	definitions/settings.json	ok
+docs/design/rebuild-26/worldgen.md	129-212	biome library, 82 rows	compiler resources biomes/*.json (82); README table (82)	ok
+docs/design/rebuild-26/worldgen.md	254-263	firewall allow list	core/.../firewall/AllowList.MODS	ok
+docs/design/rebuild-26/placeness.md	66-91	per-dimension settings of the 21 terrain picks	definitions/<slug>.json terrain.scales/layout, biomeLayout.mode	20 ok; the_blossom_gardens climate 3 vs 4 in the definition, fixed with the measured setting named
+docs/design/rebuild-26/placeness.md	9-26	dossier keys	Placeness.java, SurveyMetrics.java, SurveyJob.java:313,390,517-519	ok
+cutover/files/AGENTS.next.md	72-75	definition fields applying to base worlds	schema properties	incomplete (gameRules, exitPortal, exitShrines); fixed
+cutover/files/AGENTS.next.md	200	game rules in one place: deploy.sh restore_game_rules	cutover lib.sh mc_game_rules:121, dev-up.sh:705-717, RB-38	incomplete (per-dimension layer, dev-up); fixed
+cutover/files/AGENTS.next.md	135-137	T1–T247 range; retired list	TROUBLESHOOTING.md; checklist.md step 6 adds the switch's retirements by hand	ok
+cutover/files/mods/AGENTS.next.md	conv.	at most 12 mixins	mixins.json 17	wrong; fixed (RB-12 itself flagged to the lead)
+cutover/files/mods/AGENTS.next.md	verif. 2	-PselfTestOnly sections (12)	SelfTest.java:83 (17)	incomplete; fixed
+cutover/files/mods/AGENTS.next.md	CI	mod26.yml runs on config/custom-dimensions/	cutover/edits.py:262-265	ok
+cutover/files/mods/AGENTS.next.md	where	definitions/v1/, dossier.json and dossier.md	apply.sh:396-398, SurveySelfTest:59	ok
+cutover/files/dot-claude/skills/custom-dimension-authoring/SKILL.md	fields	terrain refused on caves, nether and end presets; base list of 12	TerrainLibrary, schema terrain.base enum (14)	wrong; fixed
+cutover/files/dot-claude/skills/custom-dimension-authoring/SKILL.md	fields	roll takes spawnRadius, locateCap, allowEndgameNearSpawn	schema roll.* = false	wrong; fixed
+cutover/files/dot-claude/skills/custom-dimension-authoring/SKILL.md	fields	aquifers on, dry	schema enum on/off/dry/flooded	incomplete; fixed
+cutover/files/dot-claude/skills/custom-dimension-authoring/SKILL.md	principles	definitions/v1/<slug>.json	apply.sh:396 (v1/dimensions/)	wrong path; fixed
+cutover/files/dot-claude/skills/custom-dimension-authoring/SKILL.md	fields	missing landShare, floor, crust, layout on roofed/end, bands, dayLength, over, voidBiomes, carvers semantics; roles underside/basin; fidelity intent and targets	schema; fidelity/README.md	added
+cutover/files/dot-claude/skills/worldgen-tuning/SKILL.md	dials	twelve terrains, refused on caves/nether/end	schema enum (14), TerrainLibrary	wrong; fixed; landShare, crust, bands, carvers, roles added
+cutover/files/dot-claude/skills/dimension-lifecycle-operations/SKILL.md	*	change table, commands, reset steps	command/*.java, LevelSeeds record file, README § Seeds	ok
+cutover/files/dot-claude/skills/fabric-mod-development/SKILL.md	3	self-test sections (12)	SelfTest.java:83 (17)	incomplete; fixed
+cutover/files/dot-claude/skills/fabric-mod-development/SKILL.md	1,2,3,fail	jar name, local-mods.sh build/verify, runServer defaults after the switch, firewall headline	server/build.gradle archivesName, local-mods.sh:188-200, edits.py:224-229, Firewall.message	ok
+cutover/files/dot-claude/skills/custom-dimension-authoring/SKILL.md	last	a consumer overlay is staged under custom-dimensions/overlay/, which the mod does not read	files/scripts/stage-dimensions.py header	wrong; fixed
+cutover/files/dot-claude/skills/consumer-repo-operations/SKILL.md	54	game rules live in config/boring_default_game_rules/	apply.sh:358 deletes it; lib.sh mc_game_rules	wrong after the switch; fixed
+cutover/files/dot-claude/skills/server-mod-management/references/mod-list-formats.md	76	config/boring_default_game_rules/ as an example	apply.sh:358	wrong after the switch; fixed
+cutover/files/dot-claude/skills/{production-triage,discord-integration-ops,server-mod-management}	*	scanned for custom-dimensions, mixin, game-rule and seed claims only	grep	no mod claim found wrong
+cutover/p7-proposal.md	§1	gaps: logAdminCommands not enforced, local worlds never run the block	files/scripts/lib.sh mc_game_rules, dev-up.sh:705-717, not-automated.md	stale; fixed
+cutover/p7-proposal.md	§4	verify the bundle line in the rehearsal	not-automated.md Starter kit SNBT (measured by V2)	stale; fixed
+cutover/p7-proposal.md	§5	schema v2 has no day-length field	schema atmosphere.dayLength, settings.json 45/15	wrong; fixed
+cutover/docs-verification.md	*	10 mixins, 12 sections, build.gradle lines 80-108, Not verified items	mixins.json 17, SelfTest 17 sections, V2 results	stale; rewritten
+cutover/files.sha256	dev-up	base sha of the ports' scripts/dev-up.sh	real apply.sh on a clean clone: drift after edits.py's corrected comment edit (a759e137)	stale; re-recorded against a switched clone
+docs/design/rebuild-26/decisions.md	RB-12	twelve mixins or fewer	mixins.json 17	contradicted by the code; left for the lead (a decision, not a claim)

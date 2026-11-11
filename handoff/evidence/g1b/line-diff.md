@@ -1,0 +1,268 @@
+# Line diff: baseline-254 vs st-full-main (7889333b)
+
+Each changed, new or gone line of /tmp/claude-0/g1/st-full-main.txt against /tmp/claude-0/g1/baseline-254.txt, one by one (token diff from /tmp/claude-0/g1b/tokdiff.txt, full pairs in /tmp/claude-0/g1b/pairs.txt).
+
+- 1. CHG PASS pack installed at start-up by | 2951 => 2954 ;; c03bdcc69ce8, => 66062d0716bb,
+  - fixture count: G1 added a self-test fixture (199→200 compiled stems/types, 195→196 lazy, 3 more pack files, new inputs hash; info gains its game-rules line). Not seed-driven; no problem.
+- 2. CHG PASS pack equivalence: extracted vanilla and | 2951 => 2954
+  - fixture count: G1 added a self-test fixture (199→200 compiled stems/types, 195→196 lazy, 3 more pack files, new inputs hash; info gains its game-rules line). Not seed-driven; no problem.
+- 3. CHG PASS compiled dimension types decode: 199/199 | 199/199 => 200/200
+  - fixture count: G1 added a self-test fixture (199→200 compiled stems/types, 195→196 lazy, 3 more pack files, new inputs hash; info gains its game-rules line). Not seed-driven; no problem.
+- 4. CHG PASS compiled level stems decode: 199/199 | 199/199 => 200/200
+  - fixture count: G1 added a self-test fixture (199→200 compiled stems/types, 195→196 lazy, 3 more pack files, new inputs hash; info gains its game-rules line). Not seed-driven; no problem.
+- 5. CHG PASS mixin ChunkBlockChangedMixin: a block change | 16, 73, 80 => -32, 77, -32
+  - overworld spawn: the overworld now generates from its own seed, so the resolved spawn moved from 16,73,80 to -32,72/77,-32; the rows measure relative to spawn and pass. Seed terrain only.
+- 6. CHG PASS mixin NoiseBasedChunkGeneratorAccessor: the overworld generator's | NoiseBasedChunkGenerator$$Lambda/0x000000006439de98 => NoiseBasedChunkGenerator$$Lambda/0x000000008e35a3e8
+  - lambda class name of the fluid rule: a JVM identity hash, differs every boot. Not seed-driven.
+- 7. CHG PASS mixin ChunkMapStructuresMixin: the chunk map | 644 => 787
+  - overworld structure groups and build time: the overworld's structure-placement seed is now its own (seeds row PASS: structure state, structure check), so group counts per sampled area move; 9 sets kept, 0 dropped as before. Seed terrain only; build ms is timing.
+- 8. CHG PASS day length: clock adventure:day_length/54000_18000, period | 143 => 144
+  - day length period measured in ticks 143→144: one-tick sampling jitter. Not seed-driven.
+- 9. CHG PASS lazy level index: 195 stems | 195 => 196
+  - fixture count: G1 added a self-test fixture (199→200 compiled stems/types, 195→196 lazy, 3 more pack files, new inputs hash; info gains its game-rules line). Not seed-driven; no problem.
+- 10. CHG PASS lazy activation of every dimension: | 195/195 => 196/196 ;; (195 => (196 ;; 178.6 => 178.9 ;; 5201 => 5250 ;; 915 => 912 ;; 235 => 356 ;; 640 => 424 ;; 937 => 827 ;; 246 => 247
+  - fixture count: G1 added a self-test fixture (199→200 compiled stems/types, 195→196 lazy, 3 more pack files, new inputs hash; info gains its game-rules line). Not seed-driven; no problem.
+- 11. CHG PASS /customdim list, activate, unload and | 199, => 200,
+  - fixture count: G1 added a self-test fixture (199→200 compiled stems/types, 195→196 lazy, 3 more pack files, new inputs hash; info gains its game-rules line). Not seed-driven; no problem.
+- 12. CHG PASS generator overworld (overworld): 464x464 area | 20261022: => 4705305050088502262: ;; 61..90); 12125 => 56..120); 2954 ;; 6 => 10 ;; 2.7% => 6.3%
+  - overworld generator under 4705305050088502262: heights 56..120 (inside the 50..140 bound), less water, 10 biomes. Seed terrain only.
+- 13. CHG PASS generator amplified (the_amplified_reaches): same 464x464 | 90 => 120 ;; 65 => 71
+  - amplified clone of the overworld's terrain: range top 90→120 and its derived figure follow the overworld's new seed. Seed terrain only.
+- 14. CHG PASS generator floating_islands (the_aviary): 128x128 area | 20261022: => 7826077224469180302: ;; 85.3% => 99.9% ;; 18 => 15
+  - the_aviary (and the_violet_spire, its clone) now from 7826077224469180302: 99.9% island cover, lowest y 15. Assertions (nothing below the underside) hold. Seed terrain only.
+- 15. CHG PASS generator clone (the_violet_spire): clones `adventure:the_aviary` | 20261022, => 7826077224469180302, ;; 85.3% => 99.9%
+  - the_aviary (and the_violet_spire, its clone) now from 7826077224469180302: 99.9% island cover, lowest y 15. Assertions (nothing below the underside) hold. Seed terrain only.
+- 16. CHG PASS generator nether (the_nether): 128x128 area | 11150 => 5860
+  - nether under its own seed: fewer lava-sea columns in the 128x128 area (5860 vs 11150); bedrock roof 100%. Seed terrain only.
+- 17. CHG PASS generator end (the_end): 100.0% of | 60..63); => 59..61);
+  - end main island surface 59..61 under its own seed. Seed terrain only.
+- 18. CHG PASS terrain baseline (overworld, vanilla terrain): | 279.7 => 277.7
+  - timings/byte counts (µs per column, ms, columns/s, feed bytes, decay ticks): run-to-run variance and different terrain under the new overworld seed; every bound holds. Not a problem.
+- 19. CHG PASS terrain voids (terrain_voids_default): 5x5 chunks | 21 => 22 ;; 90 => 89 ;; 6) => 8)
+  - terrain_voids fixture: rim/median land shift by 1–2 blocks; the fixture's features now decorate from its own seed (RB-37 every reader). Bounds hold.
+- 20. CHG PASS terrain performance: µs per column | 279.7: => 277.7: ;; 328.0 => 301.6 (1.1x), erosion 324.0 ;; erosion 352.3 (1.3x), =>  ;; 320.8 (1.1x), => 289.7 (1.0x), ;; 370.1 => 369.7 ;; 383.8 (1.
+  - timings/byte counts (µs per column, ms, columns/s, feed bytes, decay ticks): run-to-run variance and different terrain under the new overworld seed; every bound holds. Not a problem.
+- 21. CHG PASS zones mixin NoiseBasedAquiferMixin: 215073 aquifer | 215073 => 178486
+  - zones/materials rows compare against the overworld's same area, which now generates from the overworld's own seed: fewer aquifer cells/springs/diamonds there. The fixture side (99.7% flooded, 1417 nether gold) is unchanged. Seed terrain only.
+- 22. CHG PASS zones mixin DryFluidFeatureMixin: 15731 spring(s) | 15731 => 14124
+  - zones/materials rows compare against the overworld's same area, which now generates from the overworld's own seed: fewer aquifer cells/springs/diamonds there. The fixture side (99.7% flooded, 1417 nether gold) is unchanged. Seed terrain only.
+- 23. CHG PASS zones belt north edge (selftest_canyon_belt): | 5 => 6 ;; 0.26 => 0.25 ;; 16:2/512 24:7/512 32:6/512 => 16:0/512 24:3/512 32:4/512 ;; 48:7/512 56:7/512 => 48:6/512 56:4/512 ;; 128:1/512 =
+  - canyon belt edge histogram: the fixture's decoration seed is its own; edge sharpness 0.26→0.25, still within the bound. Seed-driven, no problem.
+- 24. CHG PASS materials flooded (selftest_flooded): water in | 47086/58780 (80.1%); => 38091/57175 (66.6%);
+  - zones/materials rows compare against the overworld's same area, which now generates from the overworld's own seed: fewer aquifer cells/springs/diamonds there. The fixture side (99.7% flooded, 1417 nether gold) is unchanged. Seed terrain only.
+- 25. CHG PASS materials ore set (selftest_ores): nether | 384, => 366,
+  - zones/materials rows compare against the overworld's same area, which now generates from the overworld's own seed: fewer aquifer cells/springs/diamonds there. The fixture side (99.7% flooded, 1417 nether gold) is unchanged. Seed terrain only.
+- 26. CHG PASS biomes crystal hollows clusters (selftest_biome_library): | 594 => 630 ;; 356 => 357 ;; 9999 => 10004 ;; 1590 => 1589 ;; 1108 => 1107 ;; 40386 => 40373 ;; 490 => 501 ;; 448 => 439 ;; 1118
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 27. CHG PASS biomes library alpha_grove (selftest_biome_alpha_grove): surface | 703 => 705
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 28. CHG PASS biomes library alpine_meadow (selftest_biome_alpine_meadow): surf | 5357/9216 => 5373/9216 ;; (58.1%, => (58.3%, ;; grass_block=5357, snow_block=1282, stone=2232}); => grass_block=5373, s
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 29. CHG PASS biomes library alpine_scree (selftest_biome_alpine_scree): surfac | 1579, => 1584,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 30. CHG PASS biomes library ashen_savanna (selftest_biome_ashen_savanna): surf | 362, => 366,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 31. CHG PASS biomes library ashen_woodland (selftest_biome_ashen_woodland): su | gravel=2499, podzol=449}); => gravel=2498, podzol=450}); ;; 53, => 54, ;; 462, => 463,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 32. CHG PASS biomes library aspen_forest (selftest_biome_aspen_forest): surfac | 1963, => 1934, ;; 296, => 304, ;; 397 => 389
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 33. CHG PASS biomes library baobab_savanna (selftest_biome_baobab_savanna): su | 468, => 469, ;; 61, => 60,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 34. CHG PASS biomes library barley_fields (selftest_biome_barley_fields): surf | 1070, => 1060, ;; 99, => 102, ;; 201, => 199,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 35. CHG PASS biomes library bayou (selftest_biome_bayou): surface | 5790/6182 => 5513/5950 ;; (93.7%, => (92.7%, ;; {clay=181, grass_block=5790, mud=82, => {clay=212, grass_block=5513, mud=96, ;; 419,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 36. CHG PASS biomes library bioshroom_caves (selftest_biome_bioshroom_caves):  | 26169, => 26085, ;; 6233, => 6077, ;; 667, => 809, ;; 121, => 97, ;; 759, => 701, ;; 103 => 104
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 37. CHG PASS biomes library buried_dunes (selftest_biome_buried_dunes): surfac | 38180, => 38123, ;; 394, => 421,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 38. CHG PASS biomes library carnation_fields (selftest_biome_carnation_fields) | 872, => 912, ;; 546, => 526,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 39. CHG PASS biomes library chorus_forest (selftest_biome_chorus_forest): surf | 708, => 694,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 40. CHG PASS biomes library cinnabar_veins (selftest_biome_cinnabar_veins): su | 995, => 1009, ;; 1742, => 1747,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 41. CHG PASS biomes library cloud_forest (selftest_biome_cloud_forest): surfac | 769, => 803, ;; 769, => 803, ;; 434, => 506, ;; 72, => 67, ;; 2200, => 2203, ;; 416 => 441
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 42. CHG PASS biomes library cloud_reef (selftest_biome_cloud_reef): surface | 754, => 755, ;; 12 => 13
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 43. CHG PASS biomes library crimson_pinewood (selftest_biome_crimson_pinewood) | 2925/5379 => 2950/5379 ;; (54.4%, => (54.8%, ;; {crimson_nylium=2925, nether_wart_block=887, => {crimson_nylium=2950, n
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 44. CHG PASS biomes library crystal_hollows (selftest_biome_crystal_hollows):  | 73 => 75
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 45. CHG PASS biomes library cypress_wetland (selftest_biome_cypress_wetland):  | 7220/7334 => 6793/6940 ;; (98.4%, => (97.9%, ;; {grass_block=7220}); => {grass_block=6793}); ;; 24, => 34, ;; 832, => 8
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 46. CHG PASS biomes library desert_oasis (selftest_biome_desert_oasis): surfac | 5994/8125 => 6002/8152 ;; (73.8%, => (73.6%, ;; {grass_block=1993, sand=5994}); => {grass_block=2013, sand=6002}); ;; 3
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 47. CHG PASS biomes library dry_steppe (selftest_biome_dry_steppe): surface | 378, => 383,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 48. CHG PASS biomes library foggy_mushroomland (selftest_biome_foggy_mushrooml | 1398, => 1396,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 49. CHG PASS biomes library frosted_caves (selftest_biome_frosted_caves): surf | 1176, => 1179, ;; 3134, => 3321, ;; 13, => 7,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 50. CHG PASS biomes library fungal_fen (selftest_biome_fungal_fen): surface | 2868/5292 => 2879/5280 ;; (54.2%, => (54.5%, ;; {brown_mushroom_block=355, clay=141, grass_block=536, mud=36 => {brown_mus
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 51. CHG PASS biomes library gelatinous_caves (selftest_biome_gelatinous_caves) | 1090, => 1024,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 52. CHG PASS biomes library golden_skygrove (selftest_biome_golden_skygrove):  | 6975/9198 => 6974/9198 ;; grass_block=6975, => grass_block=6974, ;; 535, => 525, ;; 300, => 289, ;; 138 => 145
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 53. CHG PASS biomes library hanging_gardens (selftest_biome_hanging_gardens):  | 9025/9198 => 9029/9198 ;; (98.1%, => (98.2%, ;; {grass_block=9025, rooted_dirt=118}); => {grass_block=9029, rooted_dirt
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 54. CHG PASS biomes library highland_fells (selftest_biome_highland_fells): su | 1037, => 1029, ;; 159, => 161,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 55. CHG PASS biomes library ice_starfield (selftest_biome_ice_starfield): surf | 8174, => 8176, ;; 8174, => 8176, ;; 318 => 311
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 56. CHG PASS biomes library lantern_woods (selftest_biome_lantern_woods): surf | 8903/9216 => 8895/9216 ;; (96.6%, => (96.5%, ;; {pale_moss_block=8903, soul_lantern=299}); => {pale_moss_block=8895, so
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 57. CHG PASS biomes library lavender_fields (selftest_biome_lavender_fields):  | 2783, => 2787, ;; 1450, => 1454,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 58. CHG PASS biomes library lichen_caves (selftest_biome_lichen_caves): surfac | 1951, => 1922, ;; 30, => 26, ;; 1596, => 1711, ;; 267 => 273
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 59. CHG PASS biomes library magma_land (selftest_biome_magma_land): surface | 2659/4636 => 2661/4639 ;; {magma_block=2659, => {magma_block=2661, ;; obsidian=679}); => obsidian=680}); ;; 1128, => 1127,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 60. CHG PASS biomes library magmatic_caves (selftest_biome_magmatic_caves): su | 170759, => 170886, ;; 14817, => 14828, ;; 93, => 92, ;; 227, => 228,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 61. CHG PASS biomes library magnolia_woodland (selftest_biome_magnolia_woodlan | 3636, => 3635, ;; 938, => 951, ;; 630, => 629, ;; 302 => 292
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 62. CHG PASS biomes library maple_woodland (selftest_biome_maple_woodland): su | 842, => 895, ;; 842, => 895, ;; 842, => 895, ;; 354, => 349, ;; 2058, => 2080, ;; 1531, => 1533, ;; 16, => 17,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 63. CHG PASS biomes library mineral_strata (selftest_biome_mineral_strata): su | 159426, => 159540, ;; 196343, => 196344, ;; 202762, => 202247, ;; 203971, => 204359, ;; 188934, => 188970, ;; 159426, =
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 64. CHG PASS biomes library moonlight_grove (selftest_biome_moonlight_grove):  | 435, => 424, ;; 214, => 216,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 65. CHG PASS biomes library neon_oasis (selftest_biome_neon_oasis): surface | 167, => 166, ;; 111, => 115, ;; 189, => 194, ;; 94, => 95, ;; 57, => 61, ;; 2911, => 2952, ;; 2911 => 2952 ;; 31.6% => 32.
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 66. CHG PASS biomes library nether_grasslands (selftest_biome_nether_grassland | 400, => 417, ;; 2643, => 2671,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 67. CHG PASS biomes library nether_jungle (selftest_biome_nether_jungle): surf | 603, => 600, ;; 345, => 343, ;; 62 => 63
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 68. CHG PASS biomes library orchid_marsh (selftest_biome_orchid_marsh): surfac | 6933/7018 => 6778/6859 ;; {grass_block=6933}); => {grass_block=6778}); ;; 641, => 701, ;; 694, => 761, ;; 1132, => 1119
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 69. CHG PASS biomes library painted_mountains (selftest_biome_painted_mountain | 144753, => 144767, ;; 132992, => 133009, ;; 65003, => 65026, ;; 144753, => 144767, ;; 132992, => 133009, ;; 144753, => 
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 70. CHG PASS biomes library parched_forest (selftest_biome_parched_forest): su | 332, => 339,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 71. CHG PASS biomes library prairie (selftest_biome_prairie): surface | 2570, => 2624, ;; 332, => 339, ;; 138, => 140,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 72. CHG PASS biomes library pumpkin_fields (selftest_biome_pumpkin_fields): su | 247, => 246, ;; 669 => 666
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 73. CHG PASS biomes library quartz_flats (selftest_biome_quartz_flats): surfac | 4313/6180 => 4311/6179 ;; {glowstone=442, => {glowstone=443, ;; quartz_block=4313, => quartz_block=4311, ;; 1715, => 17
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 74. CHG PASS biomes library redstone_abyss (selftest_biome_redstone_abyss): su | 142060, => 142019, ;; 24618, => 24626, ;; 142060 => 142019
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 75. CHG PASS biomes library redwood_grove (selftest_biome_redwood_grove): surf | 6890/8957 => 6897/8957 ;; (76.9%, => (77.0%, ;; moss_block=1503, => moss_block=1496, ;; podzol=6890}); => podzol=6897})
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 76. CHG PASS biomes library rock_pools (selftest_biome_rock_pools): surface | 11 => 13
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 77. CHG PASS biomes library root_hollows (selftest_biome_root_hollows): surfac | 25403, => 25348, ;; 87, => 93, ;; 2290, => 2328, ;; 2290, => 2328, ;; 25403, => 25348, ;; 1643 => 1700
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 78. CHG PASS biomes library salt_caves (selftest_biome_salt_caves): surface | 15599, => 15516, ;; 8444, => 8305, ;; 8444, => 8305, ;; 8444, => 8305, ;; 15599 => 15516
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 79. CHG PASS biomes library sculk_depths (selftest_biome_sculk_depths): surfac | 900, => 908,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 80. CHG PASS biomes library sculk_spread (selftest_biome_sculk_spread): surfac | 6, => 7, ;; 2442, => 2384, ;; 24 => 28
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 81. CHG PASS biomes library sky_highlands (selftest_biome_sky_highlands): surf | 185 => 182
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 82. CHG PASS biomes library sugi_forest (selftest_biome_sugi_forest): surface | 240, => 241,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 83. CHG PASS biomes library temperate_rainforest (selftest_biome_temperate_rai | {grass_block=426, => {grass_block=427, ;; 794, => 802, ;; 794, => 802, ;; 25, => 16,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 84. CHG PASS biomes library umbral_wastes (selftest_biome_umbral_wastes): surf | 6492/9216 => 6538/9216 ;; (70.4%, => (70.9%, ;; {blackstone=6492, crying_obsidian=589, => {blackstone=6538, crying_obsi
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 85. CHG PASS biomes library umbrella_jungle (selftest_biome_umbrella_jungle):  | 1151, => 1135, ;; 1647, => 1644, ;; 512 => 517
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 86. CHG PASS biomes library upside_down_forest (selftest_biome_upside_down_for | 965, => 968, ;; 2310, => 2397, ;; 1822 => 1715
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 87. CHG PASS biomes library wisteria_grove (selftest_biome_wisteria_grove): su | 520, => 531, ;; 616, => 602, ;; 288, => 289,
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 88. CHG PASS biomes library withered_forest (selftest_biome_withered_forest):  | 3763/5349 => 3765/5349 ;; (70.3%, => (70.4%, ;; {coarse_dirt=83, => {coarse_dirt=81, ;; soul_soil=3763}); => soul_soil=
+  - biome library fixture (seed 3): surface/feature counts move by a few blocks because its features and carvers now take the fixture's own seed in every reader (RB-37), not the level-seed; every fraction stays over its threshold. Seed decoration only.
+- 89. CHG PASS structures overworld noise placement: groups | {deco=166, dungeons=23, landmarks=23, maritime=30, settlemen => {deco=161, dungeons=27, landmarks=21, maritime=26, settlemen ;; 644 => 787
+  - overworld structure groups and build time: the overworld's structure-placement seed is now its own (seeds row PASS: structure state, structure check), so group counts per sampled area move; 9 sets kept, 0 dropped as before. Seed terrain only; build ms is timing.
+- 90. CHG PASS render accuracy overworld (overworld): 50 | 20261022, => 4705305050088502262, ;; 42, => 28, ;; {added=7, flooded=1} => {added=14, filled=7, removed=1}
+  - render accuracy/centred/other-seed rows name the level's seed and measure its terrain: base worlds now report their own seeds; mismatch classes change with terrain, all explained, PASS. Seed terrain only.
+- 91. CHG PASS render accuracy nether (the_nether): 50 | 20261022, => -6876984017876508741, ;; 22, => 27, ;; {added=9, added+removed=2, filled=4, filled+removed=2, flood => {added=5, added+removed=1, fi
+  - render accuracy/centred/other-seed rows name the level's seed and measure its terrain: base worlds now report their own seeds; mismatch classes change with terrain, all explained, PASS. Seed terrain only.
+- 92. CHG PASS render accuracy end (the_end): 50 | 20261022, => -1727347169663540530,
+  - render accuracy/centred/other-seed rows name the level's seed and measure its terrain: base worlds now report their own seeds; mismatch classes change with terrain, all explained, PASS. Seed terrain only.
+- 93. CHG PASS render accuracy floating islands (the_aviary): | 20261022, => 7826077224469180302, ;; 26, => 46, ;; {added=24} => {added=1, removed=3}
+  - render accuracy/centred/other-seed rows name the level's seed and measure its terrain: base worlds now report their own seeds; mismatch classes change with terrain, all explained, PASS. Seed terrain only.
+- 94. CHG PASS render centred: grid centre 3000,-1200, | 20261022-r64-at3000_-1200.json; => 4705305050088502262-r64-at3000_-1200.json; ;; 20261022 => 4705305050088502262 ;; 20261022 => 47053050500885022
+  - render accuracy/centred/other-seed rows name the level's seed and measure its terrain: base worlds now report their own seeds; mismatch classes change with terrain, all explained, PASS. Seed terrain only.
+- 95. CHG PASS render performance: radius 1024 step | 12452 => 10357 ;; (12520 => (10412 ;; 5263 => 6327 ;; 250 => 208 ;; 12.5 => 10.4 ;; (19.96 => (19.97 ;; 0.15 => 0.11 ;; 1.5 => 0.3 ;; 1402 => 774 ;;
+  - timings/byte counts (µs per column, ms, columns/s, feed bytes, decay ticks): run-to-run variance and different terrain under the new overworld seed; every bound holds. Not a problem.
+- 96. CHG PASS render under another seed: 20 | 20261022 => 4705305050088502262
+  - render accuracy/centred/other-seed rows name the level's seed and measure its terrain: base worlds now report their own seeds; mismatch classes change with terrain, all explained, PASS. Seed terrain only.
+- 97. CHG PASS survey of a tiny patch: | 196259 => 184038
+  - timings/byte counts (µs per column, ms, columns/s, feed bytes, decay ticks): run-to-run variance and different terrain under the new overworld seed; every bound holds. Not a problem.
+- 98. CHG PASS roll agreement overworld (overworld): 50 | 20261022, => 4705305050088502262, ;; 43, => 27, ;; {added=7} => {added=12, filled=9, filled+flooded=1, removed=1}
+  - roll agreement overworld under its own seed: 27 exact (was 43), mismatches added/filled/removed — all explained classes, 0 unexplained; noise column equal 50/50. The lower exact count is this seed's terrain: more water (filled = ice/surface over water), more trees. Seed terrain only.
+- 99. CHG PASS roll agreement floating islands (the_aviary): | 20261022, => 7826077224469180302, ;; 22, => 41, ;; {added=28} => {added=9}
+  - roll agreement the_aviary under its own seed: 41 exact (was 22), only added=9. Seed terrain only, better agreement.
+- 100. CHG PASS roll structure starts overworld: 9 | 9 => 7 ;; 9 => 7 ;; 9 => 7
+  - roll structure starts: scored and generated starts agree exactly (7/7 overworld, 41/41 nether); the totals are the new seeds' placements. Seed-driven, no problem.
+- 101. CHG PASS roll structure starts the_nether: 83 | 83 => 41 ;; 83 => 41 ;; 83 => 41
+  - roll structure starts: scored and generated starts agree exactly (7/7 overworld, 41/41 nether); the totals are the new seeds' placements. Seed-driven, no problem.
+- 102. CHG PASS roll small the_abyssal_shrine (direct, every | 5745 => 5503 ;; (21453 => (23162
+  - timings/byte counts (µs per column, ms, columns/s, feed bytes, decay ticks): run-to-run variance and different terrain under the new overworld seed; every bound holds. Not a problem.
+- 103. CHG PASS single-use portals decay after their | 287 => 277 ;; 296 => 295 ;; 228 => 219
+  - timings/byte counts (µs per column, ms, columns/s, feed bytes, decay ticks): run-to-run variance and different terrain under the new overworld seed; every bound holds. Not a problem.
+- 104. CHG PASS companion feed stays within its | 473152 => 479330
+  - timings/byte counts (µs per column, ms, columns/s, feed bytes, decay ticks): run-to-run variance and different terrain under the new overworld seed; every bound holds. Not a problem.
+- 105. CHG PASS exits void teleport: fell to | 16, 73, 80 => -32, 72, -32
+  - overworld spawn: the overworld now generates from its own seed, so the resolved spawn moved from 16,73,80 to -32,72/77,-32; the rows measure relative to spawn and pass. Seed terrain only.
+- 106. CHG PASS exit shrine: beacon at 16, | (16.5, 73.0, 80.5) => (-31.5, 72.0, -31.5)
+  - overworld spawn: the overworld now generates from its own seed, so the resolved spawn moved from 16,73,80 to -32,72/77,-32; the rows measure relative to spawn and pass. Seed terrain only.
+- 107. CHG PASS wins exit: summit sent the | 16, 73, 80 => -32, 72, -32
+  - overworld spawn: the overworld now generates from its own seed, so the resolved spawn moved from 16,73,80 to -32,72/77,-32; the rows measure relative to spawn and pass. Seed terrain only.
+- 108. CHG PASS difficulty: the_luminous_caverns's natural spawner makes | 30 => 31 ;; 81 => 77 ;; 9 => 7 ;; 14 => 15
+  - luminous caverns spawn counts (passive 31, lifted 77/7): mob-spawn randomness. Not seed-driven.
+- 109. CHG PASS command list matches the level | 199 => 200 ;; 195 => 196
+  - fixture count: G1 added a self-test fixture (199→200 compiled stems/types, 195→196 lazy, 3 more pack files, new inputs hash; info gains its game-rules line). Not seed-driven; no problem.
+- 110. CHG PASS command info for a base, | (10 => (11 ;; (10 => (11 ;; (10 => (11
+  - fixture count: G1 added a self-test fixture (199→200 compiled stems/types, 195→196 lazy, 3 more pack files, new inputs hash; info gains its game-rules line). Not seed-driven; no problem.
+- 111. CHG PASS command audit finds exactly the | 595 => 603
+  - fixture count: G1 added a self-test fixture (199→200 compiled stems/types, 195→196 lazy, 3 more pack files, new inputs hash; info gains its game-rules line). Not seed-driven; no problem.
+- 112. NEW PASS seed and game rule mixins merged: all eight handlers
+  - new row (G1): seed and game rule mixins.
+- 113. NEW PASS seeds minecraft:overworld: 4705305050088502262 in getSeed, random state, structure state, structure check, biome zoom and the seed command; definition 4705
+  - new rows (G1): per-dimension seeds.
+- 114. NEW PASS seeds minecraft:the_nether: -6876984017876508741 in getSeed, random state, structure state, structure check, biome zoom and the seed command; definition -6
+  - new rows (G1): per-dimension seeds.
+- 115. NEW PASS seeds minecraft:the_end: -1727347169663540530 in getSeed, random state, structure state, structure check, biome zoom and the seed command; definition -1727
+  - new rows (G1): per-dimension seeds.
+- 116. NEW PASS seeds adventure:the_aviary: 7826077224469180302 in getSeed, random state, structure state, structure check, biome zoom and the seed command; definition 782
+  - new rows (G1): per-dimension seeds.
+- 117. NEW FAIL roll agreement nether (the_nether): 50 columns, seed -6876984017876508741, height exact 30, biome exact 50, noise column equal to the level generator's 50,
+  - the failing nether agreement row: see report (structure beard).
+- 118. NEW PASS seeds adventure:selftest_rules: 3 in getSeed, random state, structure state, structure check, biome zoom and the seed command
+  - new rows (G1): per-dimension seeds.
+- 119. NEW PASS game rules differ between two open levels at once: keep_inventory true in selftest_rules, false in the overworld; random_tick_speed 1000, 0, and the store'
+  - new rows (G1): game rules.
+- 120. NEW FAIL keep_inventory acts in the level of the death: in selftest_rules 0 dropped and 4 carried after a respawn in the overworld; in the overworld 0 dropped and 0
+  - the failing rules rows: see report.
+- 121. NEW FAIL block_drops acts per level: a broken dirt block dropped 0 item(s) in selftest_rules and 0 in the overworld
+  - the failing rules rows: see report.
+- 122. NEW PASS random_tick_speed acts per level over ticks: ice under glowstone melted in 2 ticks in selftest_rules and is still ice in the overworld
+  - new rows (G1): game rules.
+- 123. NEW PASS /gamerule stays server-wide and leaves the levels' own values: store 5, nether 5, overworld 0, selftest_rules 1000 ([Game rule random_tick_speed is now set
+  - new rows (G1): game rules.
+- 124. NEW PASS client-held rules follow the level: immediate_respawn, limited_crafting and the debug event 1022 in selftest_rules, 0023 in the overworld
+  - new rows (G1): game rules.
+- 125. NEW PASS advance_weather false keeps selftest_rules's own weather: separate=true, server-wide /weather rain raining=true there and false here, timers [0, 102677, 10
+  - new rows (G1): game rules.
+- 126. NEW PASS the shared weather advances once a tick: its clear timer fell 40 over 40 ticks with 3 skylit levels sharing it (selftest_keep, selftest_wins and the overwo
+  - new rows (G1): game rules.
+- 127. NEW PASS seeds adventure:selftest_end_cluster: 20261025 in getSeed, random state, structure state, structure check, biome zoom and the seed command, gateways shuffl
+  - new rows (G1): per-dimension seeds.
+- 128. NEW PASS command create writes a definition that reads and compiles: seed -1512836187128809183, colour [0B45A2]; exists, bad slug, unknown template refused
+  - command create: a random new seed per run. Not a problem.
+- 129. GONE PASS roll agreement nether (the_nether): 50 columns, seed 20261022, height exact 26, biome exact 50, noise column equal to the level generator's 50, mismatches 
+  - old nether agreement row under 20261022, replaced by 117.
+- 130. GONE PASS command create writes a definition that reads and compiles: seed 3645056077639160820, colour [148B55]; exists, bad slug, unknown template refused
+  - command create: a random new seed per run. Not a problem.
+
+## Summary
+
+Every changed line is one of: the fixture count G1 added (stems 199→200, lazy 195→196); the base worlds' own seeds (overworld 4705305050088502262, nether -6876984017876508741, end -1727347169663540530, aviary 7826077224469180302) moving spawn, terrain, structure and agreement figures; lazy fixtures decorating from their own seed; timings and random spawns. None hides a problem: every bound holds, every agreement mismatch outside the three FAIL rows is an explained class, every noise column equals the level generator's, and structure starts agree exactly. The three FAIL rows are handled in the report.

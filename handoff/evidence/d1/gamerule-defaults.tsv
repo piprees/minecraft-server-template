@@ -1,0 +1,59 @@
+advance_time	bool	UPDATES	true	
+advance_weather	bool	UPDATES	true	
+allow_entering_nether_using_portals	bool	MISC	true	
+block_drops	bool	DROPS	true	
+block_explosion_drop_decay	bool	DROPS	true	
+command_blocks_work	bool	MISC	true	
+command_block_output	bool	CHAT	true	
+drowning_damage	bool	PLAYER	true	
+elytra_movement_check	bool	PLAYER	true	
+ender_pearls_vanish_on_death	bool	PLAYER	true	
+entity_drops	bool	DROPS	true	
+fall_damage	bool	PLAYER	true	
+fire_damage	bool	PLAYER	true	
+fire_spread_radius_around_player	int	UPDATES	128	-1
+forgive_dead_players	bool	MOBS	true	
+freeze_damage	bool	PLAYER	true	
+global_sound_events	bool	MISC	true	
+immediate_respawn	bool	PLAYER	false	
+keep_inventory	bool	PLAYER	false	
+lava_source_conversion	bool	UPDATES	false	
+limited_crafting	bool	PLAYER	false	
+locator_bar	bool	PLAYER	true	
+log_admin_commands	bool	CHAT	true	
+max_block_modifications	int	MISC	32768	1
+max_command_forks	int	MISC	65536	0
+max_command_sequence_length	int	MISC	65536	0
+max_entity_cramming	int	MOBS	24	0
+max_minecart_speed	int	MISC	8	1 1000
+max_snow_accumulation_height	int	UPDATES	1	0 8
+mob_drops	bool	DROPS	true	
+mob_explosion_drop_decay	bool	DROPS	true	
+mob_griefing	bool	MOBS	true	
+natural_health_regeneration	bool	PLAYER	true	
+player_movement_check	bool	PLAYER	true	
+players_nether_portal_creative_delay	int	PLAYER	0	0
+players_nether_portal_default_delay	int	PLAYER	80	0
+players_sleeping_percentage	int	PLAYER	100	0
+projectiles_can_break_blocks	bool	DROPS	true	
+pvp	bool	PLAYER	true	
+raids	bool	MOBS	true	
+random_tick_speed	int	UPDATES	3	0
+reduced_debug_info	bool	MISC	false	
+respawn_radius	int	PLAYER	10	0
+send_command_feedback	bool	CHAT	true	
+show_advancement_messages	bool	CHAT	true	
+show_death_messages	bool	CHAT	true	
+spawner_blocks_work	bool	MISC	true	
+spawn_mobs	bool	SPAWNING	true	
+spawn_monsters	bool	SPAWNING	true	
+spawn_patrols	bool	SPAWNING	true	
+spawn_phantoms	bool	SPAWNING	true	
+spawn_wandering_traders	bool	SPAWNING	true	
+spawn_wardens	bool	SPAWNING	true	
+spectators_generate_chunks	bool	PLAYER	true	
+spread_vines	bool	UPDATES	true	
+tnt_explodes	bool	MISC	true	
+tnt_explosion_drop_decay	bool	DROPS	false	
+universal_anger	bool	MOBS	false	
+water_source_conversion	bool	UPDATES	true	
