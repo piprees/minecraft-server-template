@@ -73,17 +73,17 @@
                                       "points": [
                                         {
                                           "derivative": 0.0,
-                                          "location": 140.0,
+                                          "location": 220.0,
                                           "value": -1.0
                                         },
                                         {
                                           "derivative": 0.0,
-                                          "location": 300.0,
+                                          "location": 360.0,
                                           "value": 1.0
                                         },
                                         {
                                           "derivative": 0.0,
-                                          "location": 460.0,
+                                          "location": 500.0,
                                           "value": -1.0
                                         }
                                       ]
@@ -239,17 +239,17 @@
                                     "points": [
                                       {
                                         "derivative": 0.0,
-                                        "location": 140.0,
+                                        "location": 220.0,
                                         "value": -1.0
                                       },
                                       {
                                         "derivative": 0.0,
-                                        "location": 300.0,
+                                        "location": 360.0,
                                         "value": 1.0
                                       },
                                       {
                                         "derivative": 0.0,
-                                        "location": 460.0,
+                                        "location": 500.0,
                                         "value": -1.0
                                       }
                                     ]

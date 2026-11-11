@@ -1,0 +1,1112 @@
+{
+  "input": {
+    "input": {
+      "noise": "adventure:places/the_nether/arrangement",
+      "type": "minecraft:noise",
+      "xz_scale": 0.0,
+      "y_scale": 0.0
+    },
+    "max_exclusive": -0.184810192,
+    "min_inclusive": -1000000.0,
+    "type": "minecraft:range_choice",
+    "when_in_range": {
+      "left": {
+        "left": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/the_nether/p",
+                              "right": 0.4605159,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/the_nether/q",
+                              "right": 0.504291494,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.0,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.3870712,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/the_nether/p",
+                                "right": 0.486918942,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/the_nether/q",
+                                "right": -0.519590081,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.0648798441,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.3870712,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": 1.0,
+                "type": "minecraft:add"
+              },
+              "type": "minecraft:min"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/the_nether/p",
+                              "right": -0.47654698,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/the_nether/q",
+                              "right": -0.687301493,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.176375483,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.3870712,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 2.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/the_nether/p",
+                            "right": -0.342205576,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/the_nether/q",
+                            "right": 0.183324091,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.14837369,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.3870712,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 3.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        },
+        "right": {
+          "left": {
+            "left": {
+              "input": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": "adventure:places/the_nether/p",
+                          "right": -0.633104295,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "right": {
+                        "input": {
+                          "left": "adventure:places/the_nether/q",
+                          "right": 0.753448478,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "type": "minecraft:add"
+                    },
+                    "right": 0.262071163,
+                    "type": "minecraft:add"
+                  },
+                  "max": 21.3870712,
+                  "min": 0.0,
+                  "type": "minecraft:clamp"
+                },
+                "right": 32768.0,
+                "type": "minecraft:mul"
+              },
+              "type": "minecraft:floor"
+            },
+            "right": 16.0,
+            "type": "minecraft:mul"
+          },
+          "right": 4.0,
+          "type": "minecraft:add"
+        },
+        "type": "minecraft:min"
+      },
+      "right": {
+        "left": {
+          "left": {
+            "input": {
+              "left": {
+                "input": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": "adventure:places/the_nether/p",
+                        "right": -0.804010654,
+                        "type": "minecraft:add"
+                      },
+                      "type": "minecraft:square"
+                    },
+                    "right": {
+                      "input": {
+                        "left": "adventure:places/the_nether/q",
+                        "right": -0.138287775,
+                        "type": "minecraft:add"
+                      },
+                      "type": "minecraft:square"
+                    },
+                    "type": "minecraft:add"
+                  },
+                  "right": 0.206919782,
+                  "type": "minecraft:add"
+                },
+                "max": 21.3870712,
+                "min": 0.0,
+                "type": "minecraft:clamp"
+              },
+              "right": 32768.0,
+              "type": "minecraft:mul"
+            },
+            "type": "minecraft:floor"
+          },
+          "right": 16.0,
+          "type": "minecraft:mul"
+        },
+        "right": 5.0,
+        "type": "minecraft:add"
+      },
+      "type": "minecraft:min"
+    },
+    "when_out_of_range": {
+      "input": {
+        "noise": "adventure:places/the_nether/arrangement",
+        "type": "minecraft:noise",
+        "xz_scale": 0.0,
+        "y_scale": 0.0
+      },
+      "max_exclusive": 0.0,
+      "min_inclusive": -0.184810192,
+      "type": "minecraft:range_choice",
+      "when_in_range": {
+        "left": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/the_nether/p",
+                                "right": 0.461160347,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/the_nether/q",
+                                "right": 0.503979308,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.0,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.4267378,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "left": "adventure:places/the_nether/p",
+                                  "right": 0.478106061,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "right": {
+                                "input": {
+                                  "left": "adventure:places/the_nether/q",
+                                  "right": -0.542104316,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "type": "minecraft:add"
+                            },
+                            "right": 0.0536297541,
+                            "type": "minecraft:add"
+                          },
+                          "max": 21.4267378,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "right": 32768.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:floor"
+                    },
+                    "right": 16.0,
+                    "type": "minecraft:mul"
+                  },
+                  "right": 1.0,
+                  "type": "minecraft:add"
+                },
+                "type": "minecraft:min"
+              },
+              "right": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/the_nether/p",
+                                "right": -0.274554853,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/the_nether/q",
+                                "right": -5.92910314E-4,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.144213469,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.4267378,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": 2.0,
+                "type": "minecraft:add"
+              },
+              "type": "minecraft:min"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/the_nether/p",
+                              "right": -0.590075732,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/the_nether/q",
+                              "right": -0.660803533,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.204917267,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.4267378,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 3.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/the_nether/p",
+                            "right": -0.786523164,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/the_nether/q",
+                            "right": 0.30203031,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.203205733,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.4267378,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 4.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        },
+        "right": {
+          "left": {
+            "left": {
+              "input": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": "adventure:places/the_nether/p",
+                          "right": -0.50927961,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "right": {
+                        "input": {
+                          "left": "adventure:places/the_nether/q",
+                          "right": 0.808379054,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "type": "minecraft:add"
+                    },
+                    "right": 0.301737768,
+                    "type": "minecraft:add"
+                  },
+                  "max": 21.4267378,
+                  "min": 0.0,
+                  "type": "minecraft:clamp"
+                },
+                "right": 32768.0,
+                "type": "minecraft:mul"
+              },
+              "type": "minecraft:floor"
+            },
+            "right": 16.0,
+            "type": "minecraft:mul"
+          },
+          "right": 5.0,
+          "type": "minecraft:add"
+        },
+        "type": "minecraft:min"
+      },
+      "when_out_of_range": {
+        "input": {
+          "noise": "adventure:places/the_nether/arrangement",
+          "type": "minecraft:noise",
+          "xz_scale": 0.0,
+          "y_scale": 0.0
+        },
+        "max_exclusive": 0.184810192,
+        "min_inclusive": 0.0,
+        "type": "minecraft:range_choice",
+        "when_in_range": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "left": "adventure:places/the_nether/p",
+                                  "right": 0.547416142,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "right": {
+                                "input": {
+                                  "left": "adventure:places/the_nether/q",
+                                  "right": 0.385765019,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "type": "minecraft:add"
+                            },
+                            "right": 0.0278337245,
+                            "type": "minecraft:add"
+                          },
+                          "max": 21.4317527,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "right": 32768.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:floor"
+                    },
+                    "right": 16.0,
+                    "type": "minecraft:mul"
+                  },
+                  "right": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "input": {
+                              "left": {
+                                "left": {
+                                  "input": {
+                                    "left": "adventure:places/the_nether/p",
+                                    "right": -0.441862976,
+                                    "type": "minecraft:add"
+                                  },
+                                  "type": "minecraft:square"
+                                },
+                                "right": {
+                                  "input": {
+                                    "left": "adventure:places/the_nether/q",
+                                    "right": 0.550812884,
+                                    "type": "minecraft:add"
+                                  },
+                                  "type": "minecraft:square"
+                                },
+                                "type": "minecraft:add"
+                              },
+                              "right": 0.0,
+                              "type": "minecraft:add"
+                            },
+                            "max": 21.4317527,
+                            "min": 0.0,
+                            "type": "minecraft:clamp"
+                          },
+                          "right": 32768.0,
+                          "type": "minecraft:mul"
+                        },
+                        "type": "minecraft:floor"
+                      },
+                      "right": 16.0,
+                      "type": "minecraft:mul"
+                    },
+                    "right": 1.0,
+                    "type": "minecraft:add"
+                  },
+                  "type": "minecraft:min"
+                },
+                "right": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "left": "adventure:places/the_nether/p",
+                                  "right": -0.583759491,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "right": {
+                                "input": {
+                                  "left": "adventure:places/the_nether/q",
+                                  "right": -0.232104772,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "type": "minecraft:add"
+                            },
+                            "right": 0.127775907,
+                            "type": "minecraft:add"
+                          },
+                          "max": 21.4317527,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "right": 32768.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:floor"
+                    },
+                    "right": 16.0,
+                    "type": "minecraft:mul"
+                  },
+                  "right": 2.0,
+                  "type": "minecraft:add"
+                },
+                "type": "minecraft:min"
+              },
+              "right": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/the_nether/p",
+                                "right": 0.228175147,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/the_nether/q",
+                                "right": -0.539094383,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.205675079,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.4317527,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": 3.0,
+                "type": "minecraft:add"
+              },
+              "type": "minecraft:min"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/the_nether/p",
+                              "right": -0.511562083,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/the_nether/q",
+                              "right": -0.791105912,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.180247002,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.4317527,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 4.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/the_nether/p",
+                            "right": 0.789482565,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/the_nether/q",
+                            "right": -0.650096193,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.306752702,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.4317527,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 5.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        },
+        "when_out_of_range": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "left": "adventure:places/the_nether/p",
+                                  "right": 0.605544871,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "right": {
+                                "input": {
+                                  "left": "adventure:places/the_nether/q",
+                                  "right": 0.289160449,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "type": "minecraft:add"
+                            },
+                            "right": 0.0,
+                            "type": "minecraft:add"
+                          },
+                          "max": 21.5510137,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "right": 32768.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:floor"
+                    },
+                    "right": 16.0,
+                    "type": "minecraft:mul"
+                  },
+                  "right": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "input": {
+                              "left": {
+                                "left": {
+                                  "input": {
+                                    "left": "adventure:places/the_nether/p",
+                                    "right": -0.158887,
+                                    "type": "minecraft:add"
+                                  },
+                                  "type": "minecraft:square"
+                                },
+                                "right": {
+                                  "input": {
+                                    "left": "adventure:places/the_nether/q",
+                                    "right": 0.345560819,
+                                    "type": "minecraft:add"
+                                  },
+                                  "type": "minecraft:square"
+                                },
+                                "type": "minecraft:add"
+                              },
+                              "right": 0.0182955087,
+                              "type": "minecraft:add"
+                            },
+                            "max": 21.5510137,
+                            "min": 0.0,
+                            "type": "minecraft:clamp"
+                          },
+                          "right": 32768.0,
+                          "type": "minecraft:mul"
+                        },
+                        "type": "minecraft:floor"
+                      },
+                      "right": 16.0,
+                      "type": "minecraft:mul"
+                    },
+                    "right": 1.0,
+                    "type": "minecraft:add"
+                  },
+                  "type": "minecraft:min"
+                },
+                "right": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "left": "adventure:places/the_nether/p",
+                                  "right": -0.769137639,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "right": {
+                                "input": {
+                                  "left": "adventure:places/the_nether/q",
+                                  "right": 0.356627548,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "type": "minecraft:add"
+                            },
+                            "right": 0.106414839,
+                            "type": "minecraft:add"
+                          },
+                          "max": 21.5510137,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "right": 32768.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:floor"
+                    },
+                    "right": 16.0,
+                    "type": "minecraft:mul"
+                  },
+                  "right": 2.0,
+                  "type": "minecraft:add"
+                },
+                "type": "minecraft:min"
+              },
+              "right": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/the_nether/p",
+                                "right": -0.582323551,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/the_nether/q",
+                                "right": -0.648572636,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.325945479,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.5510137,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": 3.0,
+                "type": "minecraft:add"
+              },
+              "type": "minecraft:min"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/the_nether/p",
+                              "right": 0.151738784,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/the_nether/q",
+                              "right": -0.673964257,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.406751857,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.5510137,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 4.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/the_nether/p",
+                            "right": 0.735099754,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/the_nether/q",
+                            "right": -0.709286709,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.426013673,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.5510137,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 5.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        }
+      }
+    }
+  },
+  "type": "minecraft:cache"
+}

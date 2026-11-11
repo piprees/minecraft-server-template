@@ -10,8 +10,8 @@
           {
             "biome": "minecraft:nether_wastes",
             "parameters": {
-              "temperature": [-2.0, 0.0495],
-              "humidity": [-2.0, 0.0566],
+              "temperature": [-2.0, -0.6667],
+              "humidity": [-2.0, 2.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -22,44 +22,8 @@
           {
             "biome": "minecraft:crimson_forest",
             "parameters": {
-              "temperature": [-2.0, 0.0495],
-              "humidity": [0.0566, 2.0],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "adventure:quartz_flats",
-            "parameters": {
-              "temperature": [0.0495, 2.0],
-              "humidity": [-2.0, -0.6667],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:basalt_deltas",
-            "parameters": {
-              "temperature": [0.0495, 2.0],
-              "humidity": [-0.6667, -0.25],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:soul_sand_valley",
-            "parameters": {
-              "temperature": [0.0495, 2.0],
-              "humidity": [-0.25, 0.375],
+              "temperature": [-0.6667, -0.3333],
+              "humidity": [-2.0, 2.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -70,8 +34,44 @@
           {
             "biome": "minecraft:warped_forest",
             "parameters": {
-              "temperature": [0.0495, 2.0],
-              "humidity": [0.375, 2.0],
+              "temperature": [-0.3333, 0.0],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:soul_sand_valley",
+            "parameters": {
+              "temperature": [0.0, 0.3333],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:basalt_deltas",
+            "parameters": {
+              "temperature": [0.3333, 0.6667],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:quartz_flats",
+            "parameters": {
+              "temperature": [0.6667, 2.0],
+              "humidity": [-2.0, 2.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -86,8 +86,9 @@
           "temperature",
           "humidity"
         ],
-        "columns": [0.0495],
-        "radius": 1024
+        "columns": [-0.6667, -0.3333, 0.0, 0.3333, 0.6667],
+        "radius": 1024,
+        "places": true
       }
     },
     "settings": "adventure:the_nether"
