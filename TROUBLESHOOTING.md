@@ -1596,6 +1596,36 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t258"></a>
+### T258 — Under `biomeLayout.places` the first region axis is a place field
+- **Symptom:** a `terrain.climateShift`, or a `climate` box on the place axis, changes nothing; a sky world's survey counts each island as its own land region although the islands are one place.
+- **Cause:** the router's first region axis holds one constant per place (a power diagram over the places' sites), read as it is and never ranked; `scales.climate` stretches only a group's inner mix on the second axis. A place holds its share of the border, not of the land.
+- **Fix:** shape places with `groups`, weights, `arrangement`, `at`, `neighbours`/`apart` and `warp` (at most 0.15 of its wavelength). Judge a sky world by each group's share and `islands.dominantBiomePercent`.
+
+<a id="t257"></a>
+### T257 — `scales.climate` stops at 4, and `terrain.scale` stretches everything with it
+- **Symptom:** a variant with `scales.climate` above 4 fails to boot; raising `terrain.scale` to widen regions also fattens islands and spires.
+- **Cause:** each per-noise scale is capped at 4 and multiplied by `terrain.scale`, which scales every library noise.
+- **Fix:** for larger regions use `biomeLayout.places`, not scale; where `terrain.scale` is raised, compensate `size` and `spireThickness`.
+
+<a id="t256"></a>
+### T256 — A survey's patch shares change with the slug
+- **Symptom:** the same terrain surveyed under two slugs gives one biome 3.9% and 8.2%.
+- **Cause:** the survey's patches are placed from the slug, and a patch sample of a regional biome swings with where the patches fall.
+- **Fix:** judge a biome's share on the coarse border map (`placeness.biomesPercent`), and patches for what the biome looks like.
+
+<a id="t255"></a>
+### T255 — A fixture with no biome list freezes its own water
+- **Symptom:** a self-test line that measures water at a sky terrain's water line reads half ice.
+- **Cause:** without `biomes` a fixture takes the overworld's, and taiga snows at island altitudes.
+- **Fix:** give a fixture that measures liquids a biome that does not freeze there (`minecraft:plains`).
+
+<a id="t254"></a>
+### T254 — The overworld's caves cut a spire at its foot
+- **Symptom:** spires on islands hang over a gap a few blocks tall, or stand on a hollowed foot.
+- **Cause:** a column a shape lifts far above its ground sits as deep in the terrain as rock under a mountain, where the final density's cheese and spaghetti caves carve.
+- **Fix:** seal the lifted body with `Shape.withSolid` from a root under the island top to the crest (`TerrainFamily.spireBody`, `SPIRE_ROOT`), and foot spires on the island's full-thickness interior only.
+
 <a id="t253"></a>
 ### T253 — The landform classifier files a sky island's level ground by its tilt
 - **Symptom:** a `floating_islands` world reads as hills or mountains in the survey whatever its tops look like, and its plains-plus-plateaus share stays low.
