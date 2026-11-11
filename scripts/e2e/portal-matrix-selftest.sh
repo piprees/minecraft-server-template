@@ -678,15 +678,19 @@ RPLAN="$RUN_DIR/resume-plan.json"
 printf '%s' '{"bays":[{"id":"the_a_x","dimension":"adventure:the_a"},{"id":"the_b_x","dimension":"adventure:the_b"},{"id":"the_c_x","dimension":"adventure:the_c"},{"id":"the_c_y","dimension":"adventure:the_c"},{"id":"the_d_x","dimension":"adventure:the_d"}]}' > "$RPLAN"
 RSUM="$RUN_DIR/resume-summary.tsv"
 printf 'bay\tdimension\taxis\tignite\ttravel\treturn\tbreak\trelight\tproximity\trender\tpass\tfail\tvalid\n' > "$RSUM"
-printf 'the_a_x\tadventure:the_a\tX\tok\tok\tok\tok\tok\tok\tskip\t21\t0\tyes\n' >> "$RSUM"
-printf 'the_b_x\tadventure:the_b\tX\tok\tok\tfail\tok\tok\tok\tskip\t13\t6\tinvalid: selftest drowned\n' >> "$RSUM"
-printf 'the_c_x\tadventure:the_c\tX\tok\tok\tok\tok\tok\tok\tskip\t20\t1\tyes\n' >> "$RSUM"
+{
+  printf 'the_a_x\tadventure:the_a\tX\tok\tok\tok\tok\tok\tok\tskip\t21\t0\tyes\n'
+  printf 'the_b_x\tadventure:the_b\tX\tok\tok\tfail\tok\tok\tok\tskip\t13\t6\tinvalid: selftest drowned\n'
+  printf 'the_c_x\tadventure:the_c\tX\tok\tok\tok\tok\tok\tok\tskip\t20\t1\tyes\n'
+} >> "$RSUM"
 expect_rc "resume runs the invalid bay, the unrun bays, and a dimension with one bay left" 0 \
   test "$(resume_slugs "$RPLAN" "$RSUM")" = "the_b,the_c,the_d"
 OSUM="$RUN_DIR/resume-old.tsv"
 printf 'bay\tdimension\taxis\tignite\ttravel\treturn\tbreak\trelight\tproximity\trender\tpass\tfail\n' > "$OSUM"
-printf 'the_a_x\tadventure:the_a\tX\tok\tok\tok\tok\tok\tok\tskip\t21\t0\n' >> "$OSUM"
-printf 'the_b_x\tadventure:the_b\tX\tok\tok\tok\tok\tok\tok\tskip\t20\t1\n' >> "$OSUM"
+{
+  printf 'the_a_x\tadventure:the_a\tX\tok\tok\tok\tok\tok\tok\tskip\t21\t0\n'
+  printf 'the_b_x\tadventure:the_b\tX\tok\tok\tok\tok\tok\tok\tskip\t20\t1\n'
+} >> "$OSUM"
 expect_rc "a summary without the valid column counts only a row that failed nothing" 0 \
   test "$(resume_slugs "$RPLAN" "$OSUM")" = "the_b,the_c,the_d"
 
