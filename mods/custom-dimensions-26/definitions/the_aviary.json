@@ -14,7 +14,13 @@
       "size": 3,
       "coverage": 0.45,
       "thickness": 16,
-      "underside": 80
+      "underside": 80,
+      "spread": 20,
+      "flatness": 0.6,
+      "tiers": 2,
+      "tierSpacing": 64,
+      "tierGap": 20,
+      "tierShrink": 0.6
     },
     "scales": {
       "climate": 4

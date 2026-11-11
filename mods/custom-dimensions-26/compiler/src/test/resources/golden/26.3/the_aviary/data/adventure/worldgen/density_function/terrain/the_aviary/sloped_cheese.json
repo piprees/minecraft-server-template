@@ -40,123 +40,7 @@
       "left": {
         "left": {
           "left": {
-            "left": {
-              "left": {
-                "left": {
-                  "left": {
-                    "noise": "adventure:terrain/altitude",
-                    "shift_x": "minecraft:shift_x",
-                    "shift_z": "minecraft:shift_z",
-                    "type": "minecraft:noise",
-                    "xz_scale": 1.0,
-                    "y_scale": 0.0
-                  },
-                  "right": 218.978102,
-                  "type": "minecraft:mul"
-                },
-                "right": 150.0,
-                "type": "minecraft:add"
-              },
-              "right": {
-                "left": {
-                  "input": {
-                    "input": {
-                      "input": {
-                        "left": {
-                          "left": {
-                            "noise": "adventure:terrain/islands",
-                            "shift_x": "minecraft:shift_x",
-                            "shift_z": "minecraft:shift_z",
-                            "type": "minecraft:noise",
-                            "xz_scale": 0.3333333333333333,
-                            "y_scale": 0.0
-                          },
-                          "right": -0.0368187746,
-                          "type": "minecraft:add"
-                        },
-                        "right": 3.41296928,
-                        "type": "minecraft:mul"
-                      },
-                      "max": 1.0,
-                      "min": 0.0,
-                      "type": "minecraft:clamp"
-                    },
-                    "type": "minecraft:cache"
-                  },
-                  "type": "minecraft:sqrt"
-                },
-                "right": 16.0,
-                "type": "minecraft:mul"
-              },
-              "type": "minecraft:add"
-            },
-            "right": -2.0,
-            "type": "minecraft:add"
-          },
-          "right": {
-            "axis": "y",
-            "from_coordinate": 0,
-            "from_value": 0.0,
-            "to_coordinate": 256,
-            "to_value": -256.0,
-            "type": "minecraft:gradient"
-          },
-          "type": "minecraft:add"
-        },
-        "right": {
-          "left": 0.0,
-          "right": {
-            "left": {
-              "left": {
-                "left": {
-                  "left": {
-                    "left": {
-                      "noise": "adventure:terrain/altitude",
-                      "shift_x": "minecraft:shift_x",
-                      "shift_z": "minecraft:shift_z",
-                      "type": "minecraft:noise",
-                      "xz_scale": 1.0,
-                      "y_scale": 0.0
-                    },
-                    "right": 218.978102,
-                    "type": "minecraft:mul"
-                  },
-                  "right": 150.0,
-                  "type": "minecraft:add"
-                },
-                "right": {
-                  "left": {
-                    "input": {
-                      "input": {
-                        "left": {
-                          "left": {
-                            "noise": "adventure:terrain/islands",
-                            "shift_x": "minecraft:shift_x",
-                            "shift_z": "minecraft:shift_z",
-                            "type": "minecraft:noise",
-                            "xz_scale": 0.3333333333333333,
-                            "y_scale": 0.0
-                          },
-                          "right": -0.0368187746,
-                          "type": "minecraft:add"
-                        },
-                        "right": 3.41296928,
-                        "type": "minecraft:mul"
-                      },
-                      "max": 1.0,
-                      "min": 0.0,
-                      "type": "minecraft:clamp"
-                    },
-                    "type": "minecraft:cache"
-                  },
-                  "right": 80.0,
-                  "type": "minecraft:mul"
-                },
-                "type": "minecraft:sub"
-              },
-              "right": 2.0,
-              "type": "minecraft:add"
-            },
+            "left": "adventure:terrain/the_aviary/tier0_top",
             "right": {
               "axis": "y",
               "from_coordinate": 0,
@@ -167,9 +51,106 @@
             },
             "type": "minecraft:add"
           },
-          "type": "minecraft:sub"
+          "right": {
+            "left": 0.0,
+            "right": {
+              "left": {
+                "left": {
+                  "left": {
+                    "left": {
+                      "left": {
+                        "noise": "adventure:terrain/altitude",
+                        "shift_x": "minecraft:shift_x",
+                        "shift_z": "minecraft:shift_z",
+                        "type": "minecraft:noise",
+                        "xz_scale": 1.0,
+                        "y_scale": 0.0
+                      },
+                      "right": 72.9927007,
+                      "type": "minecraft:mul"
+                    },
+                    "right": 150.0,
+                    "type": "minecraft:add"
+                  },
+                  "right": {
+                    "left": {
+                      "input": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "noise": "adventure:terrain/islands",
+                              "shift_x": "minecraft:shift_x",
+                              "shift_z": "minecraft:shift_z",
+                              "type": "minecraft:noise",
+                              "xz_scale": 0.3333333333333333,
+                              "y_scale": 0.0
+                            },
+                            "right": -0.0368187746,
+                            "type": "minecraft:add"
+                          },
+                          "right": 3.41296928,
+                          "type": "minecraft:mul"
+                        },
+                        "max": 1.0,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "type": "minecraft:cache"
+                    },
+                    "right": 80.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:sub"
+                },
+                "right": 2.0,
+                "type": "minecraft:add"
+              },
+              "right": {
+                "axis": "y",
+                "from_coordinate": 0,
+                "from_value": 0.0,
+                "to_coordinate": 256,
+                "to_value": -256.0,
+                "type": "minecraft:gradient"
+              },
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:sub"
+          },
+          "type": "minecraft:min"
         },
-        "type": "minecraft:min"
+        "right": {
+          "left": {
+            "left": "adventure:terrain/the_aviary/tier1_top",
+            "right": {
+              "axis": "y",
+              "from_coordinate": 0,
+              "from_value": 0.0,
+              "to_coordinate": 256,
+              "to_value": -256.0,
+              "type": "minecraft:gradient"
+            },
+            "type": "minecraft:add"
+          },
+          "right": {
+            "left": 0.0,
+            "right": {
+              "left": "adventure:terrain/the_aviary/tier1_bottom",
+              "right": {
+                "axis": "y",
+                "from_coordinate": 0,
+                "from_value": 0.0,
+                "to_coordinate": 256,
+                "to_value": -256.0,
+                "type": "minecraft:gradient"
+              },
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:sub"
+          },
+          "type": "minecraft:min"
+        },
+        "type": "minecraft:max"
       },
       "right": 0.125,
       "type": "minecraft:mul"
