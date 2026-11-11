@@ -1,0 +1,6 @@
+the_nether: 10/10 pass
+the_nether: 5/5 pass
+FAIL surface.fluidCoverPercent.water between 25-60: 22.1
+FAIL landforms.sharesPercent.plateaus >= 15: 3.6
+the_abyssal_shrine: 8/10 pass
+the_abyssal_shrine: 6/6 pass

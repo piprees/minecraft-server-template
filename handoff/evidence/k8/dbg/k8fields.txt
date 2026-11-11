@@ -1,0 +1,35 @@
+== the_ashgrove	FIELD n=4 r=1024 shares% 12.0 53.7 16.3 17.9
+== the_blackstone_keep	FIELD n=4 r=1024 shares% 55.1 20.1 10.1 14.6
+== the_bloodroot_wastes	FIELD n=4 r=1024 shares% 54.8 20.1 17.2 7.9
+== the_boneyard	FIELD n=4 r=1024 shares% 54.8 20.1 18.1 6.9
+== the_burning_archipelago	FIELD n=4 r=2048 shares% 29.3 15.1 30.6 25.0
+== the_chalk_meadows	FIELD n=4 r=1024 shares% 17.9 24.4 7.4 50.2
+== the_claymarsh	FIELD n=4 r=1024 shares% 21.2 16.2 7.0 55.5
+== the_dripping_pines	FIELD n=4 r=1024 shares% 12.8 24.1 52.0 11.1
+== the_dustbowl	FIELD n=4 r=512 shares% 52.0 28.0 14.9 5.0
+== the_ember_fields	FIELD n=3 r=1024 shares% 55.1 25.1 19.7
+== the_emberglass_foundry	FIELD n=4 r=256 shares% 11.2 16.7 53.0 19.1
+== the_endless_expanse	FIELD n=9 r=2048 shares% 19.0 17.9 10.9 10.5 10.4 8.9 8.7 7.9 5.8
+== the_forged_depths	FIELD n=3 r=683 shares% 20.5 55.2 24.3
+== the_fractured_halls	FIELD n=3 r=2048 shares% 33.5 25.9 40.6
+== the_furnace_halls	FIELD n=5 r=1024 shares% 18.7 26.5 14.0 12.4 28.4
+== the_gilded_pit	FIELD n=4 r=683 shares% 20.5 50.1 20.3 9.0
+== the_greywoods	FIELD n=4 r=1024 shares% 12.1 20.9 54.0 13.0
+== the_lantern_pools	FIELD n=3 r=1024 shares% 31.2 16.4 52.5
+== the_lost_outpost	FIELD n=4 r=512 shares% 19.1 52.2 10.6 18.1
+== the_luminous_caverns	FIELD n=4 r=1024 shares% 14.4 25.7 22.8 37.1
+== the_miredeep	FIELD n=4 r=1024 shares% 7.5 12.1 53.6 26.9
+== the_molten_flats	FIELD n=4 r=1024 shares% 54.9 20.1 15.1 9.9
+== the_obsidian_sanctum	FIELD n=3 r=1024 shares% 52.0 28.3 19.8
+== the_roothold	FIELD n=5 r=1024 shares% 17.3 6.6 51.4 16.8 7.9
+== the_rosebluff	FIELD n=4 r=1024 shares% 34.6 17.6 6.1 41.7
+== the_ruined_timberland	FIELD n=4 r=1024 shares% 18.1 17.3 12.8 51.8
+== the_sculked_beyond	FIELD n=4 r=512 shares% 18.8 55.6 14.5 11.2
+== the_shattered_skies	FIELD n=5 r=2048 shares% 25.8 20.7 21.3 10.8 21.4
+== the_souldrift	FIELD n=5 r=2048 shares% 28.7 31.5 21.2 7.9 10.6
+== the_soulfields	FIELD n=3 r=2048 shares% 55.1 27.1 17.8
+== the_teal_corruption	FIELD n=5 r=2048 shares% 20.5 50.2 12.0 11.2 6.2
+== the_underdark	FIELD n=3 r=2048 shares% 39.5 39.9 20.6
+== the_wailing_narrows	FIELD n=3 r=683 shares% 11.8 52.0 36.2
+== the_whispering_wilds	FIELD n=5 r=2048 shares% 18.8 21.5 27.9 13.5 18.3
+== the_wuthering_wisteria	FIELD n=3 r=512 shares% 20.5 25.1 54.3

@@ -1,0 +1,64 @@
+## the_nether_k6 w10t
+the_nether: 10/10 pass
+## the_nether_k6 w10c
+the_nether: 5/5 pass
+## the_aviary_k6 w10t
+FAIL landforms.sharesPercent.plateaus + landforms.sharesPercent.plains >= 35: 23.7
+FAIL surface.biomesPercent.adventure:wisteria_grove >= 8: 7.0
+FAIL surface.biomesPercent.adventure:sky_highlands + surface.biomesPercent.adventure:golden_skygrove + surface.biomesPercent.minecraft:forest + surface.biomesPercent.minecraft:flower_forest + surface.biomesPercent.minecr
+FAIL placeness.landBiomeRegions.top3Percent >= 60: 29.4
+the_aviary: 5/9 pass
+## the_aviary_k6 w10c
+FAIL placeness.islands.dominantBiomePercent >= 55: 30.0
+the_aviary: 6/7 pass
+## the_violet_spire_k6 w10t
+FAIL surface.biomesPercent.adventure:wisteria_grove + surface.biomesPercent.adventure:lavender_fields >= 25: 14.9
+FAIL terrain.slopes.cliffPercent >= 15: 7.1
+FAIL placeness.landBiomeRegions.top3Percent >= 60: 57.4
+FAIL placeness.landBiomeRegions.major <= 8: 12.0
+FAIL placeness.landBiomeRegions.specksPercent <= 5: 7.4
+the_violet_spire: 5/10 pass
+## the_violet_spire_k6 w10c
+FAIL surface.biomesPercent.adventure:wisteria_grove + surface.biomesPercent.adventure:lavender_fields >= 0.4: 0.33 (per vertical.layerColumnsPercent.surface)
+FAIL placeness.landBiomeRegions.top3Percent >= 60: 57.4
+FAIL placeness.landBiomeRegions.major <= 8: 12.0
+FAIL placeness.landBiomeRegions.specksPercent <= 5: 7.4
+FAIL placeness.islands.dominantBiomePercent >= 60: 57.5
+the_violet_spire: 2/7 pass
+## the_sunken_temple_k6 w10t
+FAIL placeness.landBiomeRegions.top3Percent >= 60: 22.0
+FAIL placeness.landBiomeRegions.major <= 8: 15.0
+FAIL placeness.landBiomeRegions.specksPercent <= 5: 10.5
+the_sunken_temple: 7/10 pass
+## the_sunken_temple_k6 w10c
+FAIL placeness.landBiomeRegions.top3Percent >= 60: 22.0
+FAIL placeness.landBiomeRegions.specksPercent <= 5: 10.5
+the_sunken_temple: 4/6 pass
+## overworld_k6 w10t
+FAIL surface.fluidCoverPercent.water <= 40: 40.9
+FAIL placeness.landBiomeRegions.specksPercent <= 5: 7.3
+overworld: 7/9 pass
+## overworld_k6 w10c
+FAIL placeness.landBiomeRegions.specksPercent <= 5: 7.3
+overworld: 3/4 pass
+## the_abyssal_shrine_a w10t
+FAIL landforms.sharesPercent.plateaus >= 15: 3.6
+the_abyssal_shrine: 9/10 pass
+## the_abyssal_shrine_a w10c
+the_abyssal_shrine: 6/6 pass
+## the_abyssal_shrine_b w10t
+FAIL surface.fluidCoverPercent.water between 25-60: 24.4
+FAIL landforms.sharesPercent.plateaus >= 15: 3.8
+the_abyssal_shrine: 8/10 pass
+## the_abyssal_shrine_b w10c
+the_abyssal_shrine: 6/6 pass
+## the_abyssal_shrine_c w10t
+FAIL landforms.sharesPercent.plateaus >= 15: 2.8
+the_abyssal_shrine: 9/10 pass
+## the_abyssal_shrine_c w10c
+the_abyssal_shrine: 6/6 pass
+## the_abyssal_shrine_d w10t
+FAIL landforms.sharesPercent.plateaus >= 15: 3.8
+the_abyssal_shrine: 9/10 pass
+## the_abyssal_shrine_d w10c
+the_abyssal_shrine: 6/6 pass
