@@ -1,43 +1,42 @@
 # Docs verification
 
-What was checked for every file in `files/` and for `checklist.md`, `p7-proposal.md`, `p8-pregen.md` and `p9-archive.md`, and how.
+What was checked for every file in `files/` and for the kit's own notes, and how. The claim table (file, line, claim, what it was checked against, verdict) is `claims.tsv` in the evidence (`/tmp/claude-0/d1/`).
 
 ## Paths
 
-Every markdown link and every backticked repository path in the replacement docs was resolved against the rehearsal tree (a clone of the branch after `apply.sh`, `/tmp/claude-0/p10a/rehearsal`), by script (`docs-check.txt` in the evidence):
+Every markdown link and every backticked repository path in the replacement docs was resolved against a rehearsal tree (a clone of the branch after `apply.sh`), by script (`paths.txt` in the evidence). A path the switch deletes, quoted as what 1.21.1 does, is read from the branch instead.
 
-| File | Paths checked | Missing |
-| --- | ---: | --- |
-| `AGENTS.md` | 42 | none |
-| `mods/AGENTS.md` | 14 | none (`custom-dimensions-client-26/scripts/rig.sh` is relative to `mods/`) |
-| `custom-dimension-authoring/SKILL.md` | 11 | none |
-| `worldgen-tuning/SKILL.md` | 9 | none |
-| `dimension-lifecycle-operations/SKILL.md` | 3 | none |
-| `fabric-mod-development/SKILL.md` | 11 | none |
-| `checklist.md` | 6 | none after the fix (`cutover/apply.sh` lives outside the repo) |
-| `p7-proposal.md` | 9 | the ten "today" paths it quotes exist before the switch (read from the branch) and are deleted by it; `config/slashloot.json` is a proposal |
+## Fields, commands and flags (read in the branch)
 
-## Fields, commands and flags (grepped in the branch)
-
-- Definition fields: the top-level `properties` of `mods/custom-dimensions-26/schema/definition.schema.json` and each one's sub-properties, printed by script; `roll.family` is `false` in the schema, so the skill leaves it out. `structures.density` enum: `dense`, `normal`, `sparse`, `none`. `terrain.layout.type`: `radial`, `ring`, `linear`, `none`.
-- Terrain library names and parameters: `docs/design/rebuild-26/worldgen.md` § Terrain library.
-- `/customdim` subcommands (`list`, `info`, `tp`, `activate`, `unload`, `delete`, `create`, `audit`, `catalogue`, `render`, `roll`, `pick`): the mod README's Commands table; `survey`: `server/.../command/SurveyCommand.java` (`literal("survey")`, `patches`, `size`).
-- Self-test sections: every `-PselfTestOnly=` value in the mod README (`biomes commands exits firewall materials mixins render roll rollperf structures terrain zones`). `-PselfTestPersist`, `-Pdefinitions`, `-Pbridges`, `-PterrainGallery`, `-PmeasureStructures`: `server/build.gradle` lines 80–108.
-- Mixin config: `server/src/main/resources/customdimensions.mixins.json` (10 mixins, `defaultRequire: 1`, `JAVA_25`).
-- Jar name: `server/build/libs/customdimensions-0.1.0.jar`; `local-mods.sh` passes `-Pmod_version` (line 118) and `verify` checks classes and refmap (lines 136–152).
-- Workflows: `mod26.yml`, `mod26-canary.yml`, `smoke-test-26.yml`, `release.yml` (calls `smoke-test.yml`), `dep-review.yml` (`join26`).
-- Scripts and ops: `./ops backup|chunky|doctor|map|rcon|reset-seed|ssh|stats` in `examples/consumer/commands.json`; `idle-tasks.sh` markers `.chunky-<id>-complete`, `.dhpregen-<id>-complete`; the `.skip-pause` aggregate and owner files in `deploy.sh` lines 110–121; `reset-seed.sh`'s cold tar under `backups/`; `./dev reset-world` in `examples/consumer/dev`.
-- P7 keys: Starter Kit 26.3.0-9.0 `ConfigHandler` strings; slashloot 0.5.2 `SlashLootConfig` strings and its `slashloot.json` file name; Armored Elytra 1.16.0 and Inventory Totem 26.3.0-3.6 jars listed entry by entry (no config); behaviour from each project's Modrinth page (`api.modrinth.com/v2/project/<id>`). Jars from the pins' version ids in `config/modrinth-mods-26.3.txt`.
-- Game rules: `scripts/deploy.sh` lines 234–247 and 416–420, `scripts/game-rules.tsv`, `config/boring_default_game_rules/config.json`.
+- Definition fields: the top-level `properties` of `mods/custom-dimensions-26/schema/definition.schema.json` and each one's sub-properties and enums, by script. `terrain.base`: fourteen library terrains, `roofed` the only one on `caves` and `nether`, `end` the only one on `end` (`TerrainLibrary`); `CLIMATE_ONLY` is `nether`, `caves`, `end`. `liquids.aquifers`: `on`, `off`, `dry`, `flooded`. `roll.family`, `spawnRadius`, `locateCap` and `allowEndgameNearSpawn` are `false` in the schema. `crust` is a parameter of `continents` and `islands`. `atmosphere.dayLength` is 1–600 minutes each (`Atmosphere.DayLength`), 45 and 15 in `settings.json`'s defaults.
+- `/customdim` subcommands: every `literal(…)` attached in `server/.../command/` (`list`, `info`, `tp`, `activate`, `unload`, `delete`, `create`, `audit`, `catalogue`, `render`, `roll`, `pick`, `survey`, and `e2e-state` and `use` under `-Dcustomdimensions.e2e=true`); `survey` defaults and limits from `SurveyPlan` (24 patches of 3, at most 96 of 8).
+- Self-test sections: `SelfTest.java`'s `-Dcustomdimensions.selftest.only` values (`exits`, `commands`, `materials`, `biomes`, `render`, `firewall`, `terrain`, `zones`, `structures`, `roll`, `rollperf`, `generators`, `difficulty`, `survey`, `seeds`, `gamerules`, `mixins`). Gradle properties: every `hasProperty`/`findProperty` in the mod's and the companion's `build.gradle` files.
+- Mixins: `server/src/main/resources/customdimensions.mixins.json`, 17 entries, `defaultRequire: 1`, `JAVA_25`; each named by `MixinSelfTest`, `LevelSeedSelfTest`, `StructureSelfTest` or `ZoneSelfTest`.
+- Jar name `server/build/libs/customdimensions-<version>.jar` (`archivesName`); `local-mods.sh` passes `-Pmod_version` and `verify` gates classes and the refmap column.
+- The consumer overlay route: `files/scripts/stage-dimensions.py`'s header and its forms.
+- Game rules: `mc_game_rules` in `files/scripts/lib.sh` (twelve and `logAdminCommands`), `restore_game_rules` in `files/scripts/deploy.sh`, the block in `files/scripts/dev-up.sh`, `scripts/game-rules.tsv`; per dimension, `GameRuleValues` (`advance_time` alone refused) and RB-38. The 26.3 rule ids and bounds from the 26.3 server jar's `reports/commands.json`, defaults from its `GameRules` static initialiser (`gamerule-defaults.tsv`).
+- T, D, K and RB ids cited in the docs against `TROUBLESHOOTING.md` and `decisions.md` (RB-01 to RB-38, each once).
 
 ## Behaviour (run, not read)
 
-- `apply.sh` on a fresh clone of the branch with the kit committed, run from the clone's own `cutover/`: exit 0, no drift, `cutover/` gone afterwards.
-- After it: `./scripts/test-scripts.sh --quick` exits 0 (Docker replaced by a shim that passes only `docker compose … config`, ShellCheck from `/tmp/claude-0/sc`, yamllint installed); `python3 -m pytest -q scripts/tests mods/custom-dimensions-client-26/scripts` all green; `./gradlew build` in `mods/custom-dimensions-26` (core, compiler and server tests) and in `mods/custom-dimensions-client-26` green.
-- Not run: the self-test, the smoke test, the rig and any server (`checklist.md` § Before 3, 5, 6).
+- `apply.sh --dry-run` on a clean clone of the branch: no `!` line.
+- `apply.sh` on a clean clone, run from the clone's own `cutover/`: exit 0, `cutover/` gone afterwards; the rehearsal tree for the path check.
+
+## Measured in a server (V2's results)
+
+- The starter kit's bundle lines: `/starterkit set` on 26.3 writes P7's line with its keys in another order (`not-automated.md` § Judgement calls).
+- Chunky and lazy levels: an unload waits on Chunky's tickets and fails after 2,400 ticks; Chunky completes and the level closes after (`p8-pregen.md`).
+- Game rules on lazy levels: one server-wide store, which a dimension's own `gameRules` overrides (`migration-notes.md` step 13).
 
 ## Not verified
 
-- The 26.3 SNBT of the starter kit's bundle lines (`config/starterkit/kits/Default.txt` slots 10 and 12; verify with `/starterkit set` in game).
-- Whether Chunky's tickets keep a lazy level open (`p8-pregen.md` says to confirm in the rehearsal).
-- Whether lazy levels follow the overworld's game rules (`p7-proposal.md` § 1).
+Each needs a server or a client:
+
+1. Every `-PselfTestOnly` value runs its section alone (`generators`, `difficulty`, `survey`, `seeds` and `gamerules` are read from the code, not run).
+2. A compiled pack holds the day-length files the mod README names (`world_clock/day_length/<day>_<night>.json`, `timeline/day_length/<timeline>_<day>_<night>.json`, in ticks) and the dimension type's `default_clock`.
+3. `customdim survey <slug> 1 1` writes `dossier.json` and `dossier.md` with every key placeness.md lists; `e2e-state` and `use` answer only under `-Dcustomdimensions.e2e=true`.
+4. Each P7 § 6 profile on a scratch definition: `execute in <dim> run gamerule <rule>` answers its value; `advance_weather false` holds that level's weather after `weather clear` there while the overworld's runs; `fire_spread_radius_around_player 0` stops fire spreading there; `spawn_patrols false` and `spawn_wandering_traders false` stop both there.
+5. Sleeping with one day length shared by several dimensions: whether sleeping in one skips the night in all (P7 § 6 proposes no sleeping rule until this is known).
+6. The three client-held rules on a real client (`scripts/e2e/README.md` § On 26.x).
+7. D6 (c2me's density-function compiler) and D9 (`level.dat` growth) on 26.3 (`troubleshooting-retire.md`).
+8. The rig's Iris and Distant Horizons variants (`mods/custom-dimensions-client-26/README.md` § Compatibility).

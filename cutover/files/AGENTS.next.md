@@ -71,8 +71,9 @@ Consumer repos can override some via the overlay — understand the consequence 
 they are four dimensions among 82, and every field of a definition applies to
 them as it does to the rest: `seed`, `spawn`, `generator`, `terrain`, `biomes`,
 `biomeLayout`, `liquids`, `materials`, `carvers`, `ores`, `zones`,
-`dimensionType`, `atmosphere`, `rules`, `borders`, `difficulty`, `structures`,
-`portals`, `exits`, `deaths`, `wins`, `roll`. They are rolled, surveyed and
+`dimensionType`, `atmosphere`, `rules`, `gameRules`, `borders`, `difficulty`,
+`structures`, `portals`, `exitPortal`, `exits`, `exitShrines`, `deaths`, `wins`,
+`roll`. They are rolled, surveyed and
 retuned like any other.
 
 Two operational differences: they load at start from the pack and are never
@@ -197,7 +198,7 @@ Rules with their reasons, the semver contract and every playbook: [`DEPENDENCIES
 
 Mod configs live in `config/<modname>/`, or flat `config/<file>` when the mod reads a bare path — verify against the jar (Geyser reads `config/Geyser-Fabric/config.yml`). Every Serilum mod reads `config/serilum/<modid>.json`: Collective moves any other copy there on each boot ([T136](TROUBLESHOOTING.md#t136)). `deploy.sh` step 8 copies them into `data/config/` on every full deploy and `dev-up.sh` does it locally skip-if-exists, both **before mc starts** so no mod writes its own defaults first. Adding a mod with config means two places: the files in `config/<modname>/`, and a `COPY` line in `docker/defaults-seed/Dockerfile` so the seed volume carries the default for the consumer overlay to merge over.
 
-**Game rules** live in one place: the RCON enforcement block in `scripts/deploy.sh` (`restore_game_rules`), which writes each rule's 26.3 id through `mc_game_rule` and `scripts/game-rules.tsv` on every deploy.
+**Game rules** have two layers. The server-wide store is set in one place: `mc_game_rules` in `scripts/lib.sh`, which `deploy.sh` (`restore_game_rules`) and `dev-up.sh` apply over RCON, each rule's 26.3 id through `mc_game_rule` and `scripts/game-rules.tsv`. A dimension holds its own values over that store: its definition's `gameRules`, else `settings.json`'s `defaults.gameRules` (decisions.md RB-38; `advance_time` is refused, `atmosphere.fixedTime` and `dayLength` set a dimension's time).
 
 ## Confirm before proceeding
 

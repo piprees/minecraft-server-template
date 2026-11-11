@@ -39,7 +39,7 @@ Gradle reports `BUILD SUCCESSFUL` for an empty jar. The same gate the release ru
 ./gradlew :server:runServer -PselfTest=/tmp/st.txt -PselfTestOnly=zones   # one section
 ```
 
-Sections: `exits`, `commands`, `materials`, `biomes`, `render`, `firewall`, `mixins`, `roll`, `rollperf`, `structures`, `terrain`, `zones`. The persistence check is two boots: `-PselfTestPersist=write`, then `-PselfTestPersist=verify`. Fixtures live in `server/src/selftest/` and never reach the release jar. `-Pdefinitions=<dir>` and `-Pbridges=<dir>` point `runServer` at other folders; by default it reads `config/custom-dimensions/dimensions/` and `bridges/`. `-PmeasureStructures=<file>` measures every structure and stops.
+Sections: `exits`, `commands`, `materials`, `biomes`, `render`, `firewall`, `terrain`, `zones`, `structures`, `roll`, `rollperf` (adds the 100-seed timing no other run has), `generators`, `difficulty`, `survey`, `seeds`, `gamerules`, `mixins`; each also runs the compiled-pack checks, and every run carries the mixin and seed lines. Adding a mixin means adding its line to `MixinSelfTest` (or the section that exercises it) and its entry to `customdimensions.mixins.json`. The persistence check is two boots: `-PselfTestPersist=write`, then `-PselfTestPersist=verify`. Fixtures live in `server/src/selftest/` and never reach the release jar. `-Pdefinitions=<dir>` and `-Pbridges=<dir>` point `runServer` at other folders; by default it reads `config/custom-dimensions/dimensions/` and `bridges/`. `-PmeasureStructures=<file>` measures every structure and stops.
 
 ## 4. Survey and rig
 

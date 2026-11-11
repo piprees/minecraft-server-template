@@ -13,16 +13,18 @@ Every dimension runs on vanilla's noise generator with settings `custom-dimensio
 
 | Want | Dial | Notes |
 | --- | --- | --- |
-| A different landform | `terrain.base` and `terrain.setting` (`gentle`, `default`, `extreme`) | Twelve library terrains, each with its parameters in `terrain.params` ([worldgen.md § Terrain library](../../../docs/design/rebuild-26/worldgen.md#terrain-library)). Refused on the `caves`, `nether` and `end` presets |
+| A different landform | `terrain.base` and `terrain.setting` (`gentle`, `default`, `extreme`) | Fourteen library terrains, each with its parameters in `terrain.params` ([worldgen.md § Terrain library](../../../docs/design/rebuild-26/worldgen.md#terrain-library)): twelve for the land and sky presets, `roofed` (a cavern floor under a ceiling: plains, pits, chasms, corridors, ledges, pillars) the only one on `caves` and `nether`, `end` (islands grown, raised, ridged and gathered) the only one on `end` |
 | Broader or tighter features overall | `terrain.scale` (0.25–4) | Stretches every terrain noise and the biome climate |
 | Broader continents, ranges or valleys only | `terrain.scales.continents`, `.ridges`, `.erosion` (each 0.25–4) | Multiplies `scale` per router noise |
-| Fewer, larger biome regions | `terrain.scales.climate`, or `biomeLayout: {"mode": "regions"}` with `weights` | [placeness.md](../../../docs/design/rebuild-26/placeness.md) |
+| Fewer, larger biome regions | `terrain.scales.climate`, or `biomeLayout: {"mode": "regions"}` with `weights`, `roles` and, over a void, `over: land` | [placeness.md](../../../docs/design/rebuild-26/placeness.md) § Biome regions |
 | Taller or flatter | `terrain.heightMultiplier` (0.25–3) and the shared land parameters `landHeight`, `relief`, `roughness`, `coast`, `seaFloor` | A low `landHeight` pairs with a low `liquids.seaLevel` |
-| A world composed round a point | `terrain.layout` (`radial`, `ring`, `linear`, with `strength`) | A layout that lowers a land terrain's centre floods it ([T203](../../../TROUBLESHOOTING.md#t203)) |
+| A world composed round a point | `terrain.layout` (`radial`, `ring`, `linear`, with `strength`) | A layout that lowers a land terrain's centre floods it ([T203](../../../TROUBLESHOOTING.md#t203)); on `roofed` it places the pits, on `end` and the sky terrains it gathers the islands |
+| A set share of land, whatever the seed | `terrain.landShare` (0–1) | Measured over the player border when the level loads; the overworld presets and the land terrains, not islands, roofed, End or sky terrains |
+| No caves breaking a rolling land | `terrain.params.crust` (`continents`, `islands`) | Blocks under the ground no noise cave opens into |
 | A landmark, a ring, a meeting of two places | `zones` | Shape, blend, jitter; terrain, biomes, swaps, a floating `mass`, dry aquifers, scoped wants and shuns |
 | Sea, lava, aquifers | `liquids` | `seaLevel`, `lavaLevel`, `defaultFluid`, `aquifers` |
-| Ground blocks | `materials` | `top`, `filler`, `deep`, `cliffs`, `beaches`, `ceilings`, per-biome overrides |
-| Caves and ores | `carvers`, `ores` | `ores.veins`, `add`, `remove` |
+| Ground blocks | `materials` | `top`, `filler`, `deep`, `cliffs`, `beaches`, `ceilings`, per-biome overrides, `bands` by depth (deepest first, over the per-biome palettes) |
+| Caves and ores | `carvers`, `ores` | `carvers` adds or removes vanilla carvers by name; `ores.veins`, `add`, `remove` |
 | A non-noise world | `generator.type` | `checkerboard`, `single_biome`, `flat`, `void`, `clone` ([mod README § Generators](../../../mods/custom-dimensions-26/README.md#generators)) |
 
 The gallery fixtures in `mods/custom-dimensions-26/server/src/selftest/gallery/` show every terrain at its three settings; `-PterrainGallery` on `runServer` opens them.
