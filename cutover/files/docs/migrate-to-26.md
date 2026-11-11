@@ -33,8 +33,8 @@ Every phase is a dry run until `--apply`. A confirm step asks for its own name t
 | owner | D9 | owner (`secrets`) | `FLOODGATE_KEY_B64`, and `STACK_READ_TOKEN` while the template is private |
 | `consumer` | D10 | confirm (`consumer`) | `.stack-version` = v6.0.0 first (a v6 `dev` reads the file before the exported variable), then `STACK_VERSION=v6.0.0 ./dev update --scaffold-only`; `deploy.yml` checked for `@v6` and both secrets; the 1.21.1 seed-viewer files (`*_thumb.json`, `*_low.png`, `*_high.png`) removed from the overlay, anything else there listed and kept; one commit; the push that runs the full v6 deploy, its run resolved by commit |
 | `verify` | E11 | safe | The server's bundle is v6; `./ops doctor`; `customdim list` (82 dimensions: 4 base, 78 lazy); `customdim audit`; the last 200 lines of mc's log for `ERROR` |
-| | E12 | reports | `seed` against the overworld definition's `"seed"`; a mismatch stops the phase and prints `./ops reset-seed <seed>`, which the script never runs |
-| | E13 | safe | `spawn_phantoms` and `log_admin_commands` against `mc_game_rules`; one lazy level opened and its `spawn_phantoms` read against the overworld's (reported either way) |
+| | E12 | reports | `execute in <level> run seed` for each base world against its definition's `"seed"` (the world seed for `"env"` or none); a mismatch stops the phase and prints `./ops reset-seed --same-seed`, which the script never runs |
+| | E13 | safe | `spawn_phantoms` and `log_admin_commands` against `mc_game_rules`; one lazy level opened and its `spawn_phantoms` read against its definition's own value, else the server-wide one; a mismatch stops the phase |
 | pointer | E14 | not scripted | § Pre-generation below |
 | `first-backup` | E15 | safe | The first restic snapshot of the 26.3 world |
 | owner | E16 | owner (`launch`) | The launch joins |
