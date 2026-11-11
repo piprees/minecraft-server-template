@@ -1596,11 +1596,35 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t247"></a>
+### T247 — A definition edit that compiles to the same pack left the pack's inputs hash stale
+- **Symptom:** after editing only a definition's `seed`, the self-test's "pack installed at start-up" line fails.
+- **Cause:** the compiled files are identical, so the installer kept the pack and its recorded `inputs.sha256`.
+- **Fix:** `PackInstaller.recordInputs` writes the new hash whenever the inputs change, pack rewritten or not.
+
+<a id="t246"></a>
+### T246 — Every open skylit level advances the one weather store
+- **Symptom:** weather changes faster the more dimensions are open.
+- **Cause:** 26.3 keeps one `WeatherData` on the server, and every level with a sky and no ceiling (the End aside) runs the weather cycle on it each tick.
+- **Fix:** `ServerLevelWeatherMixin` lets the first level to reach the shared store advance it once a tick (`SharedWeather.claim`); a level that sets `advance_weather` keeps weather of its own.
+
+<a id="t245"></a>
+### T245 — A level with chunks never changes seed
+- **Symptom:** a definition's new `seed` has no effect, and the log says `seeds: … keeps generating from …`.
+- **Cause:** each level records the seed it generated from in `dimensions/<ns>/<path>/customdimensions-seed.json` and keeps it while its region folder holds chunks (RB-37). A world created before RB-37 has no record: its base worlds keep the world seed.
+- **Fix:** wipe the dimension to take the new seed (`./ops reset-seed` for a base world, `/customdim delete` for a lazy one), or set the definition's seed to the recorded one. Check with `execute in <dimension> run seed`.
+
+<a id="t244"></a>
+### T244 — A player standing in a portal on cooldown never leaves by it
+- **Symptom:** a test player teleported into an arrival portal is not sent home, however long it waits; a teleport to `$x.5` for a negative `x` lands one block over.
+- **Cause:** 26.3 `Entity.setAsInsidePortal` re-arms the portal cooldown every tick the player stands in the opening. `-425.5` is in block -426, not -425.
+- **Fix:** step out of the opening and back in (`come_back_through` in `scripts/e2e/portal-matrix-lib.sh`); compute a block's centre as `x + 0.5` (`block_centre`).
+
 <a id="t243"></a>
-### T243 — Game rules on 26.3 are one server-wide store
-- **Symptom:** a game rule set in one dimension changes every other, lazy levels included.
-- **Cause:** 26.3 keeps game rules on the server, not per level.
-- **Fix:** set rules once, anywhere (`mc_game_rules` in the deploy); a per-dimension rule needs the mod, not `/gamerule`.
+### T243 — `/gamerule` writes the server-wide store, never a dimension's own value
+- **Symptom:** a rule set with `/gamerule` in one dimension changes every dimension that holds no value of its own, and leaves the others as they were.
+- **Cause:** 26.3 keeps one game-rule store on the server. A dimension's own values come from its definition's `gameRules` (or `settings.json`'s `defaults.gameRules`) and are answered through `ServerLevel.getGameRules()` (RB-38).
+- **Fix:** set server-wide rules once, anywhere (`mc_game_rules` in the deploy); set a dimension's rule in its definition. Read the value in force with `execute in <dimension> run gamerule <rule>`. Only `advance_time` is refused in a definition: use `atmosphere.fixedTime` or `atmosphere.dayLength`.
 
 <a id="t242"></a>
 ### T242 — An unnamed `/starterkit set` moves the existing kits to `kits/inactive`
