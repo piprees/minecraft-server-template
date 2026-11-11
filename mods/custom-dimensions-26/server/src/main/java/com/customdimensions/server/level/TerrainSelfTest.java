@@ -829,6 +829,8 @@ public final class TerrainSelfTest {
 
     /** Island spires: {@code selftest_island_spires}'s island layer, the height over it a spire column reaches, and the bars. */
     static final int SPIRE_LAYER = 110, SPIRE_OVER = 40;
+    /** The fixture's flat island top (altitude plus thickness, less 2), and the blocks a cave in the island under it may span. */
+    static final int SPIRE_TOP = SPIRE_LAYER + 8, SPIRE_CAVE = 8;
     static final double SPIRE_SHARE_MIN = 0.02, SPIRE_SHARE_MAX = 0.3, SPIRE_FOOTED = 0.95;
 
     /** {@code fixture} opened, {@code line} run on its {@code chunks} once they load, and closed; a missing fixture is a FAIL. */
@@ -857,25 +859,31 @@ public final class TerrainSelfTest {
     /**
      * {@code selftest_island_spires} (flat islands at y {@link #SPIRE_LAYER} carrying spires 60 high) in the spaced area: the
      * share of its land columns that are spires, standing {@link #SPIRE_OVER}+ blocks over the layer, and the share of those
-     * footed on an island: solid without a break from the spire's top down to the layer.
+     * footed on an island: solid without a break from the spire's top down to the layer, or down into the island's top
+     * ({@link #SPIRE_TOP}) with the island's own ground again within {@link #SPIRE_CAVE} blocks under a cave there. Columns
+     * are read under the leaves, so a tree crowning a spire and overhanging its flank is not a spire hung over air.
      */
     private CompletableFuture<Void> islandSpires() {
         String slug = "selftest_island_spires";
         return fixtureLine(slug, "terrain island spires (" + slug + ")", level -> spaced(null).chunks(), (level, chunks) -> {
             int land = 0, spires = 0, footed = 0;
+            List<String> breaks = new ArrayList<>();
             for (LevelChunk chunk : chunks) {
                 int bx = chunk.getPos().getMinBlockX(), bz = chunk.getPos().getMinBlockZ();
                 for (int dx = 0; dx < 16; dx += TIER_STEP) {
                     for (int dz = 0; dz < 16; dz += TIER_STEP) {
                         int x = bx + dx, z = bz + dz;
-                        int surface = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z);
+                        int surface = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
                         if (surface < level.getMinY() || chunk.getBlockState(new BlockPos(x, surface, z)).isAir()) continue;
                         land++;
                         if (surface < SPIRE_LAYER + SPIRE_OVER) continue;
                         spires++;
                         int y = surface;
                         while (y > SPIRE_LAYER && !chunk.getBlockState(new BlockPos(x, y, z)).isAir()) y--;
-                        if (y <= SPIRE_LAYER) footed++;
+                        int below = y;
+                        while (below > level.getMinY() && chunk.getBlockState(new BlockPos(x, below, z)).isAir()) below--;
+                        if (y <= SPIRE_LAYER || (y <= SPIRE_TOP && y - below <= SPIRE_CAVE && below > level.getMinY())) footed++;
+                        else breaks.add((surface - y) + "/" + y + "/" + (below > level.getMinY() ? below : -1));
                     }
                 }
             }
@@ -883,8 +891,8 @@ public final class TerrainSelfTest {
             return verdict(share >= SPIRE_SHARE_MIN && share <= SPIRE_SHARE_MAX && spires > 0 && foot >= SPIRE_FOOTED,
                     "terrain island spires (" + slug + "): " + pct(share) + " of " + land + " land columns are spires " + SPIRE_OVER
                             + "+ blocks over the island layer (needs " + pct(SPIRE_SHARE_MIN) + " to " + pct(SPIRE_SHARE_MAX) + "); "
-                            + pct(foot) + " of " + spires + " footed on their island, solid down to y " + SPIRE_LAYER + " (needs "
-                            + pct(SPIRE_FOOTED) + ")");
+                            + pct(foot) + " of " + spires + " footed on their island, solid down to y " + SPIRE_LAYER + " or into its top at " + SPIRE_TOP + " over a cave (needs "
+                            + pct(SPIRE_FOOTED) + ")" + (breaks.isEmpty() ? "" : "; breaks run/air y/solid below: " + String.join(" ", breaks.subList(0, Math.min(12, breaks.size())))));
         });
     }
 

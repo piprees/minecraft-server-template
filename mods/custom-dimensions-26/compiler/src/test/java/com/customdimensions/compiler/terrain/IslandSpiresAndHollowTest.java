@@ -13,6 +13,7 @@ import static com.customdimensions.compiler.terrain.SkyTiersTest.runs;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -59,8 +60,25 @@ class IslandSpiresAndHollowTest {
         assertTrue(runs(b, column(ISLANDS, islands(0.3, -0.5), SPIRES, spire(0.1))).isEmpty(), "over the void the spire noise raises nothing");
         double edge = runs(b, column(ISLANDS, islands(0.3, 0.04), SPIRES, spire(0.1))).get(0)[1];
         assertTrue(edge < 150 + 4, "no spire on an island's last block or two: its top at " + edge);
+        double lip = runs(b, column(ISLANDS, islands(0.3, 0.15), SPIRES, spire(0.1))).get(0)[1];
+        assertTrue(lip < 150 + 18, "no spire on the lip a top rolls off over: its top at " + lip);
         assertEquals(150 + 18 * Math.sqrt(0.3) - 2 + 60, runs(b, column(ISLANDS, islands(0.3, 0.3), SPIRES, spire(0.1))).get(0)[1], 0.3,
                 "a spire a little way in stands its full height");
+    }
+
+    @Test
+    void aSpireIsGroundNoCaveCutsDownIntoItsIsland() {
+        SkyTiersTest.Built b = build(SPIRED);
+        SkyTiersTest.Column spire = column(ISLANDS, islands(0.3, 1), SPIRES, spire(0.1));
+        for (double y : new double[] {166 - 5, 166, 190, 166 + 60 - 1}) {
+            assertTrue(eval(b, b.shape().solid(), spire, y) > 0, "the spire's body is sealed at y " + y);
+        }
+        assertTrue(eval(b, b.shape().solid(), spire, 166 + 60 + 1) < 0, "and nothing over its crest");
+        assertTrue(eval(b, b.shape().solid(), spire, 166 - 8) < 0, "nor deep in the island under it");
+        double below = Noises.threshold(0.1, SS) - 0.1 * SS;
+        assertTrue(eval(b, b.shape().solid(), column(ISLANDS, islands(0.3, 1), SPIRES, below), 166 - 1) < 0,
+                "an island top with no spire on it keeps its caves");
+        assertNull(build("{\"base\": \"floating_islands\"}").shape().solid(), "no spires, nothing sealed");
     }
 
     @Test

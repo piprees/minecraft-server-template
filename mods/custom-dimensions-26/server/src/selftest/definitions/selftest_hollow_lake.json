@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "description": "Self-test fixture: basin islands round a ring of radius 300 at water line 130, the hollow one lake 24 deep, for the terrain section's hollow lake line.",
+  "description": "Self-test fixture: basin islands round a ring of radius 300 at water line 130, the hollow one lake 24 deep under a biome too warm to freeze it at that height, for the terrain section's hollow lake line.",
   "seed": 20261025,
   "spawn": [
     0,
@@ -11,6 +11,7 @@
     "type": "noise",
     "preset": "floating_islands"
   },
+  "biomes": ["minecraft:plains"],
   "terrain": {
     "base": "basin_islands",
     "params": {

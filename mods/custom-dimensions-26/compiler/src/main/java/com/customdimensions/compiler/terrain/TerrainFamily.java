@@ -607,7 +607,9 @@ public enum TerrainFamily {
         JsonElement n = laidOut(ctx, ctx.noise("islands", 1 / ctx.p("size"), 0), sigma);
         JsonElement core = Df.cache(ramp(n, t, t + sigma));
         JsonElement layer = add(spread(ctx), ctx.p("altitude"));
-        JsonElement top = withSpires(ctx, islandTop(ctx, layer, core, ctx.p("thickness") * m, ctx.p("size"), ctx.p("altitude")), core);
+        JsonElement plain = islandTop(ctx, layer, core, ctx.p("thickness") * m, ctx.p("size"), ctx.p("altitude"));
+        JsonElement rise = spireRise(ctx, core);
+        JsonElement top = rise == null ? plain : add(plain, rise);
         if (tiers(ctx) > 1) top = ctx.named("tier0_top", top);
         JsonElement bottom = add(sub(layer, mul(core, ctx.p("underside") * m)), 2);
         JsonElement y = negY(ctx.minY(), ctx.maxY());
@@ -616,6 +618,7 @@ public enum TerrainFamily {
         Stack stack = stack(ctx, new Stack(inside, place, top), top, y);
         Shape shape = new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, mul(stack.inside(), 1 / 8.0), c(0.3),
                 0.1 + 0.6 * ctx.p("roughness"));
+        if (rise != null) shape = shape.withSolid(spireBody(plain, rise, y));
         return shape.withPlace(stack.place(), stack.top());
     }
 
@@ -661,26 +664,43 @@ public enum TerrainFamily {
         return add(add(base, mul(profile, thickness)), -2);
     }
 
-    /** The island noise's {@code core} over which a spire's foot comes onto an island: a spire never overhangs the void. */
-    static final double SPIRE_FOOT_FROM = 0.05, SPIRE_FOOT_TO = 0.25;
+    /**
+     * The island noise's {@code core} over which a spire's foot comes onto an island: past the lip a flat top rolls off
+     * over ({@link #FLAT_EDGE}), where the island is too thin for the density's cells to hold a spire on it.
+     */
+    static final double SPIRE_FOOT_FROM = 0.2, SPIRE_FOOT_TO = 0.4;
+
+    /** Blocks under the island top a spire's sealed body reaches, so no cave parts a spire from its island. */
+    static final double SPIRE_ROOT = 6;
 
     /**
-     * {@code top} with columns raised on it where the spire noise lies in its highest {@code spires} share, as
+     * The blocks a spire raises an island's top by where the spire noise lies in its highest {@code spires} share, as
      * {@link #spires} raises them on land: {@code spireHeight} at the crest, {@code spireTaper} from straight-sided to
      * cones, {@code spireThickness} their girth. A spire stands only where the island is held, its foot coming onto
      * the island over {@link #SPIRE_FOOT_FROM} to {@link #SPIRE_FOOT_TO} of {@code core}, so one broad island carries
-     * several and none hangs over the void; {@code top} unchanged at {@code spires} 0.
+     * several and none hangs over the void; null at {@code spires} 0.
      */
-    private static JsonElement withSpires(Ctx ctx, JsonElement top, JsonElement core) {
+    private static JsonElement spireRise(Ctx ctx, JsonElement core) {
         double share = ctx.p("spires", 0);
-        if (share <= 0) return top;
+        if (share <= 0) return null;
         double sigma = Noises.sigma("spires");
         double t = Noises.threshold(share, sigma);
         JsonElement s = ctx.noise("spires", 1 / ctx.p("spireThickness"), 0);
         JsonElement a = Df.cache(mul(ramp(s, t, t + 0.6 * sigma), ramp(core, SPIRE_FOOT_FROM, SPIRE_FOOT_TO)));
         JsonElement column = clamp(mul(a, 6), 0, 1);
         JsonElement profile = lerp(c(ctx.p("spireTaper")), column, a);
-        return add(top, mul(profile, ctx.p("spireHeight") * ctx.heightMultiplier()));
+        return Df.cache(mul(profile, ctx.p("spireHeight") * ctx.heightMultiplier()));
+    }
+
+    /**
+     * A spire's body as ground no cave cuts: above 0 from {@link #SPIRE_ROOT} under the island's {@code plain} top up
+     * to the spire's crest, where the spire rises 2 blocks or more. The overworld's caves would otherwise carve the
+     * spire's core, which lies as deep inside the terrain as an island's, and leave it standing over a gap.
+     */
+    private static JsonElement spireBody(JsonElement plain, JsonElement rise, JsonElement y) {
+        JsonElement under = add(add(plain, rise), y);
+        JsonElement over = sub(c(0), add(add(plain, -SPIRE_ROOT), y));
+        return mul(min(min(under, over), add(rise, -2)), 1 / 8.0);
     }
 
     /** The island layers a terrain over a void lays, counting its own. */
