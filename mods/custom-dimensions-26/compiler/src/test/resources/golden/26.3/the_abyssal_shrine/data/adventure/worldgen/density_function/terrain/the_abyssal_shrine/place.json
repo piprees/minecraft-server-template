@@ -133,7 +133,7 @@
                                 "xz_scale": 1.5,
                                 "y_scale": 0.0
                               },
-                              "right": 0.0742307011,
+                              "right": -0.60174843,
                               "type": "minecraft:add"
                             },
                             "right": 3.41296928,
@@ -299,7 +299,7 @@
                               "xz_scale": 1.5,
                               "y_scale": 0.0
                             },
-                            "right": 0.0742307011,
+                            "right": -0.60174843,
                             "type": "minecraft:add"
                           },
                           "right": 3.41296928,
