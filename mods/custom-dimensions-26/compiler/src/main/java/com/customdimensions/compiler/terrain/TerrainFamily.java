@@ -600,6 +600,11 @@ public enum TerrainFamily {
     /** The basin floor's height in blocks: water stands no lower than {@link #BASIN_FLOOR_REACH} under it. */
     public static final String BASIN_FLOOR = "basin_floor";
     public static final int BASIN_FLOOR_REACH = 3;
+    /**
+     * Blocks an island's top drops where no island stands, so the islands' top over a basin's open water is its
+     * floor and an underside biome never takes a basin floor.
+     */
+    static final double NO_ISLAND_DROP = 512;
     /** The island noise's {@code core} over which an island inside a lake mass climbs its cliff: about two blocks. */
     static final double ISLAND_CLIFF_FROM = 0.02;
     static final double ISLAND_CLIFF_TO = 0.1;
@@ -690,7 +695,7 @@ public enum TerrainFamily {
         JsonElement held = max(onIsland, mul(inMass, sub(c(1), water)));
         JsonElement place = add(add(mul(open, PLACE_BASIN - PLACE_VOID), mul(held, PLACE_LAND - PLACE_VOID)), PLACE_VOID);
         return new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, plus, c(0.3), 0.1 + 0.6 * ctx.p("roughness"))
-                .withSolid(sealed).withPlace(place, max(top, floor));
+                .withSolid(sealed).withPlace(place, max(sub(top, mul(sub(c(1), ramp(core, 0, ISLAND_CLIFF_FROM)), NO_ISLAND_DROP)), floor));
     }
 
     private static Shape islands(Ctx ctx) {

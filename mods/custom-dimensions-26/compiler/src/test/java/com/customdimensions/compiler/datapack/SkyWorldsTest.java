@@ -244,6 +244,17 @@ class SkyWorldsTest {
     }
 
     @Test
+    void anUndersideOnBasinIslandsMeasuresFromTheBasinFloorWhereNoIslandStands() {
+        DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"floating_islands\"}, "
+                + "\"terrain\": {\"base\": \"basin_islands\"}, \"liquids\": {\"basins\": {}}, \"biomes\": [\"minecraft:jungle\", "
+                + "\"minecraft:warm_ocean\", \"minecraft:lush_caves\"], \"biomeLayout\": {\"mode\": \"regions\", \"over\": \"land\", "
+                + "\"roles\": {\"minecraft:lush_caves\": \"underside\"}}");
+        String top = file(out, "island_top");
+        assertTrue(top.contains("adventure:terrain/t/basin_floor"), top);
+        assertTrue(top.contains("512"), "the islands' top drops away where no island stands: " + top);
+    }
+
+    @Test
     void anOceanOverLandOnBasinIslandsTakesTheBasins() {
         DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"floating_islands\"}, "
                 + "\"terrain\": {\"base\": \"basin_islands\"}, \"liquids\": {\"basins\": {}}, \"biomes\": [\"minecraft:jungle\", "
