@@ -165,6 +165,9 @@ public final class TerrainSelfTest {
         chain = family(chain, "end", this::end, "spaced");
         chain = chain.thenCompose(v -> endCluster());
         chain = chain.thenCompose(v -> skyTiers());
+        chain = chain.thenCompose(v -> islandSpires());
+        chain = chain.thenCompose(v -> hollowLake());
+        chain = chain.thenCompose(v -> climateShift());
         chain = chain.thenRun(this::performance);
         String gallery = System.getProperty(GALLERY, "");
         if (!gallery.isEmpty()) {
@@ -822,6 +825,159 @@ public final class TerrainSelfTest {
         return verdict(stackedShare >= TIER_STACKED && levelShare >= TIER_LEVEL, name + ": " + pct(stackedShare) + " of " + land
                 + " land columns stacked over " + TIER_AIR + "+ blocks of air (needs " + pct(TIER_STACKED) + "); " + pct(levelShare)
                 + " of tops level with their neighbours " + TIER_STEP + " blocks east and south (needs " + pct(TIER_LEVEL) + ")");
+    }
+
+    /** Island spires: {@code selftest_island_spires}'s island layer, the height over it a spire column reaches, and the bars. */
+    static final int SPIRE_LAYER = 110, SPIRE_OVER = 40;
+    static final double SPIRE_SHARE_MIN = 0.02, SPIRE_SHARE_MAX = 0.3, SPIRE_FOOTED = 0.95;
+
+    /** {@code fixture} opened, {@code line} run on its {@code chunks} once they load, and closed; a missing fixture is a FAIL. */
+    private CompletableFuture<Void> fixtureLine(String slug, String name, Function<ServerLevel, List<ChunkPos>> chunks,
+                                                java.util.function.BiFunction<ServerLevel, List<LevelChunk>, String> line) {
+        if (!manager.index().lazy().containsKey(slug)) {
+            lines.add("FAIL " + name + ": no fixture " + slug + " in the definitions");
+            return CompletableFuture.completedFuture(null);
+        }
+        return manager.activate(slug).thenCompose(a -> {
+                    List<ChunkPos> area = chunks.apply(a.level());
+                    return load(a.level(), area).thenApply(loaded -> {
+                        String out = line.apply(a.level(), loaded);
+                        area.forEach(c -> a.level().setChunkForced(c.x(), c.z(), false));
+                        return out;
+                    });
+                })
+                .thenAcceptAsync(lines::add, server)
+                .thenCompose(x -> manager.deactivate(slug).thenAccept(t -> {}))
+                .exceptionally(error -> {
+                    lines.add("FAIL " + name + ": " + cause(error));
+                    return null;
+                });
+    }
+
+    /**
+     * {@code selftest_island_spires} (flat islands at y {@link #SPIRE_LAYER} carrying spires 60 high) in the spaced area: the
+     * share of its land columns that are spires, standing {@link #SPIRE_OVER}+ blocks over the layer, and the share of those
+     * footed on an island: solid without a break from the spire's top down to the layer.
+     */
+    private CompletableFuture<Void> islandSpires() {
+        String slug = "selftest_island_spires";
+        return fixtureLine(slug, "terrain island spires (" + slug + ")", level -> spaced(null).chunks(), (level, chunks) -> {
+            int land = 0, spires = 0, footed = 0;
+            for (LevelChunk chunk : chunks) {
+                int bx = chunk.getPos().getMinBlockX(), bz = chunk.getPos().getMinBlockZ();
+                for (int dx = 0; dx < 16; dx += TIER_STEP) {
+                    for (int dz = 0; dz < 16; dz += TIER_STEP) {
+                        int x = bx + dx, z = bz + dz;
+                        int surface = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z);
+                        if (surface < level.getMinY() || chunk.getBlockState(new BlockPos(x, surface, z)).isAir()) continue;
+                        land++;
+                        if (surface < SPIRE_LAYER + SPIRE_OVER) continue;
+                        spires++;
+                        int y = surface;
+                        while (y > SPIRE_LAYER && !chunk.getBlockState(new BlockPos(x, y, z)).isAir()) y--;
+                        if (y <= SPIRE_LAYER) footed++;
+                    }
+                }
+            }
+            double share = (double) spires / Math.max(1, land), foot = (double) footed / Math.max(1, spires);
+            return verdict(share >= SPIRE_SHARE_MIN && share <= SPIRE_SHARE_MAX && spires > 0 && foot >= SPIRE_FOOTED,
+                    "terrain island spires (" + slug + "): " + pct(share) + " of " + land + " land columns are spires " + SPIRE_OVER
+                            + "+ blocks over the island layer (needs " + pct(SPIRE_SHARE_MIN) + " to " + pct(SPIRE_SHARE_MAX) + "); "
+                            + pct(foot) + " of " + spires + " footed on their island, solid down to y " + SPIRE_LAYER + " (needs "
+                            + pct(SPIRE_FOOTED) + ")");
+        });
+    }
+
+    /** Hollow lake: {@code selftest_hollow_lake}'s water line and hollow depth, the chunks round its centre, and the bars. */
+    static final int HOLLOW_WATER_LINE = 130, HOLLOW_DEPTH = 24, HOLLOW_CHUNKS = 3;
+    static final double HOLLOW_WET = 0.9;
+
+    /**
+     * {@code selftest_hollow_lake} (basin islands round a ring of radius 300, the hollow one lake 24 deep and no other lake
+     * mass) over the {@link #HOLLOW_CHUNKS}-chunk square round its centre, well inside the hollow's edge at 220: the share of
+     * columns whose top is water, standing within a block of the water line, and the median depth of water over the floor.
+     */
+    private CompletableFuture<Void> hollowLake() {
+        String slug = "selftest_hollow_lake";
+        return fixtureLine(slug, "terrain hollow lake (" + slug + ")", level -> {
+            List<ChunkPos> out = new ArrayList<>();
+            for (int x = -HOLLOW_CHUNKS; x < HOLLOW_CHUNKS; x++) {
+                for (int z = -HOLLOW_CHUNKS; z < HOLLOW_CHUNKS; z++) out.add(new ChunkPos(x, z));
+            }
+            return out;
+        }, (level, chunks) -> {
+            int columns = 0, wet = 0;
+            List<Integer> depths = new ArrayList<>();
+            for (LevelChunk chunk : chunks) {
+                int bx = chunk.getPos().getMinBlockX(), bz = chunk.getPos().getMinBlockZ();
+                for (int dx = 0; dx < 16; dx += TIER_STEP) {
+                    for (int dz = 0; dz < 16; dz += TIER_STEP) {
+                        int x = bx + dx, z = bz + dz;
+                        columns++;
+                        int top = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
+                        int floor = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z);
+                        if (!chunk.getFluidState(new BlockPos(x, top, z)).is(FluidTags.WATER) || Math.abs(top - HOLLOW_WATER_LINE) > 1) continue;
+                        wet++;
+                        depths.add(top - floor);
+                    }
+                }
+            }
+            java.util.Collections.sort(depths);
+            int median = depths.isEmpty() ? 0 : depths.get(depths.size() / 2);
+            double share = (double) wet / Math.max(1, columns);
+            return verdict(share >= HOLLOW_WET && median >= HOLLOW_DEPTH - 6, "terrain hollow lake (" + slug + "): " + pct(share) + " of "
+                    + columns + " columns round the centre are water at the water line y " + HOLLOW_WATER_LINE + " (needs " + pct(HOLLOW_WET)
+                    + "); median depth " + median + " blocks over the floor (needs " + (HOLLOW_DEPTH - 6) + "+ of hollowDepth " + HOLLOW_DEPTH + ")");
+        });
+    }
+
+    /** Climate shift: {@code selftest_climate}'s temperature shift, points sampled, and the bars on the mean and on the warp's spread. */
+    static final double CLIMATE_SHIFT = 0.25, CLIMATE_MEAN_TOLERANCE = 0.03, CLIMATE_WARP_RMS = 0.002;
+    static final int CLIMATE_POINTS = 2000;
+
+    /**
+     * {@code selftest_climate} (temperature shifted 0.25 and warped 160 blocks): its router temperature against vanilla's
+     * own temperature function on the same level, at {@link #CLIMATE_POINTS} points over 4,000 blocks. The mean difference is
+     * the shift; the spread about it is the warp, which moves where the temperature is sampled.
+     */
+    private CompletableFuture<Void> climateShift() {
+        String slug = "selftest_climate";
+        String name = "terrain climate shift and warp (" + slug + ")";
+        if (!manager.index().lazy().containsKey(slug)) {
+            lines.add("FAIL " + name + ": no fixture " + slug + " in the definitions");
+            return CompletableFuture.completedFuture(null);
+        }
+        return manager.activate(slug).thenCompose(a -> CompletableFuture.supplyAsync(() -> {
+            RandomState random = a.level().getChunkSource().randomState();
+            RegistryOps<com.google.gson.JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, server.registryAccess());
+            com.google.gson.JsonObject plain = new com.google.gson.JsonObject();
+            plain.addProperty("type", "minecraft:noise");
+            plain.addProperty("noise", "minecraft:temperature");
+            plain.addProperty("shift_x", "minecraft:shift_x");
+            plain.addProperty("shift_z", "minecraft:shift_z");
+            plain.addProperty("xz_scale", 0.25);
+            plain.addProperty("y_scale", 0.0);
+            DensityFunction vanilla = DensityFunction.CODEC.parse(ops, plain).getOrThrow();
+            DensityFunction shifted = DensityFunction.CODEC.parse(ops, new com.google.gson.JsonPrimitive("adventure:terrain/" + slug + "/temperature"))
+                    .getOrThrow();
+            java.util.Random points = new java.util.Random(11);
+            double sum = 0, sq = 0;
+            for (int i = 0; i < CLIMATE_POINTS; i++) {
+                int x = points.nextInt(4001) - 2000, z = points.nextInt(4001) - 2000;
+                double d = random.sampleBlockValueUncached(shifted, x, 64, z) - random.sampleBlockValueUncached(vanilla, x, 64, z);
+                sum += d;
+                sq += (d - CLIMATE_SHIFT) * (d - CLIMATE_SHIFT);
+            }
+            double mean = sum / CLIMATE_POINTS, rms = Math.sqrt(sq / CLIMATE_POINTS);
+            return verdict(Math.abs(mean - CLIMATE_SHIFT) <= CLIMATE_MEAN_TOLERANCE && rms >= CLIMATE_WARP_RMS, name + ": mean temperature "
+                    + String.format(Locale.ROOT, "%+.4f", mean) + " over vanilla's (needs " + CLIMATE_SHIFT + " within " + CLIMATE_MEAN_TOLERANCE
+                    + "); spread about the shift " + String.format(Locale.ROOT, "%.4f", rms) + " (needs " + CLIMATE_WARP_RMS + "+, the warp)");
+        }, worker)).thenAcceptAsync(lines::add, server)
+                .thenCompose(x -> manager.deactivate(slug).thenAccept(t -> {}))
+                .exceptionally(error -> {
+                    lines.add("FAIL " + name + ": " + cause(error));
+                    return null;
+                });
     }
 
     private void performance() {

@@ -266,6 +266,7 @@ public final class SurveyJob {
         long t3 = System.nanoTime();
         JsonObject dossier = Survey.dossier(meta, landforms, analysed, checks);
         dossier.addProperty("dimension", level.dimension().identifier().toString());
+        dossier.add("borders", borders(definition, radius));
         JsonObject placeness = placeness(sampler, coarse, landforms, grid, kind, definition, roleBiomes(server, definition, false));
         dossier.add("placeness", placeness);
         long tc = System.nanoTime();
@@ -295,6 +296,20 @@ public final class SurveyJob {
      * {@link Placeness} over the coarse map: its biomes, landform classes, surface heights and the router's continentalness;
      * land biome regions over the dry cells outside {@code seaBiomes}.
      */
+    /**
+     * {@code borders}: the definition's player and generation borders (half-sizes round the origin, each absent when the
+     * definition sets none) and {@code surveyed}, the radius this survey measured over. A rig camera sees the player border.
+     */
+    static JsonObject borders(Definition definition, int surveyed) {
+        JsonObject o = new JsonObject();
+        if (definition != null && definition.borders() != null) {
+            if (definition.borders().player() != null) o.addProperty("player", definition.borders().player());
+            if (definition.borders().generation() != null) o.addProperty("generation", definition.borders().generation());
+        }
+        o.addProperty("surveyed", surveyed);
+        return o;
+    }
+
     /**
      * {@code structures} with {@code census}: every structure site inside the border from the level's structure
      * placement (structure control applied), counted from spawn ({@link com.customdimensions.core.survey.SurveyMetrics#census}).

@@ -219,8 +219,11 @@ and `basin_islands` stack up to four island layers (`tiers`), each `tierSpacing`
 above the last and smaller by `tierShrink`, with at least `tierGap` blocks of open
 sky over the tier below (`<prefix>/tier<k>_top`, `tier<k>_bottom`); the compiler
 refuses a stack whose top tier rises over the dimension's top. `floating_islands`
-also flattens its tops (`flatness`) and steps them into plateau treads
-(`terraces`, `terraceStep`). A terrain over a
+also flattens its tops (`flatness`), steps them into plateau treads
+(`terraces`, `terraceStep`) and raises spires on the lowest tier's tops
+(`spires`, `spireHeight`, `spireThickness`, `spireTaper`), several to a broad
+island. `basin_islands` under a `ring` layout holds the ring's hollow as one
+lake mass `hollowDepth` deep (`ringLakes` 0 makes it the only one). A terrain over a
 void whose biome layout ranks over land or gives a biome the `basin` role writes
 its place cue (`<prefix>/place`: -1 void, -0.4 basin water, 0.5 land) as the router's
 continentalness; one with an `underside` biome writes `<prefix>/island_depth`, the
@@ -235,8 +238,13 @@ lies at or above the coast (a land terrain's `coast`, the overworld presets'
 terrain, y 36 on the overworld presets) holds no water, so biome regions lay
 the land biomes on the ocean's area and add no default sea; a listed ocean or a
 `biomeLayout.roles` entry still takes it. Without a `base` the `caves`, `nether`
-and `end` presets take `terrain.scales.climate` alone (`TerrainLibrary.CLIMATE_ONLY`),
-which stretches the climate their biomes are laid out on. The terrains and their parameters are in
+and `end` presets take `terrain.scales.climate`, `climateShift` and `climateWarp` alone
+(`TerrainLibrary.CLIMATE_ONLY`), which stretch, shift and warp the climate their biomes are
+laid out on. `terrain.climateShift` adds to the router's temperature and vegetation
+(a shift, not a clamp: boxes past the shifted range lose their ground to the box at
+the end); `terrain.climateWarp` moves where they are sampled along the
+`<namespace>:terrain/warp_x` and `warp_z` noises, so climate boundaries between biomes
+wander. The terrains and their parameters are in
 [worldgen.md § Terrain library](../../docs/design/rebuild-26/worldgen.md#terrain-library).
 
 A clone's `of` resolves to a slug: `paradise_lost:paradise_lost` to

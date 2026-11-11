@@ -199,7 +199,16 @@ hectare or more. When every try fails, `<name>.rejected.json` lists the reasons
 and no `<name>.png` is written. `pick-shots.py` writes two or three
 alternates per shot: other cells of the place type or other places of the
 cluster, then the camera turned 90, 180 and 270 degrees; the far view's face
-inward, towards the border centre, then 90 degrees either side.
+inward, towards the border centre, then 90 degrees either side. A ray that hits
+nothing counts against the border gate as travelling the whole render distance,
+so a far view from a summit near the border of a small sky world cannot pass:
+with the player border's half-size (`--border N`, else the dossier's `borders.player`, which `/customdim survey` writes beside `generation` and `surveyed`) and
+the rig's `--render-distance` (default 32), `pick-shots.py` scores the summit's
+camera with every ray a miss, and when that fails the gate's 2% it takes cameras
+that pass instead: on the border ring 16 blocks in and 40 over the summit, facing
+the centre 25 degrees down (more where the rule needs it), the one opposite the
+summit first, then over the centre looking down. A border narrower than the render
+distance has no such camera; the far view's `why` then says so.
 
 Three scripts turn the census and the server's survey into a review:
 

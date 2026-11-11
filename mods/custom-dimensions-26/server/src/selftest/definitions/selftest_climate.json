@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: continents with the temperature shifted 0.25 and warped 160 blocks, for the terrain section's climate line.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "continents",
+    "climateShift": {
+      "temperature": 0.25
+    },
+    "climateWarp": {
+      "blocks": 160,
+      "wavelength": 768
+    }
+  },
+  "borders": {
+    "player": 2048
+  }
+}

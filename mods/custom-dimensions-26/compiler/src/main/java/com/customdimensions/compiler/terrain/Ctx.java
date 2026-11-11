@@ -66,6 +66,11 @@ final class Ctx {
         return mul(TerrainShaping.shape(l), sigma * sigmas * l.strength());
     }
 
+    /** The spec's layout, or null for none. */
+    TerrainShaping.Layout layout() {
+        return spec.shaping().layout();
+    }
+
     /** Blocks the deepest ocean basin lies below the sea floor. */
     static final double BASIN_DEPTH = 20;
 

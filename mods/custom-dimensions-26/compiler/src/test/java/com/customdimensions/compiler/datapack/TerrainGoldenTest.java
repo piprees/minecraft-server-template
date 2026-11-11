@@ -54,6 +54,17 @@ class TerrainGoldenTest {
         matchesOn("terrain_basin_islands_tiers", "floating_islands", "{\"base\": \"basin_islands\", \"params\": {\"altitude\": 120, \"tiers\": 2, \"tierSpacing\": 70}}");
     }
 
+    /** Spires on shared floating islands, a ring's hollow held as one lake, and a shifted, warped climate. */
+    @Test
+    void spiresHollowAndClimateVariantsMatchTheCommittedOutput() throws IOException {
+        matchesOn("terrain_floating_islands_spires", "floating_islands", "{\"base\": \"floating_islands\", \"params\": {\"altitude\": 120, \"size\": 2.5, "
+                + "\"coverage\": 0.35, \"flatness\": 0.6, \"spires\": 0.08, \"spireHeight\": 90, \"spireThickness\": 1.5, \"spireTaper\": 0.3}}");
+        matchesOn("terrain_basin_islands_hollow", "floating_islands", "{\"base\": \"basin_islands\", \"params\": {\"hollowDepth\": 28, "
+                + "\"ringLakes\": 0, \"gaps\": 0.1}, \"layout\": {\"type\": \"ring\", \"radius\": 300, \"falloff\": 160, \"strength\": 0.9}}");
+        matches("terrain_continents_climate", "{\"base\": \"continents\", \"scales\": {\"climate\": 3}, \"climateShift\": {\"temperature\": 0.25}, "
+                + "\"climateWarp\": {\"blocks\": 160, \"wavelength\": 768}}");
+    }
+
     /** A roofed terrain per feature term, on the caves preset, and the climate-only shaping of the presets under a roof. */
     @Test
     void roofedVariantsMatchTheCommittedOutput() throws IOException {

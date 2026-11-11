@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 2,
+  "description": "A shrine over the abyss — plateau islands ringing deep drowned hollows. Something is worshipped here, or was. Guardians circle below; the sky above is indifferent.",
+  "seed": -2851350029895099402,
+  "spawn": [
+    64,
+    131,
+    -192
+  ],
+  "generator": {
+    "type": "clone",
+    "of": "adventure:the_aviary"
+  },
+  "terrain": {
+    "base": "basin_islands",
+    "setting": "extreme",
+    "layout": {
+      "type": "ring",
+      "centre": [
+        0,
+        0
+      ],
+      "radius": 300,
+      "falloff": 160,
+      "strength": 0.9
+    },
+    "params": {
+      "hollowDepth": 40,
+      "ringLakes": 0,
+      "gaps": 0.15
+    }
+  },
+  "biomes": [
+    "minecraft:deep_cold_ocean",
+    "minecraft:deep_ocean",
+    "adventure:sky_highlands",
+    "adventure:chalk_cliffs",
+    "adventure:umbral_wastes"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:deep_cold_ocean": 30,
+      "minecraft:deep_ocean": 20,
+      "adventure:sky_highlands": 25,
+      "adventure:chalk_cliffs": 15,
+      "adventure:umbral_wastes": 10
+    },
+    "over": "land"
+  },
+  "liquids": {
+    "basins": {}
+  },
+  "atmosphere": {
+    "skyColor": "#1B3B6B",
+    "fogColor": "#0E2A44",
+    "ambientLight": 0.15
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.5
+  },
+  "structures": {
+    "density": "dense",
+    "noise": {
+      "dungeons": "dense",
+      "maritime": "dense"
+    },
+    "force": [
+      {
+        "structure": "nova_structures:trial_dungeon",
+        "x": 180,
+        "z": -140
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:dark_prismarine",
+      "igniterItem": "minecraft:gold_ingot",
+      "color": "1B3B6B",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "shape": "end_exit",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "adventure:windswept_isles",
+      "adventure:sky_highlands",
+      "adventure:golden_skygrove"
+    ],
+    "water": "sea",
+    "wants": {
+      "monument": "spread",
+      "mss:castle_ruin": "spread",
+      "ati_structures:underwater_dungeon": "spread",
+      "ati_structures:warden_monument": "near_border"
+    },
+    "shuns": [
+      "village",
+      "tavern"
+    ],
+    "terrain": "islands"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: basin islands round a ring of radius 300 at water line 130, the hollow one lake 24 deep, for the terrain section's hollow lake line.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "basin_islands",
+    "params": {
+      "altitude": 130,
+      "hollowDepth": 24,
+      "ringLakes": 0,
+      "gaps": 0,
+      "islandShare": 0.02
+    },
+    "layout": {
+      "type": "ring",
+      "radius": 300,
+      "falloff": 160,
+      "strength": 0.9
+    }
+  },
+  "liquids": {
+    "basins": {}
+  },
+  "borders": {
+    "player": 2048
+  }
+}
