@@ -34,8 +34,9 @@ class GalleryFixturesSchemaTest {
         try (Stream<Path> list = Files.list(GALLERY)) {
             files = list.filter(p -> p.toString().endsWith(".json")).sorted().toList();
         }
-        assertEquals(60, files.size(), "fourteen terrains and scale at three settings each, continents as v1's wide and compressed, ridges thin, "
-                + "an End cluster, floating islands radial, in tiers and with plateau tops, basin islands on a ring and in tiers, spires over a void, out of a sea and on islands, "
+        assertEquals(63, files.size(), "fourteen terrains and scale at three settings each, continents as v1's wide and compressed, ridges thin, "
+                + "an End cluster, floating islands radial, in tiers, with plateau tops and carrying spires, basin islands on a ring, in tiers and holding the ring's hollow as one lake, "
+                + "spires over a void, out of a sea and on islands, continents with a shifted, warped climate, "
                 + "continents and the overworld preset held to a land share, and the overworld preset with its sea under the land");
         for (Path file : files) {
             String text = Files.readString(file);

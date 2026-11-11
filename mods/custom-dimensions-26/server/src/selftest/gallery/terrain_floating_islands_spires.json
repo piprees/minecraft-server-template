@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: broad flat-topped floating islands, each carrying several spires 90 blocks high.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "altitude": 120,
+      "size": 2.5,
+      "coverage": 0.35,
+      "flatness": 0.6,
+      "spires": 0.08,
+      "spireHeight": 90,
+      "spireThickness": 1.5,
+      "spireTaper": 0.3
+    }
+  },
+  "borders": {
+    "player": 2048
+  }
+}
