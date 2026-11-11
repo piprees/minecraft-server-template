@@ -104,5 +104,81 @@ class AlternatesTest(unittest.TestCase):
         self.assertEqual(s['alternates'][0]['at'], [-2, 0, 0])
 
 
+class BorderGeometryTest(unittest.TestCase):
+    """The far view's border rule, against FrameCensus's ray grid and FrameGate.borderDistance."""
+    R = 512.0
+
+    def test_direction_is_minecrafts(self):
+        for (pitch, yaw), want in {(0, 0): (0, 0, 1), (0, 90): (-1, 0, 0), (0, 180): (0, 0, -1), (90, 0): (0, -1, 0)}.items():
+            for a, b in zip(ps.direction(pitch, yaw), want):
+                self.assertAlmostEqual(a, b, places=9)
+        self.assertAlmostEqual(ps.yaw_to(0, 0, -10, 0), 90)
+        self.assertAlmostEqual(ps.yaw_to(0, 0, 0, 10), 0)
+
+    def test_border_distance_is_the_gates(self):
+        self.assertEqual(ps.border_distance(0, 0, 1, 0, 100), 100)
+        self.assertAlmostEqual(ps.border_distance(50, 0, -1, 0, 100), 150)
+        self.assertAlmostEqual(ps.border_distance(0, 0, 0.6, 0.8, 100), 125)
+        self.assertEqual(ps.border_distance(150, 0, 1, 0, 100), 0, 'a camera outside the border')
+        self.assertEqual(ps.border_distance(0, 0, 0, 0, 100), float('inf'))
+
+    def test_a_summit_on_the_border_looking_along_it_fails(self):
+        self.assertGreater(ps.border_share(-3775.5, 297, -4095.5, ps.yaw_to(-3775.5, -4095.5, -3615.5, -4095.5), 40, 4096, self.R), ps.BORDER_MAX)
+
+    def test_straight_down_from_the_centre_clears_a_border_past_the_frames_corner_rays(self):
+        # the frame's corner rays lean 55 degrees from vertical, so a missed ray travels 0.82 of the render distance across
+        self.assertEqual(ps.border_share(0, 300, 0, 0, 90, 440, self.R), 0)
+        self.assertGreater(ps.border_share(0, 300, 0, 0, 90, 380, self.R), ps.BORDER_MAX)
+
+    def test_a_ring_camera_facing_the_centre_passes_a_small_sky_world(self):
+        for half in (512, 683):
+            x, z = ps.on_ring(90, half)
+            self.assertAlmostEqual(z, half - ps.RING_INSET)
+            share = ps.border_share(x, 300, z, ps.yaw_to(x, z, 0, 0), ps.RING_PITCH, half, self.R)
+            self.assertLessEqual(share, ps.BORDER_MAX, half)
+        x, z = ps.on_ring(45, 512)
+        self.assertIsNone(ps.least_pitch(x, 300, z, ps.yaw_to(x, z, 0, 0), 512, self.R, ps.RING_PITCH),
+                          'a corner of the border sees both edges beside it')
+
+    def sky(self, summit, look):
+        d = dossier()
+        d['places']['vista'] = {'summit': summit, 'lookAt': look}
+        d['dimensionType'] = {'ceiling': False, 'minY': -64, 'height': 384}
+        d['structures'] = {'census': {'note': 'sites from the structure placement over the 512-block border whose biome'}}
+        return d
+
+    def far(self, shots):
+        return next(s for s in shots if s['name'].endswith('-far'))
+
+    def test_a_far_view_the_border_would_reject_moves_to_the_ring(self):
+        f = self.far(ps.pick(self.sky([-300, 200, -500], [-140, 60, -500])))
+        self.assertNotIn('at', f)
+        self.assertEqual(f['y'], '240')
+        self.assertGreater(f['z'], 400, 'the ring point opposite the summit, which lies to the north')
+        self.assertLessEqual(ps.border_share(f['x'], 240 + ps.EYE, f['z'], f['yaw'], f['pitch'], 512, self.R), ps.BORDER_MAX)
+        for a in f['alternates']:
+            if 'at' not in a:
+                self.assertLessEqual(ps.border_share(a['x'], float(a['y']) + ps.EYE, a['z'], a['yaw'], a['pitch'], 512, self.R), ps.BORDER_MAX)
+        self.assertEqual(len(f['alternates']), ps.ALTERNATES)
+
+    def test_a_far_view_that_passes_keeps_the_summit(self):
+        f = self.far(ps.pick(self.sky([0, 200, 0], [0, 60, 160])))
+        self.assertEqual(f['at'], [0, 60, 160], 'from the centre facing 160 blocks off, the border lies past every ray')
+
+    def test_a_border_too_small_for_the_render_distance_keeps_the_summit_and_says_why(self):
+        f = self.far(ps.pick(self.sky([-100, 200, -200], [60, 60, -200]), border=200))
+        self.assertIn('at', f)
+        self.assertIn('lower --render-distance', f['why'])
+        f = self.far(ps.pick(self.sky([-100, 200, -200], [60, 60, -200]), border=200, render_distance=8))
+        self.assertNotIn('at', f, 'at a render distance of 8 the ring passes')
+
+    def test_no_border_known_leaves_the_far_view_alone(self):
+        self.assertEqual(self.far(ps.pick(dossier()))['at'], [50, 60, 0])
+
+    def test_the_top_of_the_world_caps_the_camera(self):
+        f = self.far(ps.pick(self.sky([-300, 300, -500], [-140, 60, -500])))
+        self.assertEqual(f['y'], str(320 - 2))
+
+
 if __name__ == '__main__':
     unittest.main()
