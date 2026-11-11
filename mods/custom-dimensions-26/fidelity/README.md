@@ -14,6 +14,7 @@ What each dimension is meant to be, how that is measured, and the definition dra
 | Set | Dimensions | From |
 | --- | --- | --- |
 | `w10t` | the 61 outside the terrain picks | each 1.21.1 description and the owner's notes |
+| `w10c` | the dimensions taken by the fidelity pass | placeness from each description, and `w10t` targets restated where they measure the wrong thing (shares over land columns on sky worlds, islands as places) |
 | `w9c` | nine reworked terrain picks | their 1.21.1 descriptions |
 | `w10a` | twisted_groves, basalt_spires, blossom_gardens, crimson_nexus, highland_crossing | descriptions and the owner's notes |
 | `w9h` | the terrain picks | placeness, biome regions measured over land |
