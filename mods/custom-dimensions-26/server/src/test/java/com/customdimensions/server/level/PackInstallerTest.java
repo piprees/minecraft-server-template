@@ -23,6 +23,15 @@ class PackInstallerTest {
     }
 
     @Test
+    void anUnchangedPackTakesItsNewInputsHash() throws IOException {
+        Path pack = Files.createDirectories(dir.resolve("pack"));
+        assertEquals(true, PackInstaller.recordInputs(pack, "a"));
+        assertEquals(false, PackInstaller.recordInputs(pack, "a"));
+        assertEquals(true, PackInstaller.recordInputs(pack, "b"));
+        assertEquals("b", com.customdimensions.compiler.datapack.PackInputs.read(pack).orElseThrow());
+    }
+
+    @Test
     void levelNameDefaultsToWorld() throws IOException {
         assertEquals("world", PackInstaller.levelName(dir.resolve("missing.properties")));
         Path blank = Files.writeString(dir.resolve("server.properties"), "level-name=\nmotd=x\n");

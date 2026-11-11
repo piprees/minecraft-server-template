@@ -47,6 +47,11 @@ public final class GameRuleSelfTest {
     static final long SEED = 3;
     /** The two-boot check's server-wide value, not vanilla's default. */
     static final int PERSIST_CRAMMING = 31;
+    /** Flat skylit fixtures without weather of their own. */
+    static final String SHARED_A = "selftest_keep";
+    static final String SHARED_B = "selftest_wins";
+    /** A fixture whose dimension type has a dragon fight. */
+    static final String DRAGON = "selftest_end_cluster";
 
     private final MinecraftServer server;
     private final List<String> lines = new ArrayList<>();
@@ -126,6 +131,8 @@ public final class GameRuleSelfTest {
                         lines.add(clientValues(lazy, over));
                     })
                     .thenCompose(v -> weather(lazy))
+                    .thenCompose(v -> sharedWeather(manager))
+                    .thenCompose(v -> dragonFightSeed(manager))
                     .whenComplete((v, e) -> {
                         for (ServerLevel level : List.of(lazy, over)) level.setChunkForced(0, 0, false);
                         LevelGameRules.selfTestValues(Level.OVERWORLD, overOwn);
@@ -133,10 +140,10 @@ public final class GameRuleSelfTest {
                         store.set(GameRules.BLOCK_DROPS, drops, server);
                         store.set(GameRules.RANDOM_TICK_SPEED, speed, server);
                     })
-                    .thenCompose(v -> manager.deactivate(SLUG).handle((n, e) -> null))
                     .thenRun(() -> {
                         if ("write".equals(persist)) lines.add(persistWrite());
-                    });
+                    })
+                    .thenCompose(v -> manager.deactivate(SLUG).handle((n, e) -> null));
         });
     }
 
@@ -180,6 +187,39 @@ public final class GameRuleSelfTest {
         boolean ok = got.equals(List.of("1" + "0" + LevelClientRules.REDUCED_DEBUG_ON, "0" + "0" + LevelClientRules.REDUCED_DEBUG_OFF));
         return (ok ? "PASS" : "FAIL") + " client-held rules follow the level: immediate_respawn, limited_crafting and the debug event "
                 + got.get(0) + " in " + SLUG + ", " + got.get(1) + " in the overworld";
+    }
+
+    /** Two more open skylit levels share the server's weather: its clear timer still falls by one a tick. */
+    private CompletableFuture<Void> sharedWeather(LevelManager manager) {
+        List<String> slugs = List.of(SHARED_A, SHARED_B);
+        return manager.activate(SHARED_A).thenCompose(a -> manager.activate(SHARED_B).thenCompose(b -> {
+            List<ServerLevel> open = List.of(a.level(), b.level());
+            run("weather clear 100000");
+            net.minecraft.world.level.saveddata.WeatherData shared = server.getWeatherData();
+            int before = shared.getClearWeatherTime();
+            long start = server.getTickCount();
+            return until(() -> server.getTickCount() >= start + 40, 41).thenAccept(v -> {
+                long ticks = server.getTickCount() - start;
+                int fell = before - shared.getClearWeatherTime();
+                long skylit = open.stream().filter(ServerLevel::canHaveWeather).count() + (server.overworld().canHaveWeather() ? 1 : 0);
+                lines.add((fell == ticks && skylit >= 3 ? "PASS" : "FAIL") + " the shared weather advances once a tick: its clear timer fell "
+                        + fell + " over " + ticks + " ticks with " + skylit + " skylit levels sharing it (" + String.join(", ", slugs)
+                        + " and the overworld)");
+                run("weather clear");
+            });
+        })).thenCompose(v -> manager.deactivate(SHARED_B).handle((n, e) -> null))
+                .thenCompose(v -> manager.deactivate(SHARED_A).handle((n, e) -> null));
+    }
+
+    /** A Fantasy level with a dragon fight: its constructor read the definition's seed for the gateways and the structure check. */
+    private CompletableFuture<Void> dragonFightSeed(LevelManager manager) {
+        LevelIndex.Entry entry = manager.index().lazy(DRAGON).orElseThrow();
+        long seed = entry.definition().seed().value();
+        return manager.activate(DRAGON).thenAccept(a -> {
+            boolean fight = a.level().getDragonFight() != null;
+            lines.add((fight ? "" : "FAIL no dragon fight in " + DRAGON + "; ") + LevelSeedSelfTest.seedLine(server, a.level(), seed)
+                    + (fight ? ", gateways shuffled under it" : ""));
+        }).thenCompose(v -> manager.deactivate(DRAGON).handle((n, e) -> null));
     }
 
     /** {@value #SLUG} holds {@code advance_weather} false: weather of its own, which a server-wide /weather leaves and ticks never advance. */
@@ -301,8 +341,8 @@ public final class GameRuleSelfTest {
     private String query(String dimension, String rule) {
         List<String> out = run("execute in " + dimension + " run gamerule " + rule);
         String line = out.isEmpty() ? "" : out.getLast();
-        int colon = line.lastIndexOf(':');
-        return colon < 0 ? line : line.substring(colon + 1).trim();
+        String[] words = line.trim().split("\\s+");
+        return words[words.length - 1];
     }
 
     private List<String> run(String command) {

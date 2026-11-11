@@ -116,7 +116,7 @@ class LevelGameRulesTest {
         assertTrue(LevelGameRules.ownsWeather(LevelGameRules.typed("trial", values("{\"advance_weather\": false}"), new ArrayList<>())));
         assertTrue(LevelGameRules.ownsWeather(LevelGameRules.typed("trial", values("{\"advance_weather\": true}"), new ArrayList<>())));
         assertFalse(LevelGameRules.ownsWeather(LevelGameRules.typed("trial", values("{\"keep_inventory\": true}"), new ArrayList<>())));
-        assertFalse(LevelGameRules.ownsWeather(null));
+        assertFalse(LevelGameRules.ownsWeather((java.util.Map<GameRule<?>, Object>) null));
         var shared = new net.minecraft.world.level.saveddata.WeatherData(0, 1200, 300, true, false);
         var own = LevelGameRules.copy(shared);
         own.setRaining(false);

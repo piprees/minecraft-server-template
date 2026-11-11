@@ -70,6 +70,7 @@ public final class PackInstaller {
         DatapackCompiler.Output output = DatapackCompiler.compile(definitions.get(), vanilla, VersionTable.forId(minecraft));
         SortedMap<String, String> before = PackDrift.read(pack);
         if (before.equals(dataFiles(output)) && Files.isRegularFile(pack.resolve("pack.mcmeta"))) {
+            recordInputs(pack, hash);
             CustomDimensions.LOG.info("the pack in {} is current ({} files, inputs {})", pack, output.files().size(),
                     hash.substring(0, 12));
             last = new Result(false, pack, hash, output.files().size(), vanilla.source().describe(), List.of());
@@ -83,6 +84,17 @@ public final class PackInstaller {
         CustomDimensions.LOG.info("compiled {} files into {} from {} in {} ms", output.files().size(), pack,
                 vanilla.source().describe(), (System.nanoTime() - start) / 1_000_000);
         last = new Result(true, pack, hash, output.files().size(), vanilla.source().describe(), warnings);
+    }
+
+    /**
+     * Records {@code hash} as the pack's inputs when it differs from the one on
+     * disk: inputs can change (a seed, a description) without changing a compiled
+     * file, and the pack then stays as it is under its current inputs. True when written.
+     */
+    static boolean recordInputs(Path pack, String hash) {
+        if (PackInputs.read(pack).filter(hash::equals).isPresent()) return false;
+        PackInputs.write(pack, hash);
+        return true;
     }
 
     /** The compiled files under {@code data/}, the part {@link PackDrift#read} reads back from disk. */

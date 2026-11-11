@@ -442,7 +442,9 @@ their level's values after every change of level and every respawn, and
 after a server-wide change of one of the three.
 
 The server keeps one weather (`MinecraftServer.getWeatherData()`), which every
-level with a sky and no ceiling, the End aside, reads and advances. A dimension
+level with a sky and no ceiling, the End aside, reads; `ServerLevelWeatherMixin`
+lets only the first of them advance it each tick (`SharedWeather`), so it runs
+at one pace however many such levels are open. A dimension
 that sets its own `advance_weather` has weather of its own instead
 (`ServerLevelGameRulesMixin` on `getWeatherData()`): a copy of the server's
 when it is first read, saved in the level's own data storage and advanced or

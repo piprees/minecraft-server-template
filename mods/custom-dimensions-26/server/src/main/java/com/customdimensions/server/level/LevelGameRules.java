@@ -58,6 +58,7 @@ public final class LevelGameRules {
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             overrides = Map.of();
             VIEWS.clear();
+            SharedWeather.reset();
         });
     }
 
@@ -79,7 +80,7 @@ public final class LevelGameRules {
      * (or held) by its own rule. Every other level shares the server's; null for them.
      */
     public static WeatherData weatherOrNull(ServerLevel level, WeatherData shared) {
-        if (!ownsWeather(ownOf(level.dimension()))) return null;
+        if (!ownsWeather(level.dimension())) return null;
         SavedDataStorage storage = level.getDataStorage();
         WeatherData own = storage.get(WeatherData.TYPE);
         if (own == null) {
@@ -88,6 +89,11 @@ public final class LevelGameRules {
             storage.set(WeatherData.TYPE, own);
         }
         return own;
+    }
+
+    /** Whether {@code key}'s level has weather of its own. */
+    public static boolean ownsWeather(ResourceKey<Level> key) {
+        return ownsWeather(ownOf(key));
     }
 
     /** Whether a level holding {@code own} has weather of its own. */
