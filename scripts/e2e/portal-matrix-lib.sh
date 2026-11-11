@@ -105,6 +105,41 @@ game_mode_name() { # 0-3
   esac
 }
 
+# --- keeping one run alive -------------------------------------------------
+# The value at the end of a `gamerule <name>` reply; empty when there is none.
+rule_value() { # reply
+  printf '%s' "$1" | sed -n 's/.*: *\([A-Za-z0-9.-]*\)[[:space:]]*$/\1/p' | tail -1
+}
+
+# A player's score from `scoreboard players get`; 0 when none is set.
+score_value() { # reply
+  local v
+  v="$(printf '%s' "$1" | sed -n 's/.* has \(-\{0,1\}[0-9][0-9]*\) \[.*/\1/p' | tail -1)"
+  printf '%s' "${v:-0}"
+}
+
+# The player's last death message in a log snapshot, or nothing.
+death_cause() { # logfile player
+  grep -a "System chat: $2 " "$1" 2>/dev/null \
+    | grep -avE "System chat: $2 (joined|left) the game" | tail -1 | sed 's/.*System chat: //'
+}
+
+# Dimension slugs with a bay a previous run did not finish validly, comma-separated:
+# every bay in the full plan without a summary row whose `valid` column is "yes".
+# A summary from before that column counts a row only when it failed nothing.
+resume_slugs() { # full-plan summary.tsv
+  jq -r '.bays[] | "\(.id)\t\(.dimension)"' "$1" | awk -F'\t' -v summary="$2" '
+    BEGIN {
+      while ((getline line < summary) > 0) {
+        n = split(line, f, "\t")
+        if (f[1] == "bay") { for (i = 1; i <= n; i++) if (f[i] == "valid") vc = i; continue }
+        if (vc ? f[vc] == "yes" : (f[12] == "0")) done[f[1]] = 1
+      }
+    }
+    !done[$1] { sub(/^[^:]*:/, "", $2); if (!seen[$2]++) out = out (out == "" ? "" : ",") $2 }
+    END { printf "%s", out }'
+}
+
 arrival_zone_count() { # world
   state_read "[.zones[] | select(.kind==\"arrival\" and .world==\"$1\")] | length"
 }

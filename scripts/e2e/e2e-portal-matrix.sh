@@ -34,6 +34,8 @@
 #   --keep               leave the frames lit and the room standing
 #   --restore            fill each bay back to stone when it is done
 #   --plan FILE          use an existing plan instead of generating one
+#   --resume RUN_DIR     run only the dimensions with a bay that RUN_DIR's
+#                        summary.tsv does not hold as valid
 #   --dry-run            print the plan's counts and the first bay, touch nothing
 #   --non-interactive    never prompt (the default when stdin is not a tty)
 #
@@ -48,6 +50,14 @@
 #   left alone. `consumed` asserts today's build, which spends one of whatever
 #   was used. Nothing in this file knows what an igniter is - it reads
 #   `igniterPredicate` and `igniterVerdict` off the plan.
+#
+# Keeping one run alive: the player holds resistance V (every damage but the
+#          void and /kill), water breathing, fire resistance and saturation
+#          from each bay's start; the overworld holds random_tick_speed 0 and
+#          immediate_respawn true for the run, and both are put back at exit.
+#          A bay in which the player died anyway is marked invalid in
+#          summary.tsv's `valid` column with the death message, built again
+#          and run once more at the end.
 #
 # Gotchas: 79 bays is hours, and dimensions are created ONE AT A TIME on
 #          purpose (TROUBLESHOOTING.md#k6) - use --limit/--only/--from.
@@ -81,6 +91,7 @@ BUILD_ONLY=0
 KEEP=0
 RESTORE=0
 PLAN=""
+RESUME=""
 DRY_RUN=0
 NON_INTERACTIVE=0
 [ -t 0 ] || NON_INTERACTIVE=1
@@ -96,6 +107,7 @@ while [ $# -gt 0 ]; do
     --keep) KEEP=1; shift ;;
     --restore) RESTORE=1; shift ;;
     --plan) PLAN="$2"; shift 2 ;;
+    --resume) RESUME="$2"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
     --non-interactive) NON_INTERACTIVE=1; shift ;;
     -h|--help) sed -n '2,60p' "$0"; exit 0 ;;
@@ -113,7 +125,7 @@ RENDER_OK=1
 
 mkdir -p "$RUN_DIR/dim"
 SUMMARY="$RUN_DIR/summary.tsv"
-printf 'bay\tdimension\taxis\tignite\ttravel\treturn\tbreak\trelight\tproximity\trender\tpass\tfail\n' \
+printf 'bay\tdimension\taxis\tignite\ttravel\treturn\tbreak\trelight\tproximity\trender\tpass\tfail\tvalid\n' \
   > "$SUMMARY"
 
 # ---------------------------------------------------------------------------
@@ -132,6 +144,20 @@ fi
 # The plan
 # ---------------------------------------------------------------------------
 say "Plan"
+if [ -n "$RESUME" ]; then
+  [ -f "$RESUME/summary.tsv" ] || { printf 'no summary.tsv in %s\n' "$RESUME" >&2; exit 2; }
+  python3 "$PLANNER" --horizontal "$HORIZONTAL" --igniter-expectation "$IGNITER_EXPECTATION" \
+    --only "$ONLY" --limit "$LIMIT" --from "$FROM" > "$RUN_DIR/plan-full.json" 2> "$RUN_DIR/plan.err" \
+    || { cat "$RUN_DIR/plan.err" >&2; exit 1; }
+  ONLY="$(resume_slugs "$RUN_DIR/plan-full.json" "$RESUME/summary.tsv")"
+  LIMIT=0; FROM=""
+  note "resuming $RESUME: ${ONLY:-nothing} left"
+  if [ -z "$ONLY" ]; then
+    say "Every bay in $RESUME is valid — nothing to run"
+    finish
+    exit 0
+  fi
+fi
 if [ -z "$PLAN" ]; then
   PLAN="$RUN_DIR/plan.json"
   if ! python3 "$PLANNER" \
@@ -194,7 +220,29 @@ note "mc StartedAt: $STARTED_AT"
 # A lit aura can place lava and start fires (three dimensions do). This changes
 # nothing about ignition, linking or breaking — it stops the harness's own
 # player dying inside a bay it lit.
-rcon "effect give $PLAYER minecraft:fire_resistance 999999 0 true" >/dev/null
+protect_player() {
+  local e
+  for e in "resistance infinite 4" "water_breathing infinite 0" "fire_resistance infinite 0" "saturation infinite 0"; do
+    rcon "effect give $PLAYER minecraft:$e true" >/dev/null
+  done
+}
+protect_player
+
+# Ice melting and nylium decaying are random ticks: with them held, a frame
+# row measures the frame as built, not how long its material lasts.
+TICK_RULE="$(rule_value "$(rcon "execute in minecraft:overworld run gamerule random_tick_speed")")"
+RESPAWN_RULE="$(rule_value "$(rcon "execute in minecraft:overworld run gamerule immediate_respawn")")"
+rcon "execute in minecraft:overworld run gamerule random_tick_speed 0" >/dev/null
+rcon "execute in minecraft:overworld run gamerule immediate_respawn true" >/dev/null
+rcon "scoreboard objectives add e2e_deaths deathCount" >/dev/null
+note "held for the run: random_tick_speed 0 (was ${TICK_RULE:-unknown}), immediate_respawn true (was ${RESPAWN_RULE:-unknown})"
+put_back() {
+  [ -n "$TICK_RULE" ] && rcon "execute in minecraft:overworld run gamerule random_tick_speed $TICK_RULE" >/dev/null
+  [ -n "$RESPAWN_RULE" ] && rcon "execute in minecraft:overworld run gamerule immediate_respawn $RESPAWN_RULE" >/dev/null
+  rcon "effect clear $PLAYER" >/dev/null
+}
+trap 'put_back; on_exit' EXIT
+deaths() { score_value "$(rcon "scoreboard players get $PLAYER e2e_deaths")"; }
 
 # ---------------------------------------------------------------------------
 # Build phase — carve every bay and stand every frame up, unlit
@@ -208,8 +256,7 @@ if [ "$DRY_RUN" -eq 0 ]; then
   rcon "gamemode spectator $PLAYER" >/dev/null
   note "$PLAYER is a spectator while the bays are built (was ${GAME_MODE:-unknown})"
 fi
-BAY_INDEX=0
-while [ "$BAY_INDEX" -lt "$TOTAL" ]; do
+build_bay() {
   ID="$(bay_read '.id')"
   read -r CFX CFZ <<EOF
 $(triple '.room.chunkFrom')
@@ -232,8 +279,7 @@ EOF
     _record fail "bay $ID: its chunks generated" "a loaded column at $BX1 $BY1 $BZ1" \
       "still not loaded after 90s — nothing was built here"
     rcon "execute in minecraft:overworld run forceload remove $CFX $CFZ $CTX $CTZ" >/dev/null
-    BAY_INDEX=$((BAY_INDEX + 1))
-    continue
+    return
   fi
   # `hollow` is the carve: a one-block stone shell, everything inside it air.
   # It is also what keeps a cave, an aquifer or a lava lake out of the bay.
@@ -247,6 +293,11 @@ EOF
   place_cells "bay $ID: both frame rings stand in $FRAME" "$RUN_DIR/dim/$ID.ring.txt" "$FRAME"
   place_cells "bay $ID: both openings are clear" "$RUN_DIR/dim/$ID.interior.txt" minecraft:air
   rcon "execute in minecraft:overworld run forceload remove $CFX $CFZ $CTX $CTZ" >/dev/null
+}
+
+BAY_INDEX=0
+while [ "$BAY_INDEX" -lt "$TOTAL" ]; do
+  build_bay
   BAY_INDEX=$((BAY_INDEX + 1))
 done
 
@@ -274,11 +325,12 @@ verdict() { # varname ok|fail|skip
 # One row per bay, and the bay's own slice of assertions.tsv appended to its
 # log. Called on every exit from run_bay, so a bay that failed early still
 # appears in the table rather than vanishing from the denominator.
+# The row waits in $SUMMARY.row until the loop knows whether the bay was valid.
 bay_summary() { # passes-before failures-before rows-before
-  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' \
     "$ID" "$DIMENSION" "$AXIS" "$S_IGNITE" "$S_TRAVEL" "$S_RETURN" "$S_BREAK" \
     "$S_RELIGHT" "$S_PROX" "$S_RENDER" \
-    "$((PASSES - $1))" "$((FAILURES - $2))" >> "$SUMMARY"
+    "$((PASSES - $1))" "$((FAILURES - $2))" > "$SUMMARY.row"
   tail -n "+$(($3 + 1))" "$RUN_DIR/assertions.tsv" >> "$BAY_LOG"
 }
 
@@ -465,7 +517,16 @@ EOF
   RZ="$(state_read "$PLAYER_SELECT | .blockPos[2]")"
   # The source frame is what the return has to find, and the frame is four
   # blocks wide at most, so the column plus the aura pad is the tolerance.
-  if near_column "$RX" "$RZ" "$SRC_CX" "$SRC_CZ" 4; then
+  if [ "$(bay_read '.returnTo')" = "respawn" ]; then
+    # The anchor's exit is the player's respawn point; the rig player has no bed.
+    if near_column "$RX" "$RZ" "$SRC_CX" "$SRC_CZ" 4; then
+      _record fail "$ID: the return took the anchor's exit to the respawn point" \
+        "away from the source column $SRC_CX,$SRC_CZ" "$RX,$RZ — back at the frame"
+    else
+      _record ok "$ID: the return took the anchor's exit to the respawn point" \
+        "away from the source column $SRC_CX,$SRC_CZ" "$RX,$RZ"
+    fi
+  elif near_column "$RX" "$RZ" "$SRC_CX" "$SRC_CZ" 4; then
     _record ok "$ID: the return landed at the source frame" \
       "within 4 blocks of column $SRC_CX,$SRC_CZ" "$RX,$RZ"
   else
@@ -739,16 +800,39 @@ render_bay_26() {
     "$(json_read "$BRIDGE_LAST" '.blocks | to_entries | sort_by(-.value) | .[0:3] | map("\(.key)=\(.value)") | join(" ")')"
 }
 
+# One bay, with the death count read either side of it: a bay the player died
+# in measured nothing after the death, so its row is marked invalid with the
+# server's death message and the bay is queued to be built and run again.
+RETRY=""
+attempt_bay() { # final-attempt?
+  local before after mark cause
+  protect_player
+  before="$(deaths)"
+  mark="$(cd "$CONSUMER_DIR" && docker logs mc 2>&1 | wc -l | tr -d ' ')"
+  rm -f "$SUMMARY.row"
+  run_bay
+  after="$(deaths)"
+  if [ "$after" -gt "$before" ]; then
+    (cd "$CONSUMER_DIR" && docker logs mc 2>&1 | tail -n "+$((mark + 1))") > "$RUN_DIR/dim/$ID.death.log" 2>&1
+    cause="$(death_cause "$RUN_DIR/dim/$ID.death.log" "$PLAYER")"
+    printf '%s\tinvalid: %s\n' "$(cat "$SUMMARY.row" 2>/dev/null)" "${cause:-the player died}" >> "$SUMMARY"
+    note "  $PLAYER died in this bay (${cause:-no message}); the bay does not count"
+    [ "$1" = "final" ] || RETRY="$RETRY $BAY_INDEX"
+    rcon "execute in minecraft:overworld run tp $PLAYER $STAND" >/dev/null
+  else
+    printf '%s\tyes\n' "$(cat "$SUMMARY.row" 2>/dev/null)" >> "$SUMMARY"
+  fi
+}
+
 BAY_INDEX=0
 while [ "$BAY_INDEX" -lt "$TOTAL" ]; do
-  run_bay
+  attempt_bay first
   BAY_INDEX=$((BAY_INDEX + 1))
-  # A dead player answers every later command with success and moves nowhere.
-  if [ "$DRY_RUN" -eq 0 ] && rcon "data get entity $PLAYER Health" | grep -qE ' 0\.0f$'; then
-    _record fail "the player is alive after bay $BAY_INDEX" "alive" \
-      "dead — the remaining $((TOTAL - BAY_INDEX)) bays were not run"
-    break
-  fi
+done
+for BAY_INDEX in $RETRY; do
+  say "Again, once: bay $((BAY_INDEX + 1)), whose player died the first time"
+  build_bay
+  attempt_bay final
 done
 
 # ---------------------------------------------------------------------------

@@ -595,6 +595,10 @@ def build_bay(slug, config, portal, shape, orientation, axis, cursor, opts, name
         # PORTAL_TARGETS entries are removed on a symmetric break, so
         # findRegisteredPortalNear has nothing to reuse afterwards.
         "relightExpectation": "linked-to-old" if anchor else "new-arrival",
+        # An anchor's exit "bed" (or "worldSpawn") sends the player to their
+        # respawn point, never back to the frame they entered by.
+        "returnTo": ("respawn" if isinstance(portal.get("anchor"), dict)
+                     and portal["anchor"].get("exit") in ("bed", "worldSpawn") else "source"),
         "destBorder": dest_border,
         "borderApplies": border_applies,
         "borderOk": border_ok,
