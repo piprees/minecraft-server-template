@@ -189,6 +189,13 @@ public final class PortalWorld {
                 level.setBlock(below, uniform, QUIET);
             }
         }
+        // Footing either side of an upright opening: in a void the way out would be a fall.
+        for (com.customdimensions.core.BlockPos c : ArrivalSite.ledge(core, Pos.core(axis))) {
+            BlockPos at = Pos.mc(c);
+            if (level.getBlockState(at).isAir()) {
+                level.setBlock(at, uniform, QUIET);
+            }
+        }
     }
 
     /** Empties the opening and one cell either side of it, so the arrival has a way out. */

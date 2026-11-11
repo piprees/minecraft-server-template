@@ -376,6 +376,14 @@ public final class CompanionFeed {
         return Math.max(0, Math.min(255, Math.round(v * 255.0f)));
     }
 
+    /**
+     * Builds a vanilla packet as for {@code player}'s connection: Polymer rewrites the states and
+     * block entities in it per client and warns when a packet is built with no connection to ask.
+     */
+    static <T> T sentAs(ServerPlayer player, java.util.function.Supplier<T> build) {
+        return net.fabricmc.fabric.api.networking.v1.context.PacketContext.supplyWithContext(player.connection, build);
+    }
+
     private static void feedChunks(MinecraftServer server, ServerPlayer player, Viewer viewer, ServerLevel target,
                                    PortalZone zone, Sight sight, int dx, int dz, ViewPreference view) {
         FeedPlan.Sight s = sight.plan();
@@ -391,7 +399,7 @@ public final class CompanionFeed {
                 continue;
             }
             CompanionPayloads.DestinationChunk payload = new CompanionPayloads.DestinationChunk(id,
-                    new ClientboundLevelChunkWithLightPacket(chunk, target.getLightEngine(), null, null));
+                    sentAs(player, () -> new ClientboundLevelChunkWithLightPacket(chunk, target.getLightEngine(), null, null)));
             int size = CompanionNetwork.size(payload, CompanionPayloads.DestinationChunk.CODEC, server.registryAccess());
             if (!viewer.budget.trySpendChunk(size)) {
                 break;

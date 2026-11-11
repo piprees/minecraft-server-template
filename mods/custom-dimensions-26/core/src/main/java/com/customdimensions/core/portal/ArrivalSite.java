@@ -206,4 +206,23 @@ public final class ArrivalSite {
         out.addAll(interior);
         return out;
     }
+
+    /**
+     * The footing an upright arrival needs either side of its bottom row: the cells under the
+     * egress cells at that row, so a player stepping out of the opening has ground in a void.
+     * Empty for a flat opening, which stands on its own floor.
+     */
+    public static Set<BlockPos> ledge(Set<BlockPos> interior, Direction.Axis axis) {
+        Set<BlockPos> out = new HashSet<>();
+        if (axis == Direction.Axis.Y || interior.isEmpty()) {
+            return out;
+        }
+        int minY = interior.stream().mapToInt(BlockPos::getY).min().orElseThrow();
+        for (BlockPos p : egressCells(interior, axis, EGRESS_DEPTH)) {
+            if (p.getY() == minY) {
+                out.add(p.add(0, -1, 0));
+            }
+        }
+        return out;
+    }
 }
