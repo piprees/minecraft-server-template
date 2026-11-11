@@ -276,6 +276,8 @@ public final class RenderSelfTest {
      * {@code filled}: fluid in the noise, solid in the chunk with a block the
      * noise never places (ice, the surface rules' stone over a fluid).
      * {@code structure}: an added block inside a structure piece.
+     * {@code beard}: an added block where a structure's terrain adaptation adds
+     * density (the noise column has no beardifier), naming the structures.
      * {@code unexplained}: a block the noise itself places stands where the
      * noise is open, or no block differs at all.
      */
@@ -287,6 +289,8 @@ public final class RenderSelfTest {
             BlockState n = noise.getBlock(y);
             if (Sampler.solid(n)) noiseSolids.add(n.getBlock());
         }
+        net.minecraft.world.level.levelgen.Beardifier beard = net.minecraft.world.level.levelgen.Beardifier.forStructuresInChunk(
+                level.structureManager(), chunk.getPos());
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         List<String> runs = new ArrayList<>();
         Set<String> kinds = new java.util.TreeSet<>();
@@ -300,15 +304,11 @@ public final class RenderSelfTest {
                 BlockState r = chunk.getBlockState(pos.set(c.x(), y, c.z()));
                 boolean ns = Sampler.solid(n);
                 boolean rs = Sampler.solid(r);
-                if (ns && !rs) {
-                    key = (r.getFluidState().isEmpty() ? "removed " : "flooded ") + id(n) + ">" + id(r);
-                } else if (!ns && rs) {
-                    String change = id(n) + ">" + id(r);
-                    if (level.structureManager().getStructureWithPieceAt(pos, h -> true).isValid()) key = "structure " + change;
-                    else if (noiseSolids.contains(r.getBlock())) key = "unexplained " + change;
-                    else if (!n.getFluidState().isEmpty()) key = "filled " + change;
-                    else key = "added " + change;
-                }
+                boolean inPiece = !ns && rs && level.structureManager().getStructureWithPieceAt(pos, h -> true).isValid();
+                float bearded = !ns && rs && !inPiece ? beard.sampleValue(null, c.x(), y, c.z()) : 0;
+                String kind = Mismatch.kind(ns, rs, !r.getFluidState().isEmpty(), !n.getFluidState().isEmpty(), inPiece, bearded,
+                        noiseSolids.contains(r.getBlock()));
+                if (kind != null) key = kind + " " + id(n) + ">" + id(r);
             }
             if (key != null && key.equals(run)) {
                 runBottom = y;
@@ -323,9 +323,19 @@ public final class RenderSelfTest {
             runBottom = y;
         }
         String detail = "sampled " + c.height() + ", real " + real + (runs.isEmpty() ? "" : ", " + String.join(", ", runs));
+        if (kinds.contains("beard")) detail += " (terrain adaptation of " + adapting(level, chunk.getPos()) + ")";
         if (runs.isEmpty()) return "unexplained: no block differs from the noise from y " + top + " to " + low + "; " + detail;
         if (kinds.contains("unexplained")) return "unexplained: " + detail;
         return String.join("+", kinds) + ": " + detail;
+    }
+
+    /** The structures whose terrain adaptation reaches {@code chunk}, as the beardifier gathers them. */
+    private static String adapting(ServerLevel level, ChunkPos chunk) {
+        var structures = level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.STRUCTURE);
+        return level.structureManager().startsForStructure(chunk.x(), chunk.z(),
+                        s -> s.terrainAdaptation() != net.minecraft.world.level.levelgen.structure.TerrainAdjustment.NONE).stream()
+                .map(start -> String.valueOf(structures.getKey(start.getStructure())) + " " + start.getBoundingBox())
+                .distinct().collect(java.util.stream.Collectors.joining(", "));
     }
 
     private static String id(BlockState state) {
