@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 2,
+  "description": "Rolling ember meadows where piglin villages still tend the geyser fields. The gentlest face of piglin civilisation — farmers and traders, not soldiers. The fortress at the rim is a precaution, not a threat.",
+  "seed": 564072063557106840,
+  "spawn": [
+    -64,
+    150,
+    320
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    "adventure:nether_grasslands",
+    "adventure:sulphur_springs",
+    "minecraft:crimson_forest",
+    "adventure:quartz_flats",
+    "adventure:nether_jungle",
+    "adventure:crimson_pinewood",
+    {
+      "id": "minecraft:sulfur_caves",
+      "climate": {
+        "depth": [
+          0.2,
+          1
+        ]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:nether_grasslands": 55,
+      "adventure:sulphur_springs": 20,
+      "minecraft:crimson_forest": 10,
+      "adventure:quartz_flats": 5,
+      "adventure:nether_jungle": 5,
+      "adventure:crimson_pinewood": 5
+    },
+    "places": {
+      "groups": {
+        "geyser_fields": [
+          "adventure:sulphur_springs",
+          "adventure:quartz_flats"
+        ],
+        "woods": [
+          "minecraft:crimson_forest",
+          "adventure:nether_jungle",
+          "adventure:crimson_pinewood"
+        ]
+      },
+      "arrangement": "core"
+    }
+  },
+  "atmosphere": {
+    "fogColor": "#E8A05A",
+    "ambientLight": 0.25
+  },
+  "rules": {
+    "bedsWork": true
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.4
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "mns:mega_fortress": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "towns_and_towers:exclusives/village_piglin",
+        "x": 256,
+        "z": 120,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:magma_block",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "FF5B1B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "particleType": "minecraft:flame",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "scenic",
+    "water": "none",
+    "spawnFilter": [
+      "minecraft:crimson_forest",
+      "adventure:gravel_desert",
+      "adventure:magma_land"
+    ],
+    "wants": {
+      "towns_and_towers:exclusives/village_piglin": "spread",
+      "crimson_well": "near_spawn",
+      "mns:mega_fortress": "near_border",
+      "nether_bridge": "spread",
+      "mns:smoking_shrine": "near_border",
+      "crimson_fungus": "near_spawn"
+    },
+    "shuns": [
+      "nova_structures:sealing_halls",
+      "nova_structures:nether_keep"
+    ]
+  },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 44,
+      "floorRelief": 8,
+      "ceilingGap": 50,
+      "roughness": 0.15,
+      "flats": 0.2
+    },
+    "scales": {
+      "climate": 2
+    }
+  },
+  "liquids": {
+    "seaLevel": 22
+  }
+}

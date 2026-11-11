@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 2,
+  "description": "Industrial lava flats — piglin pipelines and reactors built over the melt. The infrastructure still runs, still pumps, still processes. The workers are gone. The machines don't care.",
+  "seed": -5196338349562891726,
+  "spawn": [
+    128,
+    99,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    "adventure:magma_land",
+    "adventure:ash_barrens",
+    "minecraft:basalt_deltas",
+    "adventure:gravel_desert",
+    "minecraft:nether_wastes"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:magma_land": 55,
+      "adventure:ash_barrens": 20,
+      "minecraft:basalt_deltas": 15,
+      "adventure:gravel_desert": 7,
+      "minecraft:nether_wastes": 3
+    },
+    "places": {
+      "groups": {
+        "dunes": [
+          "adventure:gravel_desert",
+          "minecraft:nether_wastes"
+        ]
+      },
+      "arrangement": "core"
+    }
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.4
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "mns:crimson_forge": "platform_skirt",
+      "mns:bridge_1": "platform_skirt"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:smooth_basalt",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "FF8B2B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:nether_wastes",
+      "adventure:gravel_desert",
+      "adventure:magma_land"
+    ],
+    "wants": {
+      "mns:bridge_1": "spread",
+      "mns:crimson_forge": "near_border",
+      "mns:mega_fortress": "spread",
+      "crimson_well": "near_spawn",
+      "mns:copper_tower": "spread",
+      "mns:nether_tower": "near_border",
+      "copper_tower": "spread"
+    },
+    "shuns": [
+      "towns_and_towers:exclusives/village_piglin",
+      "mvs:large_warped_tower"
+    ]
+  },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 33,
+      "floorRelief": 6,
+      "ceilingGap": 48,
+      "roughness": 0.1,
+      "flats": 0.6,
+      "corridors": 0.05,
+      "corridorDepth": 8
+    },
+    "scales": {
+      "climate": 1.5
+    }
+  }
+}
