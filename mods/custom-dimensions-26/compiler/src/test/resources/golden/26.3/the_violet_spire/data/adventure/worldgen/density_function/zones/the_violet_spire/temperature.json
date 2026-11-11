@@ -4,7 +4,7 @@
   "min_inclusive": 0.5,
   "type": "minecraft:range_choice",
   "when_in_range": {
-    "left": "minecraft:overworld/temperature",
+    "left": "adventure:terrain/the_violet_spire/temperature",
     "right": 32.0,
     "type": "minecraft:add"
   },
@@ -14,10 +14,10 @@
     "min_inclusive": 0.5,
     "type": "minecraft:range_choice",
     "when_in_range": {
-      "left": "minecraft:overworld/temperature",
+      "left": "adventure:terrain/the_violet_spire/temperature",
       "right": 16.0,
       "type": "minecraft:add"
     },
-    "when_out_of_range": "minecraft:overworld/temperature"
+    "when_out_of_range": "adventure:terrain/the_violet_spire/temperature"
   }
 }

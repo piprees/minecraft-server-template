@@ -20,7 +20,22 @@
       "climate": 4
     }
   },
-  "biomes": ["adventure:sky_highlands", "adventure:wisteria_grove", "adventure:golden_skygrove", "minecraft:cherry_grove", "minecraft:meadow", "minecraft:flower_forest", "minecraft:plains", "minecraft:forest", "minecraft:birch_forest", "adventure:cloud_reef", "adventure:windswept_isles", "minecraft:snowy_slopes", "minecraft:dark_forest", "adventure:hanging_gardens"],
+  "biomes": [
+    "adventure:sky_highlands",
+    "adventure:wisteria_grove",
+    "adventure:golden_skygrove",
+    "minecraft:cherry_grove",
+    "minecraft:meadow",
+    "minecraft:flower_forest",
+    "minecraft:plains",
+    "minecraft:forest",
+    "minecraft:birch_forest",
+    "adventure:cloud_reef",
+    "adventure:windswept_isles",
+    "minecraft:snowy_slopes",
+    "minecraft:dark_forest",
+    "adventure:hanging_gardens"
+  ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
@@ -74,7 +89,12 @@
   ],
   "roll": {
     "mood": "scenic",
-    "spawnFilter": ["adventure:sky_highlands", "minecraft:forest", "adventure:wisteria_grove", "minecraft:meadow"],
+    "spawnFilter": [
+      "adventure:sky_highlands",
+      "minecraft:forest",
+      "adventure:wisteria_grove",
+      "minecraft:meadow"
+    ],
     "wants": {
       "mvs:statue_ruins": "near_spawn",
       "mss:small_tower": "near_spawn",

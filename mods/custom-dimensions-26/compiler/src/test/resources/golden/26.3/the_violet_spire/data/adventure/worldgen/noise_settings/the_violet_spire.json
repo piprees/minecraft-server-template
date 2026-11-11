@@ -2,6 +2,10 @@
   "base": "minecraft:floating_islands",
   "changed": {
     "material_rule": "adventure:the_violet_spire",
-    "noise_router": "sha1:0c8622999c6bf86626accab859ed87a78075b90c"
-  }
+    "noise_router": "sha1:3ae296652993bdcca10bd3b9c75f06c6c9b09ff2",
+    "sea_level": 0
+  },
+  "removed": [
+    "debug_functions"
+  ]
 }

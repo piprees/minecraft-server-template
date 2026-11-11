@@ -3,65 +3,202 @@
   "generator": {
     "type": "minecraft:noise",
     "biome_source": {
-      "type": "minecraft:multi_noise",
-      "biomes": [
-        {
-          "biome": "minecraft:flower_forest",
-          "parameters": "sha1:6f9980662fa2833c4a15579073e71351b6aa7e6d"
+      "type": "customdimensions:zoned",
+      "base": {
+        "type": "minecraft:multi_noise",
+        "biomes": [
+          {
+            "biome": "adventure:hanging_gardens",
+            "parameters": {
+              "temperature": [-2.0, 2.0],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [0.0625, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:sky_highlands",
+            "parameters": {
+              "temperature": [-2.0, -0.3504],
+              "humidity": [-2.0, -0.0526],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:wisteria_grove",
+            "parameters": {
+              "temperature": [-2.0, -0.3504],
+              "humidity": [-0.0526, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:cherry_grove",
+            "parameters": {
+              "temperature": [-0.3504, 0.094],
+              "humidity": [-2.0, -0.0769],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:golden_skygrove",
+            "parameters": {
+              "temperature": [-0.3504, 0.094],
+              "humidity": [-0.0769, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:meadow",
+            "parameters": {
+              "temperature": [0.094, 0.5726],
+              "humidity": [-2.0, -0.1429],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:flower_forest",
+            "parameters": {
+              "temperature": [0.094, 0.5726],
+              "humidity": [-0.1429, 0.2857],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:plains",
+            "parameters": {
+              "temperature": [0.094, 0.5726],
+              "humidity": [0.2857, 0.6429],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:forest",
+            "parameters": {
+              "temperature": [0.094, 0.5726],
+              "humidity": [0.6429, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:dark_forest",
+            "parameters": {
+              "temperature": [0.5726, 2.0],
+              "humidity": [-2.0, -0.6],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:snowy_slopes",
+            "parameters": {
+              "temperature": [0.5726, 2.0],
+              "humidity": [-0.6, -0.2],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:windswept_isles",
+            "parameters": {
+              "temperature": [0.5726, 2.0],
+              "humidity": [-0.2, 0.2],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:cloud_reef",
+            "parameters": {
+              "temperature": [0.5726, 2.0],
+              "humidity": [0.2, 0.6],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:birch_forest",
+            "parameters": {
+              "temperature": [0.5726, 2.0],
+              "humidity": [0.6, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          }
+        ]
+      },
+      "regions": {
+        "axes": [
+          "temperature",
+          "humidity"
+        ],
+        "land": {
+          "axis": "continentalness",
+          "min": -0.7
         },
-        {
-          "biome": "adventure:windswept_isles",
-          "parameters": "sha1:fcb4aeb5638a76fbecee1c339c29684f85730016"
-        },
-        {
-          "biome": "minecraft:plains",
-          "parameters": "sha1:6556b6fd1c601652f07d3d264caa04cce9b3237e"
-        },
-        {
-          "biome": "minecraft:snowy_slopes",
-          "parameters": "sha1:ab139bb978ebaff4818c4d225abf0f84b4012a3c"
-        },
-        {
-          "biome": "minecraft:forest",
-          "parameters": "sha1:9bc91e758a20be473b904db64840b4477f0b9e48"
-        },
-        {
-          "biome": "minecraft:meadow",
-          "parameters": "sha1:bd4c28ede2c8390b4533faf5a312c767dbb0628d"
-        },
-        {
-          "biome": "minecraft:birch_forest",
-          "parameters": "sha1:3de289554a77c78859abb710921f73c43fca669c"
-        },
-        {
-          "biome": "minecraft:cherry_grove",
-          "parameters": "sha1:ad1dad45cafd80673bef452e93232f51638ad44d"
-        },
-        {
-          "biome": "adventure:sky_highlands",
-          "parameters": "sha1:fb9252444a588c2b4bf1961abddebddf2c49c007"
-        },
-        {
-          "biome": "adventure:wisteria_grove",
-          "parameters": "sha1:dc783e6de44c378778908a67c965f24fdb843ff8"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:36345693ece19a6f009135c16238f80efd604365"
-        },
-        {
-          "biome": "adventure:golden_skygrove",
-          "parameters": "sha1:d9ed67fe150ec3e4ad410e05f40b0ecb5427fdb5"
-        },
-        {
-          "biome": "adventure:cloud_reef",
-          "parameters": "sha1:bd8694786d2aa48b00ed16f9687337a553ccfe8e"
-        },
-        {
-          "biome": "adventure:hanging_gardens",
-          "parameters": "sha1:9cf4d56454490dcf5dd04a06c468962614c19fcc"
-        }
-      ]
+        "areas": [
+          {
+            "role": "underside",
+            "depth": [0.0625, 2.0]
+          },
+          {
+            "role": "land",
+            "depth": [-2.0, 0.0625],
+            "columns": [-0.3504, 0.094, 0.5726]
+          }
+        ],
+        "radius": 4096
+      }
     },
     "settings": "adventure:the_aviary"
   }
