@@ -11,7 +11,7 @@ import java.util.List;
  * {@code zones}, {@code structures}, {@code difficulty}, {@code portals},
  * the exits and {@code roll}) stay JSON here until those packages type them.
  * Absent fields are null; {@code biomes}, {@code zones}, {@code portals} and
- * {@code wins} are empty lists when absent.
+ * {@code wins} are empty lists and {@code gameRules} is {@link GameRuleValues#NONE} when absent.
  */
 public record Definition(
         int schemaVersion,
@@ -30,6 +30,7 @@ public record Definition(
         DimensionTypeFields dimensionType,
         Atmosphere atmosphere,
         Rules rules,
+        GameRuleValues gameRules,
         Borders borders,
         JsonObject difficulty,
         JsonObject structures,
@@ -49,7 +50,7 @@ public record Definition(
     /** Top-level keys in the order the converter writes them. */
     public static final List<String> FIELD_ORDER = List.of(
             "schemaVersion", "description", "seed", "spawn", "generator", "terrain", "biomes", "biomeLayout",
-            "liquids", "materials", "ores", "carvers", "zones", "dimensionType", "atmosphere", "rules", "borders",
+            "liquids", "materials", "ores", "carvers", "zones", "dimensionType", "atmosphere", "rules", "gameRules", "borders",
             "difficulty", "structures", "portals", "exitPortal", "exits", "exitShrines", "deaths", "wins", "roll");
 
     public Definition {
@@ -57,5 +58,6 @@ public record Definition(
         zones = zones == null ? List.of() : List.copyOf(zones);
         portals = portals == null ? List.of() : List.copyOf(portals);
         wins = wins == null ? List.of() : List.copyOf(wins);
+        gameRules = gameRules == null ? GameRuleValues.NONE : gameRules;
     }
 }

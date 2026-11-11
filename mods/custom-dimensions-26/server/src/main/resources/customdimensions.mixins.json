@@ -4,7 +4,7 @@
   "package": "com.customdimensions.server.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
-    "ChunkBlockChangedMixin", "ChunkGeneratorAccessor", "NoiseBasedChunkGeneratorAccessor", "StructureStateMixin", "ChunkMapStructuresMixin", "StructureBiomeBypassMixin", "BeardifierAdaptationMixin", "NoiseBasedAquiferMixin", "DisabledAquiferMixin", "DryFluidFeatureMixin", "PrepareSpawnTaskMixin"
+    "ChunkBlockChangedMixin", "ChunkGeneratorAccessor", "NoiseBasedChunkGeneratorAccessor", "StructureStateMixin", "ChunkMapStructuresMixin", "StructureBiomeBypassMixin", "BeardifierAdaptationMixin", "NoiseBasedAquiferMixin", "DisabledAquiferMixin", "DryFluidFeatureMixin", "PrepareSpawnTaskMixin", "ServerLevelSeedMixin", "MinecraftServerLevelsMixin", "ServerLevelGameRulesMixin", "ServerPlayerRestoreMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -16,7 +16,7 @@
       "type": "string"
     },
     "seed": {
-      "description": "The world seed, or \"env\" for the server's SEED environment variable.",
+      "description": "The seed this dimension's level generates from, base worlds included (decisions.md RB-37); \"env\" or absent takes the world seed (level-seed, from SEED). A level whose region folder holds chunks keeps the seed they generated from.",
       "oneOf": [
         { "type": "integer" },
         { "const": "env" }
@@ -566,6 +566,17 @@
         "raids": { "type": "boolean" }
       }
     },
+    "gameRules": {
+      "description": "Game rules held by this dimension's level (decisions.md RB-38): a 26.3 game rule id (minecraft: may be left off) to a boolean or a whole number. Unset rules take settings.json's defaults.gameRules, then the server-wide value. advance_time, advance_weather, immediate_respawn, limited_crafting and reduced_debug_info are server-wide and refused.",
+      "type": "object",
+      "propertyNames": { "pattern": "^([a-z0-9_.-]+:)?[a-z0-9_./-]+$" },
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "boolean" },
+          { "type": "integer", "minimum": -2147483648, "maximum": 2147483647 }
+        ]
+      }
+    },
     "borders": {
       "description": "World-border radius for players, and the pre-generation radius, in blocks.",
       "type": "object",
@@ -667,7 +678,7 @@
     },
     "exitShrines": { "type": "object", "additionalProperties": true },
     "deaths": {
-      "description": "What a player who dies here keeps (decisions.md RB-31). Absent, the keepInventory game rule decides.",
+      "description": "What a player who dies here keeps (decisions.md RB-31). Set, it wins over the keep_inventory game rule; absent, this dimension's keep_inventory decides.",
       "type": "object",
       "additionalProperties": false,
       "properties": {

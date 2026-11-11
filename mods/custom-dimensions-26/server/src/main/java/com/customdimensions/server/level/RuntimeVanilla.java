@@ -34,7 +34,8 @@ import net.minecraft.world.level.biome.MultiNoiseBiomeSourceParameterList;
  * from {@link MultiNoiseBiomeSourceParameterList#knownPresets()} with the codec
  * the data generator's biome-parameters report uses and written in its key
  * order, so {@code reports/biome_parameters/minecraft/<list>.json} reads as
- * that report does.
+ * that report does; the registry report and the game rules' part of the
+ * command report are built from the game's registries.
  */
 public final class RuntimeVanilla implements VanillaSource {
     private static final String PROBE = "data/minecraft/dimension_type/overworld.json";
@@ -45,6 +46,7 @@ public final class RuntimeVanilla implements VanillaSource {
     private final Path root;
     private final Map<String, String> reports = new TreeMap<>();
     private String registries;
+    private String commands;
 
     private RuntimeVanilla(Path root) {
         this.root = root;
@@ -95,6 +97,50 @@ public final class RuntimeVanilla implements VanillaSource {
         return registries;
     }
 
+    /**
+     * {@link VanillaData#COMMANDS_REPORT} as far as the compiler reads it: the
+     * {@code gamerule} command's literal for each {@code minecraft} game rule,
+     * with the argument parser and bounds the data generator writes.
+     */
+    private synchronized String commands() {
+        if (commands == null) commands = gameRuleCommands();
+        return commands;
+    }
+
+    static String gameRuleCommands() {
+        JsonObject rules = new JsonObject();
+        for (var rule : BuiltInRegistries.GAME_RULE) {
+            Identifier id = BuiltInRegistries.GAME_RULE.getKey(rule);
+            if (id == null || !id.getNamespace().equals("minecraft")) continue;
+            JsonObject value = new JsonObject();
+            value.addProperty("type", "argument");
+            if (rule.argument() instanceof com.mojang.brigadier.arguments.IntegerArgumentType ints) {
+                value.addProperty("parser", "brigadier:integer");
+                JsonObject props = new JsonObject();
+                if (ints.getMinimum() != Integer.MIN_VALUE) props.addProperty("min", ints.getMinimum());
+                if (ints.getMaximum() != Integer.MAX_VALUE) props.addProperty("max", ints.getMaximum());
+                if (!props.isEmpty()) value.add("properties", props);
+            } else if (rule.argument() instanceof com.mojang.brigadier.arguments.BoolArgumentType) {
+                value.addProperty("parser", "brigadier:bool");
+            } else {
+                value.addProperty("parser", rule.argument().getClass().getName());
+            }
+            JsonObject children = new JsonObject();
+            children.add("value", value);
+            JsonObject literal = new JsonObject();
+            literal.addProperty("type", "literal");
+            literal.add("children", children);
+            rules.add(id.getPath(), literal);
+        }
+        JsonObject gamerule = new JsonObject();
+        gamerule.add("children", rules);
+        JsonObject top = new JsonObject();
+        top.add("gamerule", gamerule);
+        JsonObject root = new JsonObject();
+        root.add("children", top);
+        return root.toString();
+    }
+
     /** The report paths this source encodes, sorted. */
     public List<String> reportPaths() {
         return List.copyOf(reports.keySet());
@@ -103,6 +149,7 @@ public final class RuntimeVanilla implements VanillaSource {
     @Override
     public Optional<String> read(String path) {
         if (path.equals(VanillaData.REGISTRIES_REPORT)) return Optional.of(registries());
+        if (path.equals(VanillaData.COMMANDS_REPORT)) return Optional.of(commands());
         if (path.startsWith(REPORTS)) return Optional.ofNullable(reports.get(path));
         Path file = root.resolve(path);
         if (!Files.isRegularFile(file)) return Optional.empty();

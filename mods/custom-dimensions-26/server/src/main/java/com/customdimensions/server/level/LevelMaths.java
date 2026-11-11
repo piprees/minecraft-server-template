@@ -25,6 +25,33 @@ public final class LevelMaths {
         return seed == null || seed.fromEnv() ? worldSeed : seed.value();
     }
 
+    /**
+     * The seed a level generates from (decisions.md RB-37): {@code seed} to use,
+     * whether to {@code write} it as the level's record, and a {@code warning}
+     * to log once, or null.
+     */
+    public record SeedChoice(long seed, boolean write, String warning) {}
+
+    /**
+     * Chooses a level's seed. A region folder without chunks takes the
+     * definition's seed ({@code wanted}). One with chunks keeps the seed they
+     * generated from, so its terrain stays continuous: the {@code recorded}
+     * seed, or, for chunks older than any record, {@code unrecorded} (the
+     * seed the level had before records: the world seed for a base world,
+     * the definition's for a lazy one). Keeping a seed other than the
+     * definition's warns, naming both and the remedy.
+     */
+    public static SeedChoice chooseSeed(String level, long wanted, Long recorded, boolean holdsChunks, long unrecorded) {
+        if (!holdsChunks) return new SeedChoice(wanted, recorded == null || recorded != wanted, null);
+        long kept = recorded != null ? recorded : unrecorded;
+        String warning = kept == wanted ? null : level + ": its region folder holds chunks generated from seed " + kept
+                + ", and its definition's seed is " + wanted + "; it keeps generating from " + kept
+                + " so its terrain stays continuous. To generate from " + wanted + ", wipe the dimension"
+                + " (./ops reset-seed for a base world, /customdim delete for a lazy one); to silence this, set the definition's seed to "
+                + kept + ".";
+        return new SeedChoice(kept, recorded == null, warning);
+    }
+
     /** The chunk holding {@code spawn}, or 0,0 without one. */
     public static ChunkPos spawnChunk(BlockPos spawn) {
         return spawn == null ? new ChunkPos(0, 0) : new ChunkPos(Math.floorDiv(spawn.x(), 16), Math.floorDiv(spawn.z(), 16));

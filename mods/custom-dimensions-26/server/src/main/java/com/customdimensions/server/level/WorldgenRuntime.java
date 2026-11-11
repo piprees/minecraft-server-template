@@ -89,10 +89,11 @@ public final class WorldgenRuntime {
 
     private static void start(MinecraftServer server) {
         specs = load(server);
-        long seed = server.getWorldGenSettings().options().seed();
+        long world = LevelSeeds.worldSeed(server);
         Registry<LevelStem> stems = server.registryAccess().lookupOrThrow(Registries.LEVEL_STEM);
         for (Map.Entry<ResourceKey<LevelStem>, LevelStem> stem : stems.entrySet()) {
-            apply(server, stem.getKey().identifier().toString(), stem.getValue().generator(), seed);
+            Long own = LevelSeeds.baseSeedOrNull(ResourceKey.create(Registries.DIMENSION, stem.getKey().identifier()));
+            apply(server, stem.getKey().identifier().toString(), stem.getValue().generator(), own != null ? own : world);
         }
     }
 

@@ -10,6 +10,7 @@ import com.customdimensions.core.definition.Win;
 import com.customdimensions.core.definition.DefinitionReader;
 import com.customdimensions.core.definition.DefinitionSettings;
 import com.customdimensions.core.definition.DimensionTypeFields;
+import com.customdimensions.core.definition.GameRuleValues;
 import com.customdimensions.core.definition.Generator;
 import com.customdimensions.core.definition.Liquids;
 import com.customdimensions.core.definition.Rules;
@@ -124,6 +125,7 @@ public final class DatapackCompiler {
     public static Output compile(Path definitionsDir, Path bridgesDir, VanillaData vanilla, VersionTable.Version version) {
         DefinitionSettings settings = DefinitionReader.readSettings(definitionsDir.resolve("settings.json"));
         String namespace = settings.namespace() != null ? settings.namespace() : "adventure";
+        GameRulesCompiler.check("settings.json defaults", GameRuleValues.fromDefaults(settings.defaults(), "settings.json"), vanilla);
         Map<String, Definition> definitions = new TreeMap<>();
         for (Path file : definitionFiles(definitionsDir)) {
             String name = file.getFileName().toString();
@@ -220,6 +222,7 @@ public final class DatapackCompiler {
         CompileReport.Entry entry = report.add(slug);
         Definition def = definitions.get(slug);
         wins(slug, def, entry);
+        GameRulesCompiler.check(slug, def.gameRules(), vanilla);
         String cloneNote = "";
         if (Generator.CLONE.equals(def.generator().type())) {
             List<String> chain = cloneChain(slug);
@@ -420,7 +423,7 @@ public final class DatapackCompiler {
         JsonObject carvers = overlay(source.carvers(), clone.carvers());
         return new Definition(clone.schemaVersion(), clone.description(), clone.seed(), clone.spawn(), source.generator(),
                 clone.terrain() != null ? clone.terrain() : source.terrain(), biomes, biomeLayout, liquids, materials, ores, carvers, clone.zones(), clone.dimensionType(),
-                clone.atmosphere(), clone.rules(), clone.borders(), clone.difficulty(), clone.structures(), clone.portals(),
+                clone.atmosphere(), clone.rules(), clone.gameRules(), clone.borders(), clone.difficulty(), clone.structures(), clone.portals(),
                 clone.exitPortal(), clone.exits(), clone.exitShrines(), clone.deaths(), clone.wins(), clone.roll());
     }
 
@@ -1127,8 +1130,11 @@ public final class DatapackCompiler {
         if (def.borders() != null) {
             entry.unsupported("borders", "world borders are set by the runtime, M2");
         }
-        if (def.seed() != null && !BASE_WORLDS.containsKey(entry.slug())) {
-            entry.unsupported("seed", "a level stem has no seed; the runtime seeds the level, M2");
+        if (def.seed() != null) {
+            entry.unsupported("seed", "a level stem has no seed; the runtime seeds the level (RB-37)");
+        }
+        if (!def.gameRules().isEmpty()) {
+            entry.unsupported("gameRules", "game rules are runtime state; the runtime holds them per level (RB-38)");
         }
         if (def.spawn() != null) {
             entry.unsupported("spawn", "spawn is placed by the runtime, M2");

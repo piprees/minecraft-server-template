@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: a flat level holding game rules of its own, where a death keeps the inventory, a broken block drops nothing and random ticks run fast.",
+  "seed": 3,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "flat",
+    "layers": [
+      {"block": "minecraft:bedrock", "height": 1},
+      {"block": "minecraft:stone", "height": 3}
+    ]
+  },
+  "gameRules": {
+    "keep_inventory": true,
+    "block_drops": false,
+    "random_tick_speed": 1000
+  },
+  "borders": {
+    "player": 256
+  }
+}
