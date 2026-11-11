@@ -61,7 +61,8 @@ import java.util.function.Function;
  * of every column, its palette's top block tops at least half the land columns
  * where the palette has one (under a roof, the floor of the highest open
  * space), and each of its own features left a block only it, or only it and
- * the siblings named, places ({@link #ownBlock}); the ashen woodland's line also
+ * the siblings named, places ({@link #ownBlock}), counted over the wider
+ * {@link #FAIR_SIDE} sample for a feature too rare for the 96x96; the ashen woodland's line also
  * counts its coal on and in the ground ({@link #ashenCoal}), and each water
  * biome's ({@link #WATER}) its lily pads and pool water ({@link #poolWater}). Each line
  * carries its counts.
@@ -98,6 +99,14 @@ public final class BiomeLibrarySelfTest {
     /** Biomes whose pools, marsh water or river channel must hold unbroken water, with lily pads only on it. */
     static final Set<String> WATER = Set.of("cypress_wetland", "desert_oasis", "orchid_marsh", "muddy_river", "megalake", "sulphur_springs", "fungal_fen", "neon_oasis", "bayou");
     static final int LOAD_CAP_TICKS = 6000;
+    /**
+     * Chunks a side of a showcase's wider sample, 192x192 columns (3.7 ha), loaded only when one of its features left
+     * fewer than {@link #FAIR_COUNT} blocks in the 96x96 (0.9 ha), which then judges that feature: the old growth oakwood's
+     * willows stand at about 2.4 a hectare, by the ponds they lean over, and one log in the 96x96 can be a neighbour's.
+     */
+    static final int FAIR_SIDE = 12;
+    /** Fewer blocks than one small tree's trunk: too few to tell a feature from a neighbouring chunk's spill. */
+    static final int FAIR_COUNT = 8;
     /** Share of ashen land columns topped with the palette's top block; gravel and podzol disks take most of the rest. */
     static final double TOP_SHARE = 0.5;
     /** Share topped with any of its ground blocks: the palette's, the disks', the dirt trunks stand on and its coal. */
@@ -338,7 +347,9 @@ public final class BiomeLibrarySelfTest {
                     level = l;
                     return load(area(centre));
                 })
-                .thenAccept(chunks -> lines.add(line(name, () -> showcaseChecks(id, chunks, spawn))))
+                .thenCompose(chunks -> unsampled(id, chunks).isEmpty() ? CompletableFuture.completedFuture(new Sample(chunks, List.of()))
+                        : load(area(centre, FAIR_SIDE)).thenApply(wide -> new Sample(chunks, wide)))
+                .thenAccept(sample -> lines.add(line(name, () -> showcaseChecks(id, sample, spawn))))
                 .thenCompose(v -> !BASIN_SHOWCASES.contains(id) ? CompletableFuture.<Void>completedFuture(null)
                         : load(basinArea(centre)).thenAccept(chunks -> lines.add(line(name + " basins", () -> basinChecks(chunks, spawn))))
                         .whenComplete((v2, e) -> basinArea(centre).forEach(c -> level.setChunkForced(c.x(), c.z(), false)))
@@ -348,14 +359,63 @@ public final class BiomeLibrarySelfTest {
                                 .whenComplete((v3, e) -> gapArea(gapAt).forEach(c -> level.setChunkForced(c.x(), c.z(), false)))))
                 .handle((v, error) -> {
                     if (error != null) lines.add("FAIL " + name + ": " + cause(error));
-                    if (level != null) area(centre).forEach(c -> level.setChunkForced(c.x(), c.z(), false));
+                    if (level != null) area(centre, FAIR_SIDE).forEach(c -> level.setChunkForced(c.x(), c.z(), false));
                     return null;
                 })
                 .thenCompose(v -> manager.deactivate(slug).handle((t, e) -> null));
     }
 
-    /** The biome tops every column, its palette's top block at least half the land, and each own feature a block only it places. */
-    private String showcaseChecks(String id, List<LevelChunk> chunks, BlockPos spawn) {
+    /** A showcase's 96x96 columns round spawn, and the {@link #FAIR_SIDE} chunks a side round them when a feature left fewer than {@link #FAIR_COUNT} blocks in them (else empty). */
+    record Sample(List<LevelChunk> chunks, List<LevelChunk> wide) {}
+
+    /** The features of a showcase's biome with a block of their own of which the chunks hold fewer than {@link #FAIR_COUNT}. */
+    private List<String> unsampled(String id, List<LevelChunk> chunks) {
+        BiomeLibrary.Entry entry = BiomeLibrary.shipped().entries().get(id);
+        Map<String, Own> owns = new LinkedHashMap<>();
+        for (String feature : entry.features().keySet()) owns.put(feature, ownBlock(entry, feature));
+        Map<Block, Long> found = ownCounts(owns, chunks, UNDERGROUND_REALMS.contains(entry.realm()), null, null);
+        List<String> out = new ArrayList<>();
+        owns.forEach((feature, own) -> {
+            if (own.block() != null && found.get(BuiltInRegistries.BLOCK.getValue(Identifier.parse(own.block()))) < FAIR_COUNT) out.add(feature);
+        });
+        return out;
+    }
+
+    /**
+     * How many blocks of each feature's own block the chunks hold, every height from the bottom to the surface; with
+     * {@code spawn}, the nearest standing one to it of each into {@code nearest}.
+     */
+    private static Map<Block, Long> ownCounts(Map<String, Own> owns, List<LevelChunk> chunks, boolean underground, BlockPos spawn, Map<Block, BlockPos> nearest) {
+        Map<Block, Long> found = new LinkedHashMap<>();
+        for (Own own : owns.values()) {
+            if (own.block() != null) found.put(BuiltInRegistries.BLOCK.getValue(Identifier.parse(own.block())), 0L);
+        }
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        forColumns(chunks, (chunk, x, z, biome) -> {
+            int top = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
+            int floor = underground ? chunk.getMinY() : chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z) - 2;
+            for (int y = chunk.getMinY(); y <= top; y++) {
+                pos.set(chunk.getPos().getMinBlockX() + x, y, chunk.getPos().getMinBlockZ() + z);
+                Block block = chunk.getBlockState(pos).getBlock();
+                Long n = found.get(block);
+                if (n == null) continue;
+                found.put(block, n + 1);
+                if (nearest == null) continue;
+                BlockPos best = nearest.get(block);
+                if (y >= floor && standsClear(chunk, pos) && (best == null || pos.distSqr(spawn.atY(y)) < best.distSqr(spawn.atY(best.getY())))) {
+                    nearest.put(block, pos.immutable());
+                }
+            }
+        });
+        return found;
+    }
+
+    /**
+     * The biome tops every column, its palette's top block at least half the land, and each own feature a block only it
+     * places: in the 96x96 columns, or for a feature rarer than that holds, in the wider sample's.
+     */
+    private String showcaseChecks(String id, Sample sample, BlockPos spawn) {
+        List<LevelChunk> chunks = sample.chunks();
         BiomeLibrary.Entry entry = BiomeLibrary.shipped().entries().get(id);
         List<String> failures = new ArrayList<>();
         int[] surface = new int[2];
@@ -388,28 +448,11 @@ public final class BiomeLibrarySelfTest {
 
         Map<String, Own> owns = new LinkedHashMap<>();
         for (String feature : entry.features().keySet()) owns.put(feature, ownBlock(entry, feature));
-        Map<Block, Long> found = new LinkedHashMap<>();
-        for (Own own : owns.values()) {
-            if (own.block() != null) found.put(BuiltInRegistries.BLOCK.getValue(Identifier.parse(own.block())), 0L);
-        }
         Map<Block, BlockPos> nearest = new LinkedHashMap<>();
-        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         boolean underground = UNDERGROUND_REALMS.contains(entry.realm());
-        forColumns(chunks, (chunk, x, z, biome) -> {
-            int top = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
-            int floor = underground ? chunk.getMinY() : chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z) - 2;
-            for (int y = chunk.getMinY(); y <= top; y++) {
-                pos.set(chunk.getPos().getMinBlockX() + x, y, chunk.getPos().getMinBlockZ() + z);
-                Block block = chunk.getBlockState(pos).getBlock();
-                Long n = found.get(block);
-                if (n == null) continue;
-                found.put(block, n + 1);
-                BlockPos best = nearest.get(block);
-                if (y >= floor && standsClear(chunk, pos) && (best == null || pos.distSqr(spawn.atY(y)) < best.distSqr(spawn.atY(best.getY())))) {
-                    nearest.put(block, pos.immutable());
-                }
-            }
-        });
+        Map<Block, Long> found = ownCounts(owns, chunks, underground, spawn, nearest);
+        Map<Block, Long> wide = sample.wide().isEmpty() ? Map.of() : ownCounts(owns, sample.wide(), underground, null, null);
+        int wideSide = FAIR_SIDE * 16;
         nearest.forEach((block, at) -> com.customdimensions.server.CustomDimensions.LOG.info("biomes showcase {}: {} tops a standing column nearest spawn at {} {} {}",
                 id, BuiltInRegistries.BLOCK.getKey(block).getPath(), at.getX(), at.getY(), at.getZ()));
         List<String> parts = new ArrayList<>();
@@ -418,9 +461,13 @@ public final class BiomeLibrarySelfTest {
                 parts.add(feature + " places no block of its own (" + own.shared() + "), not counted");
                 return;
             }
-            long n = found.get(BuiltInRegistries.BLOCK.getValue(Identifier.parse(own.block())));
-            if (n == 0) failures.add(feature);
-            parts.add(feature + " " + Identifier.parse(own.block()).getPath() + (own.with().isEmpty() ? "" : " (with " + String.join(", ", own.with()) + ")") + " " + n);
+            Block block = BuiltInRegistries.BLOCK.getValue(Identifier.parse(own.block()));
+            long n = found.get(block);
+            long w = wide.getOrDefault(block, 0L);
+            boolean rare = n < FAIR_COUNT && !wide.isEmpty();
+            if (rare ? w == 0 : n == 0) failures.add(feature);
+            parts.add(feature + " " + Identifier.parse(own.block()).getPath() + (own.with().isEmpty() ? "" : " (with " + String.join(", ", own.with()) + ")") + " " + n
+                    + (rare ? " (" + w + " over " + wideSide + "x" + wideSide + ")" : ""));
         });
         text += "; features (a block only it, or it and the siblings named, places; count over the columns): " + String.join(", ", parts);
         if (id.equals(ASHEN)) text += "; " + ashenCoal(chunks, failures);
@@ -1232,8 +1279,13 @@ public final class BiomeLibrarySelfTest {
 
     /** 6x6 chunks, 96x96 columns, round {@code centre}. */
     private static List<ChunkPos> area(ChunkPos centre) {
+        return area(centre, 6);
+    }
+
+    /** {@code side} x {@code side} chunks round {@code centre} ({@code side} even), the 6x6 of {@link #area(ChunkPos)} at their middle. */
+    static List<ChunkPos> area(ChunkPos centre, int side) {
         List<ChunkPos> out = new ArrayList<>();
-        for (int x = -3; x < 3; x++) for (int z = -3; z < 3; z++) out.add(new ChunkPos(centre.x() + x, centre.z() + z));
+        for (int x = -side / 2; x < side / 2; x++) for (int z = -side / 2; z < side / 2; z++) out.add(new ChunkPos(centre.x() + x, centre.z() + z));
         return out;
     }
 
