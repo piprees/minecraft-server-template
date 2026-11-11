@@ -1596,6 +1596,18 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t253"></a>
+### T253 — The landform classifier files a sky island's level ground by its tilt
+- **Symptom:** a `floating_islands` world reads as hills or mountains in the survey whatever its tops look like, and its plains-plus-plateaus share stays low.
+- **Cause:** the classifier works on 64-block relief and a 256-block topographic index: a `spread` of 24 or more tilts every island into hills, terrace risers read as hills, a tier 48 or more above its neighbours reads as mountains, and an island under 2% of the grid is filed as `islands` (`LandformsTopsTest`).
+- **Fix:** lower `spread` before raising `flatness`; state a sky world's landform targets per land column, and judge flat tops on the renders.
+
+<a id="t252"></a>
+### T252 — An underside biome took the basin floors on `basin_islands`
+- **Symptom:** the underside biome (hanging gardens) covers a tenth of the surface and the ocean biomes lose their basins.
+- **Cause:** over open water the island top stayed the dome top, some 14 blocks above the basin floor, past the 8-block underside threshold.
+- **Fix:** where no island stands the island top is the basin floor (`NO_ISLAND_DROP` in `TerrainFamily.basinIslands`).
+
 <a id="t251"></a>
 ### T251 — A lit portal's aura ate the frame of a second portal beside it
 - **Symptom:** a second frame within a lit portal's aura radius refuses to light (`OPENING_NOT_ENCLOSED`), or lights and closes a second later with `frame check failed … ring x,y,z=<terrain block>`.
