@@ -119,8 +119,9 @@ public final class PortalTravel {
                 ? new int[]{def.getAnchorPos()[0], def.getAnchorPos()[2]}
                 : PortalScaling.arrivalColumn(zone.coreInterior(), PortalCatalogue.scaleOf(zone.world, def),
                         PortalCatalogue.scaleOf(zone.target, def));
-        int x = column[0];
-        int z = column[1];
+        net.minecraft.world.level.border.WorldBorder border = target.getWorldBorder();
+        int x = def.hasAnchor() ? column[0] : PortalScaling.insideBorder(column[0], border.getMinX(), border.getMaxX());
+        int z = def.hasAnchor() ? column[1] : PortalScaling.insideBorder(column[1], border.getMinZ(), border.getMaxZ());
         PortalTickets.hold(target, x, z);
         if (!PortalWorld.arrivalResident(target, x, z)) {
             return hold(entity);

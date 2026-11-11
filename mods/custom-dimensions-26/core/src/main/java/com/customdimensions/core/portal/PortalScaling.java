@@ -29,4 +29,20 @@ public final class PortalScaling {
         }
         return new int[]{scale(centre[0], sourceScale, targetScale), scale(centre[1], sourceScale, targetScale)};
     }
+
+    /** How far inside a world border an arrival column is kept: the opening and a cell either side. */
+    public static final int BORDER_MARGIN = 8;
+
+    /**
+     * {@code v} moved inside {@code [min + BORDER_MARGIN, max - BORDER_MARGIN]}; the centre when
+     * the border is narrower than twice the margin. An arrival outside the player border is a death.
+     */
+    public static int insideBorder(int v, double min, double max) {
+        double lo = min + BORDER_MARGIN;
+        double hi = max - BORDER_MARGIN - 1;
+        if (lo > hi) {
+            return (int) Math.floor((min + max) / 2);
+        }
+        return (int) Math.max(Math.ceil(lo), Math.min(Math.floor(hi), v));
+    }
 }
