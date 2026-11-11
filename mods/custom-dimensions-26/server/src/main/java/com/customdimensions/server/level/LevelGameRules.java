@@ -21,12 +21,15 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gamerules.GameRule;
 import net.minecraft.world.level.gamerules.GameRuleMap;
 import net.minecraft.world.level.gamerules.GameRuleTypeVisitor;
 import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.saveddata.WeatherData;
+import net.minecraft.world.level.storage.SavedDataStorage;
 
 /**
  * Game rules per dimension (decisions.md RB-38). Every level answers a rule
@@ -68,6 +71,32 @@ public final class LevelGameRules {
             VIEWS.put(key, view);
         }
         return view;
+    }
+
+    /**
+     * A level that holds its own {@code advance_weather} has weather of its own,
+     * saved in its own data storage: first a copy of the server's, then advanced
+     * (or held) by its own rule. Every other level shares the server's; null for them.
+     */
+    public static WeatherData weatherOrNull(ServerLevel level, WeatherData shared) {
+        if (!ownsWeather(ownOf(level.dimension()))) return null;
+        SavedDataStorage storage = level.getDataStorage();
+        WeatherData own = storage.get(WeatherData.TYPE);
+        if (own == null) {
+            own = copy(shared);
+            own.setDirty();
+            storage.set(WeatherData.TYPE, own);
+        }
+        return own;
+    }
+
+    /** Whether a level holding {@code own} has weather of its own. */
+    static boolean ownsWeather(Map<GameRule<?>, Object> own) {
+        return own != null && own.containsKey(GameRules.ADVANCE_WEATHER);
+    }
+
+    static WeatherData copy(WeatherData w) {
+        return new WeatherData(w.getClearWeatherTime(), w.getRainTime(), w.getThunderTime(), w.isRaining(), w.isThundering());
     }
 
     /** The values {@code key}'s level holds of its own, or null. */
@@ -144,7 +173,7 @@ public final class LevelGameRules {
                 return;
             }
             if (GameRuleValues.SERVER_WIDE.contains(id)) {
-                problems.add(slug + ": gameRules." + id + " is server-wide");
+                problems.add(slug + ": gameRules." + id + " is server-wide; " + GameRuleValues.INSTEAD);
                 return;
             }
             try {

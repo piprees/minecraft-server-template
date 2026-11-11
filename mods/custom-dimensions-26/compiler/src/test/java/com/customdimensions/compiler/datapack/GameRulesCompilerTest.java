@@ -63,12 +63,17 @@ class GameRulesCompilerTest {
     }
 
     @Test
-    void refusesTheServerWideRules() {
-        for (String id : GameRuleValues.SERVER_WIDE) {
-            String m = refusal("{\"" + id + "\": true}");
-            assertTrue(m.contains("is server-wide") && m.contains("/gamerule"), m);
-            assertTrue(Fixtures.vanilla().gameRules().containsKey(id), id + " is not a vanilla rule");
-        }
+    void refusesAdvanceTimeAndSaysWhatToWriteInstead() {
+        assertEquals(java.util.Set.of("minecraft:advance_time"), GameRuleValues.SERVER_WIDE);
+        String m = refusal("{\"advance_time\": false}");
+        assertTrue(m.startsWith("trial: gameRules.minecraft:advance_time is server-wide"), m);
+        assertTrue(m.contains("atmosphere.fixedTime") && m.contains("atmosphere.dayLength") && m.contains("/gamerule"), m);
+    }
+
+    @Test
+    void acceptsTheRulesAClientHoldsAndAdvanceWeather() {
+        assertDoesNotThrow(() -> GameRulesCompiler.check("trial", rules("{\"advance_weather\": false, \"immediate_respawn\": true,"
+                + " \"limited_crafting\": true, \"reduced_debug_info\": true}"), Fixtures.vanilla()));
     }
 
     @Test

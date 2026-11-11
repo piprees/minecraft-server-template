@@ -74,8 +74,10 @@ public final class LevelSeedSelfTest {
         if (!merged(ServerLevel.class, "customdimensions$levelRules")) missing.add("ServerLevelGameRulesMixin");
         if (!merged(MinecraftServer.class, "customdimensions$ownZoomSeed")) missing.add("MinecraftServerLevelsMixin");
         if (!merged(ServerPlayer.class, "customdimensions$deathLevelRules")) missing.add("ServerPlayerRestoreMixin");
+        if (!merged(ServerLevel.class, "customdimensions$levelWeather")) missing.add("ServerLevelGameRulesMixin weather");
+        if (!merged(MinecraftServer.class, "customdimensions$levelValues")) missing.add("MinecraftServerGameRulesMixin");
         return (missing.isEmpty() ? "PASS" : "FAIL") + " seed and game rule mixins merged: "
-                + (missing.isEmpty() ? "all five handlers" : "missing " + missing);
+                + (missing.isEmpty() ? "all seven handlers" : "missing " + missing);
     }
 
     private static boolean merged(Class<?> target, String handler) {

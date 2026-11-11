@@ -23,11 +23,8 @@ public final class GameRulesCompiler {
         for (Map.Entry<String, Object> e : values.values().entrySet()) {
             String id = e.getKey();
             if (GameRuleValues.SERVER_WIDE.contains(id)) {
-                throw new IllegalArgumentException(where + ": gameRules." + id + " is server-wide: "
-                        + (id.endsWith("advance_time") || id.endsWith("advance_weather")
-                        ? "the world clocks and the weather are one for every dimension"
-                        : "the client holds one value for every dimension")
-                        + "; set it with /gamerule");
+                throw new IllegalArgumentException(where + ": gameRules." + id + " is server-wide: the world clocks it drives are"
+                        + " one per day length; " + GameRuleValues.INSTEAD + ", or set it for every dimension with /gamerule");
             }
             if (!id.startsWith("minecraft:")) continue;
             VanillaData.GameRuleType type = known.get(id);

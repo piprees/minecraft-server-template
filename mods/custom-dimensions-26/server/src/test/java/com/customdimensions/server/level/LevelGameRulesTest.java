@@ -96,6 +96,35 @@ class LevelGameRulesTest {
     }
 
     @Test
+    void aClientIsSentItsLevelsValuesOfTheThreeRulesItHolds() {
+        GameRules store = store();
+        store.set(GameRules.LIMITED_CRAFTING, true, null);
+        LevelGameRules.View view = new LevelGameRules.View(store, LevelGameRules.typed("trial",
+                values("{\"immediate_respawn\": true, \"reduced_debug_info\": true}"), new ArrayList<>()));
+        assertEquals(new LevelClientRules.Values(true, true, true), LevelClientRules.Values.of(view));
+        assertEquals(new LevelClientRules.Values(false, true, false), LevelClientRules.Values.of(store));
+        for (GameRule<?> held : List.of(GameRules.IMMEDIATE_RESPAWN, GameRules.LIMITED_CRAFTING, GameRules.REDUCED_DEBUG_INFO)) {
+            assertTrue(LevelClientRules.heldByClient(held), held.id());
+        }
+        assertFalse(LevelClientRules.heldByClient(GameRules.KEEP_INVENTORY));
+        assertEquals(22, LevelClientRules.REDUCED_DEBUG_ON);
+        assertEquals(23, LevelClientRules.REDUCED_DEBUG_OFF);
+    }
+
+    @Test
+    void aLevelHoldingItsOwnAdvanceWeatherHasWeatherOfItsOwnStartingFromTheServers() {
+        assertTrue(LevelGameRules.ownsWeather(LevelGameRules.typed("trial", values("{\"advance_weather\": false}"), new ArrayList<>())));
+        assertTrue(LevelGameRules.ownsWeather(LevelGameRules.typed("trial", values("{\"advance_weather\": true}"), new ArrayList<>())));
+        assertFalse(LevelGameRules.ownsWeather(LevelGameRules.typed("trial", values("{\"keep_inventory\": true}"), new ArrayList<>())));
+        assertFalse(LevelGameRules.ownsWeather(null));
+        var shared = new net.minecraft.world.level.saveddata.WeatherData(0, 1200, 300, true, false);
+        var own = LevelGameRules.copy(shared);
+        own.setRaining(false);
+        assertTrue(shared.isRaining());
+        assertEquals(List.of(0, 1200, 300), List.of(own.getClearWeatherTime(), own.getRainTime(), own.getThunderTime()));
+    }
+
+    @Test
     void noOwnValuesMeansNoView() {
         assertNull(LevelGameRules.viewOrNull(ResourceKey.create(Registries.DIMENSION, Identifier.parse("adventure:nowhere")), store()));
     }

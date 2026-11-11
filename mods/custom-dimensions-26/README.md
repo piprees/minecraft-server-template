@@ -434,12 +434,26 @@ there, and `customdim info` lists the dimension's own values.
 the player died in, which decided the drop; `deaths`, when set, wins over the
 rule.
 
-Server-wide, refused in a definition: `advance_time` (the world clocks are one
-per day length, T222, read through the overworld by `ServerClockManager`),
-`advance_weather` (one weather for the server), and `immediate_respawn`,
-`limited_crafting` and `reduced_debug_info` (the client holds one value, sent
-at login and on a server-wide change). The management API's rule methods read
-and write the store.
+A client holds `immediate_respawn`, `limited_crafting` and
+`reduced_debug_info`. Vanilla sends them at login from the player's level and
+to everyone from the store when one changes; `LevelClientRules` sends a player
+their level's values after every change of level and every respawn, and
+`MinecraftServerGameRulesMixin` sends each player their own level's values
+after a server-wide change of one of the three.
+
+The server keeps one weather (`MinecraftServer.getWeatherData()`), which every
+level with a sky and no ceiling, the End aside, reads and advances. A dimension
+that sets its own `advance_weather` has weather of its own instead
+(`ServerLevelGameRulesMixin` on `getWeatherData()`): a copy of the server's
+when it is first read, saved in the level's own data storage and advanced or
+held by its rule; `/weather` run in that dimension changes it, and a
+server-wide `/weather` leaves it.
+
+Refused in a definition: `advance_time`. The world clocks are one per day
+length (T222) and `ServerClockManager` reads the rule through the overworld,
+so no dimension can hold time still on its own; the compile error says to set
+`atmosphere.fixedTime` for still time or `atmosphere.dayLength` for a
+different pace. The management API's rule methods read and write the store.
 
 ## Rendering
 

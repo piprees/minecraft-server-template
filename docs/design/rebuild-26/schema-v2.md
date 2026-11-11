@@ -62,7 +62,7 @@ switch (RB-35). At the switch the v2 set moves to
 | `environment` creation-time fields (`minY`, `height`, `logicalHeight`, `hasSkylight`, `hasCeiling`, `infiniburn`, `monsterSpawnLightLevel`, `monsterSpawnBlockLightLimit`) | `dimensionType` | 26.x dimension-type fields. |
 | `environment.skyColor`, `fogColor`, `ambientLight`, `fixedTime`, `effects` | `atmosphere` | The compiler writes environment attributes and a timeline. `atmosphere.dayLength` (no v1 source; v1 ran Better Days) sets real minutes of day and night, refused beside `fixedTime`; `settings.json`'s `defaults.atmosphere.dayLength` applies to every dimension with vanilla's day that sets neither. |
 | `environment.bedWorks`, `respawnAnchorWorks`, `piglinSafe`, `ultraWarm`, `natural`, `hasRaids` | `rules` | Renamed to read as rules: `bedsWork`, `respawnAnchorsWork`, `piglinsZombify` (= not `piglinSafe`), `ultraWarm`, `natural`, `raids`. |
-| *(none)* | `gameRules` | 26.3 game rule ids to a boolean or a whole number, held by the dimension's level over `settings.json`'s `defaults.gameRules` and the server-wide store (RB-38); five server-wide rules are refused. |
+| *(none)* | `gameRules` | 26.3 game rule ids to a boolean or a whole number, held by the dimension's level over `settings.json`'s `defaults.gameRules` and the server-wide store (RB-38); `advance_time` is refused (the clocks are server-wide; `atmosphere.fixedTime` or `dayLength` instead). |
 | `structureDensity` | `structures.density` | |
 | `structures` | `structures` | Carried whole; the fields are in [Structures](#structures). `shuns` values are always `{}`. |
 | `portal` (object or array) | `portals` (array) | Each entry unchanged except `immersive` → `preview` (companion tuning; the vanilla slab is gone). |

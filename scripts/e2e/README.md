@@ -111,6 +111,15 @@ checkout's file. Java 25 for the client comes from `JAVA_HOME`.
 | `companion-pack.sh` | Builds the companion-only client pack |
 | `rig-ready.sh` | Checks the rig; it cannot relaunch a 26.x client, which only a fresh `vanilla-join.sh` brings back, and says so |
 
+Not yet scripted, owed to a real client (a fake player has no client to act):
+the three game rules a client holds follow the dimension it is in
+(decisions.md RB-38). In a dimension whose definition sets
+`immediate_respawn`, `limited_crafting` or `reduced_debug_info`, a joined
+client after login, after a portal crossing in and out, after a respawn and
+after a server-wide `/gamerule` of each shows the dimension's value: no death
+screen, the recipe book's limited crafting, the shortened F3 screen; and the
+server-wide value again on the other side.
+
 These do not apply on 26.x and exit 3, naming why, through `mc-version.sh`:
 `e2e-c1-render.sh` (the 1.21.1 renderer's mesh markers; the 26.x render proof
 is `e2e-companion-portal.sh`), `e2e-c2-live-table.sh` (the 1.21.1 Projection

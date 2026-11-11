@@ -45,6 +45,8 @@ public final class GameRuleSelfTest {
     static final int MELT_TICKS = 400;
     /** The fixture's seed: a lazy level generates from its definition's seed in every reader as a base world does. */
     static final long SEED = 3;
+    /** The two-boot check's server-wide value, not vanilla's default. */
+    static final int PERSIST_CRAMMING = 31;
 
     private final MinecraftServer server;
     private final List<String> lines = new ArrayList<>();
@@ -95,6 +97,8 @@ public final class GameRuleSelfTest {
     }
 
     private CompletableFuture<Void> all() {
+        String persist = System.getProperty(LevelSelfTest.PERSIST_PROPERTY, "");
+        if ("verify".equals(persist)) lines.add(persistVerify());
         ServerLevel over = server.overworld();
         GameRules store = server.getGameRules();
         boolean keep = store.get(GameRules.KEEP_INVENTORY);
@@ -117,7 +121,11 @@ public final class GameRuleSelfTest {
                         lines.add(blockDrops(lazy, over));
                         return randomTicks(lazy, over);
                     })
-                    .thenRun(() -> lines.add(serverWide(lazy, over)))
+                    .thenRun(() -> {
+                        lines.add(serverWide(lazy, over));
+                        lines.add(clientValues(lazy, over));
+                    })
+                    .thenCompose(v -> weather(lazy))
                     .whenComplete((v, e) -> {
                         for (ServerLevel level : List.of(lazy, over)) level.setChunkForced(0, 0, false);
                         LevelGameRules.selfTestValues(Level.OVERWORLD, overOwn);
@@ -125,7 +133,70 @@ public final class GameRuleSelfTest {
                         store.set(GameRules.BLOCK_DROPS, drops, server);
                         store.set(GameRules.RANDOM_TICK_SPEED, speed, server);
                     })
-                    .thenCompose(v -> manager.deactivate(SLUG).handle((n, e) -> null));
+                    .thenCompose(v -> manager.deactivate(SLUG).handle((n, e) -> null))
+                    .thenRun(() -> {
+                        if ("write".equals(persist)) lines.add(persistWrite());
+                    });
+        });
+    }
+
+    /** Boot one of two: a server-wide value set through {@value #SLUG}'s view, which holds its own {@code keep_inventory} true. */
+    private String persistWrite() {
+        run("gamerule keep_inventory true");
+        String said = String.join(" | ", run("execute in " + Level.OVERWORLD.identifier() + " run gamerule max_entity_cramming " + PERSIST_CRAMMING));
+        said += " | " + String.join(" | ", run("execute in adventure:" + SLUG + " run gamerule keep_inventory false"));
+        boolean ok = server.getGameRules().get(GameRules.MAX_ENTITY_CRAMMING) == PERSIST_CRAMMING
+                && !server.getGameRules().get(GameRules.KEEP_INVENTORY);
+        return (ok ? "PASS" : "FAIL") + " game rules persist write: store max_entity_cramming " + PERSIST_CRAMMING
+                + " and keep_inventory false, set through the levels (" + said + ")";
+    }
+
+    /** Boot two: the store came back as written, and no level's own value was saved into it. */
+    private String persistVerify() {
+        int cramming = server.getGameRules().get(GameRules.MAX_ENTITY_CRAMMING);
+        boolean keep = server.getGameRules().get(GameRules.KEEP_INVENTORY);
+        boolean ok = cramming == PERSIST_CRAMMING && !keep;
+        server.getGameRules().set(GameRules.MAX_ENTITY_CRAMMING, GameRules.MAX_ENTITY_CRAMMING.defaultValue(), server);
+        return (ok ? "PASS" : "FAIL") + " game rules persist verify: after a restart the store holds max_entity_cramming " + cramming
+                + " (want " + PERSIST_CRAMMING + ") and keep_inventory " + keep + " (want false: " + SLUG + "'s own true is not saved into it)";
+    }
+
+    /**
+     * The values a player in each level is sent ({@link LevelClientRules#send} sends exactly these packets):
+     * {@value #SLUG}'s own {@code immediate_respawn} and {@code reduced_debug_info}, the store's in the overworld.
+     * Whether the events fire and the client acts on them only a real client shows (the e2e companion check list).
+     */
+    private String clientValues(ServerLevel lazy, ServerLevel over) {
+        List<String> got = new ArrayList<>();
+        for (ServerLevel level : List.of(lazy, over)) {
+            Mortal p = new Mortal(level, new GameProfile(UUID.randomUUID(), "cd-rules-" + (++profiles)));
+            StringBuilder b = new StringBuilder();
+            for (var packet : LevelClientRules.packets(p, LevelClientRules.Values.of(p.level().getGameRules()))) {
+                if (packet instanceof net.minecraft.network.protocol.game.ClientboundGameEventPacket g) b.append(g.getParam() > 0 ? '1' : '0');
+                if (packet instanceof net.minecraft.network.protocol.game.ClientboundEntityEventPacket e) b.append(e.getEventId());
+            }
+            got.add(b.toString());
+        }
+        boolean ok = got.equals(List.of("1" + "0" + LevelClientRules.REDUCED_DEBUG_ON, "0" + "0" + LevelClientRules.REDUCED_DEBUG_OFF));
+        return (ok ? "PASS" : "FAIL") + " client-held rules follow the level: immediate_respawn, limited_crafting and the debug event "
+                + got.get(0) + " in " + SLUG + ", " + got.get(1) + " in the overworld";
+    }
+
+    /** {@value #SLUG} holds {@code advance_weather} false: weather of its own, which a server-wide /weather leaves and ticks never advance. */
+    private CompletableFuture<Void> weather(ServerLevel lazy) {
+        run("weather clear");
+        net.minecraft.world.level.saveddata.WeatherData shared = server.getWeatherData();
+        net.minecraft.world.level.saveddata.WeatherData own = lazy.getWeatherData();
+        List<Integer> before = List.of(own.getClearWeatherTime(), own.getRainTime(), own.getThunderTime());
+        run("weather rain");
+        long end = server.getTickCount() + 40;
+        return until(() -> server.getTickCount() >= end, 41).thenAccept(v -> {
+            List<Integer> after = List.of(own.getClearWeatherTime(), own.getRainTime(), own.getThunderTime());
+            boolean ok = own != shared && shared.isRaining() && !own.isRaining() && before.equals(after);
+            lines.add((ok ? "PASS" : "FAIL") + " advance_weather false keeps " + SLUG + "'s own weather: separate=" + (own != shared)
+                    + ", server-wide /weather rain raining=" + shared.isRaining() + " there and " + own.isRaining() + " here, timers "
+                    + before + " -> " + after + " over 40 ticks");
+            run("weather clear");
         });
     }
 

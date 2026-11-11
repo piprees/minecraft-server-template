@@ -19,10 +19,11 @@ import java.util.TreeMap;
  * server-wide store's ({@link #resolve}).
  */
 public record GameRuleValues(SortedMap<String, Object> values) {
-    /** The rules the definition cannot set: what reads them has no level, or the client holds one value for every dimension. */
-    public static final Set<String> SERVER_WIDE = Set.of(
-            "minecraft:advance_time", "minecraft:advance_weather", "minecraft:immediate_respawn",
-            "minecraft:limited_crafting", "minecraft:reduced_debug_info");
+    /** The rule a definition cannot set: the world clocks it drives are server-wide, one per day length. */
+    public static final Set<String> SERVER_WIDE = Set.of("minecraft:advance_time");
+
+    /** What a definition writes instead of {@code advance_time}. */
+    public static final String INSTEAD = "for still time set atmosphere.fixedTime, for a different pace atmosphere.dayLength";
 
     public static final GameRuleValues NONE = new GameRuleValues(new TreeMap<>());
 

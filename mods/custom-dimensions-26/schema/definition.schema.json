@@ -567,7 +567,7 @@
       }
     },
     "gameRules": {
-      "description": "Game rules held by this dimension's level (decisions.md RB-38): a 26.3 game rule id (minecraft: may be left off) to a boolean or a whole number. Unset rules take settings.json's defaults.gameRules, then the server-wide value. advance_time, advance_weather, immediate_respawn, limited_crafting and reduced_debug_info are server-wide and refused.",
+      "description": "Game rules held by this dimension's level (decisions.md RB-38): a 26.3 game rule id (minecraft: may be left off) to a boolean or a whole number. Unset rules take settings.json's defaults.gameRules, then the server-wide value. advance_time is refused: the clocks are server-wide; atmosphere.fixedTime and atmosphere.dayLength set a dimension's time. A dimension that sets advance_weather keeps weather of its own.",
       "type": "object",
       "propertyNames": { "pattern": "^([a-z0-9_.-]+:)?[a-z0-9_./-]+$" },
       "additionalProperties": {
