@@ -445,6 +445,13 @@ class TerrainLibraryTest {
             } else if (family != TerrainFamily.END) {
                 terrain.addProperty("heightMultiplier", high ? 3 : 0.25);
             }
+            if (family.param("tiers") != null && high) {
+                // four tiers at their widest gap: the top tier must still fit under the overworld's 320
+                params.addProperty("altitude", 40);
+                params.addProperty("tierSpacing", 72);
+                params.addProperty("thickness", 4);
+                if (family.param("terraceStep") != null) params.addProperty("terraceStep", 2);
+            }
             compile(TerrainSpec.parse("t", terrain), home(family), null);
         }
     }

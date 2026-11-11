@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: large flat-topped floating islands, their tops stepped into plateaus three levels high.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "flatness": 1,
+      "terraces": 3,
+      "terraceStep": 8,
+      "size": 2
+    }
+  },
+  "borders": {
+    "player": 2048
+  }
+}

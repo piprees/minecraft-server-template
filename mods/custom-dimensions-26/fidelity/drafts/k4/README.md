@@ -1,0 +1,9 @@
+# K4 drafts: stacked tiers and flat tops
+
+`the_aviary.json` is `definitions/the_aviary.json` with six terrain parameters added; nothing else differs. Try them in this order, one survey each (`/customdim survey the_aviary`), and keep what moves the measure named.
+
+1. **`tiers` 2, `tierSpacing` 64, `tierGap` 20, `tierShrink` 0.6** (stacked islands). A second layer at y 214 over the main one at 150, islands about 0.6 the size and thickness, coverage 0.27, over lower islands and open void alike. Should move `vertical.layerColumnsPercent.sky` (M:layers sky) from 0.0 to above 0: every gap is at least 20 blocks, over the survey's 16 (`PatchAnalysis.GAP`). Watch `placeness.islands.count` rise (small upper islands file as islands) and `surface.voidPercent` fall a little.
+2. **`spread` 20** (from the extreme setting's 60). The survey's landform classifier files a sky island's level ground by its tilt, not its top: at a low spread a dome already reads as plains, at a spread of 24 under half the land reads level whatever the top (`core/.../survey/LandformsTopsTest`). Should move `landforms.sharesPercent` plains + plateaus up and hills down. If the masses read too uniform in height, the second tier carries the variety instead.
+3. **`flatness` 0.6.** Tops reach their full thickness over the outer 0.49 of the islands noise's core and stay flat inside it: plateau tops to the eye. It moves the landform shares little either way (a flatter top adds rim hills); judge it in the renders. `flatness` 1 is a table with a short roll-off; `terraces` 1 with `terraceStep` 6–8 cuts what tilt remains into treads, which the classifier files as hills along their risers.
+
+The tier parameters fit the floating_islands preset's top (y 256): altitude 150 + 64 + thickness 16 × 0.6 is y 224. A third tier would need `tierSpacing` 40 or a lower `altitude`.

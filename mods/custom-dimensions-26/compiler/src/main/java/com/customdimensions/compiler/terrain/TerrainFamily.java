@@ -94,20 +94,23 @@ public enum TerrainFamily {
             Map.of("width", 0.08, "depth", 12.0, "bankWidth", 0.12, "frequency", 1.4),
             false, TerrainFamily::rivers),
 
-    FLOATING_ISLANDS("floating_islands", "Islands in the sky over a void: domed tops, tapering undersides.",
-            List.of(new TerrainParam("altitude", 40, 240, 150, "Height of the island layer"),
+    FLOATING_ISLANDS("floating_islands", "Islands in the sky over a void: domed or flat-topped, tapering undersides, in one layer or stacked tiers.",
+            join(List.of(new TerrainParam("altitude", 40, 240, 150, "Height of the island layer"),
                     new TerrainParam("thickness", 4, 64, 18, "Blocks an island's top rises above the layer"),
                     new TerrainParam("underside", 4, 120, 40, "Blocks an island's underside hangs below the layer"),
                     new TerrainParam("coverage", 0.02, 0.8, 0.3, "Share of the sky with islands"),
                     new TerrainParam("size", 0.25, 4, 1, "Island size; higher is larger and fewer"),
-                    new TerrainParam("spread", 0, 80, 24, "Blocks island altitudes vary by")),
+                    new TerrainParam("spread", 0, 80, 24, "Blocks island altitudes vary by"),
+                    new TerrainParam("flatness", 0, 1, 0, "Shape of an island's top: 0 a dome; higher reaches the full thickness nearer the edge and stays flat inside it, 1 a table with a short roll-off"),
+                    count("terraces", 0, 5, 0, "Plateau levels of an island top: 1 floors the layer's tilt into level treads terraceStep apart; 2 or more also lift patches of the top by up to one level fewer; 0 leaves the top unstepped"),
+                    new TerrainParam("terraceStep", 2, 32, 6, "Blocks between plateau levels")), TerrainParam.TIERS),
             Map.of(),
             Map.of("coverage", 0.15, "thickness", 8.0, "underside", 14.0, "spread", 10.0),
             Map.of("coverage", 0.5, "thickness", 40.0, "underside", 100.0, "spread", 60.0, "size", 2.0),
             true, TerrainFamily::floatingIslands),
 
     BASIN_ISLANDS("basin_islands", "Sky islands joined into lake masses: a dished basin held by a rim at the water line, with gaps where it spills into the void.",
-            List.of(new TerrainParam("altitude", 40, 240, 150, "Height of the island layer and of the basins' water line"),
+            join(List.of(new TerrainParam("altitude", 40, 240, 150, "Height of the island layer and of the basins' water line"),
                     new TerrainParam("thickness", 4, 64, 18, "Blocks an island's top rises above the layer"),
                     new TerrainParam("underside", 4, 120, 40, "Blocks an island's underside hangs below the layer"),
                     new TerrainParam("coverage", 0.02, 0.8, 0.3, "Share of the sky with islands"),
@@ -120,6 +123,7 @@ public enum TerrainFamily {
                     new TerrainParam("gaps", 0, 0.5, 0.35, "Share of the rim cut below the water line, where a basin spills into the void"),
                     new TerrainParam("islandShare", 0.02, 0.8, 0.3, "Share of a lake mass's basin with islands, smaller and more of them than outside"),
                     new TerrainParam("islandRise", 0, 60, 8, "Blocks of cliff the islands inside a lake mass rise by out of the water")),
+                    TerrainParam.TIERS),
             Map.of(),
             Map.of("lakeShare", 0.25, "basinDepth", 4.0, "rimHeight", 2.0, "gaps", 0.15, "islandRise", 4.0, "spread", 10.0,
                     "islandShare", 0.3),
@@ -242,6 +246,16 @@ public enum TerrainFamily {
         this.presets = Collections.unmodifiableMap(p);
         this.airborne = airborne;
         this.build = build;
+    }
+
+    private static List<TerrainParam> join(List<TerrainParam> a, List<TerrainParam> b) {
+        List<TerrainParam> out = new ArrayList<>(a);
+        out.addAll(b);
+        return List.copyOf(out);
+    }
+
+    private static TerrainParam count(String name, int min, int max, int defaultValue, String description) {
+        return TerrainParam.count(name, min, max, defaultValue, description);
     }
 
     /** The shared land parameters, with a family's own defaults for some. */
@@ -584,15 +598,139 @@ public enum TerrainFamily {
         double t = Noises.threshold(ctx.p("coverage"), sigma);
         JsonElement n = laidOut(ctx, ctx.noise("islands", 1 / ctx.p("size"), 0), sigma);
         JsonElement core = Df.cache(ramp(n, t, t + sigma));
-        JsonElement layer = add(mul(ctx.noise("altitude", 1, 0), ctx.p("spread") * m / Noises.sigma("altitude")), ctx.p("altitude"));
-        JsonElement top = add(add(layer, mul(sqrt(core), ctx.p("thickness") * m)), -2);
+        JsonElement layer = add(spread(ctx), ctx.p("altitude"));
+        JsonElement top = islandTop(ctx, layer, core, ctx.p("thickness") * m, ctx.p("size"), ctx.p("altitude"));
+        if (tiers(ctx) > 1) top = ctx.named("tier0_top", top);
         JsonElement bottom = add(sub(layer, mul(core, ctx.p("underside") * m)), 2);
         JsonElement y = negY(ctx.minY(), ctx.maxY());
         JsonElement inside = min(add(top, y), sub(c(0), add(bottom, y)));
-        JsonElement plus = mul(inside, 1 / 8.0);
-        Shape shape = new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, plus, c(0.3), 0.1 + 0.6 * ctx.p("roughness"));
         JsonElement place = add(mul(ramp(core, PLACE_FROM, PLACE_TO), PLACE_LAND - PLACE_VOID), PLACE_VOID);
-        return shape.withPlace(place, top);
+        Stack stack = stack(ctx, new Stack(inside, place, top), top, y);
+        Shape shape = new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, mul(stack.inside(), 1 / 8.0), c(0.3),
+                0.1 + 0.6 * ctx.p("roughness"));
+        return shape.withPlace(stack.place(), stack.top());
+    }
+
+    /** Blocks an island layer's altitude varies by, from the altitude noise: {@code spread} is one deviation. */
+    private static JsonElement spread(Ctx ctx) {
+        return mul(ctx.noise("altitude", 1, 0), ctx.p("spread") * ctx.heightMultiplier() / Noises.sigma("altitude"));
+    }
+
+    /** The island noise's {@code core} over which a flat top rolls off its edge to the full table. */
+    static final double FLAT_EDGE = 0.15;
+    /** Share of each terrace step that is slope rather than flat plateau. */
+    static final double TERRACE_RISER = 0.15;
+    /** Deviations of the detail noise either side of its mean that span the plateau levels. */
+    static final double TERRACE_SPAN = 1.5;
+
+    /**
+     * An island's top over {@code layer} (whose nominal height is {@code altitude}): {@code thickness} times a
+     * profile of its core, {@code sqrt(min(1, core / edge))}: the dome {@code sqrt(core)} at {@code flatness} 0, and as
+     * flatness rises the top reaches its full height over a narrower edge, down to the first {@link #FLAT_EDGE} of the
+     * core at 1, flat across the rest. With {@code terraces} of 1 or more the layer under
+     * the top is floored into level treads {@code terraceStep} apart from {@code altitude}, so the tilt
+     * {@code spread} gives a mass becomes a stair of flat plateaus; with 2 or more the detail noise (at the
+     * island noise's frequency for {@code size}) first lifts patches of it by up to {@code terraces} − 1 levels
+     * over the same edge, so a mass breaks into plateaus standing over one another. A tread never rises above the
+     * layer it floors, so no sliver stands off an island's edge.
+     */
+    private static JsonElement islandTop(Ctx ctx, JsonElement layer, JsonElement core, double thickness, double size, double altitude) {
+        double flat = ctx.p("flatness", 0);
+        JsonElement dome = sqrt(core);
+        JsonElement profile = dome;
+        if (flat > 0) profile = sqrt(ramp(core, 0, 1 - (1 - FLAT_EDGE) * flat));
+        int levels = (int) ctx.p("terraces", 0);
+        JsonElement base = layer;
+        if (levels >= 1) {
+            double step = ctx.p("terraceStep");
+            if (levels >= 2) {
+                JsonElement d = clamp(mul(ctx.noise("detail", 1 / size, 0), 1 / Noises.sigma("detail")), -TERRACE_SPAN, TERRACE_SPAN);
+                JsonElement lift = mul(add(d, TERRACE_SPAN), (levels - 1) * step / (2 * TERRACE_SPAN));
+                base = add(base, mul(lift, ramp(core, 0, FLAT_EDGE)));
+            }
+            base = steps(base, altitude, step, TERRACE_RISER);
+        }
+        return add(add(base, mul(profile, thickness)), -2);
+    }
+
+    /** The island layers a terrain over a void lays, counting its own. */
+    static int tiers(Ctx ctx) {
+        return (int) ctx.p("tiers", 1);
+    }
+
+    /** Each tier's island noise frequency against the one under it, besides its size: no tier repeats the pattern below it. */
+    static final double TIER_FREQUENCY = 1.31;
+    /** Blocks of island over which a tier's place cue turns to land: an island its gap has cut away reads as void. */
+    static final double TIER_HELD = 2;
+    /** Blocks a tier needs over the gap at least, for an island of its own above the tier under it. */
+    static final double TIER_ROOM = 8;
+
+    /** An airborne terrain's islands so far: where they are solid (above 0), the place cue, and the island top a y belongs to. */
+    record Stack(JsonElement inside, JsonElement place, JsonElement top) {}
+
+    /**
+     * {@code base}, whose highest solid ground is {@code crown}, with {@code tiers} − 1 further layers of plain floating islands above it. Tier k floats
+     * {@code tierSpacing} above tier k − 1 with the same altitude spread; its coverage is {@code tierCoverage} or the
+     * coverage under it times {@code tierShrink}, its size, thickness and underside are those under it times
+     * {@code tierShrink}, and its island noise runs {@link #TIER_FREQUENCY} times faster again, so its islands stand
+     * over lower ones and over open void alike. A tier's underside never comes within {@code tierGap} of the top
+     * under it: where it would, the underside is cut back, and where nothing is left the island is gone. Above
+     * the midpoint of that gap the place cue and the island top are the tier's own, below it the tier under it's.
+     */
+    private static Stack stack(Ctx ctx, Stack base, JsonElement crown, JsonElement y) {
+        int tiers = tiers(ctx);
+        if (tiers <= 1) return base;
+        double m = ctx.heightMultiplier();
+        double sigma = Noises.sigma("islands");
+        double shrink = ctx.p("tierShrink");
+        double coverage = ctx.p("coverage"), size = ctx.p("size"), thickness = ctx.p("thickness"), underside = ctx.p("underside");
+        Stack s = base;
+        JsonElement below = crown;
+        for (int k = 1; k < tiers; k++) {
+            coverage = ctx.p("tierCoverage") > 0 ? ctx.p("tierCoverage") : coverage * shrink;
+            size *= shrink;
+            thickness *= shrink;
+            underside *= shrink;
+            double t = Noises.threshold(coverage, sigma);
+            JsonElement n = laidOut(ctx, ctx.noise("islands", Math.pow(TIER_FREQUENCY, k) / size, 0), sigma);
+            JsonElement core = Df.cache(ramp(n, t, t + sigma));
+            double altitude = ctx.p("altitude") + k * ctx.p("tierSpacing");
+            JsonElement layer = add(spread(ctx), altitude);
+            JsonElement top = ctx.named("tier" + k + "_top", islandTop(ctx, layer, core, thickness * m, size, altitude));
+            JsonElement bottom = ctx.named("tier" + k + "_bottom",
+                    max(add(sub(layer, mul(core, underside * m)), 2), add(below, ctx.p("tierGap"))));
+            JsonElement inside = min(add(top, y), sub(c(0), add(bottom, y)));
+            JsonElement held = mul(ramp(core, PLACE_FROM, PLACE_TO), ramp(sub(top, bottom), 0, TIER_HELD));
+            JsonElement place = add(mul(held, PLACE_LAND - PLACE_VOID), PLACE_VOID);
+            JsonElement above = ramp(add(mul(add(below, bottom), 0.5), y), 0.5, -0.5);
+            s = new Stack(max(s.inside(), inside), lerp(above, s.place(), place), lerp(above, s.top(), top));
+            below = top;
+        }
+        return s;
+    }
+
+    /**
+     * Refuses a stack of tiers that cannot fit the dimension: the top tier's islands over {@code maxY}, or a
+     * {@code tierSpacing} with no room for an island over {@code tierGap}.
+     */
+    public static void checkStack(String slug, TerrainSpec spec, int maxY) {
+        if (!spec.params().containsKey("tiers") || spec.param("tiers") <= 1) return;
+        int tiers = (int) spec.param("tiers");
+        double spacing = spec.param("tierSpacing"), gap = spec.param("tierGap");
+        if (spacing < gap + TIER_ROOM) {
+            throw new IllegalArgumentException(slug + ": terrain.params.tierSpacing " + TerrainSpec.fmt(spacing)
+                    + " leaves no room for a tier's islands over tierGap " + TerrainSpec.fmt(gap) + "; it needs at least "
+                    + TerrainSpec.fmt(gap + TIER_ROOM));
+        }
+        double thickness = spec.param("thickness") * spec.heightMultiplier() * Math.pow(spec.param("tierShrink"), tiers - 1);
+        double levels = spec.params().getOrDefault("terraces", 0.0);
+        double terraces = levels >= 2 ? (levels - 1) * spec.param("terraceStep") : 0;
+        double top = spec.param("altitude") + (tiers - 1) * spacing + thickness + terraces;
+        if (top > maxY) {
+            throw new IllegalArgumentException(slug + ": terrain.params.tiers " + tiers + " at tierSpacing " + TerrainSpec.fmt(spacing)
+                    + " from altitude " + TerrainSpec.fmt(spec.param("altitude")) + " lift the top tier's islands to y "
+                    + Math.round(top) + ", above the dimension's top at " + maxY);
+        }
     }
 
     /** Where a basin's water may stand: above 0, and below 1 within reach of the rim, where its fluid is scheduled to flow. */
@@ -687,15 +825,21 @@ public enum TerrainFamily {
         JsonElement island = min(add(top, y), sub(c(0), add(bottom, y)));
         JsonElement mass = min(add(floor, y), sub(c(0), add(massBottom, y)));
         ctx.named(BASIN, mul(add(lakes, -crest), 1 / (shore - crest)));
-        JsonElement plus = mul(max(island, mass), 1 / 8.0);
         JsonElement sealed = mul(min(add(add(floor, -1), y), sub(c(0), add(massBottom, y))), 1 / 8.0);
         JsonElement onIsland = ramp(core, PLACE_FROM, PLACE_TO);
         JsonElement water = ramp(lakes, crest, shore);
         JsonElement open = mul(water, sub(c(1), onIsland));
         JsonElement held = max(onIsland, mul(inMass, sub(c(1), water)));
         JsonElement place = add(add(mul(open, PLACE_BASIN - PLACE_VOID), mul(held, PLACE_LAND - PLACE_VOID)), PLACE_VOID);
-        return new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, plus, c(0.3), 0.1 + 0.6 * ctx.p("roughness"))
-                .withSolid(sealed).withPlace(place, max(sub(top, mul(sub(c(1), ramp(core, 0, ISLAND_CLIFF_FROM)), NO_ISLAND_DROP)), floor));
+        JsonElement crown = max(top, floor);
+        JsonElement islandTop = max(sub(top, mul(sub(c(1), ramp(core, 0, ISLAND_CLIFF_FROM)), NO_ISLAND_DROP)), floor);
+        if (tiers(ctx) > 1) {
+            crown = ctx.named("tier0_crown", crown);
+            islandTop = ctx.named("tier0_top", islandTop);
+        }
+        Stack stack = stack(ctx, new Stack(max(island, mass), place, islandTop), crown, y);
+        return new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, mul(stack.inside(), 1 / 8.0), c(0.3), 0.1 + 0.6 * ctx.p("roughness"))
+                .withSolid(sealed).withPlace(stack.place(), stack.top());
     }
 
     private static Shape islands(Ctx ctx) {

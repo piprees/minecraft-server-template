@@ -164,6 +164,7 @@ public final class TerrainSelfTest {
         chain = family(chain, "roofed", this::roofed, "spaced");
         chain = family(chain, "end", this::end, "spaced");
         chain = chain.thenCompose(v -> endCluster());
+        chain = chain.thenCompose(v -> skyTiers());
         chain = chain.thenRun(this::performance);
         String gallery = System.getProperty(GALLERY, "");
         if (!gallery.isEmpty()) {
@@ -745,6 +746,82 @@ public final class TerrainSelfTest {
                     lines.add("FAIL " + name + ": " + cause(error));
                     return null;
                 });
+    }
+
+    /** Sky tiers: blocks of air between two solid runs of a column that make it stacked (the survey's gap), and the bars. */
+    static final int TIER_AIR = 16, TIER_STEP = 2;
+    static final double TIER_STACKED = 0.03, TIER_LEVEL = 0.6;
+
+    /**
+     * {@code selftest_sky_tiers} (two tiers 56 apart, flat tops, spread 4) in the spaced area: a share of its land columns
+     * stacked, one island over another with {@link #TIER_AIR}+ blocks of air between, and a share of its tops level
+     * (the ocean-floor heightmap, so plants and leaves do not count, within a block of the tops {@link #TIER_STEP}
+     * blocks east and south).
+     */
+    private CompletableFuture<Void> skyTiers() {
+        String slug = "selftest_sky_tiers";
+        String name = "terrain sky tiers (" + slug + ")";
+        if (!manager.index().lazy().containsKey(slug)) {
+            lines.add("FAIL " + name + ": no fixture " + slug + " in the definitions");
+            return CompletableFuture.completedFuture(null);
+        }
+        return manager.activate(slug).thenCompose(a -> CompletableFuture.supplyAsync(() -> scan(a.level(), SCAN_RADIUS, SCAN_STEP), worker)
+                        .thenCompose(scan -> {
+                            Area area = spaced(scan);
+                            return load(a.level(), area.chunks()).thenApply(chunks -> {
+                                String line = skyTiersLine(name, a.level(), chunks);
+                                area.chunks().forEach(c -> a.level().setChunkForced(c.x(), c.z(), false));
+                                return line;
+                            });
+                        }))
+                .thenAcceptAsync(lines::add, server)
+                .thenCompose(x -> manager.deactivate(slug).thenAccept(t -> {}))
+                .exceptionally(error -> {
+                    lines.add("FAIL " + name + ": " + cause(error));
+                    return null;
+                });
+    }
+
+    private static String skyTiersLine(String name, ServerLevel level, List<LevelChunk> chunks) {
+        int minY = level.getMinY();
+        Map<Long, Integer> tops = new java.util.HashMap<>();
+        int land = 0, stacked = 0;
+        for (LevelChunk chunk : chunks) {
+            int bx = chunk.getPos().getMinBlockX(), bz = chunk.getPos().getMinBlockZ();
+            for (int dx = 0; dx < 16; dx += TIER_STEP) {
+                for (int dz = 0; dz < 16; dz += TIER_STEP) {
+                    int x = bx + dx, z = bz + dz;
+                    int surface = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z);
+                    if (surface < minY || chunk.getBlockState(new BlockPos(x, surface, z)).isAir()) continue;
+                    land++;
+                    tops.put(BlockPos.asLong(x, 0, z), surface);
+                    int air = 0;
+                    for (int y = surface; y >= minY; y--) {
+                        if (chunk.getBlockState(new BlockPos(x, y, z)).isAir()) {
+                            air++;
+                        } else {
+                            if (air >= TIER_AIR) {
+                                stacked++;
+                                break;
+                            }
+                            air = 0;
+                        }
+                    }
+                }
+            }
+        }
+        int pairs = 0, level0 = 0;
+        for (Map.Entry<Long, Integer> e : tops.entrySet()) {
+            int x = BlockPos.getX(e.getKey()), z = BlockPos.getZ(e.getKey());
+            Integer east = tops.get(BlockPos.asLong(x + TIER_STEP, 0, z)), south = tops.get(BlockPos.asLong(x, 0, z + TIER_STEP));
+            if (east == null || south == null) continue;
+            pairs++;
+            if (Math.abs(east - e.getValue()) <= 1 && Math.abs(south - e.getValue()) <= 1) level0++;
+        }
+        double stackedShare = (double) stacked / Math.max(1, land), levelShare = (double) level0 / Math.max(1, pairs);
+        return verdict(stackedShare >= TIER_STACKED && levelShare >= TIER_LEVEL, name + ": " + pct(stackedShare) + " of " + land
+                + " land columns stacked over " + TIER_AIR + "+ blocks of air (needs " + pct(TIER_STACKED) + "); " + pct(levelShare)
+                + " of tops level with their neighbours " + TIER_STEP + " blocks east and south (needs " + pct(TIER_LEVEL) + ")");
     }
 
     private void performance() {

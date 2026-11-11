@@ -40,6 +40,12 @@ final class Ctx {
         return spec.param(name);
     }
 
+    /** The parameter, or {@code absent} for a terrain without it. */
+    double p(String name, double absent) {
+        Double v = spec.params().get(name);
+        return v == null ? absent : v;
+    }
+
     double sea() {
         return sea;
     }

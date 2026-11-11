@@ -118,6 +118,9 @@ public record TerrainSpec(TerrainFamily family, String setting, Map<String, Doub
         if (!(v >= range.min() && v <= range.max())) {
             throw error(slug, field + " = " + e + " is outside [" + fmt(range.min()) + ", " + fmt(range.max()) + "]");
         }
+        if (range.whole() && v != Math.rint(v)) {
+            throw error(slug, field + " = " + e + " must be a whole number");
+        }
         return v;
     }
 

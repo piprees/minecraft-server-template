@@ -44,6 +44,16 @@ class TerrainGoldenTest {
         matches("terrain_overworld_shaped", "{\"scales\": {\"continents\": 1.3, \"erosion\": 2.08, \"ridges\": 1.39, \"climate\": 1.67}}");
     }
 
+    /** Stacked tiers and flat, terraced tops on the terrains over a void. */
+    @Test
+    void skyVariantsMatchTheCommittedOutput() throws IOException {
+        matchesOn("terrain_floating_islands_tiers", "floating_islands", "{\"base\": \"floating_islands\", \"params\": {\"altitude\": 110, \"tiers\": 3, "
+                + "\"tierSpacing\": 60, \"tierGap\": 24, \"tierShrink\": 0.7}}");
+        matchesOn("terrain_floating_islands_plateaus", "floating_islands", "{\"base\": \"floating_islands\", \"params\": {\"flatness\": 1, \"terraces\": 3, "
+                + "\"terraceStep\": 8, \"size\": 2}}");
+        matchesOn("terrain_basin_islands_tiers", "floating_islands", "{\"base\": \"basin_islands\", \"params\": {\"altitude\": 120, \"tiers\": 2, \"tierSpacing\": 70}}");
+    }
+
     /** A roofed terrain per feature term, on the caves preset, and the climate-only shaping of the presets under a roof. */
     @Test
     void roofedVariantsMatchTheCommittedOutput() throws IOException {
