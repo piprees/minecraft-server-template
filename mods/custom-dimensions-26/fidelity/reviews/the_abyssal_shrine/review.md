@@ -16,72 +16,73 @@ Source: `mods/custom-dimensions-26/definitions/the_abyssal_shrine.json`
 
 Biomes: minecraft:deep_cold_ocean, minecraft:deep_ocean, adventure:sky_highlands, adventure:chalk_cliffs, adventure:umbral_wastes
 
-Terrain: `{"base": "basin_islands", "setting": "extreme", "layout": {"type": "ring", "centre": [0, 0], "radius": 300, "falloff": 160, "strength": 0.9}}`; generator `{"type": "clone", "of": "adventure:the_aviary"}`
+Terrain: `{"base": "basin_islands", "setting": "extreme", "layout": {"type": "ring", "centre": [0, 0], "radius": 300, "falloff": 160, "strength": 0.9}, "params": {"hollowDepth": 40, "ringLakes": 0, "gaps": 0.15, "islandShare": 0.02}}`; generator `{"type": "clone", "of": "adventure:the_aviary"}`
 
 Zones: none
 
 ## Survey
 
-Dossier: `/tmp/claude-0/w10c1/runs/fin/full/the_abyssal_shrine/dossier.json`; layer maps in `/tmp/claude-0/w10c1/runs/fin/full/the_abyssal_shrine/layers`
+Dossier: `runs/fin/full/the_abyssal_shrine/dossier.json`; layer maps in `runs/fin/full/the_abyssal_shrine/layers`
 
 ## Summary
 
-- Top blocks seen from the sky: grass_block 21.7%, water 8.7%, blackstone 4.9%, short_grass 4.1%.
-- Surface biomes: adventure:sky_highlands 20.7%, adventure:chalk_cliffs 9%, deep_ocean 8.1%, adventure:umbral_wastes 6.8%, deep_cold_ocean 2.4%.
-- Ground blocks: grass_block 27.5%, gravel 7.1%, blackstone 5%, calcite 3.9%.
-- Liquid cover 8.7% water, 0% lava, 0% other; snow or ice 0% (a snowing climate over 0%); tree canopy 0.8%; bare rock 5.1%; no ground (void) 53%.
-- Trees: 3.3 per ha (oak_log 3.3/ha, mean spacing 14.8 blocks); ground plants grass 4.1%, flower 1%, other 0.5%.
-- Surface height p5 100, median 185, p95 201, max 242; median relief per patch 40 blocks; slopes under 15° 40.9%, over 45° 36.3%, cliffs 7%; above the clouds 47.3%, below sea level 0%.
-- Underground: 1.8% open, 1.7% liquid; cave biomes adventure:sky_highlands 43.6%, adventure:chalk_cliffs 17.4%, deep_ocean 17.2%, adventure:umbral_wastes 16.1%.
-- Notable clusters, fewest first: clay 3 clusters, spacing n/a; magma_block 4 clusters, spacing 2.3; dandelion 4 clusters, spacing 4.3; poppy 6 clusters, spacing 4.2; lava 16 clusters, spacing 7.7; diamond_ore 26 clusters, spacing 4.2.
+- Top blocks seen from the sky: grass_block 21.7%, blackstone 8.3%, water 6.9%, short_grass 3.3%.
+- Surface biomes: adventure:sky_highlands 18.3%, adventure:umbral_wastes 11.1%, adventure:chalk_cliffs 9.4%, deep_cold_ocean 4.5%, deep_ocean 3.2%.
+- Ground blocks: grass_block 27%, blackstone 8.3%, gravel 6.1%, soul_soil 1.3%.
+- Liquid cover 7% water, 0% lava, 0% other; snow or ice 0% (a snowing climate over 0%); tree canopy 1.1%; bare rock 8.4%; no ground (void) 53.5%.
+- Trees: 5.1 per ha (oak_log 5.1/ha, mean spacing 17.2 blocks); ground plants grass 3.4%, flower 0.9%, other 0.8%, bush 0%.
+- Surface height p5 22, median 139, p95 252, max 264; median relief per patch 0 blocks; slopes under 15° 22.5%, over 45° 39.1%, cliffs 1.5%; above the clouds 24.9%, below sea level 0%.
+- Underground: 8% open, 0% liquid; cave biomes adventure:sky_highlands 34%, adventure:umbral_wastes 33.1%, adventure:chalk_cliffs 14.9%, deep_cold_ocean 10.3%.
+- Notable clusters, fewest first: deepslate_lapis_ore 2 clusters, spacing n/a; deepslate_copper_ore 2 clusters, spacing n/a; deepslate_coal_ore 2 clusters, spacing n/a; clay 3 clusters, spacing 15.6; deepslate_diamond_ore 3 clusters, spacing n/a; gold_ore 8 clusters, spacing 13.
 - 5 of 5 placed biomes are expressed; 0 listed biomes were not found.
-- Render against world at 543 columns: height within 2 blocks 98.5%, biome match 100%.
-- Landforms over the border (noise render): plains 7.3%, hills 5.1%, mountains 1.7%, plateaus 1.5%, basins 1%, islands 0.6%, water 10.2%, void 72.5%.
-- Placeness: biome regions 10.5/km² (11 major, largest 4.0%), landform regions 9.5/km² (largest 57.4%), dominant place 57.4% of the border.
+- Render against world at 502 columns: height within 2 blocks 97.4%, biome match 100%.
+- Landforms over the border (noise render): plains 10.2%, hills 7.5%, mountains 1.9%, plateaus 2.9%, basins 2.5%, islands 0%, water 11.9%, void 63.1%.
+- Placeness: biome regions 5.7/km² (6 major, largest 12.4%), landform regions 8.6/km² (largest 61.3%), dominant place 61.3% of the border.
 
 ## Layers
 
-- Columns by class: void 53%, roofed 0%, stacked 0%, overhang 2.9%, cave 7.7%, single 36.4%.
-- Columns with each layer: sky 0%, surface 47%, underground 46.1%, roof 0%.
-- Overhangs in 2.9% of columns, stacked layers in 0%, cave pockets in 8.4%.
+- Columns by class: void 53.5%, roofed 0%, stacked 0.5%, overhang 2.4%, cave 11.5%, single 32%.
+- Columns with each layer: sky 0.5%, surface 46.5%, underground 44.9%, roof 0%.
+- Overhangs in 2.4% of columns, stacked layers in 0.5%, cave pockets in 12.2%.
 
 ## Places
 
-- **surface** (147 cells, 4 types, silhouette 0.434):
-  - type 1: 51.7% of cells; biome adventure:sky_highlands; ground grass_block; top grass_block; height 160 — camera [-103.5,150,196.5]
-  - type 2: 17.0% of cells; biome adventure:sky_highlands; ground grass_block; top grass_block; height 186; trees per cell 1.0 (layer 0.2); canopy 9% (layer 2%); ground plants 21% (layer 12%); open to the sky 91% (layer 98%) — camera [-279.5,196,200.5]
-  - type 3: 16.3% of cells; biome deep_ocean; ground gravel; top water; height 134; ground plants 1% (layer 12%); liquid cover 85% (layer 17%); cave pockets 4% (layer 17%) — camera [40.5,150,360.5]
-  - type 4: 15.0% of cells; biome adventure:umbral_wastes; ground blackstone; top blackstone; height 199; liquid cover 1% (layer 17%); bare rock 68% (layer 11%); cave pockets 30% (layer 17%) — camera [200.5,196,-263.5]
-  - landmark at [-248,-120]: biome deep_cold_ocean (type deep_ocean); ground calcite (type gravel); neighbour step 4.1 (type 0.3); overhangs 28% (type 2%); canopy 5% (type 0%)
-  - landmark at [-8,-376]: biome adventure:chalk_cliffs (type adventure:sky_highlands); ground calcite (type grass_block); top calcite (type grass_block); height 18.1 (type 148.5); relief over the patch 187.0 (type 83.0); ground plants 1% (type 13%)
-  - landmark at [-24,-376]: biome adventure:chalk_cliffs (type adventure:sky_highlands); ground calcite (type grass_block); top calcite (type grass_block); relief over the patch 187.0 (type 83.0); height 29.3 (type 148.5); ground plants 3% (type 13%)
-  - landmark at [-168,-168]: biome adventure:chalk_cliffs (type adventure:sky_highlands); canopy 14% (type 8%); open to the sky 86% (type 92%); relief over 16 blocks 49.0 (type 5.0)
-  - landmark at [-40,-376]: biome adventure:chalk_cliffs (type adventure:sky_highlands); top calcite (type grass_block); relief over the patch 187.0 (type 83.0); height 53.7 (type 148.5); cave pockets 25% (type 3%)
-- **sky**: no cells.
-- **underground** (144 cells, 7 types, silhouette 0.268):
-  - type 1: 22.2% of cells; notableId coal_ore; biome adventure:chalk_cliffs; height 133; cave pockets 1% (layer 17%) — camera [-35.5,101.88,-345.5]
-  - type 2: 21.5% of cells; notableId coal_ore; biome adventure:sky_highlands; height 195; neighbour step 0.2 (layer 1.1); relief over 16 blocks 8.4 (layer 33.6); notable-block density (log) 1.0 (layer 0.7) — camera [-254.5,148.88,228.5]
-  - type 3: 14.6% of cells; notableId coal_ore; biome adventure:chalk_cliffs; height 163; neighbour step 2.6 (layer 1.1); relief over 16 blocks 66.3 (layer 33.6); cave liquid 5% (layer 1%) — camera [-257.5,148.88,228.5]
-  - type 4: 11.1% of cells; notableId coal_ore; biome adventure:sky_highlands; height 162; neighbour step 1.9 (layer 1.1) — camera [46.5,124.88,218.5]
-  - type 5: 11.1% of cells; notableId coal_ore; biome adventure:chalk_cliffs; height 167; notable-block density (log) 1.2 (layer 0.7); cave air 6% (layer 2%); cave pockets 33% (layer 17%) — camera [-216.5,75.88,-142.5]
-  - type 6: 10.4% of cells; notableId iron_ore; biome adventure:sky_highlands; height 157; layer present in 52% (layer 91%); relief over 16 blocks 17.7 (layer 33.6); notable-block density (log) 0.3 (layer 0.7); cave liquid 0% (layer 1%); cave pockets 3% (layer 17%)
-  - type 7: 9.0% of cells; notableId blackstone; biome adventure:umbral_wastes; height 201; relief over 16 blocks 18.3 (layer 33.6); notable-block density (log) 0.3 (layer 0.7); cave air 5% (layer 2%); cave pockets 43% (layer 17%) — camera [205.5,167.88,-250.5]
-  - landmark at [-184,-136]: notableId calcite (type coal_ore); cave air 19% (type 2%); cave pockets 86% (type 27%); notable-block density (log) 1.9 (type 1.4)
-  - landmark at [72,-200]: notableId obsidian (type iron_ore); cave air 19% (type 0%); notable-block density (log) 1.8 (type 0.2); height 235.3 (type 155.6)
-  - landmark at [216,-248]: notableId blackstone (type none); notable-block density (log) 3.1 (type 0.0); cave pockets 89% (type 21%); cave air 11% (type 2%)
-  - landmark at [72,-232]: notableId blackstone (type coal_ore); biome adventure:umbral_wastes (type adventure:chalk_cliffs); layer present in 74% (type 100%); relief over 16 blocks 82.0 (type 49.0); notable-block density (log) 1.7 (type 1.4)
-  - landmark at [232,-264]: notableId blackstone (type none); cave pockets 73% (type 21%); relief over 16 blocks 59.0 (type 10.0); neighbour step 2.0 (type 0.5)
+- **surface** (129 cells, 3 types, silhouette 0.513):
+  - type 1: 58.1% of cells; biome adventure:sky_highlands; ground grass_block; top grass_block; height 124; ground plants 16% (layer 11%); bare rock 2% (layer 19%) — camera [-24.5,105,280.5]
+  - type 2: 24.8% of cells; biome adventure:umbral_wastes; ground blackstone; top blackstone; height 196; layer present in 90% (layer 97%); trees per cell 0.0 (layer 0.3); notable-block density (log) 0.9 (layer 0.5); canopy 0% (layer 2%); bare rock 70% (layer 19%) — camera [19.5,178,-248.5]
+  - type 3: 17.1% of cells; biome deep_cold_ocean; ground gravel; top water; height 111; trees per cell 0.0 (layer 0.3); canopy 0% (layer 2%); ground plants 1% (layer 11%); liquid cover 85% (layer 15%); bare rock 3% (layer 19%); stacked layers 5% (layer 1%); cave pockets 9% (layer 26%) — camera [72.5,150,-71.5]
+  - landmark at [24,-200]: ground oak_planks (type gravel); top oak_planks (type water); neighbour step 13.0 (type 0.0); stacked layers 36% (type 0%); open to the sky 64% (type 100%)
+  - landmark at [8,-200]: ground sand (type gravel); neighbour step 17.9 (type 0.0); relief over 16 blocks 156.0 (type 0.0); relief over the patch 209.0 (type 1.0)
+  - landmark at [8,-216]: stacked layers 33% (type 0%); open to the sky 67% (type 100%); layer present in 63% (type 100%)
+  - landmark at [-8,-200]: ground grass_block (type gravel); relief over 16 blocks 160.0 (type 0.0); relief over the patch 209.0 (type 1.0); liquid cover 31% (type 100%)
+  - landmark at [-312,-136]: canopy 13% (type 0%); cave pockets 90% (type 16%); overhangs 23% (type 0%)
+- **sky** (2 cells, 1 types, silhouette 0.0):
+  - type 1: 100.0% of cells; biome deep_cold_ocean; ground grass_block; height 165 — camera [24.5,192,152.5]
+- **underground** (127 cells, 8 types, silhouette 0.255):
+  - type 1: 26.8% of cells; notableId coal_ore; biome adventure:chalk_cliffs; height 142; cave air 0% (layer 8%); cave pockets 1% (layer 26%) — camera [-178.5,101.88,197.5]
+  - type 2: 16.5% of cells; notableId iron_ore; biome adventure:sky_highlands; height 117; notable-block density (log) 0.1 (layer 0.5) — camera [-34.5,82.88,301.5]
+  - type 3: 15.0% of cells; notableId coal_ore; biome adventure:sky_highlands; height 190; notable-block density (log) 1.0 (layer 0.5); cave pockets 53% (layer 26%) — camera [-169.5,103.88,193.5]
+  - type 4: 11.8% of cells; notableId calcite; biome adventure:chalk_cliffs; height 89; relief over 16 blocks 27.9 (layer 18.5); notable-block density (log) 0.8 (layer 0.5); cave air 16% (layer 8%); cave liquid 0% (layer 0%) — camera [258.5,13.88,62.5]
+  - type 5: 9.4% of cells; biome adventure:umbral_wastes; notableId blackstone; height 196; relief over 16 blocks 25.9 (layer 18.5); notable-block density (log) 0.1 (layer 0.5) — camera [45.5,134.88,-245.5]
+  - type 6: 8.7% of cells; notableId redstone_ore; biome adventure:sky_highlands; height 90; layer present in 87% (layer 95%); notable-block density (log) 0.0 (layer 0.5); cave air 0% (layer 8%); cave pockets 1% (layer 26%) — camera [243.5,5.88,115.5]
+  - type 7: 6.3% of cells; notableId blackstone; biome adventure:umbral_wastes; height 223; notable-block density (log) 1.5 (layer 0.5); cave pockets 59% (layer 26%) — camera [226.5,209.88,-180.5]
+  - type 8: 5.5% of cells; notableId coal_ore; biome deep_cold_ocean; height 121; relief over 16 blocks 7.0 (layer 18.5); cave air 31% (layer 8%) — camera [68.5,10.88,-59.5]
+  - landmark at [24,-200]: notableId oak_planks (type coal_ore); neighbour step 11.5 (type 0.0); layer present in 64% (type 100%); cave air 2% (type 30%)
+  - landmark at [-232,120]: biome adventure:sky_highlands (type adventure:chalk_cliffs); cave air 60% (type 6%); cave pockets 86% (type 18%); height 152.1 (type 35.7)
+  - landmark at [-216,120]: biome adventure:sky_highlands (type adventure:chalk_cliffs); cave air 35% (type 6%); height 154.1 (type 35.7); relief over 16 blocks 44.0 (type 23.0)
+  - landmark at [8,-216]: notableId oak_planks (type coal_ore); neighbour step 11.4 (type 0.7); layer present in 42% (type 100%); relief over 16 blocks 1.0 (type 18.0)
+  - landmark at [184,-152]: notableId iron_ore (type coal_ore); layer present in 36% (type 100%); height 241.6 (type 153.9); neighbour step 2.1 (type 0.7)
 - **roof**: no cells.
 
 ## Biome expression
 
 5 of 5 placed biomes are expressed.
 
-- adventure:sky_highlands: expressed, 31936 columns; placement land 47.1%, water 0.7%, void 52.2%; snow 0%, canopy 2.5%, trees 11.3/ha; top grass_block 32.5%, short_grass 6.8%, calcite 3.8%
-- adventure:chalk_cliffs: expressed, 23696 columns; placement land 27.6%, water 0.4%, void 72%; snow 0%, canopy 2.7%, trees 9.2/ha; top grass_block 17.3%, calcite 5.5%, short_grass 3.3%
-- adventure:umbral_wastes: expressed, 10144 columns; placement land 49.2%, water 0.2%, void 50.5%; snow 0%, canopy 0%, trees 0/ha; top blackstone 35.5%, obsidian 4.4%, soul_fire 3.6%
-- minecraft:deep_ocean: expressed, 6005 columns; placement land 16.8%, water 82.3%, void 0.8%, sky 0.1%; snow 0%, canopy 1.9%, trees 9.9/ha; top water 82.2%, grass_block 14.5%, calcite 1.1%
-- minecraft:deep_cold_ocean: expressed, 1952 columns; placement land 34.6%, water 57.9%, void 7.5%; snow 0%, canopy 0.7%, trees 0/ha; top water 57.5%, grass_block 29.6%, calcite 2.2%
+- adventure:sky_highlands: expressed, 31172 columns; placement land 40.2%, water 0.3%, void 59.3%, sky 0.3%; snow 0%, canopy 4.9%, trees 22.4/ha; top grass_block 29.7%, short_grass 5.5%, oak_leaves 2%
+- adventure:umbral_wastes: expressed, 21358 columns; placement land 36%, void 63.4%, sky 0.6%; snow 0%, canopy 0%, trees 0/ha; top blackstone 26.4%, obsidian 3.5%, soul_fire 2.4%
+- adventure:chalk_cliffs: expressed, 11416 columns; placement land 56.7%, void 43.2%, sky 0.1%; snow 0%, canopy 2.3%, trees 10.8/ha; top grass_block 46.5%, short_grass 5%, calcite 1.4%
+- minecraft:deep_cold_ocean: expressed, 3271 columns; placement land 17.1%, water 77.6%, void 1.3%, sky 4.1%; snow 0%, canopy 0%, trees 0/ha; top water 76.9%, grass_block 9.3%, oak_planks 3.8%
+- minecraft:deep_ocean: expressed, 2276 columns; placement land 1.7%, water 97%, void 0.4%, sky 0.9%; snow 0%, canopy 0%, trees 0/ha; top water 96.2%, grass_block 1.5%, tall_seagrass 0.8%
 
 
 ## Facts
@@ -92,10 +93,10 @@ Every factual statement in an answer cites a facts row (O<n>, V<n>, M:<key>, S:<
 
 | row | 1.21.1 biome | v2 id | surface % | columns | state | flag reason |
 |---|---|---|---|---|---|---|
-| O1 | nullscape:shadowlands | adventure:umbral_wastes | 6.8 | 10144 | expressed | - |
-| O2 | minecraft:deep_ocean | minecraft:deep_ocean | 8.1 | 6005 | expressed | - |
-| O3 | minecraft:deep_cold_ocean | minecraft:deep_cold_ocean | 2.4 | 1952 | expressed | - |
-| O4 | paradise_lost:continental_plateau | adventure:sky_highlands | 20.7 | 31936 | expressed | - |
+| O1 | nullscape:shadowlands | adventure:umbral_wastes | 11.1 | 21358 | expressed | - |
+| O2 | minecraft:deep_ocean | minecraft:deep_ocean | 3.2 | 2276 | expressed | - |
+| O3 | minecraft:deep_cold_ocean | minecraft:deep_cold_ocean | 4.5 | 3271 | expressed | - |
+| O4 | paradise_lost:continental_plateau | adventure:sky_highlands | 18.3 | 31172 | expressed | - |
 | O5 | paradise_lost:highlands_grand_glade | adventure:golden_skygrove | 0.0 | 0 | not in v2 definition | mapped id missing from the v2 biome list |
 | O6 | minecraft:deep_dark | minecraft:deep_dark | 0.0 | 0 | not in v2 definition | mapped id missing from the v2 biome list |
 | O7 | minecraft:dripstone_caves | minecraft:dripstone_caves | 0.0 | 0 | not in v2 definition | mapped id missing from the v2 biome list |
@@ -106,60 +107,84 @@ Every factual statement in an answer cites a facts row (O<n>, V<n>, M:<key>, S:<
 
 | row | v2 biome | surface % | columns | state | flag reason |
 |---|---|---|---|---|---|
-| V1 | adventure:chalk_cliffs | 9.0 | 23696 | expressed | - |
+| V1 | adventure:chalk_cliffs | 9.4 | 11416 | expressed | - |
 
 ### Measures (M rows) beside the 1.21.1 settings
 
 | key | dossier | 1.21.1 |
 |---|---|---|
-| M:topBiomes | adventure:sky_highlands 20.7%, adventure:chalk_cliffs 9.0%, minecraft:deep_ocean 8.1% | type `paradise_lost:paradise_lost` |
+| M:topBiomes | adventure:sky_highlands 18.3%, adventure:umbral_wastes 11.1%, adventure:chalk_cliffs 9.4% | type `paradise_lost:paradise_lost` |
 | M:snow | 0.0% (`surface.snowIcePercent`) | noiseSettings `None` |
-| M:water | 8.7% (`surface.fluidCoverPercent.water`) | settingsOverrides `{"seaLevel": 90}` |
+| M:water | 7.0% (`surface.fluidCoverPercent.water`) | settingsOverrides `{"seaLevel": 90}` |
 | M:lava | 0.0% (`surface.fluidCoverPercent.lava`) | |
-| M:void | 53.0% (`surface.voidPercent`) | |
-| M:canopy | 0.8% (`surface.canopyPercent`) | |
-| M:relief | median 40.0 blocks a patch; height {"p5": 100.0, "p25": 141.0, "p50": 185.0, "p75": 196.0, "p95": 201.0, "max": 242.0} (`terrain`) | |
-| M:layers | {"sky": 0.0, "surface": 47.0, "underground": 46.1, "roof": 0.0} (`vertical.layerColumnsPercent`) | environment `{"skyColor": "#1B3B6B", "fogColor": "#0E2A44", "ambientLight": 0.15}` |
-| M:classes | {"void": 53.0, "roofed": 0.0, "stacked": 0.0, "overhang": 2.9, "cave": 7.7, "single": 36.4} (`vertical.columnClassPercent`); ceiling False, skylight True | |
+| M:void | 53.5% (`surface.voidPercent`) | |
+| M:canopy | 1.1% (`surface.canopyPercent`) | |
+| M:relief | median 0.0 blocks a patch; height {"p5": 22.0, "p25": 108.0, "p50": 139.0, "p75": 191.0, "p95": 252.0, "max": 264.0} (`terrain`) | |
+| M:layers | {"sky": 0.5, "surface": 46.5, "underground": 44.9, "roof": 0.0} (`vertical.layerColumnsPercent`) | environment `{"skyColor": "#1B3B6B", "fogColor": "#0E2A44", "ambientLight": 0.15}` |
+| M:classes | {"void": 53.5, "roofed": 0.0, "stacked": 0.5, "overhang": 2.4, "cave": 11.5, "single": 32.0} (`vertical.columnClassPercent`); ceiling False, skylight True | |
 
 ### Scorecard (S rows)
 
-- S:a — surface traceable to the 1.21.1 biomes (of the columns that have ground): 80.9%
+- S:a — surface traceable to the 1.21.1 biomes (of the columns that have ground): 79.8%
 - S:b — 1.21.1 biomes expressed: 44.4%
 - S:c — v2 biomes placed but not expressed: 0
-- S:d — layers the 1.21.1 type implies: sky present (47.0% of columns)
+- S:d — layers the 1.21.1 type implies: sky present (46.5% of columns)
 
 ## Shots
 
+### the_abyssal_shrine-far
+
+Picked for: far: the border ring at bearing 180, facing the centre; 0.0% of rays could reach the border
+Census: sky 36.4%; void 29.6%; far: grass_block 18.3%, stone 5.5%; biomes: adventure:sky_highlands 73.1%, adventure:chalk_cliffs 14.9%, deep_cold_ocean 6%
+Image: `/tmp/claude-0/w10c1r/reviews/the_abyssal_shrine/screens/the_abyssal_shrine-far.png`
+
 ### the_abyssal_shrine-surface-t1
 
-Picked for: surface type 1: 51.7% of cells; biome adventure:sky_highlands; ground grass_block; top grass_block; height 160
-Census: sky 29.5%; void 4.3%; near: grass_block 43.2%, short_grass 8.1%; far: stone 8.6%, water 2.5%; biomes: adventure:sky_highlands 77.5%, adventure:umbral_wastes 14.3%, adventure:chalk_cliffs 5.4%
-Image: `/tmp/claude-0/w10c1/reviews/the_abyssal_shrine/screens/the_abyssal_shrine-surface-t1.png`
+Picked for: surface type 1: 58.1% of cells; biome adventure:sky_highlands; ground grass_block; top grass_block; height 124; ground plants 16% (layer 11%); bare rock 2% (layer 19%)
+Census: sky 0%; near: grass_block 51.8%, short_grass 22.9%; mid: grass_block 5%, stone 1.5%; biomes: adventure:sky_highlands 100%
+Image: `/tmp/claude-0/w10c1r/reviews/the_abyssal_shrine/screens/the_abyssal_shrine-surface-t1.png`
 
 ### the_abyssal_shrine-underground-t1
 
-Picked for: underground type 1: 22.2% of cells; notableId coal_ore; biome adventure:chalk_cliffs; height 133; cave pockets 1% (layer 17%)
-Census: sky 3.3%; void 12.9%; near: stone 54.4%, diorite 5.6%; mid: stone 10.4%, water 3.2%; far: stone 3%, water 2.6%; biomes: adventure:chalk_cliffs 70%, deep_cold_ocean 16.4%, adventure:umbral_wastes 13.6%
-Image: `/tmp/claude-0/w10c1/reviews/the_abyssal_shrine/screens/the_abyssal_shrine-underground-t1.png`
-
-### the_abyssal_shrine-surface-t2
-
-Picked for: surface type 2: 17.0% of cells; biome adventure:sky_highlands; ground grass_block; top grass_block; height 186; trees per cell 1.0 (layer 0.2); canopy 9% (layer 2%); ground plants 21% (layer 12%); open to the sky 91% (layer 98%)
-Census: sky 23.7%; near: oak_leaves 26.9%, grass_block 25.7%; biomes: adventure:sky_highlands 99.2%
-Image: `/tmp/claude-0/w10c1/reviews/the_abyssal_shrine/screens/the_abyssal_shrine-surface-t2.png`
+Picked for: underground type 1: 26.8% of cells; notableId coal_ore; biome adventure:chalk_cliffs; height 142; cave air 0% (layer 8%); cave pockets 1% (layer 26%)
+Census: sky 0.1%; void 14.1%; near: stone 49%, grass_block 1.6%; mid: stone 29.3%, grass_block 3%; biomes: adventure:sky_highlands 100%
+Image: `/tmp/claude-0/w10c1r/reviews/the_abyssal_shrine/screens/the_abyssal_shrine-underground-t1.png`
 
 ### the_abyssal_shrine-surface-t3
 
-Picked for: surface type 3: 16.3% of cells; biome deep_ocean; ground gravel; top water; height 134; ground plants 1% (layer 12%); liquid cover 85% (layer 17%); cave pockets 4% (layer 17%)
-Census: sky 0.1%; near: water 51.6%; mid: stone 30.8%, dirt 5.2%; biomes: deep_ocean 58.4%, adventure:sky_highlands 41.6%
-Image: `/tmp/claude-0/w10c1/reviews/the_abyssal_shrine/screens/the_abyssal_shrine-surface-t3.png`
+Picked for: surface type 3: 17.1% of cells; biome deep_cold_ocean; ground gravel; top water; height 111; trees per cell 0.0 (layer 0.3); canopy 0% (layer 2%); ground plants 1% (layer 11%); liquid cover 85% (layer 15%); bare rock 3% (layer 19%); stacked layers 5% (layer 1%); cave pockets 9% (layer 26%)
+Census: sky 35.2%; near: water 51.6%; mid: water 3.9%; far: grass_block 3.4%, stone 3%; biomes: deep_cold_ocean 85.7%, adventure:sky_highlands 8.5%, deep_ocean 5.6%
+Image: `/tmp/claude-0/w10c1r/reviews/the_abyssal_shrine/screens/the_abyssal_shrine-surface-t3.png`
 
-### the_abyssal_shrine-surface-lm1
+### the_abyssal_shrine-underground-t4
 
-Picked for: surface landmark: biome deep_cold_ocean (type deep_ocean); ground calcite (type gravel); neighbour step 4.1 (type 0.3); overhangs 28% (type 2%); canopy 5% (type 0%)
-Census: sky 21.7%; near: water 48.7%, calcite 10.9%; mid: water 1.3%, stone 1.2%; far: stone 6.7%, calcite 1.8%; biomes: deep_cold_ocean 63.7%, adventure:chalk_cliffs 18.5%, adventure:sky_highlands 17.1%
-Image: `/tmp/claude-0/w10c1/reviews/the_abyssal_shrine/screens/the_abyssal_shrine-surface-lm1.png`
+Picked for: underground type 4: 11.8% of cells; notableId calcite; biome adventure:chalk_cliffs; height 89; relief over 16 blocks 27.9 (layer 18.5); notable-block density (log) 0.8 (layer 0.5); cave air 16% (layer 8%); cave liquid 0% (layer 0%)
+Census: sky 0%; void 0.4%; near: stone 44.3%, grass_block 24.3%; mid: stone 5.4%, grass_block 1.6%; biomes: adventure:chalk_cliffs 99.1%
+Image: `/tmp/claude-0/w10c1r/reviews/the_abyssal_shrine/screens/the_abyssal_shrine-underground-t4.png`
+
+### the_abyssal_shrine-surface-t2-r
+
+Picked for: surface type 2: 24.8% of cells; biome adventure:umbral_wastes; ground blackstone; top blackstone; height 196; layer present in 90% (layer 97%); trees per cell 0.0 (layer 0.3); notable-block density (log) 0.9 (layer 0.5); canopy 0% (layer 2%); bare rock 70% (layer 19%)
+Census: sky 17.8%; void 0.9%; near: blackstone 62.3%, soul_soil 1.7%; mid: water 2.3%, blackstone 1.8%; far: water 4.6%, grass_block 1%; biomes: adventure:umbral_wastes 83.4%, deep_cold_ocean 9.9%
+Image: `/tmp/claude-0/w10c1r/reviews/the_abyssal_shrine/screens/the_abyssal_shrine-surface-t2-r.png`
+
+### the_abyssal_shrine-surface-t2-r-nv
+
+Picked for: surface type 2: 24.8% of cells; biome adventure:umbral_wastes; ground blackstone; top blackstone; height 196; layer present in 90% (layer 97%); trees per cell 0.0 (layer 0.3); notable-block density (log) 0.9 (layer 0.5); canopy 0% (layer 2%); bare rock 70% (layer 19%)
+Census: sky 17.8%; void 0.9%; near: blackstone 62.3%, soul_soil 1.7%; mid: water 2.3%, blackstone 1.8%; far: water 4.6%, grass_block 1%; biomes: adventure:umbral_wastes 83.4%, deep_cold_ocean 9.9%
+Image: `/tmp/claude-0/w10c1r/reviews/the_abyssal_shrine/screens/the_abyssal_shrine-surface-t2-r-nv.png`
+
+### the_abyssal_shrine-surface-lm1-r
+
+Picked for: surface landmark: ground oak_planks (type gravel); top oak_planks (type water); neighbour step 13.0 (type 0.0); stacked layers 36% (type 0%); open to the sky 64% (type 100%)
+Census: sky 7.6%; void 30.4%; near: oak_planks 21.4%; mid: oak_planks 3.4%, stone 3.2%; far: stone 28.2%; biomes: deep_cold_ocean 69%, adventure:chalk_cliffs 14.5%, adventure:sky_highlands 13.2%
+Image: `/tmp/claude-0/w10c1r/reviews/the_abyssal_shrine/screens/the_abyssal_shrine-surface-lm1-r.png`
+
+### the_abyssal_shrine-surface-lm1-r-nv
+
+Picked for: surface landmark: ground oak_planks (type gravel); top oak_planks (type water); neighbour step 13.0 (type 0.0); stacked layers 36% (type 0%); open to the sky 64% (type 100%)
+Census: sky 7.6%; void 30.4%; near: oak_planks 21.4%; mid: oak_planks 3.4%, stone 3.2%; far: stone 28.2%; biomes: deep_cold_ocean 69%, adventure:chalk_cliffs 14.5%, adventure:sky_highlands 13.2%
+Image: `/tmp/claude-0/w10c1r/reviews/the_abyssal_shrine/screens/the_abyssal_shrine-surface-lm1-r-nv.png`
 
 ## Review questions
 

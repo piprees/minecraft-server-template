@@ -16,90 +16,89 @@ Source: `mods/custom-dimensions-26/definitions/the_aviary.json`
 
 Biomes: adventure:sky_highlands, adventure:wisteria_grove, adventure:golden_skygrove, minecraft:cherry_grove, minecraft:meadow, minecraft:flower_forest, minecraft:plains, minecraft:forest, minecraft:birch_forest, adventure:cloud_reef, adventure:windswept_isles, minecraft:snowy_slopes, minecraft:dark_forest, adventure:hanging_gardens
 
-Terrain: `{"base": "floating_islands", "setting": "extreme", "params": {"size": 3, "coverage": 0.45, "thickness": 16, "underside": 80, "spread": 20, "flatness": 0.6, "tiers": 2, "tierSpacing": 64, "tierGap": 20, "tierShrink": 0.6}, "scales": {"climate": 4}}`; generator `{"type": "noise", "preset": "floating_islands"}`
+Terrain: `{"base": "floating_islands", "setting": "extreme", "params": {"size": 3, "coverage": 0.45, "thickness": 16, "underside": 80, "spread": 20, "flatness": 0.6, "tiers": 2, "tierSpacing": 64, "tierGap": 20, "tierShrink": 0.6}, "scales": {"climate": 4}, "climateWarp": {"blocks": 160, "wavelength": 512}}`; generator `{"type": "noise", "preset": "floating_islands"}`
 
 Zones: none
 
 ## Survey
 
-Dossier: `/tmp/claude-0/w10c1/runs/sel/the_aviary/dossier.json`; layer maps in `/tmp/claude-0/w10c1/runs/sel/the_aviary/layers`
+Dossier: `runs/fin/full/the_aviary/dossier.json`; layer maps in `runs/fin/full/the_aviary/layers`
 
 ## Summary
 
-- Top blocks seen from the sky: grass_block 24.7%, oak_leaves 6.6%, cherry_leaves 5.5%, pink_petals 3.9%.
-- Surface biomes: cherry_grove 14.5%, adventure:golden_skygrove 9.4%, adventure:sky_highlands 9.2%, meadow 5.8%, birch_forest 5.4%.
-- Ground blocks: grass_block 50.5%, stone 3.4%, podzol 1.6%, dirt 0.5%.
-- Liquid cover 0% water, 0% lava, 0% other; snow or ice 0.5% (a snowing climate over 3.3%); tree canopy 16.8%; bare rock 3%; no ground (void) 42.4%.
-- Trees: 53.1 per ha (oak_log 26.6/ha, mean spacing 6.8 blocks, birch_log 13/ha, mean spacing 4.6 blocks, cherry_log 9/ha, mean spacing 9.7 blocks, dark_oak_log 2.1/ha, mean spacing 8.1 blocks); ground plants flower 7.7%, grass 4.6%, other 2.1%, bush 0%.
-- Surface height p5 138, median 186, p95 234, max 241; median relief per patch 18 blocks; slopes under 15° 41%, over 45° 4.6%, cliffs 0.6%; above the clouds 47%, below sea level 0%.
-- Underground: 8.4% open, 0% liquid; cave biomes adventure:hanging_gardens 95.3%, cherry_grove 1.2%, birch_forest 1.1%, meadow 1.1%.
-- Notable clusters, fewest first: pink_tulip 2 clusters, spacing n/a; dandelion 4 clusters, spacing 15.9; cobblestone 5 clusters, spacing 17.9; shelf_mushroom 7 clusters, spacing 11.2; bush 8 clusters, spacing 3.9; bee_nest 12 clusters, spacing 12.8.
+- Top blocks seen from the sky: grass_block 32%, oak_leaves 8.1%, snow_block 6.1%, cherry_leaves 4.9%.
+- Surface biomes: adventure:wisteria_grove 20.5%, cherry_grove 15%, adventure:golden_skygrove 7.7%, meadow 7.4%, adventure:sky_highlands 7.2%.
+- Ground blocks: grass_block 62.5%, snow_block 7.2%, moss_block 2%, podzol 1.4%.
+- Liquid cover 0% water, 0% lava, 0% other; snow or ice 8.4% (a snowing climate over 3.7%); tree canopy 19.4%; bare rock 0.1%; no ground (void) 23.3%.
+- Trees: 60.8 per ha (oak_log 39.4/ha, mean spacing 7.1 blocks, cherry_log 9.1/ha, mean spacing 8.8 blocks, dark_oak_log 8.2/ha, mean spacing 6.1 blocks, birch_log 2.7/ha, mean spacing 8.8 blocks); ground plants flower 7.7%, other 6.1%, grass 4.9%.
+- Surface height p5 134, median 181, p95 237, max 253; median relief per patch 19 blocks; slopes under 15° 36.9%, over 45° 6.9%, cliffs 0.4%; above the clouds 41.9%, below sea level 0%.
+- Underground: 8.3% open, 0% liquid; cave biomes adventure:hanging_gardens 96%, meadow 0.7%, cherry_grove 0.6%, flower_forest 0.5%.
+- Notable clusters, fewest first: end_rod 4 clusters, spacing 29.4; powder_snow 4 clusters, spacing 13.9; mushroom_stem 4 clusters, spacing 27.2; glow_lichen 4 clusters, spacing 7; bee_nest 4 clusters, spacing n/a; pink_tulip 8 clusters, spacing 4.7.
 - 11 of 12 placed biomes are expressed; 2 listed biomes were not found.
-- Render against world at 603 columns: height within 2 blocks 100%, biome match 100%.
+- Render against world at 804 columns: height within 2 blocks 97.9%, biome match 100%.
 - Landforms over the border (noise render): plains 20.3%, hills 20.1%, mountains 4.5%, plateaus 3.4%, basins 5.4%, islands 5.2%, water 0%, void 41.1%.
-- Placeness: biome regions 2.6/km² (12 major, largest 7.8%), landform regions 14.2/km² (largest 6.7%), dominant place 7.8% of the border.
+- Placeness: biome regions 3.0/km² (12 major, largest 7.9%), landform regions 14.2/km² (largest 6.7%), dominant place 7.9% of the border.
 
 ## Layers
 
-- Columns by class: void 42.4%, roofed 0%, stacked 10%, overhang 1.3%, cave 12.1%, single 34.2%.
-- Columns with each layer: sky 10%, surface 57.6%, underground 54.3%, roof 0%.
-- Overhangs in 1.4% of columns, stacked layers in 10%, cave pockets in 13.9%.
+- Columns by class: void 23.3%, roofed 0%, stacked 14%, overhang 2.7%, cave 13.9%, single 46.2%.
+- Columns with each layer: sky 14%, surface 76.7%, underground 73.7%, roof 0%.
+- Overhangs in 2.8% of columns, stacked layers in 14%, cave pockets in 15.7%.
 
 ## Places
 
-- **surface** (158 cells, 8 types, silhouette 0.398):
-  - type 1: 19.0% of cells; biome meadow; ground grass_block; top grass_block; height 210; trees per cell 0.5 (layer 2.0); canopy 8% (layer 29%); open to the sky 92% (layer 55%) — camera [1288.5,214,-3543.5]
-  - type 2: 17.1% of cells; biome adventure:sky_highlands; ground grass_block; top grass_block; height 161; relief over the patch 59.4 (layer 33.6); trees per cell 0.1 (layer 2.0); notable-block density (log) 0.6 (layer 0.4); canopy 1% (layer 29%); ground plants 1% (layer 25%); open to the sky 6% (layer 55%); stacked layers 92% (layer 17%) — camera [-2791.5,141,3672.5]
-  - type 3: 16.5% of cells; biome birch_forest; ground grass_block; top grass_block; height 187; relief over the patch 20.5 (layer 33.6); trees per cell 5.0 (layer 2.0); notable-block density (log) 0.2 (layer 0.4); canopy 45% (layer 29%); ground plants 10% (layer 25%) — camera [3671.5,206,2232.5]
-  - type 4: 14.6% of cells; biome adventure:golden_skygrove; ground grass_block; top oak_leaves; height 181; trees per cell 4.4 (layer 2.0); canopy 66% (layer 29%); open to the sky 31% (layer 55%); overhangs 6% (layer 2%) — camera [1084.5,198,3177.5]
-  - type 5: 13.3% of cells; biome cherry_grove; ground grass_block; top cherry_leaves; height 200; relief over the patch 19.8 (layer 33.6); canopy 51% (layer 29%); ground plants 60% (layer 25%); cave pockets 45% (layer 23%) — camera [-7.5,155,2760.5]
-  - type 6: 8.9% of cells; biome cherry_grove; ground grass_block; top pink_petals; height 184; relief over the patch 20.9 (layer 33.6); trees per cell 0.9 (layer 2.0); ground plants 62% (layer 25%); open to the sky 81% (layer 55%) — camera [-199.5,167,1879.5]
-  - type 7: 5.7% of cells; biome adventure:windswept_isles; ground stone; top stone; height 180; trees per cell 0.6 (layer 2.0); canopy 3% (layer 29%); ground plants 0% (layer 25%); snow or ice 9% (layer 1%); bare rock 80% (layer 5%); open to the sky 97% (layer 55%) — camera [3576.5,182,-3255.5]
-  - type 8: 5.1% of cells; biome adventure:wisteria_grove; ground grass_block; top grass_block; height 200; layer present in 81% (layer 95%); neighbour step 1.0 (layer 0.4); relief over 16 blocks 32.1 (layer 10.4); relief over the patch 71.3 (layer 33.6); notable-block density (log) 1.0 (layer 0.4); open to the sky 71% (layer 55%); cave pockets 2% (layer 23%) — camera [-3591.5,173,-3192.5]
-  - landmark at [3208,-1096]: biome adventure:cloud_reef (type meadow); ground snow_block (type grass_block); top snow_block (type grass_block); snow or ice 69% (type 0%); notable-block density (log) 1.6 (type 0.2); layer present in 76% (type 100%)
-  - landmark at [-2760,3640]: biome adventure:sky_highlands (type meadow); overhangs 36% (type 0%); neighbour step 3.1 (type 0.2); relief over 16 blocks 63.0 (type 6.0)
-  - landmark at [-616,-3112]: biome adventure:golden_skygrove (type adventure:wisteria_grove); relief over 16 blocks 91.0 (type 6.0); notable-block density (log) 0.3 (type 1.2); neighbour step 1.4 (type 0.2)
-  - landmark at [-2776,3640]: biome adventure:hanging_gardens (type adventure:sky_highlands); relief over 16 blocks 65.0 (type 4.0); neighbour step 1.8 (type 0.2); notable-block density (log) 0.2 (type 0.8)
-  - landmark at [-3928,-600]: biome adventure:wisteria_grove (type adventure:sky_highlands); neighbour step 3.3 (type 0.2); relief over 16 blocks 76.0 (type 4.0); height 171.2 (type 139.3)
-- **sky** (29 cells, 6 types, silhouette 0.348):
-  - type 1: 31.0% of cells; biome adventure:sky_highlands; ground grass_block; height 232; layer present in 99% (layer 88%); neighbour step 0.2 (layer 0.4); relief over 16 blocks 14.2 (layer 10.8) — camera [-1734.5,234,1160.5]
-  - type 2: 24.1% of cells; biome adventure:wisteria_grove; ground grass_block; height 215; relief over 16 blocks 8.1 (layer 10.8); trees per cell 2.1 (layer 1.0); notable-block density (log) 1.1 (layer 0.7) — camera [-3943.5,223,-600.5]
-  - type 3: 13.8% of cells; biome adventure:sky_highlands; ground grass_block; height 200; layer present in 100% (layer 88%); neighbour step 0.2 (layer 0.4); relief over 16 blocks 6.5 (layer 10.8) — camera [-2791.5,201,3656.5]
-  - type 4: 13.8% of cells; biome adventure:golden_skygrove; ground grass_block; height 220; layer present in 55% (layer 88%); neighbour step 0.6 (layer 0.4); notable-block density (log) 0.5 (layer 0.7) — camera [-635.5,246,-3112.5]
-  - type 5: 10.3% of cells; biome adventure:sky_highlands; ground grass_block; height 194; layer present in 76% (layer 88%); neighbour step 0.8 (layer 0.4); relief over 16 blocks 13.3 (layer 10.8); trees per cell 0.0 (layer 1.0) — camera [-2758.5,195,3673.5]
-  - type 6: 6.9% of cells; biome cherry_grove; ground grass_block; height 243; neighbour step 0.6 (layer 0.4); relief over 16 blocks 13.0 (layer 10.8) — camera [-632.5,244,-3143.5]
-  - landmark at [-984,776]: biome adventure:golden_skygrove (type adventure:wisteria_grove); trees per cell 4.0 (type 2.0); notable-block density (log) 0.9 (type 1.2); height 211.6 (type 221.6)
-- **underground** (148 cells, 2 types, silhouette 0.362):
-  - type 1: 52.7% of cells; notableId cave_vines_plant; biome adventure:hanging_gardens; height 186; cave air 11% (layer 6%); cave pockets 46% (layer 24%) — camera [3614.5,166.88,-3258.5]
-  - type 2: 47.3% of cells; notableId cave_vines_plant; height 187; cave air 0% (layer 6%); cave pockets 0% (layer 24%)
-  - landmark at [2392,1800]: notableId rooted_dirt (type cave_vines_plant); biome birch_forest (type adventure:hanging_gardens); notable-block density (log) 2.3 (type 1.1); cave air 23% (type 8%); cave pockets 100% (type 57%)
-  - landmark at [-2776,3640]: neighbour step 1.8 (type 0.2); height 127.5 (type 187.7); relief over 16 blocks 25.0 (type 5.0)
-  - landmark at [216,1240]: notableId rooted_dirt (type cave_vines_plant); biome cherry_grove (type adventure:hanging_gardens); height 231.0 (type 187.7); cave pockets 100% (type 57%); notable-block density (log) 1.5 (type 1.1)
-  - landmark at [-2760,3640]: neighbour step 2.8 (type 0.2); relief over 16 blocks 63.0 (type 5.0); height 117.5 (type 187.7)
-  - landmark at [-184,1912]: notableId rooted_dirt (type cave_vines_plant); neighbour step 0.7 (type 0.2); cave pockets 16% (type 57%); relief over 16 blocks 18.0 (type 5.0)
+- **surface** (207 cells, 8 types, silhouette 0.38):
+  - type 1: 19.3% of cells; biome adventure:wisteria_grove; ground grass_block; top grass_block; height 183; notable-block density (log) 0.9 (layer 0.5) — camera [-3607.5,164,-1303.5]
+  - type 2: 17.9% of cells; biome meadow; ground grass_block; top grass_block; height 193; trees per cell 0.4 (layer 1.7); notable-block density (log) 0.2 (layer 0.5); canopy 7% (layer 25%); open to the sky 92% (layer 58%) — camera [1576.5,223,1944.5]
+  - type 3: 16.9% of cells; biome adventure:wisteria_grove; ground grass_block; top grass_block; height 156; relief over the patch 35.7 (layer 26.8); trees per cell 0.1 (layer 1.7); canopy 2% (layer 25%); ground plants 2% (layer 24%); open to the sky 7% (layer 58%); stacked layers 92% (layer 18%) — camera [-1623.5,140,1096.5]
+  - type 4: 14.0% of cells; biome cherry_grove; ground grass_block; top cherry_leaves; height 195; canopy 40% (layer 25%); ground plants 57% (layer 24%) — camera [-695.5,177,664.5]
+  - type 5: 12.1% of cells; biome adventure:cloud_reef; ground snow_block; top snow_block; height 206; trees per cell 0.1 (layer 1.7); canopy 2% (layer 25%); ground plants 3% (layer 24%); snow or ice 90% (layer 11%); open to the sky 98% (layer 58%) — camera [3768.5,227,-3847.5]
+  - type 6: 7.2% of cells; biome dark_forest; ground grass_block; top dark_oak_leaves; height 197; trees per cell 5.8 (layer 1.7); canopy 78% (layer 25%); ground plants 50% (layer 24%); open to the sky 22% (layer 58%) — camera [2119.5,177,-2581.5]
+  - type 7: 7.2% of cells; biome adventure:golden_skygrove; ground grass_block; top oak_leaves; height 232; relief over the patch 15.4 (layer 26.8); trees per cell 4.3 (layer 1.7); canopy 63% (layer 25%); open to the sky 37% (layer 58%); cave pockets 80% (layer 20%) — camera [248.5,229,1208.5]
+  - type 8: 5.3% of cells; biome adventure:golden_skygrove; ground grass_block; top oak_leaves; height 178; neighbour step 0.7 (layer 0.3); relief over 16 blocks 20.9 (layer 9.2); relief over the patch 71.3 (layer 26.8); trees per cell 3.7 (layer 1.7); canopy 57% (layer 25%); bare rock 2% (layer 0%); cave pockets 3% (layer 20%) — camera [1093.5,170,-1654.5]
+  - landmark at [-2760,3640]: biome adventure:sky_highlands (type meadow); neighbour step 3.1 (type 0.4); relief over 16 blocks 63.0 (type 7.0); overhangs 36% (type 0%)
+  - landmark at [3128,-952]: biome forest (type adventure:golden_skygrove); top grass_block (type oak_leaves); relief over 16 blocks 75.0 (type 8.0); neighbour step 1.6 (type 0.4); height 231.0 (type 170.2)
+  - landmark at [3128,-984]: biome forest (type adventure:wisteria_grove); relief over the patch 77.0 (type 21.0); height 247.4 (type 162.2); neighbour step 0.9 (type 0.3)
+  - landmark at [-824,296]: biome cherry_grove (type meadow); overhangs 57% (type 0%); neighbour step 1.4 (type 0.4); relief over 16 blocks 30.0 (type 7.0)
+  - landmark at [-808,328]: biome cherry_grove (type meadow); neighbour step 2.0 (type 0.4); overhangs 20% (type 0%); relief over 16 blocks 30.0 (type 7.0)
+- **sky** (43 cells, 3 types, silhouette 0.447):
+  - type 1: 48.8% of cells; biome adventure:wisteria_grove; ground grass_block; height 216; relief over 16 blocks 11.8 (layer 9.5); trees per cell 2.1 (layer 1.3); notable-block density (log) 1.2 (layer 0.8) — camera [-1767.5,236,1160.5]
+  - type 2: 30.2% of cells; biome adventure:sky_highlands; ground grass_block; height 204; trees per cell 0.2 (layer 1.3); notable-block density (log) 0.5 (layer 0.8) — camera [-2775.5,201,3671.5]
+  - type 3: 20.9% of cells; biome cherry_grove; ground grass_block; height 247; layer present in 60% (layer 83%); relief over 16 blocks 7.0 (layer 9.5); notable-block density (log) 0.5 (layer 0.8) — camera [-309.5,247,-1389.5]
+  - landmark at [-1656,1080]: height 178.8 (type 233.4); layer present in 52% (type 100%); neighbour step 0.7 (type 0.2)
+  - landmark at [-296,-1416]: layer present in 100% (type 35%); trees per cell 2.0 (type 0.0); neighbour step 0.1 (type 0.5)
+- **underground** (202 cells, 3 types, silhouette 0.337):
+  - type 1: 48.0% of cells; notableId cave_vines_plant; height 182; cave air 0% (layer 5%); cave pockets 0% (layer 20%) — camera [1661.5,160.88,556.5]
+  - type 2: 34.2% of cells; notableId cave_vines_plant; biome adventure:hanging_gardens; height 185 — camera [-721.5,146.88,3573.5]
+  - type 3: 17.8% of cells; notableId cave_vines_plant; biome adventure:hanging_gardens; height 216; notable-block density (log) 1.5 (layer 1.1); cave air 21% (layer 5%); cave pockets 88% (layer 20%) — camera [232.5,174.88,1245.5]
+  - landmark at [-824,296]: notableId moss_block (type cave_vines_plant); neighbour step 1.4 (type 0.4); relief over 16 blocks 30.0 (type 6.0); cave air 25% (type 2%)
+  - landmark at [-808,328]: neighbour step 2.1 (type 0.4); relief over 16 blocks 26.0 (type 6.0); layer present in 69% (type 100%)
+  - landmark at [-2760,3640]: neighbour step 2.8 (type 0.4); relief over 16 blocks 63.0 (type 6.0); cave air 21% (type 2%)
+  - landmark at [-1160,1816]: biome adventure:wisteria_grove (type adventure:hanging_gardens); cave air 45% (type 16%); relief over 16 blocks 16.0 (type 4.0); neighbour step 0.5 (type 0.1)
+  - landmark at [-104,2296]: notableId rooted_dirt (type cave_vines_plant); biome cherry_grove (type adventure:hanging_gardens); relief over 16 blocks 17.0 (type 4.0); neighbour step 0.6 (type 0.1); notable-block density (log) 1.5 (type 1.6)
 - **roof**: no cells.
 
 ## Biome expression
 
 11 of 12 placed biomes are expressed.
 
-- adventure:hanging_gardens: expressed, 21979 columns; placement land 1.9%, void 98%; snow 0%, canopy 10.7%, trees 0/ha; top grass_block 1.6%, oak_leaves 0.1%, cherry_leaves 0%
-- adventure:sky_highlands: expressed, 12529 columns; placement land 49%, void 19.9%, sky 31.1%; snow 0%, canopy 2.4%, trees 16.3/ha; top grass_block 36.5%, hanging_roots 4.7%, short_grass 2.5%
-- minecraft:cherry_grove: expressed, 10526 columns; placement land 91.9%, void 2.7%, sky 5.4%; snow 0%, canopy 36.5%, trees 62/ha; top cherry_leaves 33.4%, pink_petals 24.1%, grass_block 22.8%
-- adventure:golden_skygrove: expressed, 8101 columns; placement land 77.5%, void 12.4%, sky 10%; snow 0%, canopy 57.7%, trees 167.2/ha; top oak_leaves 38.3%, grass_block 22.7%, yellow_poplar_leaves 6.4%
-- adventure:wisteria_grove: expressed, 4485 columns; placement land 68.7%, sky 31.3%; snow 0%, canopy 11.7%, trees 87.6/ha; top grass_block 39.4%, vine 7.9%, hanging_roots 7.2%
-- minecraft:birch_forest: expressed, 4105 columns; placement land 87.9%, void 12.1%; snow 0%, canopy 45.7%, trees 216.2/ha; top grass_block 42.3%, birch_leaves 40.1%, wildflowers 3%
-- minecraft:meadow: expressed, 3996 columns; placement land 96.5%, void 3.5%; snow 0%, canopy 7.1%, trees 7.8/ha; top grass_block 63.3%, short_grass 9.3%, wildflowers 6%
-- minecraft:flower_forest: expressed, 2304 columns; placement land 100%; snow 0%, canopy 46.1%, trees 221.4/ha; top grass_block 47.9%, oak_leaves 38.6%, birch_leaves 7.5%
-- adventure:windswept_isles: expressed, 2226 columns; placement land 100%; snow 9.4%, canopy 2.9%, trees 22.5/ha; top stone 80.6%, snow 9%, spruce_leaves 2.3%
-- adventure:cloud_reef: expressed, 2067 columns; placement land 9.4%, void 90.6%; snow 75.9%, canopy 0%, trees 0/ha; top snow_block 6.6%, cobblestone 0.3%, grass_block 0.3%
-- minecraft:dark_forest: expressed, 684 columns; placement land 100%; snow 0%, canopy 72.4%, trees 233.9/ha; top dark_oak_leaves 62.6%, grass_block 18.7%, oak_leaves 7.7%
-- minecraft:plains: too few columns to judge, 496 columns; placement void 100%; snow 0%, canopy 0%, trees 0/ha; top none
+- adventure:wisteria_grove: expressed, 19159 columns; placement land 71.3%, void 3.7%, sky 25%; snow 0%, canopy 15.9%, trees 92.2/ha; top grass_block 38.6%, vine 10.7%, oak_leaves 6.9%
+- adventure:hanging_gardens: expressed, 12940 columns; placement land 3.7%, void 96.3%; snow 0%, canopy 6.3%, trees 0/ha; top grass_block 3.2%, oak_leaves 0.1%, cave_vines_plant 0.1%
+- minecraft:cherry_grove: expressed, 11639 columns; placement land 86%, sky 14%; snow 0%, canopy 32.4%, trees 61/ha; top grass_block 28%, cherry_leaves 26.9%, pink_petals 19.9%
+- adventure:sky_highlands: expressed, 7608 columns; placement land 63.1%, sky 36.8%; snow 0%, canopy 2%, trees 14.6/ha; top grass_block 45.8%, hanging_roots 6.1%, short_grass 4.7%
+- minecraft:meadow: placed, not expressed, 5272 columns; placement land 93.5%, void 5.7%, sky 0.8%; snow 0%, canopy 0.8%, trees 0/ha; top grass_block 69.8%, short_grass 9.7%, wildflowers 4.9%; **features name trees, none on 0.5 ha of land**
+- adventure:golden_skygrove: expressed, 5135 columns; placement land 100%; snow 0.1%, canopy 63.9%, trees 157.8/ha; top oak_leaves 51.6%, grass_block 26.7%, yellow_poplar_leaves 10%
+- minecraft:flower_forest: expressed, 3719 columns; placement land 44.1%, void 55.9%; snow 0%, canopy 42%, trees 158.6/ha; top grass_block 23.1%, oak_leaves 17%, birch_leaves 1.5%
+- minecraft:dark_forest: expressed, 3712 columns; placement land 100%; snow 0.4%, canopy 77.9%, trees 234.4/ha; top dark_oak_leaves 63.7%, grass_block 12.9%, oak_leaves 11.3%
+- adventure:cloud_reef: expressed, 3570 columns; placement land 100%; snow 88.7%, canopy 0.1%, trees 0/ha; top snow_block 79.2%, snow 5.6%, calcite 1.9%
+- minecraft:snowy_slopes: expressed, 2447 columns; placement land 100%; snow 97.8%, canopy 4.8%, trees 4.1/ha; top snow_block 50.8%, powder_snow 43.3%, dark_oak_leaves 3.7%
+- minecraft:forest: expressed, 815 columns; placement land 93.3%, sky 6.7%; snow 0%, canopy 43.4%, trees 197.4/ha; top grass_block 42%, oak_leaves 28.2%, birch_leaves 12.3%
+- minecraft:birch_forest: expressed, 121 columns; placement land 100%; snow 5%, canopy 33.9%, trees 165.3/ha; top grass_block 52.1%, birch_leaves 33.9%, wildflowers 4.1%
 
-Listed in the definition, found in no sampled column: minecraft:forest, minecraft:snowy_slopes.
+Listed in the definition, found in no sampled column: minecraft:plains, adventure:windswept_isles.
 
 
-v2 biomes not found in any sampled column: minecraft:forest, minecraft:snowy_slopes
+v2 biomes not found in any sampled column: minecraft:plains, adventure:windswept_isles
 
 ## Facts
 
@@ -113,89 +112,89 @@ The 1.21.1 definition lists no biomes.
 
 | row | v2 biome | surface % | columns | state | flag reason |
 |---|---|---|---|---|---|
-| V1 | minecraft:cherry_grove | 14.5 | 10526 | expressed | - |
-| V2 | adventure:golden_skygrove | 9.4 | 8101 | expressed | - |
-| V3 | adventure:sky_highlands | 9.2 | 12529 | expressed | - |
-| V4 | minecraft:meadow | 5.8 | 3996 | expressed | - |
-| V5 | minecraft:birch_forest | 5.4 | 4105 | expressed | - |
-| V6 | adventure:wisteria_grove | 4.6 | 4485 | expressed | - |
-| V7 | minecraft:flower_forest | 3.4 | 2304 | expressed | - |
-| V8 | adventure:windswept_isles | 3.3 | 2226 | expressed | - |
-| V9 | minecraft:dark_forest | 1.0 | 684 | expressed | - |
-| V10 | adventure:hanging_gardens | 0.6 | 21979 | expressed | - |
-| V11 | adventure:cloud_reef | 0.3 | 2067 | expressed | - |
-| V12 | minecraft:plains | 0.0 | 496 | too few columns to judge | - |
+| V1 | adventure:wisteria_grove | 20.5 | 19159 | expressed | - |
+| V2 | minecraft:cherry_grove | 15.0 | 11639 | expressed | - |
+| V3 | adventure:golden_skygrove | 7.7 | 5135 | expressed | - |
+| V4 | minecraft:meadow | 7.4 | 5272 | placed, not expressed | features name trees, none on 0.5 ha of land |
+| V5 | adventure:sky_highlands | 7.2 | 7608 | expressed | - |
+| V6 | minecraft:dark_forest | 5.6 | 3712 | expressed | - |
+| V7 | adventure:cloud_reef | 5.3 | 3570 | expressed | - |
+| V8 | minecraft:snowy_slopes | 3.7 | 2447 | expressed | - |
+| V9 | minecraft:flower_forest | 2.5 | 3719 | expressed | - |
+| V10 | minecraft:forest | 1.1 | 815 | expressed | - |
+| V11 | adventure:hanging_gardens | 0.7 | 12940 | expressed | - |
+| V12 | minecraft:birch_forest | 0.2 | 121 | expressed | - |
 
 ### Measures (M rows) beside the 1.21.1 settings
 
 | key | dossier | 1.21.1 |
 |---|---|---|
-| M:topBiomes | minecraft:cherry_grove 14.5%, adventure:golden_skygrove 9.4%, adventure:sky_highlands 9.2% | type `the_aviary` |
-| M:snow | 0.5% (`surface.snowIcePercent`) | noiseSettings `None` |
+| M:topBiomes | adventure:wisteria_grove 20.5%, minecraft:cherry_grove 15.0%, adventure:golden_skygrove 7.7% | type `the_aviary` |
+| M:snow | 8.4% (`surface.snowIcePercent`) | noiseSettings `None` |
 | M:water | 0.0% (`surface.fluidCoverPercent.water`) | settingsOverrides `null` |
 | M:lava | 0.0% (`surface.fluidCoverPercent.lava`) | |
-| M:void | 42.4% (`surface.voidPercent`) | |
-| M:canopy | 16.8% (`surface.canopyPercent`) | |
-| M:relief | median 18.0 blocks a patch; height {"p5": 138.0, "p25": 157.0, "p50": 186.0, "p75": 213.0, "p95": 234.0, "max": 241.0} (`terrain`) | |
-| M:layers | {"sky": 10.0, "surface": 57.6, "underground": 54.3, "roof": 0.0} (`vertical.layerColumnsPercent`) | environment `null` |
-| M:classes | {"void": 42.4, "roofed": 0.0, "stacked": 10.0, "overhang": 1.3, "cave": 12.1, "single": 34.2} (`vertical.columnClassPercent`); ceiling False, skylight True | |
+| M:void | 23.3% (`surface.voidPercent`) | |
+| M:canopy | 19.4% (`surface.canopyPercent`) | |
+| M:relief | median 19.0 blocks a patch; height {"p5": 134.0, "p25": 164.0, "p50": 181.0, "p75": 221.0, "p95": 237.0, "max": 253.0} (`terrain`) | |
+| M:layers | {"sky": 14.0, "surface": 76.7, "underground": 73.7, "roof": 0.0} (`vertical.layerColumnsPercent`) | environment `null` |
+| M:classes | {"void": 23.3, "roofed": 0.0, "stacked": 14.0, "overhang": 2.7, "cave": 13.9, "single": 46.2} (`vertical.columnClassPercent`); ceiling False, skylight True | |
 
 ### Scorecard (S rows)
 
 - S:a — surface traceable to the 1.21.1 biomes (of the columns that have ground): n/a
 - S:b — 1.21.1 biomes expressed: n/a
-- S:c — v2 biomes placed but not expressed: 0
-- S:d — layers the 1.21.1 type implies: surface present (57.6% of columns)
+- S:c — v2 biomes placed but not expressed: 1
+- S:d — layers the 1.21.1 type implies: surface present (76.7% of columns)
 
 ## Shots
 
-### the_aviary-surface-t2
+### the_aviary-far
 
-Picked for: surface type 2: 17.1% of cells; biome adventure:sky_highlands; ground grass_block; top grass_block; height 161; relief over the patch 59.4 (layer 33.6); trees per cell 0.1 (layer 2.0); notable-block density (log) 0.6 (layer 0.4); canopy 1% (layer 29%); ground plants 1% (layer 25%); open to the sky 6% (layer 55%); stacked layers 92% (layer 17%)
-Census: sky 11.6%; unloaded 1.2%; near: grass_block 34.7%, cave_vines 17.5%; mid: short_grass 3.3%, grass_block 2.9%; far: cave_vines_plant 4.4%, grass_block 3.7%; biomes: adventure:sky_highlands 88.2%, adventure:hanging_gardens 11.8%
-Image: `/tmp/claude-0/w10c1/reviews/the_aviary/screens/the_aviary-surface-t2.png`
+Picked for: far: the border ring at bearing 92, facing the centre; 0.0% of rays could reach the border
+Census: sky 48.4%; void 32.6%; mid: grass_block 1.6%, oak_leaves 1.2%; far: cave_vines_plant 4.1%, oak_leaves 3.1%; biomes: adventure:golden_skygrove 49%, adventure:hanging_gardens 42.4%, adventure:wisteria_grove 8.7%
+Image: `/tmp/claude-0/w10c1r/reviews/the_aviary/screens/the_aviary-far.png`
+
+### the_aviary-surface-t5
+
+Picked for: surface type 5: 12.1% of cells; biome adventure:cloud_reef; ground snow_block; top snow_block; height 206; trees per cell 0.1 (layer 1.7); canopy 2% (layer 25%); ground plants 3% (layer 24%); snow or ice 90% (layer 11%); open to the sky 98% (layer 58%)
+Census: sky 18.6%; unloaded 0.4%; near: snow_block 54%, snow 4%; biomes: adventure:cloud_reef 96.4%
+Image: `/tmp/claude-0/w10c1r/reviews/the_aviary/screens/the_aviary-surface-t5.png`
 
 ### the_aviary-sky-t1
 
-Picked for: sky type 1: 31.0% of cells; biome adventure:sky_highlands; ground grass_block; height 232; layer present in 99% (layer 88%); neighbour step 0.2 (layer 0.4); relief over 16 blocks 14.2 (layer 10.8)
-Census: sky 22.5%; unloaded 11.5%; near: grass_block 36.3%, short_grass 18.7%; mid: grass_block 1.2%, oak_leaves 1%; far: grass_block 2.6%, short_grass 1%; biomes: adventure:sky_highlands 99.9%
-Image: `/tmp/claude-0/w10c1/reviews/the_aviary/screens/the_aviary-sky-t1.png`
+Picked for: sky type 1: 48.8% of cells; biome adventure:wisteria_grove; ground grass_block; height 216; relief over 16 blocks 11.8 (layer 9.5); trees per cell 2.1 (layer 1.3); notable-block density (log) 1.2 (layer 0.8)
+Census: sky 17.2%; unloaded 11.6%; near: lilac 27.1%, grass_block 18.6%; mid: vine 2.9%, oak_leaves 2.1%; far: vine 1.6%; biomes: adventure:wisteria_grove 99.8%
+Image: `/tmp/claude-0/w10c1r/reviews/the_aviary/screens/the_aviary-sky-t1.png`
 
 ### the_aviary-underground-t1
 
-Picked for: underground type 1: 52.7% of cells; notableId cave_vines_plant; biome adventure:hanging_gardens; height 186; cave air 11% (layer 6%); cave pockets 46% (layer 24%)
-Census: sky 0%; near: stone 50.4%, grass_block 46.9%; biomes: adventure:hanging_gardens 100%
-Image: `/tmp/claude-0/w10c1/reviews/the_aviary/screens/the_aviary-underground-t1.png`
+Picked for: underground type 1: 48.0% of cells; notableId cave_vines_plant; height 182; cave air 0% (layer 5%); cave pockets 0% (layer 20%)
+Census: sky 0.4%; void 0.3%; unloaded 7.9%; near: cave_vines_plant 29.6%, stone 18.2%; mid: snow_block 3.3%, cave_vines_plant 1.7%; far: cave_vines_plant 4%; biomes: snowy_slopes 53.4%, adventure:hanging_gardens 44.7%
+Image: `/tmp/claude-0/w10c1r/reviews/the_aviary/screens/the_aviary-underground-t1.png`
 
-### the_aviary-surface-t7
+### the_aviary-surface-t3
 
-Picked for: surface type 7: 5.7% of cells; biome adventure:windswept_isles; ground stone; top stone; height 180; trees per cell 0.6 (layer 2.0); canopy 3% (layer 29%); ground plants 0% (layer 25%); snow or ice 9% (layer 1%); bare rock 80% (layer 5%); open to the sky 97% (layer 55%)
-Census: sky 23.5%; void 0.4%; unloaded 8.3%; near: stone 41.3%, spruce_leaves 10.5%; mid: stone 2.8%, cave_vines_plant 2.6%; far: snow_block 1.7%; biomes: adventure:windswept_isles 84%, adventure:hanging_gardens 10.8%, snowy_slopes 5.2%
-Image: `/tmp/claude-0/w10c1/reviews/the_aviary/screens/the_aviary-surface-t7.png`
+Picked for: surface type 3: 16.9% of cells; biome adventure:wisteria_grove; ground grass_block; top grass_block; height 156; relief over the patch 35.7 (layer 26.8); trees per cell 0.1 (layer 1.7); canopy 2% (layer 25%); ground plants 2% (layer 24%); open to the sky 7% (layer 58%); stacked layers 92% (layer 18%)
+Census: sky 0%; unloaded 2.8%; near: grass_block 29.3%, cave_vines_plant 22%; mid: grass_block 6.8%, cave_vines_plant 5.3%; biomes: adventure:wisteria_grove 66.9%, adventure:hanging_gardens 33.1%
+Image: `/tmp/claude-0/w10c1r/reviews/the_aviary/screens/the_aviary-surface-t3.png`
+
+### the_aviary-surface-t2
+
+Picked for: surface type 2: 17.9% of cells; biome meadow; ground grass_block; top grass_block; height 193; trees per cell 0.4 (layer 1.7); notable-block density (log) 0.2 (layer 0.5); canopy 7% (layer 25%); open to the sky 92% (layer 58%)
+Census: sky 24.7%; unloaded 7.5%; near: grass_block 44.7%, tall_grass 6.9%; biomes: meadow 99.9%
+Image: `/tmp/claude-0/w10c1r/reviews/the_aviary/screens/the_aviary-surface-t2.png`
 
 ### the_aviary-surface-t1
 
-Picked for: surface type 1: 19.0% of cells; biome meadow; ground grass_block; top grass_block; height 210; trees per cell 0.5 (layer 2.0); canopy 8% (layer 29%); open to the sky 92% (layer 55%)
-Census: sky 30.7%; unloaded 10.3%; near: grass_block 30%, short_grass 12.5%; biomes: meadow 98.9%
-Image: `/tmp/claude-0/w10c1/reviews/the_aviary/screens/the_aviary-surface-t1.png`
-
-### the_aviary-surface-t4
-
-Picked for: surface type 4: 14.6% of cells; biome adventure:golden_skygrove; ground grass_block; top oak_leaves; height 181; trees per cell 4.4 (layer 2.0); canopy 66% (layer 29%); open to the sky 31% (layer 55%); overhangs 6% (layer 2%)
-Census: sky 7.9%; near: oak_leaves 38.3%, grass_block 36.7%; far: stone 1.3%; biomes: adventure:golden_skygrove 99.3%
-Image: `/tmp/claude-0/w10c1/reviews/the_aviary/screens/the_aviary-surface-t4.png`
+Picked for: surface type 1: 19.3% of cells; biome adventure:wisteria_grove; ground grass_block; top grass_block; height 183; notable-block density (log) 0.9 (layer 0.5)
+Census: sky 2.3%; unloaded 0.2%; near: vine 32.5%, grass_block 27.1%; mid: cave_vines_plant 2.1%, stone 1.2%; biomes: adventure:wisteria_grove 94.2%, adventure:hanging_gardens 5.8%
+Image: `/tmp/claude-0/w10c1r/reviews/the_aviary/screens/the_aviary-surface-t1.png`
 
 ### the_aviary-surface-lm1
 
-Picked for: surface landmark: biome adventure:cloud_reef (type meadow); ground snow_block (type grass_block); top snow_block (type grass_block); snow or ice 69% (type 0%); notable-block density (log) 1.6 (type 0.2); layer present in 76% (type 100%)
-Census: sky 21.3%; unloaded 19.1%; near: snow_block 37.2%, grass_block 2.5%; far: stone 6%, cave_vines_plant 5.5%; biomes: adventure:cloud_reef 69.8%, adventure:hanging_gardens 26.9%
-Image: `/tmp/claude-0/w10c1/reviews/the_aviary/screens/the_aviary-surface-lm1.png`
-
-### the_aviary-far2
-
-Picked for: vista: from above the spawn island, across the open sky to the next masses
-Census: sky 33.5%; void 0.4%; unloaded 1.7%; mid: cherry_leaves 21.7%, grass_block 3.6%; far: grass_block 7.2%, stone 6.1%; biomes: cherry_grove 66.4%, meadow 17.3%, adventure:hanging_gardens 16.4%
-Image: `/tmp/claude-0/w10c1/reviews/the_aviary/screens/the_aviary-far2.png`
+Picked for: surface landmark: biome adventure:sky_highlands (type meadow); neighbour step 3.1 (type 0.4); relief over 16 blocks 63.0 (type 7.0); overhangs 36% (type 0%)
+Census: sky 3.3%; unloaded 17.1%; near: grass_block 25.1%, short_grass 13.9%; mid: grass_block 3.1%, oak_leaves 2.7%; far: cave_vines_plant 5.3%, stone 3.5%; biomes: adventure:sky_highlands 72.4%, adventure:hanging_gardens 27.5%
+Image: `/tmp/claude-0/w10c1r/reviews/the_aviary/screens/the_aviary-surface-lm1.png`
 
 ## Review questions
 
