@@ -255,10 +255,10 @@ The self-test's generator section (`GeneratorSelfTest`, after the runtime-level
 checks) opens one shipped definition per variant, force-loads a fixed area,
 and reads its heightmaps, blocks and biomes: overworld heights and water,
 large biomes against the overworld, amplified heights, the caves ceiling,
-floating-island undersides, a clone against The Aviary, the Nether's roof and
-lava sea, the End's island and void ring, the flat layer stack, checkerboard
-cells, an empty void and the definition whose `liquids.seaLevel` departs
-furthest from its preset's. The terrain section (`TerrainSelfTest`, after it) opens each terrain's gallery
+floating-island undersides, a clone against The Aviary (fixture
+`selftest_clone`), the Nether's roof and lava sea, the End's island and void
+ring, the flat layer stack, checkerboard cells, an empty void and a sea level
+over floating islands (fixture `selftest_sea_level`). The terrain section (`TerrainSelfTest`, after it) opens each terrain's gallery
 fixture at its default setting, scans its base height off the server thread,
 force-loads real chunks where the terrain's feature is and measures it (land
 and ocean, the share on one basin floor, peak rise, terrace treads, canyon cut and
@@ -564,7 +564,7 @@ back and replies that it applies after the next restart.
 
 `RollSelfTest` runs the render accuracy gate at another 50 columns in the
 overworld, the Nether and The Aviary (`renders/<dimension>/agreement.tsv`);
-checks every structure-start candidate within 384 blocks of 0,0 in the
+checks every structure-start candidate within 384 blocks of the start nearest 0,0 in the
 overworld and the Nether against the starts those chunks record at
 `structure_starts` (a recorded start with no candidate fails, unless the
 structure's biomes exclude the chunk middle's: class `point`); rolls five

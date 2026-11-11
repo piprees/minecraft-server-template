@@ -56,7 +56,7 @@ public final class GeneratorSelfTest {
     static final int BIOME_REACH = 1024, BIOME_STEP = 64;
     /** Void-cell columns a void biome's own features (an End spike) and the next cells' structures may fill, as a percentage. */
     static final int FEATURE_REACH_PERCENT = 5;
-    /** Each preset's own sea level, to find the definition whose {@code liquids.seaLevel} departs furthest from it. */
+    /** Each preset's own sea level, which a {@code liquids.seaLevel} overrides. */
     static final Map<String, Integer> PRESET_SEA_LEVELS = Map.of("overworld", 63, "large_biomes", 63, "amplified", 63,
             "caves", 32, "floating_islands", -64, "nether", 32, "end", 0);
 
@@ -94,7 +94,7 @@ public final class GeneratorSelfTest {
         chain = step(chain, "amplified", "the_amplified_reaches", spaced(), this::amplified);
         chain = step(chain, "caves", "the_underdark", square(-2, -2, 4), this::caves);
         chain = step(chain, "floating_islands", "the_aviary", square(-4, -4, 8), this::floatingIslands);
-        chain = step(chain, "clone", "the_violet_spire", square(-4, -4, 8), this::clone);
+        chain = step(chain, "clone", "selftest_clone", square(-4, -4, 8), this::clone);
         chain = step(chain, "nether", "the_nether", square(-4, -4, 8), this::nether);
         chain = step(chain, "end", "the_end", endArea(), this::end);
         chain = step(chain, "flat", "the_canvas", square(-2, -2, 4), this::flat);
@@ -104,12 +104,7 @@ public final class GeneratorSelfTest {
         chain = step(chain, "checkerboard voidBiomes", "selftest_checker_void", square(-8, -8, 16), this::checkerVoid);
         chain = chain.thenRun(() -> lines.add("SKIP generator single_biome: no shipped definition uses it; "
                 + "GeneratorVariantsTest.singleBiomeIsAFixedSourceOnOverworldTerrain covers its compile"));
-        String seaSlug = mostUnusualSeaLevel();
-        if (seaSlug == null) {
-            chain = chain.thenRun(() -> lines.add("FAIL generator seaLevel override: no definition sets liquids.seaLevel"));
-        } else {
-            chain = step(chain, "seaLevel override", seaSlug, square(-2, -2, 4), this::seaLevel);
-        }
+        chain = step(chain, "seaLevel override", "selftest_sea_level", square(-2, -2, 4), this::seaLevel);
         return chain.handle((v, error) -> {
             if (error != null) lines.add("FAIL generators: the check chain broke: " + cause(error));
             restorePause(pause);
@@ -277,7 +272,7 @@ public final class GeneratorSelfTest {
         ourPaletteBiomes.addAll(zoneBiomes);
         String namespace = c.level.dimension().identifier().getNamespace();
         List<String> palettes = new ArrayList<>();
-        List<String> differ = cloneDifferences(ours, aviaryGenerator, ourPaletteBiomes, sourceListed, namespace, palettes);
+        List<String> differ = cloneDifferences(ours, aviaryGenerator, ourPaletteBiomes, sourceListed, namespace, palettes, c.slug, aviary.slug);
         Set<String> ourBiomes = biomeKeys(ours);
         Set<String> theirBiomes = biomeKeys(aviaryGenerator);
         Set<String> expected = new TreeSet<>(ownListed.isEmpty() ? theirBiomes : ownListed);
@@ -309,7 +304,7 @@ public final class GeneratorSelfTest {
      * clone's palette biome ids go into {@code palettes}.
      */
     private List<String> cloneDifferences(ChunkGenerator a, ChunkGenerator b, Set<String> ourBiomes, Set<String> theirBiomes,
-                                          String namespace, List<String> palettes) {
+                                          String namespace, List<String> palettes, String ourSlug, String theirSlug) {
         if (!(a instanceof NoiseBasedChunkGenerator na) || !(b instanceof NoiseBasedChunkGenerator nb)) {
             return a.getClass() == b.getClass() ? List.of() : List.of("generator type");
         }
@@ -320,7 +315,8 @@ public final class GeneratorSelfTest {
         List<JsonElement> ourRules = paletteRules(ops, ourBiomes, namespace, gate, na.generatorSettings().value().seaLevel(), palettes);
         List<JsonElement> theirRules = paletteRules(ops, theirBiomes, namespace, gate, nb.generatorSettings().value().seaLevel(),
                 new ArrayList<>());
-        return CloneSettings.differences(ja, jb, ourRules, theirRules);
+        return CloneSettings.differences(ja, jb, ourRules, theirRules, namespace + ":terrain/" + ourSlug + "/",
+                namespace + ":terrain/" + theirSlug + "/");
     }
 
     /** The encoded library palette rule of each of {@code biomes} that has one; their ids go into {@code ids}. */
@@ -538,23 +534,6 @@ public final class GeneratorSelfTest {
 
     // ---- choosing definitions -------------------------------------------------------------------
 
-    /** The definition whose sea level departs furthest from its preset's; the first by slug on a tie. */
-    private String mostUnusualSeaLevel() {
-        String best = null;
-        int bestGap = -1;
-        for (String slug : new TreeSet<>(allSlugs())) {
-            Definition def = definition(slug);
-            String preset = presetOf(slug);
-            if (def == null || def.liquids() == null || def.liquids().seaLevel() == null || preset == null) continue;
-            int gap = Math.abs(def.liquids().seaLevel() - PRESET_SEA_LEVELS.get(preset));
-            if (gap > bestGap) {
-                bestGap = gap;
-                best = slug;
-            }
-        }
-        return best;
-    }
-
     /**
      * The {@code n} by {@code n} chunk square nearest 0, 0, centred on a
      * multiple of {@code grid} blocks, that none of the definition's zones may
@@ -595,12 +574,6 @@ public final class GeneratorSelfTest {
             def = definition(slug);
         }
         return def != null && Generator.NOISE.equals(def.generator().type()) ? def.generator().preset() : null;
-    }
-
-    private Set<String> allSlugs() {
-        Set<String> slugs = new HashSet<>(manager.index().lazy().keySet());
-        manager.index().baseWorlds().forEach(w -> slugs.add(w.slug()));
-        return slugs;
     }
 
     private Definition definition(String slug) {

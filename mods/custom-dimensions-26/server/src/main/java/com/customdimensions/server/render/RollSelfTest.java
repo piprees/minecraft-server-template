@@ -51,8 +51,10 @@ public final class RollSelfTest {
     static final List<String[]> REFERENCES = List.of(new String[] {"overworld", "overworld"},
             new String[] {"nether", "the_nether"}, new String[] {"floating islands", "the_aviary"});
     static final int AGREEMENT_SALT = 0x5EED;
-    /** Blocks round 0,0 in which structure candidates are checked against recorded starts. */
+    /** Blocks round the structure-starts line's centre in which structure candidates are checked against recorded starts. */
     static final int STARTS_RADIUS = 384;
+    /** How far from 0,0 the structure-starts line looks for the start it centres on. */
+    static final int STARTS_SEARCH = 2048;
     static final int SMALL_ROLL = 5;
     static final int PERF_SEEDS = 100;
     static final int SETTLE_TICKS = 200;
@@ -132,8 +134,9 @@ public final class RollSelfTest {
     // ---- structure starts -----------------------------------------------------------------------
 
     /**
-     * The starts the roller scores within {@link #STARTS_RADIUS} of 0,0
-     * ({@link StructureStarts#find}, each confirmed by the structure's own
+     * The starts the roller scores within {@link #STARTS_RADIUS} of the chunk
+     * of the start nearest 0,0 (searched to {@link #STARTS_SEARCH}; 0,0 when
+     * there is none; {@link StructureStarts#find}, each confirmed by the structure's own
      * generation) against the starts the level records once those chunks
      * reach {@code structure_starts}: they agree when every recorded start is
      * scored and every scored start is recorded. A recorded start with no
@@ -149,12 +152,18 @@ public final class RollSelfTest {
             return CompletableFuture.completedFuture(null);
         }
         Sampler sampler = Sampler.forDimension(server, manager, slug, null);
-        return CompletableFuture.supplyAsync(() -> StructureStarts.find(sampler, sampler.structureState(), id -> true, 0, 0, STARTS_RADIUS))
-                .thenComposeAsync(candidates -> {
+        int[] centre = new int[2];
+        return CompletableFuture.supplyAsync(() -> {
+            List<RollFacts.Start> nearest = StructureStarts.find(sampler, sampler.structureState(), id -> true, 0, 0, STARTS_SEARCH, null, 1);
+            RollFacts.Start first = nearest.stream().min(Comparator.comparingDouble(RollFacts.Start::distance)).orElse(null);
+            centre[0] = first == null ? 0 : first.x() >> 4;
+            centre[1] = first == null ? 0 : first.z() >> 4;
+            return StructureStarts.find(sampler, sampler.structureState(), id -> true, centre[0] * 16 + 8, centre[1] * 16 + 8, STARTS_RADIUS);
+        }).thenComposeAsync(candidates -> {
             int r = Math.floorDiv(STARTS_RADIUS, 16) + 1;
             List<CompletableFuture<ChunkResult<ChunkAccess>>> futures = new ArrayList<>();
-            for (int x = -r; x <= r; x++) {
-                for (int z = -r; z <= r; z++) futures.add(level.getChunkSource().getChunkFuture(x, z, ChunkStatus.STRUCTURE_STARTS, true));
+            for (int x = centre[0] - r; x <= centre[0] + r; x++) {
+                for (int z = centre[1] - r; z <= centre[1] + r; z++) futures.add(level.getChunkSource().getChunkFuture(x, z, ChunkStatus.STRUCTURE_STARTS, true));
             }
             return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).thenApplyAsync(v -> {
                 Map<String, net.minecraft.world.level.levelgen.structure.Structure> recorded = new TreeMap<>();
@@ -165,7 +174,7 @@ public final class RollSelfTest {
                     for (Map.Entry<net.minecraft.world.level.levelgen.structure.Structure, StructureStart> e : chunk.getAllStarts().entrySet()) {
                         if (!e.getValue().isValid()) continue;
                         ChunkPos pos = chunk.getPos();
-                        if (Math.hypot(pos.getMiddleBlockX(), pos.getMiddleBlockZ()) > STARTS_RADIUS) continue;
+                        if (Math.hypot(pos.getMiddleBlockX() - (centre[0] * 16 + 8), pos.getMiddleBlockZ() - (centre[1] * 16 + 8)) > STARTS_RADIUS) continue;
                         recorded.put(registry.getKey(e.getKey()) + "@" + pos.x() + "," + pos.z(), e.getKey());
                     }
                 }

@@ -94,4 +94,15 @@ class CloneSettingsTest {
         assertEquals(List.of("the source's material_rule (no entry for [\"adventure:sky_highlands\"])"),
                 CloneSettings.differences(json(CLONE), json(SOURCE), zoneRules(), List.of(json(other))));
     }
+
+    @Test
+    void aRouterEntryUnderTheClonesOwnTerrainNameReadsAsTheSources() {
+        JsonObject source = json("{\"noise_router\":{\"final_density\":\"adventure:terrain/src/final_density\"}}");
+        JsonObject clone = json("{\"noise_router\":{\"final_density\":\"adventure:terrain/copy/final_density\"}}");
+        assertEquals(List.of("noise_router.final_density"), CloneSettings.differences(clone, source, List.of(), List.of()));
+        assertEquals(List.of(), CloneSettings.differences(clone, source, List.of(), List.of(), "adventure:terrain/copy/", "adventure:terrain/src/"));
+        JsonObject other = json("{\"noise_router\":{\"final_density\":\"adventure:terrain/copy/sloped_cheese\"}}");
+        assertEquals(List.of("noise_router.final_density"),
+                CloneSettings.differences(other, source, List.of(), List.of(), "adventure:terrain/copy/", "adventure:terrain/src/"));
+    }
 }

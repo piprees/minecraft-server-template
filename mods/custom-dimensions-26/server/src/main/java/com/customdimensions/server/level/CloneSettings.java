@@ -2,6 +2,7 @@ package com.customdimensions.server.level;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,6 +33,15 @@ final class CloneSettings {
      * for entry.
      */
     static List<String> differences(JsonObject ours, JsonObject theirs, List<JsonElement> ourRules, List<JsonElement> theirRules) {
+        return differences(ours, theirs, ourRules, theirRules, null, null);
+    }
+
+    /**
+     * As above, with a router entry of {@code ours} that names a density function under {@code ourPrefix} read under
+     * {@code theirPrefix}: a clone of a source with a terrain compiles that terrain under its own name.
+     */
+    static List<String> differences(JsonObject ours, JsonObject theirs, List<JsonElement> ourRules, List<JsonElement> theirRules,
+                                    String ourPrefix, String theirPrefix) {
         List<String> out = new ArrayList<>();
         for (String key : new TreeSet<>(union(ours.keySet(), theirs.keySet()))) {
             JsonElement a = ours.get(key);
@@ -40,7 +50,7 @@ final class CloneSettings {
                 JsonObject ra = a.getAsJsonObject();
                 JsonObject rb = b.getAsJsonObject();
                 for (String r : new TreeSet<>(union(ra.keySet(), rb.keySet()))) {
-                    if (!r.equals("temperature") && !Objects.equals(ra.get(r), rb.get(r))) out.add("noise_router." + r);
+                    if (!r.equals("temperature") && !Objects.equals(renamed(ra.get(r), ourPrefix, theirPrefix), rb.get(r))) out.add("noise_router." + r);
                 }
             } else if (key.equals("material_rule") && a != null && b != null && a.isJsonObject() && b.isJsonObject()) {
                 List<JsonElement> rest = without(entries(a.getAsJsonObject()), ourRules, "", out);
@@ -51,6 +61,13 @@ final class CloneSettings {
             }
         }
         return out;
+    }
+
+    /** A density function id under {@code from} as the same id under {@code to}; anything else as it is. */
+    private static JsonElement renamed(JsonElement e, String from, String to) {
+        if (from == null || e == null || !e.isJsonPrimitive() || !e.getAsJsonPrimitive().isString()) return e;
+        String id = e.getAsString();
+        return id.startsWith(from) ? new JsonPrimitive(to + id.substring(from.length())) : e;
     }
 
     /** {@code entries} with each of {@code rules} removed once; a rule not there is reported into {@code out}. */
