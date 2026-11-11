@@ -16,6 +16,11 @@
       "radius": 300,
       "falloff": 160,
       "strength": 0.9
+    },
+    "params": {
+      "hollowDepth": 40,
+      "ringLakes": 1,
+      "gaps": 0.15
     }
   },
   "biomes": [
