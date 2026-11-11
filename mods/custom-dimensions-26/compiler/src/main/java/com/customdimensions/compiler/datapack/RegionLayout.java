@@ -436,7 +436,7 @@ public final class RegionLayout {
         if (places != null) {
             regions.addProperty("places", true);
             regions.addProperty("radius", placeRadius);
-            note += "; laid out as " + PlaceLayout.describe(places);
+            note += "; laid out over a " + placeRadius + "-block radius as " + PlaceLayout.describe(places);
         }
         entry.note(note + (boundIds.isEmpty() ? "" : "; bound by their climate: " + boundIds));
         List<String> shadowed = new ArrayList<>(regional);
