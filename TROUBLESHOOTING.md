@@ -1596,6 +1596,18 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t250"></a>
+### T250 — The roll agreement's noise column leaves out a structure's terrain adaptation
+- **Symptom:** `roll agreement` reports an unexplained column: noise blocks (the default block, with surface-rule blocks on it) over noise air, outside any structure piece.
+- **Cause:** the sampler's column comes from `getBaseColumn`, which has no Beardifier; a structure that adapts terrain (a nether fossil's `beard_thin` in soul sand valley) adds density around its start box.
+- **Fix:** `Mismatch` classes it `beard` where `Beardifier.sampleValue` is above 0 and names the adapting structure; `unexplained` stays for everything else.
+
+<a id="t249"></a>
+### T249 — A chunk reloaded from disk is FULL before its entities are visible
+- **Symptom:** a self-test row counts 0 dropped items in a chunk another section generated earlier; the same row passes alone.
+- **Cause:** `getChunkNow` answers a reloaded chunk before its entity sections load, and an entity added then sits in a section no `getEntitiesOfClass` sees.
+- **Fix:** before counting entities, wait for `areEntitiesActuallyLoadedAndTicking` and `areEntitiesLoaded` on the chunk; give a row ground of its own that no other section generates.
+
 <a id="t248"></a>
 ### T248 — `apply.sh --dry-run` cannot see drift in a port's base hash
 - **Symptom:** the dry run prints no `!` line, and a real `cutover/apply.sh` on a clean clone stops on a ported file.
