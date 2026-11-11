@@ -168,6 +168,7 @@ public final class TerrainSelfTest {
         chain = chain.thenCompose(v -> islandSpires());
         chain = chain.thenCompose(v -> hollowLake());
         chain = chain.thenCompose(v -> climateShift());
+        chain = chain.thenCompose(v -> places());
         chain = chain.thenRun(this::performance);
         String gallery = System.getProperty(GALLERY, "");
         if (!gallery.isEmpty()) {
@@ -986,6 +987,99 @@ public final class TerrainSelfTest {
                     lines.add("FAIL " + name + ": " + cause(error));
                     return null;
                 });
+    }
+
+    /** Places: {@code selftest_places}'s weights over its places, in list order, and the bars on shares, specks and biomes. */
+    static final double[] PLACE_SHARES = {2.5 / 9.5, 1.5 / 9.5, 1 / 9.5, 1 / 9.5, 1.5 / 9.5, 1 / 9.5, 1 / 9.5};
+    static final double PLACE_SHARE_TOLERANCE = 0.03, PLACE_SPECKS = 0.01, PLACE_BIOMES = 0.99;
+    static final int PLACE_GRID = 128;
+    /** Each place's biomes in {@code selftest_places}, in place order. */
+    static final List<List<String>> PLACE_BIOMES_BY_PLACE = List.of(List.of("minecraft:plains"),
+            List.of("minecraft:forest", "minecraft:birch_forest"), List.of("minecraft:taiga"), List.of("minecraft:savanna"),
+            List.of("minecraft:desert"), List.of("minecraft:swamp"), List.of("minecraft:snowy_plains"));
+
+    /**
+     * {@code selftest_places} (seven places over a 1,024-block border): its place field ({@code adventure:places/selftest_places/place})
+     * read by the level's own samplers on a {@link #PLACE_GRID}-square grid over the border, and the biome the level's biome source
+     * gives at y 64 there. Each place is one region of a hectare or more holding its weight's share within
+     * {@link #PLACE_SHARE_TOLERANCE}; specks hold under {@link #PLACE_SPECKS}; the plains (place 0) touch the swamp (5) and the desert (4)
+     * not the snow (6); and at least {@link #PLACE_BIOMES} of the land cells (outside the sea, shore and river biomes) carry one of their
+     * place's biomes, which proves the runtime reads the place axis as it is.
+     */
+    private CompletableFuture<Void> places() {
+        String slug = "selftest_places";
+        String name = "terrain places (" + slug + ")";
+        if (!manager.index().lazy().containsKey(slug)) {
+            lines.add("FAIL " + name + ": no fixture " + slug + " in the definitions");
+            return CompletableFuture.completedFuture(null);
+        }
+        return manager.activate(slug).thenCompose(a -> CompletableFuture.supplyAsync(() -> {
+            RandomState random = a.level().getChunkSource().randomState();
+            RegistryOps<com.google.gson.JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, server.registryAccess());
+            DensityFunction field = DensityFunction.CODEC.parse(ops, new com.google.gson.JsonPrimitive("adventure:places/" + slug + "/place"))
+                    .getOrThrow();
+            BiomeResolver biomes = a.level().getChunkSource().getGenerator().getBiomeSource().createUncachedResolver(random);
+            int n = PLACE_SHARES.length, radius = 1024, g = PLACE_GRID;
+            int[] labels = new int[g * g];
+            double[] share = new double[n];
+            int land = 0, own = 0;
+            long start = System.nanoTime();
+            for (int r = 0; r < g; r++) {
+                for (int c = 0; c < g; c++) {
+                    int x = -radius + (2 * c + 1) * radius / g, z = -radius + (2 * r + 1) * radius / g;
+                    float v = random.sampleBlockValueUncached(field, x, 64, z);
+                    int p = Math.max(0, Math.min(n - 1, (int) Math.round((v + 1) * n / 2 - 0.5)));
+                    labels[r * g + c] = p;
+                    share[p] += 1.0 / (g * g);
+                }
+            }
+            long fieldNanos = System.nanoTime() - start;
+            for (int r = 0; r < g; r++) {
+                for (int c = 0; c < g; c++) {
+                    int x = -radius + (2 * c + 1) * radius / g, z = -radius + (2 * r + 1) * radius / g;
+                    String id = biomes.getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(64), QuartPos.fromBlock(z))
+                            .unwrapKey().map(k -> k.identifier().toString()).orElse("");
+                    if (id.contains("ocean") || id.contains("beach") || id.contains("river")) continue;
+                    land++;
+                    if (PLACE_BIOMES_BY_PLACE.get(labels[r * g + c]).contains(id)) own++;
+                }
+            }
+            var regions = new com.customdimensions.core.survey.Placeness(g, 2 * radius / g, -radius, -radius).regions(labels);
+            double speckCells = com.customdimensions.core.survey.Placeness.SPECK_HA * 10_000 / Math.pow(2.0 * radius / g, 2);
+            int[] big = new int[n];
+            int specks = 0;
+            for (int i = 0; i < regions.count(); i++) {
+                if (regions.areas()[i] >= speckCells) big[regions.labels()[i]]++;
+                else specks += regions.areas()[i];
+            }
+            double worst = 0;
+            boolean onePerPlace = true;
+            for (int p = 0; p < n; p++) {
+                worst = Math.max(worst, Math.abs(share[p] - PLACE_SHARES[p]));
+                onePerPlace &= big[p] == 1;
+            }
+            boolean[][] adj = com.customdimensions.compiler.terrain.PlaceField.adjacency(labels, g, n);
+            double speckShare = (double) specks / labels.length, ownShare = land == 0 ? 0 : (double) own / land;
+            boolean pass = onePerPlace && worst <= PLACE_SHARE_TOLERANCE && speckShare < PLACE_SPECKS && adj[0][5] && !adj[4][6]
+                    && ownShare >= PLACE_BIOMES;
+            return verdict(pass, name + ": regions of a hectare or more per place " + java.util.Arrays.toString(big) + " (needs one each); shares "
+                    + String.format(Locale.ROOT, "%s, largest error %.3f (needs %s)", fmtShares(share), worst, PLACE_SHARE_TOLERANCE)
+                    + String.format(Locale.ROOT, "; specks %.2f%% (needs under %s%%)", speckShare * 100, PLACE_SPECKS * 100)
+                    + "; plains beside the swamp " + adj[0][5] + ", desert apart from the snow " + !adj[4][6]
+                    + String.format(Locale.ROOT, "; %.1f%% of %d land cells in their place's biomes (needs %s%%)", ownShare * 100, land, PLACE_BIOMES * 100)
+                    + String.format(Locale.ROOT, "; %.2f µs per field sample", fieldNanos / 1000.0 / (g * g)));
+        }, worker)).thenAcceptAsync(lines::add, server)
+                .thenCompose(x -> manager.deactivate(slug).thenAccept(t -> {}))
+                .exceptionally(error -> {
+                    lines.add("FAIL " + name + ": " + cause(error));
+                    return null;
+                });
+    }
+
+    private static String fmtShares(double[] share) {
+        StringBuilder b = new StringBuilder();
+        for (double s : share) b.append(b.isEmpty() ? "" : "/").append(String.format(Locale.ROOT, "%.3f", s));
+        return b.toString();
     }
 
     private void performance() {
