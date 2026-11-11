@@ -13,8 +13,8 @@
     "layout": {
       "type": "ring",
       "centre": [0, 0],
-      "radius": 300,
-      "falloff": 160,
+      "radius": 360,
+      "falloff": 140,
       "strength": 0.9
     },
     "params": {
