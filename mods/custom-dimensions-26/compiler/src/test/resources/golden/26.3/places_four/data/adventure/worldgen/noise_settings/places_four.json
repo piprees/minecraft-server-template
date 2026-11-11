@@ -1,0 +1,6 @@
+{
+  "base": "minecraft:overworld",
+  "changed": {
+    "noise_router": "sha1:3c9e8ebeb9a7f741a06b9d56a1cd552cb7aea0f8"
+  }
+}

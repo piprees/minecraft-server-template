@@ -1,0 +1,1296 @@
+{
+  "input": {
+    "input": {
+      "noise": "adventure:places/places_seven/arrangement",
+      "type": "minecraft:noise",
+      "xz_scale": 0.0,
+      "y_scale": 0.0
+    },
+    "max_exclusive": -0.184810192,
+    "min_inclusive": -1000000.0,
+    "type": "minecraft:range_choice",
+    "when_in_range": {
+      "left": {
+        "left": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/places_seven/p",
+                                "right": -0.0763625226,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/places_seven/q",
+                                "right": 0.396273602,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.0,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.3288342,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "left": "adventure:places/places_seven/p",
+                                  "right": -0.278098126,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "right": {
+                                "input": {
+                                  "left": "adventure:places/places_seven/q",
+                                  "right": -0.595473321,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "type": "minecraft:add"
+                            },
+                            "right": 0.136699411,
+                            "type": "minecraft:add"
+                          },
+                          "max": 21.3288342,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "right": 32768.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:floor"
+                    },
+                    "right": 16.0,
+                    "type": "minecraft:mul"
+                  },
+                  "right": 1.0,
+                  "type": "minecraft:add"
+                },
+                "type": "minecraft:min"
+              },
+              "right": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/places_seven/p",
+                                "right": 0.425310375,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/places_seven/q",
+                                "right": -0.727294998,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.200007308,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.3288342,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": 2.0,
+                "type": "minecraft:add"
+              },
+              "type": "minecraft:min"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/places_seven/p",
+                              "right": 0.719121939,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/places_seven/q",
+                              "right": -0.340956517,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.203287643,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.3288342,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 3.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/places_seven/p",
+                            "right": 0.683520817,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/places_seven/q",
+                            "right": 0.513119526,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.0914384862,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.3288342,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 4.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        },
+        "right": {
+          "left": {
+            "left": {
+              "input": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": "adventure:places/places_seven/p",
+                          "right": -0.763654338,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "right": {
+                        "input": {
+                          "left": "adventure:places/places_seven/q",
+                          "right": 0.580649787,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "type": "minecraft:add"
+                    },
+                    "right": 0.180475448,
+                    "type": "minecraft:add"
+                  },
+                  "max": 21.3288342,
+                  "min": 0.0,
+                  "type": "minecraft:clamp"
+                },
+                "right": 32768.0,
+                "type": "minecraft:mul"
+              },
+              "type": "minecraft:floor"
+            },
+            "right": 16.0,
+            "type": "minecraft:mul"
+          },
+          "right": 5.0,
+          "type": "minecraft:add"
+        },
+        "type": "minecraft:min"
+      },
+      "right": {
+        "left": {
+          "left": {
+            "input": {
+              "left": {
+                "input": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": "adventure:places/places_seven/p",
+                        "right": -0.792077563,
+                        "type": "minecraft:add"
+                      },
+                      "type": "minecraft:square"
+                    },
+                    "right": {
+                      "input": {
+                        "left": "adventure:places/places_seven/q",
+                        "right": -0.377878669,
+                        "type": "minecraft:add"
+                      },
+                      "type": "minecraft:square"
+                    },
+                    "type": "minecraft:add"
+                  },
+                  "right": 0.203834212,
+                  "type": "minecraft:add"
+                },
+                "max": 21.3288342,
+                "min": 0.0,
+                "type": "minecraft:clamp"
+              },
+              "right": 32768.0,
+              "type": "minecraft:mul"
+            },
+            "type": "minecraft:floor"
+          },
+          "right": 16.0,
+          "type": "minecraft:mul"
+        },
+        "right": 6.0,
+        "type": "minecraft:add"
+      },
+      "type": "minecraft:min"
+    },
+    "when_out_of_range": {
+      "input": {
+        "noise": "adventure:places/places_seven/arrangement",
+        "type": "minecraft:noise",
+        "xz_scale": 0.0,
+        "y_scale": 0.0
+      },
+      "max_exclusive": 0.0,
+      "min_inclusive": -0.184810192,
+      "type": "minecraft:range_choice",
+      "when_in_range": {
+        "left": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "left": "adventure:places/places_seven/p",
+                                  "right": -0.299642665,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "right": {
+                                "input": {
+                                  "left": "adventure:places/places_seven/q",
+                                  "right": 0.152301689,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "type": "minecraft:add"
+                            },
+                            "right": 0.0,
+                            "type": "minecraft:add"
+                          },
+                          "max": 21.3566541,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "right": 32768.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:floor"
+                    },
+                    "right": 16.0,
+                    "type": "minecraft:mul"
+                  },
+                  "right": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "input": {
+                              "left": {
+                                "left": {
+                                  "input": {
+                                    "left": "adventure:places/places_seven/p",
+                                    "right": -0.601457207,
+                                    "type": "minecraft:add"
+                                  },
+                                  "type": "minecraft:square"
+                                },
+                                "right": {
+                                  "input": {
+                                    "left": "adventure:places/places_seven/q",
+                                    "right": -0.624025704,
+                                    "type": "minecraft:add"
+                                  },
+                                  "type": "minecraft:square"
+                                },
+                                "type": "minecraft:add"
+                              },
+                              "right": 0.110386411,
+                              "type": "minecraft:add"
+                            },
+                            "max": 21.3566541,
+                            "min": 0.0,
+                            "type": "minecraft:clamp"
+                          },
+                          "right": 32768.0,
+                          "type": "minecraft:mul"
+                        },
+                        "type": "minecraft:floor"
+                      },
+                      "right": 16.0,
+                      "type": "minecraft:mul"
+                    },
+                    "right": 1.0,
+                    "type": "minecraft:add"
+                  },
+                  "type": "minecraft:min"
+                },
+                "right": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "left": "adventure:places/places_seven/p",
+                                  "right": 0.160332608,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "right": {
+                                "input": {
+                                  "left": "adventure:places/places_seven/q",
+                                  "right": -0.637272911,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "type": "minecraft:add"
+                            },
+                            "right": 0.215643415,
+                            "type": "minecraft:add"
+                          },
+                          "max": 21.3566541,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "right": 32768.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:floor"
+                    },
+                    "right": 16.0,
+                    "type": "minecraft:mul"
+                  },
+                  "right": 2.0,
+                  "type": "minecraft:add"
+                },
+                "type": "minecraft:min"
+              },
+              "right": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/places_seven/p",
+                                "right": 0.7209152,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/places_seven/q",
+                                "right": -0.626429862,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.211221529,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.3566541,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": 3.0,
+                "type": "minecraft:add"
+              },
+              "type": "minecraft:min"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/places_seven/p",
+                              "right": 0.653850837,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/places_seven/q",
+                              "right": 0.188409392,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.143484465,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.3566541,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 4.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/places_seven/p",
+                            "right": 0.431738309,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/places_seven/q",
+                            "right": 0.795016402,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.231654134,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.3566541,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 5.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        },
+        "right": {
+          "left": {
+            "left": {
+              "input": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": "adventure:places/places_seven/p",
+                          "right": -0.643084652,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "right": {
+                        "input": {
+                          "left": "adventure:places/places_seven/q",
+                          "right": 0.734852945,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "type": "minecraft:add"
+                    },
+                    "right": 0.158602376,
+                    "type": "minecraft:add"
+                  },
+                  "max": 21.3566541,
+                  "min": 0.0,
+                  "type": "minecraft:clamp"
+                },
+                "right": 32768.0,
+                "type": "minecraft:mul"
+              },
+              "type": "minecraft:floor"
+            },
+            "right": 16.0,
+            "type": "minecraft:mul"
+          },
+          "right": 6.0,
+          "type": "minecraft:add"
+        },
+        "type": "minecraft:min"
+      },
+      "when_out_of_range": {
+        "input": {
+          "noise": "adventure:places/places_seven/arrangement",
+          "type": "minecraft:noise",
+          "xz_scale": 0.0,
+          "y_scale": 0.0
+        },
+        "max_exclusive": 0.184810192,
+        "min_inclusive": 0.0,
+        "type": "minecraft:range_choice",
+        "when_in_range": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "left": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "input": {
+                              "left": {
+                                "left": {
+                                  "input": {
+                                    "left": "adventure:places/places_seven/p",
+                                    "right": -0.526269465,
+                                    "type": "minecraft:add"
+                                  },
+                                  "type": "minecraft:square"
+                                },
+                                "right": {
+                                  "input": {
+                                    "left": "adventure:places/places_seven/q",
+                                    "right": 0.406719079,
+                                    "type": "minecraft:add"
+                                  },
+                                  "type": "minecraft:square"
+                                },
+                                "type": "minecraft:add"
+                              },
+                              "right": 0.0,
+                              "type": "minecraft:add"
+                            },
+                            "max": 21.3250821,
+                            "min": 0.0,
+                            "type": "minecraft:clamp"
+                          },
+                          "right": 32768.0,
+                          "type": "minecraft:mul"
+                        },
+                        "type": "minecraft:floor"
+                      },
+                      "right": 16.0,
+                      "type": "minecraft:mul"
+                    },
+                    "right": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "input": {
+                                "left": {
+                                  "left": {
+                                    "input": {
+                                      "left": "adventure:places/places_seven/p",
+                                      "right": 0.449719173,
+                                      "type": "minecraft:add"
+                                    },
+                                    "type": "minecraft:square"
+                                  },
+                                  "right": {
+                                    "input": {
+                                      "left": "adventure:places/places_seven/q",
+                                      "right": -0.0720472756,
+                                      "type": "minecraft:add"
+                                    },
+                                    "type": "minecraft:square"
+                                  },
+                                  "type": "minecraft:add"
+                                },
+                                "right": 0.139395418,
+                                "type": "minecraft:add"
+                              },
+                              "max": 21.3250821,
+                              "min": 0.0,
+                              "type": "minecraft:clamp"
+                            },
+                            "right": 32768.0,
+                            "type": "minecraft:mul"
+                          },
+                          "type": "minecraft:floor"
+                        },
+                        "right": 16.0,
+                        "type": "minecraft:mul"
+                      },
+                      "right": 1.0,
+                      "type": "minecraft:add"
+                    },
+                    "type": "minecraft:min"
+                  },
+                  "right": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "input": {
+                              "left": {
+                                "left": {
+                                  "input": {
+                                    "left": "adventure:places/places_seven/p",
+                                    "right": 0.695421919,
+                                    "type": "minecraft:add"
+                                  },
+                                  "type": "minecraft:square"
+                                },
+                                "right": {
+                                  "input": {
+                                    "left": "adventure:places/places_seven/q",
+                                    "right": -0.676552957,
+                                    "type": "minecraft:add"
+                                  },
+                                  "type": "minecraft:square"
+                                },
+                                "type": "minecraft:add"
+                              },
+                              "right": 0.178872302,
+                              "type": "minecraft:add"
+                            },
+                            "max": 21.3250821,
+                            "min": 0.0,
+                            "type": "minecraft:clamp"
+                          },
+                          "right": 32768.0,
+                          "type": "minecraft:mul"
+                        },
+                        "type": "minecraft:floor"
+                      },
+                      "right": 16.0,
+                      "type": "minecraft:mul"
+                    },
+                    "right": 2.0,
+                    "type": "minecraft:add"
+                  },
+                  "type": "minecraft:min"
+                },
+                "right": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "left": "adventure:places/places_seven/p",
+                                  "right": 0.00591581151,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "right": {
+                                "input": {
+                                  "left": "adventure:places/places_seven/q",
+                                  "right": -0.664822635,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "type": "minecraft:add"
+                            },
+                            "right": 0.20008214,
+                            "type": "minecraft:add"
+                          },
+                          "max": 21.3250821,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "right": 32768.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:floor"
+                    },
+                    "right": 16.0,
+                    "type": "minecraft:mul"
+                  },
+                  "right": 3.0,
+                  "type": "minecraft:add"
+                },
+                "type": "minecraft:min"
+              },
+              "right": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/places_seven/p",
+                                "right": -0.640336586,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/places_seven/q",
+                                "right": -0.548073551,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.137737581,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.3250821,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": 4.0,
+                "type": "minecraft:add"
+              },
+              "type": "minecraft:min"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/places_seven/p",
+                              "right": 0.171312766,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/places_seven/q",
+                              "right": 0.680830906,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.147305285,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.3250821,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 5.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/places_seven/p",
+                            "right": 0.750012674,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/places_seven/q",
+                            "right": 0.589009683,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.153202014,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.3250821,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 6.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        },
+        "when_out_of_range": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "left": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "input": {
+                              "left": {
+                                "left": {
+                                  "input": {
+                                    "left": "adventure:places/places_seven/p",
+                                    "right": 0.548863163,
+                                    "type": "minecraft:add"
+                                  },
+                                  "type": "minecraft:square"
+                                },
+                                "right": {
+                                  "input": {
+                                    "left": "adventure:places/places_seven/q",
+                                    "right": 0.262377277,
+                                    "type": "minecraft:add"
+                                  },
+                                  "type": "minecraft:square"
+                                },
+                                "type": "minecraft:add"
+                              },
+                              "right": 0.0,
+                              "type": "minecraft:add"
+                            },
+                            "max": 21.3311551,
+                            "min": 0.0,
+                            "type": "minecraft:clamp"
+                          },
+                          "right": 32768.0,
+                          "type": "minecraft:mul"
+                        },
+                        "type": "minecraft:floor"
+                      },
+                      "right": 16.0,
+                      "type": "minecraft:mul"
+                    },
+                    "right": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "input": {
+                                "left": {
+                                  "left": {
+                                    "input": {
+                                      "left": "adventure:places/places_seven/p",
+                                      "right": -0.0069696127,
+                                      "type": "minecraft:add"
+                                    },
+                                    "type": "minecraft:square"
+                                  },
+                                  "right": {
+                                    "input": {
+                                      "left": "adventure:places/places_seven/q",
+                                      "right": -0.616296026,
+                                      "type": "minecraft:add"
+                                    },
+                                    "type": "minecraft:square"
+                                  },
+                                  "type": "minecraft:add"
+                                },
+                                "right": 0.134981482,
+                                "type": "minecraft:add"
+                              },
+                              "max": 21.3311551,
+                              "min": 0.0,
+                              "type": "minecraft:clamp"
+                            },
+                            "right": 32768.0,
+                            "type": "minecraft:mul"
+                          },
+                          "type": "minecraft:floor"
+                        },
+                        "right": 16.0,
+                        "type": "minecraft:mul"
+                      },
+                      "right": 1.0,
+                      "type": "minecraft:add"
+                    },
+                    "type": "minecraft:min"
+                  },
+                  "right": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "input": {
+                              "left": {
+                                "left": {
+                                  "input": {
+                                    "left": "adventure:places/places_seven/p",
+                                    "right": -0.72379346,
+                                    "type": "minecraft:add"
+                                  },
+                                  "type": "minecraft:square"
+                                },
+                                "right": {
+                                  "input": {
+                                    "left": "adventure:places/places_seven/q",
+                                    "right": -0.630034154,
+                                    "type": "minecraft:add"
+                                  },
+                                  "type": "minecraft:square"
+                                },
+                                "type": "minecraft:add"
+                              },
+                              "right": 0.200771011,
+                              "type": "minecraft:add"
+                            },
+                            "max": 21.3311551,
+                            "min": 0.0,
+                            "type": "minecraft:clamp"
+                          },
+                          "right": 32768.0,
+                          "type": "minecraft:mul"
+                        },
+                        "type": "minecraft:floor"
+                      },
+                      "right": 16.0,
+                      "type": "minecraft:mul"
+                    },
+                    "right": 2.0,
+                    "type": "minecraft:add"
+                  },
+                  "type": "minecraft:min"
+                },
+                "right": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "left": "adventure:places/places_seven/p",
+                                  "right": -0.686784596,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "right": {
+                                "input": {
+                                  "left": "adventure:places/places_seven/q",
+                                  "right": 0.680421843,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "type": "minecraft:add"
+                            },
+                            "right": 0.176852383,
+                            "type": "minecraft:add"
+                          },
+                          "max": 21.3311551,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "right": 32768.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:floor"
+                    },
+                    "right": 16.0,
+                    "type": "minecraft:mul"
+                  },
+                  "right": 3.0,
+                  "type": "minecraft:add"
+                },
+                "type": "minecraft:min"
+              },
+              "right": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/places_seven/p",
+                                "right": -0.494949582,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/places_seven/q",
+                                "right": 0.0682812206,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.148755189,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.3311551,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": 4.0,
+                "type": "minecraft:add"
+              },
+              "type": "minecraft:min"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/places_seven/p",
+                              "right": 0.0791684004,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/places_seven/q",
+                              "right": 0.7620877,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.140890806,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.3311551,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 5.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/places_seven/p",
+                            "right": 0.712211971,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/places_seven/q",
+                            "right": -0.641667972,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.206155116,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.3311551,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 6.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        }
+      }
+    }
+  },
+  "type": "minecraft:cache"
+}

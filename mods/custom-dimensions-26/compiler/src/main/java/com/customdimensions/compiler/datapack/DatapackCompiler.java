@@ -628,7 +628,7 @@ public final class DatapackCompiler {
             case Generator.NOISE -> {
                 RegionLayout.Plan regions = def.biomeLayout() == null ? null : RegionLayout.plan(slug, def.biomes(), def.biomeLayout(),
                         RegionLayout.radius(def.borders()), known, entry,
-                        RegionLayout.coast(slug, def, RegionLayout.axes(slug, def.biomeLayout())), roles(), RegionLayout.ground(slug, def));
+                        RegionLayout.coast(slug, def, RegionLayout.axes(slug, def.biomeLayout())), roles(), RegionLayout.ground(slug, def), PlaceLayout.radius(def.borders()));
                 yield noiseGenerator(slug, def, g.preset(), regions == null ? noiseBiomeSource(def, entry) : multiNoise(regions.entries()),
                         regions, entry);
             }
@@ -648,7 +648,7 @@ public final class DatapackCompiler {
         JsonObject source = zones == null ? biomeSource : ZonesCompiler.biomeSource(zones, biomeSource,
                 "nether".equals(preset) ? "nether" : "overworld", vanilla, known, version, entry);
         generator.add("biome_source", regions == null ? source : ZonesCompiler.withRegions(source, regions.regions()));
-        generator.addProperty("settings", noiseSettings(slug, def, preset, zones, entry));
+        generator.addProperty("settings", noiseSettings(slug, def, preset, zones, regions == null ? null : regions.places(), entry));
         if (zones != null) {
             zones.files().forEach((path, json) -> put(path, sorted(json), entry));
         }
@@ -705,7 +705,7 @@ public final class DatapackCompiler {
      * default block, the material palette or the ore veins change; a changed
      * material rule is written as {@code <ns>:<slug>} too.
      */
-    private String noiseSettings(String slug, Definition def, String preset, ZonesCompiler.Plan zones,
+    private String noiseSettings(String slug, Definition def, String preset, ZonesCompiler.Plan zones, PlaceLayout.Places places,
                                  CompileReport.Entry entry) {
         Liquids liquids = def.liquids();
         String defaultBlock = defaultBlock(def);
@@ -761,6 +761,7 @@ public final class DatapackCompiler {
                     + ": the " + preset
                     + " preset's biomes read no climate without a biome list");
         }
+        if (places != null) placeField(slug, def, places, settings, entry);
         if (voidCells != null) {
             JsonObject router = settings.getAsJsonObject("noise_router");
             router.add("final_density", TerrainLibrary.voided(router.get("final_density"), voidCells));
@@ -780,7 +781,7 @@ public final class DatapackCompiler {
                 withLibraryPalettes(MaterialsCompiler.read(slug, def.materials()), def, zones, preset, entry), OresCompiler.veins(OresCompiler.read(slug, def.ores()), vanilla),
                 seaLevel, settings.has("default_block") ? settings.get("default_block").getAsString() : null, defaultBlock);
         if (!changesLiquids && defaultBlock == null && !removesIsland && materialRule == null && terrain == null && shaping == null
-                && !changesZones && !borrowsClimate && voidCells == null) {
+                && !changesZones && !borrowsClimate && voidCells == null && places == null) {
             return "minecraft:" + preset;
         }
         if (removesIsland) {
@@ -806,6 +807,25 @@ public final class DatapackCompiler {
         }
         put(dataPath(id, "worldgen/noise_settings"), sorted(settings), entry);
         return id;
+    }
+
+    /** {@code settings}' router with its first region axis replaced by the place field of {@code places}; the field goes into the pack. */
+    private void placeField(String slug, Definition def, PlaceLayout.Places places, JsonObject settings, CompileReport.Entry entry) {
+        int radius = PlaceLayout.radius(def.borders());
+        com.customdimensions.compiler.terrain.PlaceField.Warp warp = PlaceLayout.warp(slug, def, places, radius);
+        com.customdimensions.compiler.terrain.PlaceField.Compiled field = com.customdimensions.compiler.terrain.PlaceField.compile(
+                namespace, slug, radius, places.arrangements(), places.symmetries(), warp);
+        field.files().forEach((path, json) -> put(path, sorted(json), entry));
+        String key = "temperature".equals(places.axis()) ? "temperature" : "vegetation";
+        settings.getAsJsonObject("noise_router").addProperty(key, field.id());
+        entry.note("The router's " + key + " is the place field `" + field.id() + "` (" + field.nodes() + " nodes" + (warp.blocks() > 0
+                ? ", edges warped " + Math.round(warp.blocks()) + " blocks over " + Math.round(warp.wavelength()) : ", edges unwarped") + ")");
+        com.customdimensions.compiler.terrain.PlaceField.Warp terrain = PlaceLayout.terrainWarp(slug, def);
+        if (places.warp() == null && terrain != null && terrain.blocks() > warp.blocks()) {
+            entry.note("The places take terrain.climateWarp at " + Math.round(warp.blocks()) + " of its " + Math.round(terrain.blocks())
+                    + " blocks: more than " + com.customdimensions.compiler.terrain.PlaceField.MAX_WARP_RATIO
+                    + " of the wavelength could split a place; biomeLayout.places.warp sets the places' own");
+        }
     }
 
     /** The settings with a library terrain's router; its density functions and noises go into the pack. */
@@ -1059,7 +1079,7 @@ public final class DatapackCompiler {
         if (def.ores() != null) entry.unsupported("ores", "a void world has no stone for ores");
         if (def.terrain() != null) entry.unsupported("terrain", "a void world has no terrain");
         RegionLayout.Plan regions = def.biomeLayout() == null ? null : RegionLayout.plan(slug, def.biomes(), def.biomeLayout(),
-                RegionLayout.radius(def.borders()), known, entry, null, roles(), null);
+                RegionLayout.radius(def.borders()), known, entry, null, roles(), null, PlaceLayout.radius(def.borders()));
         JsonObject biomeSource = regions == null ? filtered("overworld", def.biomes(), entry) : multiNoise(regions.entries());
         ZonesCompiler.Plan zones = ZonesCompiler.plan(slug, namespace, def, known, entry);
         if (zones != null && zones.changesSettings()) entry.unsupported("zones", "a void world's zones place biomes only, no terrain");
@@ -1070,6 +1090,7 @@ public final class DatapackCompiler {
         JsonObject settings = vanilla.noiseSettings("overworld");
         JsonObject router = settings.getAsJsonObject("noise_router");
         router.addProperty("final_density", -1.0);
+        if (regions != null && regions.places() != null) placeField(slug, def, regions.places(), settings, entry);
         settings.remove("aquifers");
         settings.remove("debug_functions");
         settings.addProperty("sea_level", settings.getAsJsonObject("noise").get("min_y").getAsInt());

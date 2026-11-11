@@ -29,8 +29,11 @@ import java.util.function.LongUnaryOperator;
  * {@code areas}, a point is ranked among the samples of the first area it
  * falls in (each a box on continentalness, weirdness and depth, with its own
  * columns), so each role's biomes hold their shares of their own ground.
+ * With {@code places}, the first axis is the compiler's place field, one value
+ * per place: it is read as it is, never ranked, and the second axis is ranked
+ * within each place's column.
  */
-public record ClimateRegions(List<String> axes, List<Float> columns, int radius, List<Area> areas, Optional<Land> land) {
+public record ClimateRegions(List<String> axes, List<Float> columns, int radius, List<Area> areas, Optional<Land> land, boolean places) {
     /**
      * {@code land}: the samples ranked are those whose router {@code axis} is at least {@code min}, the cells that
      * hold land (an End's island density, a sky terrain's place cue), so each biome takes its share of the land
@@ -78,7 +81,8 @@ public record ClimateRegions(List<String> axes, List<Float> columns, int radius,
             Codec.FLOAT.listOf().optionalFieldOf("columns", List.of()).forGetter(ClimateRegions::columns),
             Codec.intRange(16, 30_000_000).fieldOf("radius").forGetter(ClimateRegions::radius),
             Area.CODEC.listOf().optionalFieldOf("areas", List.of()).forGetter(ClimateRegions::areas),
-            Land.CODEC.optionalFieldOf("land").forGetter(ClimateRegions::land)).apply(i, ClimateRegions::new));
+            Land.CODEC.optionalFieldOf("land").forGetter(ClimateRegions::land),
+            Codec.BOOL.optionalFieldOf("places", false).forGetter(ClimateRegions::places)).apply(i, ClimateRegions::new));
 
     static final List<String> AXES = List.of("temperature", "humidity", "continentalness", "erosion", "weirdness");
 
@@ -98,8 +102,12 @@ public record ClimateRegions(List<String> axes, List<Float> columns, int radius,
         this(axes, columns, radius, List.of());
     }
 
+    public ClimateRegions(List<String> axes, List<Float> columns, int radius, List<Area> areas, Optional<Land> land) {
+        this(axes, columns, radius, areas, land, false);
+    }
+
     public ClimateRegions(List<String> axes, List<Float> columns, int radius, List<Area> areas) {
-        this(axes, columns, radius, areas, Optional.empty());
+        this(axes, columns, radius, areas, Optional.empty(), false);
     }
 
     /** The areas a point is ranked in, in order; one covering everything without {@code areas}. */
@@ -144,7 +152,7 @@ public record ClimateRegions(List<String> axes, List<Float> columns, int radius,
         }
         AreaRanks area = ranks.areas.get(index);
         long[] v = values(point);
-        long first = rank(v[0], area.marginal[0]);
+        long first = places ? v[0] : rank(v[0], area.marginal[0]);
         long second = 0;
         if (axes.size() == 2) {
             long[] among = area.marginal[1];
@@ -222,7 +230,7 @@ public record ClimateRegions(List<String> axes, List<Float> columns, int radius,
             }
             long[][] own = new long[axes.size()][m];
             for (int a = 0; a < axes.size(); a++) for (int k = 0; k < m; k++) own[a][k] = samples[a][in[k]];
-            out.add(measureArea(own, area.columns()));
+            out.add(measureArea(own, area.columns(), places));
             if (placed) counts.append(counts.isEmpty() ? "" : ", ").append(area.role().isEmpty() ? "area" : area.role()).append(' ').append(m);
         }
         CustomDimensions.LOG.info("biome regions: measured {} over a {}-block radius from {} samples in {} ms{}", axes, radius, n,
@@ -232,6 +240,11 @@ public record ClimateRegions(List<String> axes, List<Float> columns, int radius,
 
     /** The marginal and per-column ranks of {@code samples} (one array per region axis). */
     static AreaRanks measureArea(long[][] samples, List<Float> columnCuts) {
+        return measureArea(samples, columnCuts, false);
+    }
+
+    /** As {@link #measureArea(long[][], List)}; with {@code placed} the first axis is a place field, its columns read as they are. */
+    static AreaRanks measureArea(long[][] samples, List<Float> columnCuts, boolean placed) {
         int n = samples[0].length;
         int dims = samples.length;
         long[][] marginal = new long[dims][];
@@ -246,7 +259,7 @@ public record ClimateRegions(List<String> axes, List<Float> columns, int radius,
             List<List<Long>> byColumn = new ArrayList<>();
             for (int k = 0; k <= cuts.length; k++) byColumn.add(new ArrayList<>());
             for (int s = 0; s < n; s++) {
-                byColumn.get(column(rank(samples[0][s], marginal[0]), cuts)).add(samples[1][s]);
+                byColumn.get(column(placed ? samples[0][s] : rank(samples[0][s], marginal[0]), cuts)).add(samples[1][s]);
             }
             conditional = new long[cuts.length + 1][];
             for (int k = 0; k <= cuts.length; k++) {

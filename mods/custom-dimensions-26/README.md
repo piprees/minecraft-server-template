@@ -247,6 +247,22 @@ the end); `terrain.climateWarp` moves where they are sampled along the
 wander. The terrains and their parameters are in
 [worldgen.md § Terrain library](../../docs/design/rebuild-26/worldgen.md#terrain-library).
 
+`biomeLayout.places` (with `mode: regions`) lays the regional land biomes out
+as places: each biome, or each named `groups` entry, takes one contiguous
+region of the border (the smaller of `borders.player` and
+`borders.generation`) whose share is its weight. The compiler solves a power
+diagram over one site per place (`compiler/.../terrain/PlaceField.java`,
+`compiler/.../datapack/PlaceLayout.java`) and writes it as vanilla density
+functions under `<namespace>:places/<slug>/`, which become the router's first
+region axis; `customdimensions:zoned` reads that axis as it is (`regions.places`
+in `ClimateRegions`) and ranks only the second, which mixes a group's biomes
+inside its place. Sites come from `at` (blocks), a named `arrangement` (`ring`,
+`sectors`, `bands`, `core`, turned by `direction`), or, by default, four solved
+layouts of which the level's seed picks one and one of the square's eight
+symmetries; `neighbours` and `apart` pairs are honoured or refused at compile
+time. Edges wander by `warp` (else `terrain.climateWarp`, else 0.1 of a
+wavelength of half the radius), at most 0.15 of the wavelength.
+
 A clone's `of` resolves to a slug: `paradise_lost:paradise_lost` to
 `the_aviary`, a base world's level stem (`minecraft:the_nether`) to its slug,
 and `<namespace>:<slug>` to that definition. A clone of a clone resolves

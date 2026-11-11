@@ -9,20 +9,17 @@
                 "input": {
                   "left": {
                     "left": {
-                      "input": {
-                        "noise": "adventure:terrain/spires",
-                        "shift_x": "minecraft:shift_x",
-                        "shift_z": "minecraft:shift_z",
-                        "type": "minecraft:noise",
-                        "xz_scale": 0.4,
-                        "y_scale": 0.0
-                      },
-                      "type": "minecraft:cache"
+                      "noise": "adventure:terrain/islands",
+                      "shift_x": "minecraft:shift_x",
+                      "shift_z": "minecraft:shift_z",
+                      "type": "minecraft:noise",
+                      "xz_scale": 0.2857142857142857,
+                      "y_scale": 0.0
                     },
-                    "right": -0.0952466451,
+                    "right": 0.0,
                     "type": "minecraft:add"
                   },
-                  "right": 4.92125984,
+                  "right": 3.41296928,
                   "type": "minecraft:mul"
                 },
                 "max": 1.0,
