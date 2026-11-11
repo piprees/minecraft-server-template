@@ -131,6 +131,7 @@ public final class TerrainLibrary {
         int maxY = minY + settings.getAsJsonObject("noise").get("height").getAsInt();
         int presetSea = settings.get("sea_level").getAsInt();
         double sea = seaLevel != null ? seaLevel : presetSea > minY ? presetSea : 63;
+        TerrainFamily.checkStack(slug, spec, maxY);
         Ctx ctx = new Ctx(spec, namespace, prefix, sea, minY, maxY);
         TerrainFamily.Shape shape = spec.family().build(ctx);
         JsonElement height = shape.height();
@@ -517,7 +518,7 @@ public final class TerrainLibrary {
     static JsonObject numberSchema(TerrainParam p) {
         JsonObject o = new JsonObject();
         o.addProperty("description", p.description());
-        o.addProperty("type", "number");
+        o.addProperty("type", p.whole() ? "integer" : "number");
         o.add("minimum", number(p.min()));
         o.add("maximum", number(p.max()));
         o.add("default", number(p.defaultValue()));

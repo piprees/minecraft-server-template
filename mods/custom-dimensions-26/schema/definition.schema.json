@@ -1675,7 +1675,7 @@
       }
     },
     "terrain_floating_islands": {
-      "description": "Islands in the sky over a void: domed tops, tapering undersides.",
+      "description": "Islands in the sky over a void: domed or flat-topped, tapering undersides, in one layer or stacked tiers.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -1755,6 +1755,62 @@
           "minimum": 0,
           "maximum": 80,
           "default": 24
+        },
+        "flatness": {
+          "description": "Shape of an island's top: 0 a dome, 1 a flat table that rolls off over a short edge",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        },
+        "terraces": {
+          "description": "Plateau levels a flat top breaks into, each terraceStep above the last; 0 or 1 is one level",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "default": 0
+        },
+        "terraceStep": {
+          "description": "Blocks between plateau levels",
+          "type": "number",
+          "minimum": 2,
+          "maximum": 32,
+          "default": 6
+        },
+        "tiers": {
+          "description": "Island layers, counting the terrain's own: each further tier floats tierSpacing above the one under it",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "default": 1
+        },
+        "tierSpacing": {
+          "description": "Blocks from one tier's altitude to the next tier's",
+          "type": "number",
+          "minimum": 32,
+          "maximum": 200,
+          "default": 64
+        },
+        "tierGap": {
+          "description": "Blocks of open sky always left between a tier's island tops and the undersides of the tier above",
+          "type": "number",
+          "minimum": 16,
+          "maximum": 64,
+          "default": 20
+        },
+        "tierShrink": {
+          "description": "Each tier's island size, thickness and underside against the tier under it",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 1,
+          "default": 0.6
+        },
+        "tierCoverage": {
+          "description": "Share of the sky each further tier covers; 0 takes the coverage under it times tierShrink",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.8,
+          "default": 0
         }
       }
     },
@@ -1888,6 +1944,41 @@
           "minimum": 0,
           "maximum": 60,
           "default": 8
+        },
+        "tiers": {
+          "description": "Island layers, counting the terrain's own: each further tier floats tierSpacing above the one under it",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "default": 1
+        },
+        "tierSpacing": {
+          "description": "Blocks from one tier's altitude to the next tier's",
+          "type": "number",
+          "minimum": 32,
+          "maximum": 200,
+          "default": 64
+        },
+        "tierGap": {
+          "description": "Blocks of open sky always left between a tier's island tops and the undersides of the tier above",
+          "type": "number",
+          "minimum": 16,
+          "maximum": 64,
+          "default": 20
+        },
+        "tierShrink": {
+          "description": "Each tier's island size, thickness and underside against the tier under it",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 1,
+          "default": 0.6
+        },
+        "tierCoverage": {
+          "description": "Share of the sky each further tier covers; 0 takes the coverage under it times tierShrink",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.8,
+          "default": 0
         }
       }
     },
