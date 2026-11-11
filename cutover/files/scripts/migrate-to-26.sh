@@ -853,7 +853,7 @@ phase_verify() {
     rcon_q "execute in $ns:$slug run gamerule $rname"
     lazy="$(printf '%s\n' "$RCON_OUT" | grep -oE '(true|false|[0-9]+)[[:space:]]*$' | tail -1 | tr -d '[:space:]' || true)"
     if [[ -z "$lazy" || -z "$expect" ]]; then
-      later "$ns:$slug: no $rname to compare (level: '${lazy}', expected: '${expect}')"
+      note "$ns:$slug gave no $rname to compare (level: '${lazy}', expected: '${expect}'); read it by hand"
     elif [[ "$lazy" == "$expect" ]]; then
       ok "$ns:$slug holds $rname $lazy, $( [[ -n "$own" ]] && printf 'its own value' || printf 'the server-wide value' )"
     else
