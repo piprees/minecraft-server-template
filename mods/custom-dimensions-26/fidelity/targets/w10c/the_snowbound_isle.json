@@ -1,0 +1,12 @@
+{
+ "slug": "the_snowbound_isle",
+ "targets": [
+  {"key": "surface.snowIcePercent", "per": "vertical.layerColumnsPercent.surface", "op": ">=", "value": 0.7, "from": "\"A snowbound island\", over land columns (the w10t form counts the void round the island)"},
+  {"key": "surface.precipitationPercent.snow", "per": "vertical.layerColumnsPercent.surface", "op": ">=", "value": 0.85, "from": "1.21.1 biomes all snowy, over land columns"},
+  {"key": "surface.biomesPercent.minecraft:snowy_taiga + surface.biomesPercent.minecraft:snowy_plains + surface.biomesPercent.minecraft:snowy_slopes + surface.biomesPercent.adventure:windswept_isles + surface.biomesPercent.adventure:dying_forest", "per": "vertical.layerColumnsPercent.surface", "op": ">=", "value": 0.7, "from": "\"Fir forests and drifts\" with the autumnal tundra, over land columns"},
+  {"key": "surface.voidPercent", "op": ">=", "value": 35, "from": "\"adrift in the sky\""},
+  {"key": "placeness.islands.count", "op": "<=", "value": 3, "from": "place kind place: one island"},
+  {"key": "placeness.islands.sizesHa.max", "op": ">=", "value": 30, "from": "place kind place: the island holds the land (the w10t largest-biome-region form asks one biome to hold half of it, which the description's forests, drifts and cliffs do not)"},
+  {"key": "placeness.landBiomeRegions.specksPercent", "op": "<=", "value": 5, "from": "place kind place"}
+ ]
+}

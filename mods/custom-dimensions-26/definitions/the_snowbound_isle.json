@@ -7,26 +7,40 @@
     "type": "clone",
     "of": "adventure:the_aviary"
   },
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "size": 4,
+      "coverage": 0.6,
+      "altitude": 120
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 51],
+      "radius": 260,
+      "falloff": 320,
+      "strength": 1
+    }
+  },
   "biomes": [
-    "adventure:windswept_isles",
-    "minecraft:snowy_plains",
-    "minecraft:jagged_peaks",
-    "minecraft:snowy_slopes",
     "minecraft:snowy_taiga",
-    "minecraft:cherry_grove",
-    "adventure:golden_skygrove"
+    "minecraft:snowy_plains",
+    "minecraft:snowy_slopes",
+    "adventure:windswept_isles",
+    "adventure:dying_forest",
+    "minecraft:cherry_grove"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:windswept_isles": 5,
-      "minecraft:snowy_plains": 3.5,
-      "minecraft:jagged_peaks": 2.6,
-      "minecraft:snowy_slopes": 22.5,
-      "minecraft:snowy_taiga": 29.3,
-      "minecraft:cherry_grove": 1.4,
-      "adventure:golden_skygrove": 31.9
-    }
+      "minecraft:snowy_taiga": 35,
+      "minecraft:snowy_plains": 20,
+      "minecraft:snowy_slopes": 15,
+      "adventure:windswept_isles": 10,
+      "adventure:dying_forest": 10,
+      "minecraft:cherry_grove": 3
+    },
+    "over": "land"
   },
   "borders": {
     "player": 1024,
