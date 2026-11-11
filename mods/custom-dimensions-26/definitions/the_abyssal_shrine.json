@@ -7,33 +7,37 @@
     "type": "clone",
     "of": "adventure:the_aviary"
   },
+  "terrain": {
+    "base": "basin_islands",
+    "setting": "extreme",
+    "layout": {
+      "type": "ring",
+      "centre": [0, 0],
+      "radius": 300,
+      "falloff": 160,
+      "strength": 0.9
+    }
+  },
   "biomes": [
-    "adventure:umbral_wastes",
-    "adventure:windswept_isles",
     "minecraft:deep_cold_ocean",
-    "minecraft:dripstone_caves",
-    "minecraft:deep_dark",
     "minecraft:deep_ocean",
     "adventure:sky_highlands",
-    "adventure:golden_skygrove",
-    "minecraft:dark_forest"
+    "adventure:chalk_cliffs",
+    "adventure:umbral_wastes"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:umbral_wastes": 1,
-      "adventure:windswept_isles": 1,
-      "minecraft:deep_cold_ocean": 1,
-      "minecraft:dripstone_caves": 1,
-      "minecraft:deep_dark": 11.8,
-      "minecraft:deep_ocean": 42.2,
-      "adventure:sky_highlands": 17.1,
-      "adventure:golden_skygrove": 23.1,
-      "minecraft:dark_forest": 3.6
-    }
+      "minecraft:deep_cold_ocean": 30,
+      "minecraft:deep_ocean": 20,
+      "adventure:sky_highlands": 25,
+      "adventure:chalk_cliffs": 15,
+      "adventure:umbral_wastes": 10
+    },
+    "over": "land"
   },
   "liquids": {
-    "seaLevel": 90
+    "basins": {}
   },
   "atmosphere": {
     "skyColor": "#1B3B6B",
