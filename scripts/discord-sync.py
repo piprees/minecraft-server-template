@@ -31,6 +31,9 @@ Architecture constraints (violating these has caused real outages):
     raises "signal only works in main thread" under asyncio.to_thread.
   - RCON returning None usually means the server is autopaused, not down -
     handle it gracefully (see /mc status).
+  - Without DISCORD_BOT_TOKEN and DISCORD_GUILD_ID (a local stack with no
+    Discord secrets) the bot logs one line and idles: an exit would be a
+    crash loop under the service's `restart: unless-stopped`.
 """
 
 import asyncio
@@ -42,6 +45,7 @@ from urllib.parse import quote
 import socket
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -63,12 +67,34 @@ log = logging.getLogger("discord-sync")
 
 # === Config ===================================================================
 
-DISCORD_BOT_TOKEN = os.environ["DISCORD_BOT_TOKEN"]
-GUILD_ID = int(os.environ["DISCORD_GUILD_ID"])
-CHANNEL_ID = int(os.environ.get("DISCORD_CHANNEL_ID", "0"))
+
+def env_int(name, default=0):
+    """An integer setting. Compose passes an unset secret as a blank string, so
+    blank, unset and non-numeric all read as `default`."""
+    raw = (os.environ.get(name) or "").strip()
+    try:
+        return int(raw) if raw else default
+    except ValueError:
+        log.warning("%s is not a number (%r) - treating it as unset", name, raw)
+        return default
+
+
+def missing_discord_settings(token, guild_id):
+    """The settings the bot cannot start without, by variable name."""
+    missing = []
+    if not token:
+        missing.append("DISCORD_BOT_TOKEN")
+    if not guild_id:
+        missing.append("DISCORD_GUILD_ID")
+    return missing
+
+
+DISCORD_BOT_TOKEN = (os.environ.get("DISCORD_BOT_TOKEN") or "").strip()
+GUILD_ID = env_int("DISCORD_GUILD_ID")
+CHANNEL_ID = env_int("DISCORD_CHANNEL_ID")
 RCON_HOST = os.environ.get("RCON_HOST", "mc")
 RCON_PORT = int(os.environ.get("RCON_PORT", "25575"))
-RCON_PASSWORD = os.environ["RCON_PASSWORD"]
+RCON_PASSWORD = os.environ.get("RCON_PASSWORD", "")
 SYNC_INTERVAL = int(os.environ.get("SYNC_INTERVAL", "60"))
 DATA_PATH = Path(os.environ.get("DATA_PATH", "/data/discord-players.json"))
 LINKED_PLAYERS_PATH = Path("/data/DiscordIntegration-Data/LinkedPlayers.json")
@@ -76,8 +102,8 @@ PENDING_ACTIONS_PATH = Path("/data/discord-pending-actions.json")
 
 PLAYER_ROLE = "Player"
 ADMIN_ROLE = "Admin"
-PLAYER_ROLE_ID = int(os.environ.get("DISCORD_PLAYER_ROLE_ID", "0") or "0")
-ADMIN_ROLE_ID = int(os.environ.get("DISCORD_ADMIN_ROLE_ID", "0") or "0")
+PLAYER_ROLE_ID = env_int("DISCORD_PLAYER_ROLE_ID")
+ADMIN_ROLE_ID = env_int("DISCORD_ADMIN_ROLE_ID")
 MOJANG_API = "https://api.mojang.com/users/profiles/minecraft/"
 
 # Chunky pre-generation markers (written by idle-tasks.sh on completion)
@@ -1797,4 +1823,13 @@ async def on_app_command_error(
 # === Main =====================================================================
 
 if __name__ == "__main__":
-    bot.run(DISCORD_BOT_TOKEN, log_handler=None)
+    unset = missing_discord_settings(DISCORD_BOT_TOKEN, GUILD_ID)
+    if unset:
+        log.warning(
+            "Discord is not configured (%s unset): role sync, /register and /mc are off. "
+            "Set them in .env and recreate this container. Idling.",
+            ", ".join(unset),
+        )
+        threading.Event().wait()
+    else:
+        bot.run(DISCORD_BOT_TOKEN, log_handler=None)
