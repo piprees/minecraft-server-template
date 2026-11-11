@@ -8,7 +8,11 @@ What the Elfydd consumer repo (`piprees/elfydd`, read at commit `0c3bea3`, "take
 | --- | --- | --- |
 | `.github/workflows/deploy.yml` | `deploy-reusable.yml@v5`, `stack_version: ${{ vars.STACK_VERSION \|\| 'latest' }}`; no `STACK_READ_TOKEN`, no `FLOODGATE_KEY_B64` | An older scaffold: the template's is pinned by a committed `.stack-version` and passes both secrets |
 | `.stack-version` | absent | The pin a deploy reads first; without it the deprecated `STACK_VERSION` repository variable, then `latest` |
-| `.github/workflows/update.yml`, `server-power.yml`, `dev`, `ops`, `AGENTS.md`, `commands.json` | the v5 scaffold | `./dev update` from the v6 bundle replaces them |
+| `.github/workflows/update.yml`, `server-power.yml`, `dev`, `AGENTS.md`, `.env.example`, `.gitignore` | the v5 scaffold | `./dev update` from the v6 bundle replaces them |
+| `ops`, `commands.json` | byte for byte the scaffold's | Replaced by identical files |
+| `.github/dependabot.yml` | absent | `./dev update` adds the scaffold's |
+| `README.md`, `overlay/assets/README.md`, `overlay/modpack/README.md` | Elfydd's own text | Consumer-owned: left alone |
+| `elfydd.code-workspace`, `reports/` (three notes) | not scaffold files | Nothing reads or touches them |
 | `overlay/config/custom-dimensions/dimensions/` | 12 `*_thumb.json` and 24 `*_low.png`/`*_high.png`: the 1.21.1 seed viewer's thumbnails | Nothing reads them: `stage-dimensions.py` ignores them with one line. No definition override is there, so nothing needs converting |
 | `overlay/config/README.md`, `overlay/config/deploy-banner.txt` | prose and the deploy banner | Unchanged |
 | `overlay/mods-extra.txt`, `overlay/mods-remove.txt` | comments only | Unchanged; a slug added later must have a 26.3 build |
@@ -29,7 +33,7 @@ Before `v6.0.0` is published, so no deploy can take it early:
 At the migration (`migration-notes.md` step 6), one commit:
 
 2. `.stack-version`: `v6.0.0`. First: the v6 `dev` that step 3 re-runs itself as reads the file before an exported `STACK_VERSION`, so step 1's pin left in place pulls v5 back.
-3. `./dev update --scaffold-only` with `STACK_VERSION=v6.0.0` exported (Elfydd's v5 `dev` resolves its pin from `.env` and the variable only), which pulls the v6 bundle and replaces the scaffold files its `update)` case names: `dev`, `ops`, `.env.example`, `.gitignore`, `AGENTS.md`, `commands.json`, `.github/workflows/{deploy,update,server-power}.yml` and `.github/dependabot.yml`. It leaves `.stack-version`, `README.md` and `overlay/` alone.
+3. `./dev update --scaffold-only` with `STACK_VERSION=v6.0.0` exported (Elfydd's v5 `dev` resolves its pin from `.env` and the variable only), which pulls the v6 bundle and writes the scaffold files its `update)` case names: `dev`, `ops`, `.env.example`, `.gitignore`, `AGENTS.md`, `commands.json`, `.github/workflows/{deploy,update,server-power}.yml` and `.github/dependabot.yml` (new to Elfydd). It leaves `.stack-version`, `README.md` and `overlay/` alone.
 4. `.github/workflows/deploy.yml`: step 3 brings the scaffold's, which already carries the `stack_version` input, `stack_version_override` and both secrets below; the one change is the reusable workflow's ref, as the v6 scaffold has it: `uses: piprees/minecraft-server-template/.github/workflows/deploy-reusable.yml@v6`, `with: stack_version_override: ${{ inputs.stack_version || '' }}` and the `workflow_dispatch` `stack_version` input, and two more secrets:
 
    ```yaml
