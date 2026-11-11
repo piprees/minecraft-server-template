@@ -29,7 +29,8 @@
       "minecraft:soul_sand_valley": 15,
       "minecraft:basalt_deltas": 10,
       "adventure:quartz_flats": 8
-    }
+    },
+    "places": {}
   },
   "borders": {
     "player": 1024,
