@@ -1,6 +1,6 @@
 # Architecture
 
-The rebuilt mod lives in `mods/custom-dimensions-26/` as Gradle subprojects `core`, `compiler`, `server` and `client`. Decisions behind it: [decisions.md](decisions.md).
+The rebuilt mod lives in `mods/custom-dimensions-26/` as Gradle subprojects `core`, `compiler` and `server`; the companion client is its own project, `mods/custom-dimensions-client-26/`. Decisions behind it: [decisions.md](decisions.md).
 
 ## Four parts
 
@@ -25,15 +25,28 @@ Dependencies run one way. Only the runtime touches Minecraft's internals, and it
 | immersive | 4,840 | Cut: the fake-block projection painted into each player's world. Its geometry feeds the companion |
 | roll, facts, web, tryout | 12,342 | Cut: the new roller samples the real generator ([roller.md](roller.md)) |
 | compat and 4 compat mixins | 565 | Cut with BetterX, BetterCaves and Snow Blanket |
-| mixin: 34 plus 4 compat | 2,469 | 12 or fewer, each with a game test |
+| mixin: 34 plus 4 compat | 2,469 | 17, each named by a self-test line ([below](#mixins)) |
 
-About 17,700 lines are cut. Target: about 32,000 lines and 12 or fewer mixins, against 54,500 lines and 38 mixins in the 1.21.1 mod.
+About 17,700 lines of the 1.21.1 mod's 54,500 are cut. The rebuild's main sources run to about 55,000 lines (core about 19,700, compiler 10,500, server 25,000) and 17 mixins, against 38 in the 1.21.1 mod.
 
-Commands: `/customdim create | list | info | tp | render | roll | pick | audit`.
+Commands: `/customdim list | info | tp | activate | unload | delete | create | audit | catalogue | render | roll | pick | survey`, and `e2e-state` and `use` for the e2e harness ([mod README § Commands](../../../mods/custom-dimensions-26/README.md#commands)).
 
 ## Mixins
 
-**Stay (the budget):** mob attribute scaling at spawn; respawn redirect; forced structure starts; noise structure selection; terrain adaptation around structures; End gateway, End portal and Nether portal suppression where a definition asks for it; frame-break detection for portal decay; two accessors for a level generator's fluid rule and per-biome feature lists (lava level, ores added and removed per dimension); the firewall's structure-set switch-off in `ChunkGeneratorStructureState.createForNormal`.
+**Stay** (`server/src/main/resources/customdimensions.mixins.json`; `MixinSelfTest`, `LevelSeedSelfTest`, the structures and zones sections name each):
+
+| Mixin | What it does |
+| --- | --- |
+| `ChunkGeneratorAccessor`, `NoiseBasedChunkGeneratorAccessor` | A level generator's per-biome feature lists and fluid rule (lava level, ores added and removed, dry zones) |
+| `StructureStateMixin` | The firewall's structure-set switch-off in `ChunkGeneratorStructureState.createForNormal` |
+| `ChunkMapStructuresMixin`, `StructureBiomeBypassMixin`, `BeardifierAdaptationMixin` | Structure control as the chunk map builds a level's structure state; forced starts and wants past the biome check; terrain adaptation per dimension |
+| `NoiseBasedAquiferMixin`, `DryFluidFeatureMixin`, `DisabledAquiferMixin` | Dry zones without fluid, springs or lakes; a basin's fluid flowing at a gap in its rim |
+| `ChunkBlockChangedMixin` | A far-side block change reaches the companion feed |
+| `PrepareSpawnTaskMixin` | A login saved in a level that is not open goes to the world spawn |
+| `ServerLevelSeedMixin`, `MinecraftServerLevelsMixin` | A base world's own seed and biome-zoom seed (RB-37) |
+| `ServerLevelGameRulesMixin`, `ServerPlayerRestoreMixin`, `MinecraftServerGameRulesMixin`, `ServerLevelWeatherMixin` | Game rules per dimension, `keep_inventory` by the death's level, client-held rules per level, the shared weather advanced once a tick (RB-38) |
+
+Mob scaling, peaceful dimensions, deaths, exits, wins and ignition run on Fabric events with no mixin.
 
 **Go:**
 
@@ -42,7 +55,7 @@ Commands: `/customdim create | list | info | tp | render | roll | pick | audit`.
 | `CreateWorldsMixin`, `WorldLoaderMixin` | Generated base-world entries and Fantasy |
 | The registry accessor | Fantasy |
 | The three portal tick and ignition mixins | Vanilla `Portal` and Fabric's use-block event |
-| The per-level seed mixin | Fantasy's `setSeed` |
+| The per-level seed mixin | Fantasy's `setSeed` for lazy levels; `ServerLevelSeedMixin` on `getSeed()` for the base worlds |
 | The chunk-sampler and forced-ground mixins | Our density functions |
 | The chunk-ticket and unload mixins | Fantasy's unload |
 

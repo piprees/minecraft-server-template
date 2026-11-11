@@ -51,7 +51,7 @@ Full merge semantics, worked examples, and the client-pack patch schema are in [
 | --- | --- |
 | Server mods (`overlay/mods-extra.txt`, `overlay/mods-remove.txt`) | Default server mod list (`config/modrinth-mods.txt`) |
 | Config overrides (`overlay/config/<path>`) | Default configs (`config/<path>`) |
-| Branding (`.env` `BRAND_*`/`MOTD`, `overlay/assets/`) | Game rules (`config/boring_default_game_rules/`) |
+| Branding (`.env` `BRAND_*`/`MOTD`, `overlay/assets/`) | Server-wide game rules (`mc_game_rules` in `scripts/lib.sh`); a dimension's own sit in its definition's `gameRules`, which an overlay `overrides` file can set |
 | Client mod add/remove for an **already-catalogued** slug (`overlay/modpack/manifest.json` `add`/`remove`) | A genuinely new client mod entering the catalogue, or anything needing `_clientMods.stableOnly`/`holds` |
 | Custom dimensions: add, override, or disable per-file (`overlay/config/custom-dimensions/dimensions/`) | Platform-default dimension files (`config/custom-dimensions/dimensions/`) |
 | World seed / reset (dimension config `seed`/`spawn`, `.env` `SEED`/`SPAWN_*` as legacy fallback, + `./ops reset-seed`) | LuckPerms permission defaults |

@@ -31,7 +31,7 @@ With `-PselfTest`, `runServer` reads a copy of `definitions/` with the fixture
 dimensions in `server/src/selftest/definitions/` added (a void death, a kept
 inventory, every win trigger, dry and flooded aquifers, a palette, an ore set, structure control and five structure densities), and each library terrain's `*_default.json` from
 `server/src/selftest/gallery/`. The fixtures are never in the release jar.
-`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections; `-PselfTestOnly=biomes` the compiled-pack and biome library sections; `-PselfTestOnly=render` the compiled-pack and render sections; `-PselfTestOnly=firewall` the compiled-pack and firewall sections; `-PselfTestOnly=terrain` the compiled-pack and terrain sections; `-PselfTestOnly=zones` the compiled-pack and zone sections; `-PselfTestOnly=structures` the compiled-pack and structure sections; `-PselfTestOnly=roll` the compiled-pack and roll sections; `-PselfTestOnly=rollperf` those and the 100-seed roll timing, which no other run includes. `-PselfTestOnly=mixins` runs the compiled-pack and firewall sections and the mixin lines: one per entry in `customdimensions.mixins.json` whose effect shows without generating terrain, each naming its mixin; every run carries them, and the structures and zones sections name the other four (`StructureBiomeBypassMixin`, `BeardifierAdaptationMixin`, `NoiseBasedAquiferMixin`, `DryFluidFeatureMixin`).
+`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections; `-PselfTestOnly=biomes` the compiled-pack and biome library sections; `-PselfTestOnly=render` the compiled-pack and render sections; `-PselfTestOnly=firewall` the compiled-pack and firewall sections; `-PselfTestOnly=terrain` the compiled-pack and terrain sections; `-PselfTestOnly=zones` the compiled-pack and zone sections; `-PselfTestOnly=structures` the compiled-pack and structure sections; `-PselfTestOnly=roll` the compiled-pack and roll sections; `-PselfTestOnly=rollperf` those and the 100-seed roll timing, which no other run includes; `generators`, `difficulty`, `survey`, `seeds` and `gamerules` likewise run the compiled-pack section and that one. `-PselfTestOnly=mixins` runs the compiled-pack and firewall sections and the mixin lines: one per entry in `customdimensions.mixins.json` whose effect shows without generating terrain, each naming its mixin. Every run carries them and the seed lines (`LevelSeedSelfTest`), which check the six seed, game-rule and weather mixins are merged; the structures and zones sections name the other four (`StructureBiomeBypassMixin`, `BeardifierAdaptationMixin`, `NoiseBasedAquiferMixin`, `DryFluidFeatureMixin`).
 
 `runServer` also loads Open Parties and Claims and its Forge Config API Port
 dependency from the Modrinth maven (`localRuntime`, versions in
@@ -76,6 +76,7 @@ scripts/vanilla-boot-check.sh                 # boot that pack on vanilla, no mo
 | Structure control, every dimension ([below](#structure-control)) | `data/customdimensions/structure_control/<slug>.json` |
 | The End's terrain without its central island | `data/adventure/worldgen/density_function/end_without_central_island/{islands,sloped_cheese}.json` |
 | Fixed time of day | `data/adventure/timeline/fixed_time/<timeline>_<tick>.json` |
+| Day length (`atmosphere.dayLength` or the settings' default), shared by every dimension on one length: its clock, made the dimension type's `default_clock`, and each whole-day timeline warped to it | `data/adventure/world_clock/day_length/<day>_<night>.json`, `data/adventure/timeline/day_length/<timeline>_<day>_<night>.json` (ticks) |
 | Base worlds, loaded at start | `data/minecraft/dimension/{overworld,the_nether,the_end}.json`, `data/adventure/dimension/the_aviary.json` |
 | Every other dimension, opened lazily by the runtime | `data/customdimensions/lazy_dimension/<slug>.json` |
 
@@ -227,9 +228,9 @@ lies at or above the coast (a land terrain's `coast`, the overworld presets'
 (`liquids.seaLevel` below the sea floor less 20 blocks: `seaFloor` on a land
 terrain, y 36 on the overworld presets) holds no water, so biome regions lay
 the land biomes on the ocean's area and add no default sea; a listed ocean or a
-`biomeLayout.roles` entry still takes it. Without a `base` those three presets
-take `terrain.scales.climate` alone, which stretches the climate their biomes
-are laid out on. The terrains and their parameters are in
+`biomeLayout.roles` entry still takes it. Without a `base` the `caves`, `nether`
+and `end` presets take `terrain.scales.climate` alone (`TerrainLibrary.CLIMATE_ONLY`),
+which stretches the climate their biomes are laid out on. The terrains and their parameters are in
 [worldgen.md § Terrain library](../../docs/design/rebuild-26/worldgen.md#terrain-library).
 
 A clone's `of` resolves to a slug: `paradise_lost:paradise_lost` to
@@ -381,9 +382,11 @@ files byte for byte.
 | `create <slug> [template]` | Writes `<definitions>/<slug>.json` from the template (default `overworld`) with a fresh seed and one new portal colour, without the template's `spawn`, portal `anchor`s and `wins`; reads it back, compiles it with the other definitions in a temporary folder, and replies that it opens after the next restart (RB-34). The copy keeps the template's frame and igniter |
 | `audit` | Writes `<world>/customdimensions/audit.md`: definitions compiled afresh against the pack (stale, missing, in the pack with no definition), level folders with no definition, portal links to unknown dimensions, frame blocks and igniters the server lacks, Bedrock height warnings, skipped biomes and unsupported fields, and the firewall's allowed mods, unreviewed bridges, switched-off structure sets and biome removals |
 | `catalogue` | Writes `../.seed-rolling/catalogue/registries.json` beside the game directory for `scripts/extract-registries.py`: biomes, biome tags, structures, structure sets (placement as the game's codec writes it), blocks, items, features, placed features, entity types, and every tag of those registries with its members |
-| `render <dimension> [seed] [radius] [step]` | Draws the dimension top-down from the `Sampler` into `renders/<dimension>/` under the game directory, off the server thread, without generating chunks ([below](#rendering)). One render at a time |
+| `render <dimension> [seed] [radius] [step] [centreX centreZ]` | Draws the dimension top-down from the `Sampler` into `renders/<dimension>/` under the game directory, off the server thread, without generating chunks ([below](#rendering)). One render at a time |
 | `roll <dimension> [count]` | Scores `count` seeds (default 100, at most 500) from the `Sampler` off the server thread, renders the best ten and writes the contact sheet `renders/<dimension>/index.html` ([below](#rolling)). Refused for a dimension whose region folder holds chunks. Shares the one render job |
 | `pick <dimension> <seed>`, `pick <dimension> rank <n>` | Writes the seed, or the last roll's rank `n`, into the dimension's definition file; it applies after the next restart. Refused for a dimension whose region folder holds chunks |
+| `survey <dimension> [patches] [size]` | Samples real chunks (24 patches of 3x3 chunks by default, at most 96 of 8x8, plus adaptive ones) and writes a dossier to `customdim-survey/<dimension>/` under the game directory, `placeness` included ([placeness.md](../../docs/design/rebuild-26/placeness.md)); `1 1` is the fast placeness-only form. A lazy level opens for it and closes after. Shares the one render job |
+| `e2e-state [player]`, `use <x> <y> <z> [face]` | Registered only under `-Dcustomdimensions.e2e=true`, for the e2e harness: `e2e-state` writes the live state the assertions read to `../.seed-rolling/e2e-state.json`; `use`, run as a player, uses the main-hand item on a block face as a right-click does |
 
 ## Seeds
 
@@ -717,7 +720,7 @@ Fabric's events; the mod has no mixin for them.
 | Piece | What it does |
 | --- | --- |
 | `ExitConditions` | `exits`: `void` (8 blocks below the floor, from the start of the level's tick), `fallFrom` (`minHeight`, default 100), `enderPearl` (the throw is cancelled and the pearl kept), `death`, `death:<damage type>` and `death:mob:<entity>`, most specific first. `teleport` leaves at once and cancels a death, `respawnAt` moves the respawned player once the target is ready, `kill` keeps vanilla's death. A 100-tick cooldown per player stops loops; sky drops arrive with slow falling |
-| `DeathRules` | `deaths.inventory` and `deaths.experience`: kept ones are taken in a late allow-death phase and handed back by the copy-from event; dropped ones fall even with `keepInventory` on. A death a totem will stop, or that another listener cancels, takes nothing |
+| `DeathRules` | `deaths.inventory` and `deaths.experience`: kept ones are taken in a late allow-death phase and handed back by the copy-from event; dropped ones fall even with `keep_inventory` on. A death a totem will stop, or that another listener cancels, takes nothing |
 | `Wins` | Grants `<namespace>:wins/<slug>/<id>` and the root tab, broadcasts the `message` key from `config/messages.json`, sends the player on when `exit` is set. `kill` counts through the advancement's criteria; the other triggers are checked every 10 ticks for players in the level |
 | `ExitShrines` (`portal/`) | `exitShrines`: a beacon under a 2x3 frame ring, found on chunk load, registered from the level's tick as a permanent exit zone with the shrine's target, its ring laid in the dimension's frame block; saved with the portal links |
 | `ExitHooks` | Registers the events |
@@ -728,7 +731,7 @@ the server directory once; a missing key or file falls back to built-in
 defaults (`portal.no_site`, `win.earned`).
 
 The self-test's exit section uses Fabric's fake player in the fixtures: a void
-death with `keepInventory` on drops everything and respawns in
+death with `keep_inventory` on drops everything and respawns in
 `selftest_wins`; a death in `selftest_keep` keeps the inventory and level; the
 void and `death:lava` rules send the player to world spawn; `the_pillared_void`'s
 ender-pearl rule reaches `the_tiled_expanse`; a hand-built shrine registers and

@@ -1596,6 +1596,12 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t248"></a>
+### T248 — `apply.sh --dry-run` cannot see drift in a port's base hash
+- **Symptom:** the dry run prints no `!` line, and a real `cutover/apply.sh` on a clean clone stops on a ported file.
+- **Cause:** a port's recorded hash is of the file as `edits.py` leaves it, so a corrected edit drifts only a real switch.
+- **Fix:** after any change to `cutover/edits.py`, run a real `apply.sh --no-network` on a clean clone and re-record with `./cutover/mkshas.sh <switched clone> <path>`.
+
 <a id="t247"></a>
 ### T247 — A definition edit that compiles to the same pack left the pack's inputs hash stale
 - **Symptom:** after editing only a definition's `seed`, the self-test's "pack installed at start-up" line fails.

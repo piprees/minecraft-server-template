@@ -73,7 +73,7 @@ Rules: [DEPENDENCIES.md § Holds](../../../../DEPENDENCIES.md#holds). Read the l
 
 ## Two-place config rule: the flat-path exception
 
-Most mods with configuration get a directory: `config/<modname>/` (e.g. `config/openpartiesandclaims/`, `config/boring_default_game_rules/`). A few read a single bare file instead — confirmed from `docker/defaults-seed/Dockerfile`'s `COPY` lines:
+Most mods with configuration get a directory: `config/<modname>/` (e.g. `config/openpartiesandclaims/`). A few read a single bare file instead — confirmed from `docker/defaults-seed/Dockerfile`'s `COPY` lines:
 
 ```dockerfile
 COPY config/tectonic.json        /defaults/config/tectonic.json

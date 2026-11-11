@@ -45,8 +45,8 @@ Fallback: if its lifecycle does not fit lazy activation (F0), we keep our own le
 **RB-11 — One Polymer portal block implementing vanilla `Portal`, with a state per plane.**
 Why: vanilla clients and Geyser see a Nether portal, an End portal or an End gateway; ignition uses Fabric's use-block event. That removes the portal-tick, destination and ignition mixins and makes horizontal portals ordinary rather than a special case.
 
-**RB-12 — Twelve mixins or fewer, each with a game test; a new one needs a written reason.**
-Why: the weekly canary then shows which mixin a snapshot broke, one failing test per mixin. The 1.21.1 mod has 38.
+**RB-12 — Mixins stay few: each is named by a self-test line and states its reason in its javadoc.**
+Why: a mixin is the first thing a snapshot breaks, and the self-test's mixin lines show which one. Seeds per dimension (RB-37) and game rules per dimension (RB-38) reach `ServerLevel`, `MinecraftServer` and `ServerPlayer` where no event does; the count is the one `customdimensions.mixins.json` lists.
 
 **RB-13 — Clean-room rule for Stardust Labs works.**
 Nobody, human or agent, reads Terralith, Incendium, Nullscape, Structory or any other Stardust Labs files.
