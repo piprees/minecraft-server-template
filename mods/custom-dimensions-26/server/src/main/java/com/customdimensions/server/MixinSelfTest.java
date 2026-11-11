@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 /**
  * One line per mixin whose effect shows without generating terrain, each
  * naming its mixin. The structures section reads {@code StructureBiomeBypassMixin}
- * and {@code BeardifierAdaptationMixin}, the materials section
+ * and {@code BeardifierAdaptationMixin}, the zones section
  * {@code NoiseBasedAquiferMixin} and {@code DryFluidFeatureMixin}.
  */
 final class MixinSelfTest {
