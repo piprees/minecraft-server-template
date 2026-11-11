@@ -14,8 +14,9 @@ the reason it is flagged), one per placed v2 biome no 1.21.1 biome maps to (V<n>
 the 1.21.1 settings (M:<key>) and the scorecard (S:a-S:d). It ends with the rule and the fixed review questions:
 every factual statement in an answer cites a facts row id or a dossier key. The reviewer answers; the script assembles.
 
-Usage: review-packet.py <slug> <dossier.json> <shot list.json> <screenshots dir> <out review.md> [--notes FILE] [--facts FILE]
+Usage: review-packet.py <slug> <dossier.json> <shot list.json> <screenshots dir> <out review.md> [--notes FILE] [--facts FILE] [--old FILE]
   --facts also writes the facts table and scorecard as JSON.
+  --old reads the 1.21.1 definition from FILE, for a v2 slug whose 1.21.1 file has another name (the_aviary: paradise_lost.json).
 Gotchas: run from anywhere; the repository root is found from this file's location. A shot whose png is missing is
 listed as not taken, with its census if one exists. A 1.21.1 vanilla id with no mapping row maps to itself. A base
 world (overworld, the_nether, the_end) has no 1.21.1 biome list, so scorecard a and b are n/a there; a is also n/a
@@ -199,18 +200,20 @@ def main(argv):
         print(__doc__)
         return 2
     slug, dossier_path, list_path, shots_dir, out = argv[1:6]
-    notes = facts_out = None
+    notes = facts_out = old_override = None
     rest = argv[6:]
     while rest:
         if rest[0] == '--notes' and len(rest) > 1:
             notes = rest[1]
         elif rest[0] == '--facts' and len(rest) > 1:
             facts_out = rest[1]
+        elif rest[0] == '--old' and len(rest) > 1:
+            old_override = rest[1]
         else:
             print('unknown argument', rest[0], file=sys.stderr)
             return 2
         rest = rest[2:]
-    old_path = os.path.join(ROOT, 'config', 'custom-dimensions', 'dimensions', f'{slug}.json')
+    old_path = old_override or os.path.join(ROOT, 'config', 'custom-dimensions', 'dimensions', f'{slug}.json')
     new_path = os.path.join(ROOT, 'mods', 'custom-dimensions-26', 'definitions', f'{slug}.json')
     old = load(old_path) if os.path.exists(old_path) else {}
     new = load(new_path) if os.path.exists(new_path) else {}
