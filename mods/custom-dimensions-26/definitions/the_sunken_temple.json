@@ -7,33 +7,51 @@
     "type": "clone",
     "of": "adventure:the_aviary"
   },
+  "terrain": {
+    "base": "basin_islands",
+    "params": {
+      "lakeShare": 0.75,
+      "basinDepth": 16,
+      "rimHeight": 6,
+      "islandShare": 0.2,
+      "lakeSize": 2,
+      "size": 2,
+      "coverage": 0.55,
+      "tiers": 2,
+      "tierSpacing": 48,
+      "tierGap": 20,
+      "tierShrink": 0.6
+    },
+    "scales": {
+      "climate": 3
+    }
+  },
   "biomes": [
+    "minecraft:lukewarm_ocean",
+    "minecraft:warm_ocean",
+    "minecraft:deep_lukewarm_ocean",
+    "minecraft:jungle",
     "adventure:sky_highlands",
     "minecraft:meadow",
-    "minecraft:beach",
-    "minecraft:deep_lukewarm_ocean",
-    "minecraft:lukewarm_ocean",
-    "adventure:hanging_gardens",
-    "minecraft:warm_ocean",
-    "adventure:desert_oasis",
-    "minecraft:jungle"
+    "adventure:hanging_gardens"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:sky_highlands": 8.7,
-      "minecraft:meadow": 3.9,
-      "minecraft:beach": 3.6,
-      "minecraft:deep_lukewarm_ocean": 11.8,
-      "minecraft:lukewarm_ocean": 14.2,
-      "adventure:hanging_gardens": 22.4,
-      "minecraft:warm_ocean": 6.1,
-      "adventure:desert_oasis": 10.6,
-      "minecraft:jungle": 14.3
+      "minecraft:lukewarm_ocean": 25,
+      "minecraft:warm_ocean": 15,
+      "minecraft:deep_lukewarm_ocean": 10,
+      "minecraft:jungle": 25,
+      "adventure:sky_highlands": 20,
+      "minecraft:meadow": 5
+    },
+    "over": "land",
+    "roles": {
+      "adventure:hanging_gardens": "underside"
     }
   },
   "liquids": {
-    "seaLevel": 90
+    "basins": {}
   },
   "borders": {
     "player": 4096,

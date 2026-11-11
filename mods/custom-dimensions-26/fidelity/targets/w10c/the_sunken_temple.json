@@ -1,0 +1,11 @@
+{
+ "slug": "the_sunken_temple",
+ "targets": [
+  {"key": "surface.fluidCoverPercent.water", "per": "vertical.layerColumnsPercent.surface", "op": "between", "value": [0.35, 0.7], "from": "\"drowned skyland basins\", over the columns that hold ground or water (the w10t form counts the void)"},
+  {"key": "biomeExpression.biomes.minecraft:lukewarm_ocean.placementPercent.water? + biomeExpression.biomes.minecraft:warm_ocean.placementPercent.water?", "op": ">=", "value": 120, "from": "the warm oceans lie in the basins' water, not on land (two biomes, at least 60% each on average)"},
+  {"key": "surface.voidPercent", "op": "<=", "value": 15, "from": "basins between islands, little open void"},
+  {"key": "placeness.islands.sizesHa.max", "op": ">=", "value": 1000, "from": "place kind meeting: the basin masses join the islands"},
+  {"key": "placeness.landBiomeRegions.top3Percent", "op": ">=", "value": 60, "from": "place kind meeting: islands and water"},
+  {"key": "placeness.landBiomeRegions.specksPercent", "op": "<=", "value": 5, "from": "place kind meeting"}
+ ]
+}
