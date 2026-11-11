@@ -28,6 +28,10 @@
     },
     "scales": {
       "climate": 4
+    },
+    "climateWarp": {
+      "blocks": 160,
+      "wavelength": 512
     }
   },
   "biomes": [
@@ -50,7 +54,7 @@
     "mode": "regions",
     "weights": {
       "adventure:sky_highlands": 18,
-      "adventure:wisteria_grove": 20,
+      "adventure:wisteria_grove": 30,
       "adventure:golden_skygrove": 14,
       "minecraft:cherry_grove": 12,
       "minecraft:meadow": 12,

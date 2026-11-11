@@ -431,6 +431,17 @@ class PlaceLayoutTest {
     }
 
     @Test
+    void theTerrainsClimateWarpIsTheDialCappedWhereItCouldSplitAPlace() {
+        String terrain = "\"terrain\": {\"base\": \"continents\", \"climateWarp\": {\"blocks\": 160, \"wavelength\": 512}}";
+        Field f = field("p", body(terrain, FOUR, "{}", ""));
+        assertTrue(f.note().contains("edges warped 76 blocks over 512"), f.note());
+        assertTrue(f.note().contains("take terrain.climateWarp at 76 of its 160 blocks"), f.note());
+        Field own = field("p", body(terrain, FOUR, "{\"warp\": {\"blocks\": 20, \"wavelength\": 300}}", ""));
+        assertTrue(own.note().contains("edges warped 20 blocks over 300"), own.note());
+        assertFalse(own.note().contains("take terrain.climateWarp"), own.note());
+    }
+
+    @Test
     void sixteenPlacesFitTheEncoding() {
         List<String> ids = new ArrayList<>();
         for (String id : List.of("plains", "forest", "taiga", "savanna", "desert", "jungle", "swamp", "meadow", "grove", "badlands",

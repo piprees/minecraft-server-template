@@ -12,18 +12,28 @@
     "of": "adventure:the_aviary"
   },
   "terrain": {
-    "base": "spires",
-    "floor": "islands",
+    "base": "floating_islands",
     "params": {
-      "landHeight": 120,
-      "spireHeight": 120,
-      "coverage": 0.12,
-      "thickness": 2.5,
-      "taper": 0.2
+      "altitude": 120,
+      "coverage": 0.5,
+      "size": 1.75,
+      "thickness": 14,
+      "underside": 50,
+      "spread": 10,
+      "flatness": 0.5,
+      "spires": 0.2,
+      "spireHeight": 100,
+      "spireThickness": 0.75,
+      "spireTaper": 0.4
     },
     "scales": {
-      "climate": 3
-    }
+      "climate": 4
+    },
+    "climateWarp": {
+      "blocks": 160,
+      "wavelength": 640
+    },
+    "scale": 2
   },
   "biomes": [
     "adventure:wisteria_grove",
@@ -90,7 +100,8 @@
       "blend": 32,
       "biomes": [
         "adventure:ice_starfield"
-      ]
+      ],
+      "edgeJitter": 40
     },
     {
       "shape": "circle",
@@ -102,7 +113,8 @@
       "blend": 24,
       "biomes": [
         "minecraft:sparse_jungle"
-      ]
+      ],
+      "edgeJitter": 32
     }
   ],
   "atmosphere": {

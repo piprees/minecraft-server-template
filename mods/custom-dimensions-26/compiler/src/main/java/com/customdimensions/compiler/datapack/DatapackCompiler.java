@@ -820,6 +820,12 @@ public final class DatapackCompiler {
         settings.getAsJsonObject("noise_router").addProperty(key, field.id());
         entry.note("The router's " + key + " is the place field `" + field.id() + "` (" + field.nodes() + " nodes" + (warp.blocks() > 0
                 ? ", edges warped " + Math.round(warp.blocks()) + " blocks over " + Math.round(warp.wavelength()) : ", edges unwarped") + ")");
+        com.customdimensions.compiler.terrain.PlaceField.Warp terrain = PlaceLayout.terrainWarp(slug, def);
+        if (places.warp() == null && terrain != null && terrain.blocks() > warp.blocks()) {
+            entry.note("The places take terrain.climateWarp at " + Math.round(warp.blocks()) + " of its " + Math.round(terrain.blocks())
+                    + " blocks: more than " + com.customdimensions.compiler.terrain.PlaceField.MAX_WARP_RATIO
+                    + " of the wavelength could split a place; biomeLayout.places.warp sets the places' own");
+        }
     }
 
     /** The settings with a library terrain's router; its density functions and noises go into the pack. */

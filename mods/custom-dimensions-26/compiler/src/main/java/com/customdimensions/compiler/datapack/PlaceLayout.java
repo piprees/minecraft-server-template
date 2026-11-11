@@ -303,17 +303,20 @@ public final class PlaceLayout {
     /** The warp {@code places} takes in {@code def}: its own, else the terrain's climate warp, else the default for {@code radius}. */
     static PlaceField.Warp warp(String slug, Definition def, Places places, int radius) {
         if (places.warp() != null) return places.warp();
-        com.customdimensions.compiler.terrain.TerrainShaping shaping = null;
-        if (def.terrain() != null) {
-            var spec = com.customdimensions.compiler.terrain.TerrainSpec.parse(slug, def.terrain());
-            shaping = spec != null ? spec.shaping() : com.customdimensions.compiler.terrain.TerrainSpec.presetShaping(slug, def.terrain());
-        }
-        if (shaping != null && shaping.climate().warp() > 0) {
-            double w = shaping.climate().wavelength();
-            return new PlaceField.Warp(Math.min(shaping.climate().warp(), Math.floor(PlaceField.MAX_WARP_RATIO * w)), w);
+        PlaceField.Warp terrain = terrainWarp(slug, def);
+        if (terrain != null) {
+            return new PlaceField.Warp(Math.min(terrain.blocks(), Math.floor(PlaceField.MAX_WARP_RATIO * terrain.wavelength())), terrain.wavelength());
         }
         double wavelength = Math.max(64, Math.min(4096, Math.round(DEFAULT_WAVELENGTH * radius)));
         return new PlaceField.Warp(Math.round(DEFAULT_WARP * wavelength), wavelength);
+    }
+
+    /** {@code def}'s {@code terrain.climateWarp}, or null when it does not warp. */
+    static PlaceField.Warp terrainWarp(String slug, Definition def) {
+        if (def.terrain() == null) return null;
+        var spec = com.customdimensions.compiler.terrain.TerrainSpec.parse(slug, def.terrain());
+        var shaping = spec != null ? spec.shaping() : com.customdimensions.compiler.terrain.TerrainSpec.presetShaping(slug, def.terrain());
+        return shaping == null || shaping.climate().warp() <= 0 ? null : new PlaceField.Warp(shaping.climate().warp(), shaping.climate().wavelength());
     }
 
     /** {@code ids} of one role area cut by place: place {@code p}'s column on the place axis, rows by weight on the second. */
