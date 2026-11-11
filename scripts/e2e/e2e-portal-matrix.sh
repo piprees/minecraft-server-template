@@ -200,6 +200,14 @@ rcon "effect give $PLAYER minecraft:fire_resistance 999999 0 true" >/dev/null
 # Build phase — carve every bay and stand every frame up, unlit
 # ---------------------------------------------------------------------------
 say "Carve the room and build every frame, unlit"
+# The player rejoins where it left, which can be inside a bay's shell or frame:
+# a spectator does not suffocate while the bays are filled around it.
+GAME_MODE=""
+if [ "$DRY_RUN" -eq 0 ]; then
+  GAME_MODE="$(game_mode_name "$(rcon "data get entity $PLAYER playerGameType" | sed -n 's/.*: \([0-9]\)$/\1/p')")"
+  rcon "gamemode spectator $PLAYER" >/dev/null
+  note "$PLAYER is a spectator while the bays are built (was ${GAME_MODE:-unknown})"
+fi
 BAY_INDEX=0
 while [ "$BAY_INDEX" -lt "$TOTAL" ]; do
   ID="$(bay_read '.id')"
@@ -241,6 +249,10 @@ EOF
   rcon "execute in minecraft:overworld run forceload remove $CFX $CFZ $CTX $CTZ" >/dev/null
   BAY_INDEX=$((BAY_INDEX + 1))
 done
+
+if [ -n "$GAME_MODE" ]; then
+  rcon "gamemode $GAME_MODE $PLAYER" >/dev/null
+fi
 
 if [ "$BUILD_ONLY" -eq 1 ]; then
   say "--build-only: every frame is standing and unlit"

@@ -97,6 +97,14 @@ come_back_here() { # world
   come_back_through "$1" "$x" "$y" "$z"
 }
 
+# playerGameType's number as /gamemode takes it; empty for anything else.
+game_mode_name() { # 0-3
+  case "$1" in
+    0) printf 'survival' ;; 1) printf 'creative' ;; 2) printf 'adventure' ;; 3) printf 'spectator' ;;
+    *) return 1 ;;
+  esac
+}
+
 arrival_zone_count() { # world
   state_read "[.zones[] | select(.kind==\"arrival\" and .world==\"$1\")] | length"
 }

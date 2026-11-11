@@ -644,6 +644,11 @@ expect_rc "upright Z: out to the egress cell on the low x side" 0 \
 expect_rc "no arrival at the landing prints nothing" 0 \
   test -z "$(arrival_way_out adventure:the_crucible 0 0 0)"
 
+say "The game mode is put back as /gamemode names it"
+expect_rc "0 is survival" 0 test "$(game_mode_name 0)" = "survival"
+expect_rc "1 is creative" 0 test "$(game_mode_name 1)" = "creative"
+expect_rc "an unreadable reply restores nothing" 1 game_mode_name ""
+
 say "An unloaded destination is not an unlink"
 expect_rc "a loaded world reads 1" 0 test "$(world_loaded adventure:the_crucible)" = "1"
 expect_rc "a world nobody has opened reads 0, and the caller must say so" 0 \
