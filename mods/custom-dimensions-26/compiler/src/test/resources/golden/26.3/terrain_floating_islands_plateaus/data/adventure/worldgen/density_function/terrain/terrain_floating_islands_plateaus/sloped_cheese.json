@@ -410,10 +410,10 @@
           },
           "right": {
             "axis": "y",
-            "from_coordinate": -64,
-            "from_value": 64.0,
-            "to_coordinate": 320,
-            "to_value": -320.0,
+            "from_coordinate": 0,
+            "from_value": 0.0,
+            "to_coordinate": 256,
+            "to_value": -256.0,
             "type": "minecraft:gradient"
           },
           "type": "minecraft:add"
@@ -474,10 +474,10 @@
             },
             "right": {
               "axis": "y",
-              "from_coordinate": -64,
-              "from_value": 64.0,
-              "to_coordinate": 320,
-              "to_value": -320.0,
+              "from_coordinate": 0,
+              "from_value": 0.0,
+              "to_coordinate": 256,
+              "to_value": -256.0,
               "type": "minecraft:gradient"
             },
             "type": "minecraft:add"

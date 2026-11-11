@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: three tiers of floating islands 60 blocks apart, each smaller than the one under it, over lower islands and open void alike.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "altitude": 110,
+      "tiers": 3,
+      "tierSpacing": 60,
+      "tierGap": 24,
+      "tierShrink": 0.7
+    }
+  },
+  "borders": {
+    "player": 2048
+  }
+}

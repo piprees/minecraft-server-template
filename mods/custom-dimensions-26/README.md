@@ -214,7 +214,13 @@ preset's 3D noise inside vanilla's slides, and `end` (`EndTerrain`) for the
 erosion, so the End's biome source follows the shaped islands. `spires` takes
 `terrain.floor` (`land`, `sea`, `void`, `islands`); over a void or on islands it is a
 terrain over a void like `floating_islands`. On `floating_islands`, `basin_islands` and
-spires off the land, `terrain.layout` moves the coverage noise. A terrain over a
+spires off the land, `terrain.layout` moves the coverage noise. `floating_islands`
+and `basin_islands` stack up to four island layers (`tiers`), each `tierSpacing`
+above the last and smaller by `tierShrink`, with at least `tierGap` blocks of open
+sky over the tier below (`<prefix>/tier<k>_top`, `tier<k>_bottom`); the compiler
+refuses a stack whose top tier rises over the dimension's top. `floating_islands`
+also flattens its tops (`flatness`) and steps them into plateau treads
+(`terraces`, `terraceStep`). A terrain over a
 void whose biome layout ranks over land or gives a biome the `basin` role writes
 its place cue (`<prefix>/place`: -1 void, -0.4 basin water, 0.5 land) as the router's
 continentalness; one with an `underside` biome writes `<prefix>/island_depth`, the

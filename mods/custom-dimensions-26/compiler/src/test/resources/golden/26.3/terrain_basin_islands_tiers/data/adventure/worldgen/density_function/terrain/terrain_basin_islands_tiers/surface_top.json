@@ -137,10 +137,10 @@
             },
             "right": {
               "axis": "y",
-              "from_coordinate": -64,
-              "from_value": 64.0,
-              "to_coordinate": 320,
-              "to_value": -320.0,
+              "from_coordinate": 0,
+              "from_value": 0.0,
+              "to_coordinate": 256,
+              "to_value": -256.0,
               "type": "minecraft:gradient"
             },
             "type": "minecraft:add"
@@ -173,10 +173,10 @@
               },
               "right": {
                 "axis": "y",
-                "from_coordinate": -64,
-                "from_value": 64.0,
-                "to_coordinate": 320,
-                "to_value": -320.0,
+                "from_coordinate": 0,
+                "from_value": 0.0,
+                "to_coordinate": 256,
+                "to_value": -256.0,
                 "type": "minecraft:gradient"
               },
               "type": "minecraft:add"
@@ -190,7 +190,7 @@
       },
       "type": "minecraft:max"
     },
-    "lower_bound": -64,
+    "lower_bound": 0,
     "type": "minecraft:find_top_surface",
     "upper_bound": "adventure:terrain/terrain_basin_islands_tiers/height"
   },

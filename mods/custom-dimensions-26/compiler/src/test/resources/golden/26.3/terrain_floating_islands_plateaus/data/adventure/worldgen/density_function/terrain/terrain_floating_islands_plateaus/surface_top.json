@@ -126,7 +126,7 @@
       "right": 0.0,
       "type": "minecraft:add"
     },
-    "lower_bound": -64,
+    "lower_bound": 0,
     "type": "minecraft:find_top_surface",
     "upper_bound": "adventure:terrain/terrain_floating_islands_plateaus/height"
   },

@@ -605,7 +605,7 @@ public enum TerrainFamily {
         JsonElement y = negY(ctx.minY(), ctx.maxY());
         JsonElement inside = min(add(top, y), sub(c(0), add(bottom, y)));
         JsonElement place = add(mul(ramp(core, PLACE_FROM, PLACE_TO), PLACE_LAND - PLACE_VOID), PLACE_VOID);
-        Stack stack = stack(ctx, new Stack(inside, place, top), y);
+        Stack stack = stack(ctx, new Stack(inside, place, top), top, y);
         Shape shape = new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, mul(stack.inside(), 1 / 8.0), c(0.3),
                 0.1 + 0.6 * ctx.p("roughness"));
         return shape.withPlace(stack.place(), stack.top());
@@ -669,7 +669,7 @@ public enum TerrainFamily {
     record Stack(JsonElement inside, JsonElement place, JsonElement top) {}
 
     /**
-     * {@code base} with {@code tiers} − 1 further layers of plain floating islands above it. Tier k floats
+     * {@code base}, whose highest solid ground is {@code crown}, with {@code tiers} − 1 further layers of plain floating islands above it. Tier k floats
      * {@code tierSpacing} above tier k − 1 with the same altitude spread; its coverage is {@code tierCoverage} or the
      * coverage under it times {@code tierShrink}, its size, thickness and underside are those under it times
      * {@code tierShrink}, and its island noise runs {@link #TIER_FREQUENCY} times faster again, so its islands stand
@@ -677,7 +677,7 @@ public enum TerrainFamily {
      * under it: where it would, the underside is cut back, and where nothing is left the island is gone. Above
      * the midpoint of that gap the place cue and the island top are the tier's own, below it the tier under it's.
      */
-    private static Stack stack(Ctx ctx, Stack base, JsonElement y) {
+    private static Stack stack(Ctx ctx, Stack base, JsonElement crown, JsonElement y) {
         int tiers = tiers(ctx);
         if (tiers <= 1) return base;
         double m = ctx.heightMultiplier();
@@ -685,7 +685,7 @@ public enum TerrainFamily {
         double shrink = ctx.p("tierShrink");
         double coverage = ctx.p("coverage"), size = ctx.p("size"), thickness = ctx.p("thickness"), underside = ctx.p("underside");
         Stack s = base;
-        JsonElement below = base.top();
+        JsonElement below = crown;
         for (int k = 1; k < tiers; k++) {
             coverage = ctx.p("tierCoverage") > 0 ? ctx.p("tierCoverage") : coverage * shrink;
             size *= shrink;
@@ -831,9 +831,15 @@ public enum TerrainFamily {
         JsonElement open = mul(water, sub(c(1), onIsland));
         JsonElement held = max(onIsland, mul(inMass, sub(c(1), water)));
         JsonElement place = add(add(mul(open, PLACE_BASIN - PLACE_VOID), mul(held, PLACE_LAND - PLACE_VOID)), PLACE_VOID);
+        JsonElement crown = max(top, floor);
         JsonElement islandTop = max(sub(top, mul(sub(c(1), ramp(core, 0, ISLAND_CLIFF_FROM)), NO_ISLAND_DROP)), floor);
-        if (tiers(ctx) > 1) islandTop = ctx.named("tier0_top", islandTop);
-        Stack stack = stack(ctx, new Stack(max(island, mass), place, islandTop), y);
+        if (tiers(ctx) > 1) {
+            crown = ctx.named("tier0_crown", crown);
+            islandTop = ctx.named("tier0_top", islandTop);
+        }
+        Stack stack = stack(ctx, new Stack(max(island, mass), place, islandTop), crown, y);
+        return new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, mul(stack.inside(), 1 / 8.0), c(0.3), 0.1 + 0.6 * ctx.p("roughness"))
+                .withSolid(sealed).withPlace(stack.place(), stack.top());
         return new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, mul(stack.inside(), 1 / 8.0), c(0.3), 0.1 + 0.6 * ctx.p("roughness"))
                 .withSolid(sealed).withPlace(stack.place(), stack.top());
     }
