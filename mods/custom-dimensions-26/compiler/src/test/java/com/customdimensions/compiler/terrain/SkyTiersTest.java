@@ -131,6 +131,11 @@ class SkyTiersTest {
     private static final String TIER1 = ISLANDS + "@" + Math.round(1.31 / 0.5 * 10000) / 10000.0;
 
     @Test
+    void theNarrowestGapStillReadsAsASkyLayerInTheSurvey() {
+        assertEquals(com.customdimensions.core.survey.PatchAnalysis.GAP, TerrainFamily.FLOATING_ISLANDS.param("tierGap").min());
+    }
+
+    @Test
     void oneTierIsTheSingleLayerWithNoTierFunctions() {
         Built b = build("{\"base\": \"floating_islands\"}");
         assertTrue(b.named().isEmpty(), "no named functions: " + b.named().keySet());
@@ -263,6 +268,24 @@ class SkyTiersTest {
             if (Math.abs(a - Math.round((a - 166) / 8) * 8 - 166) < 0.5) flat++;
         }
         assertTrue(flat >= 0.75 * n, "most of a terraced top is on a level: " + flat + " of " + n);
+    }
+
+    @Test
+    void oneTerraceLevelCutsTheSpreadsTiltIntoLevelTreads() {
+        Built b = build("{\"base\": \"floating_islands\", \"params\": {\"flatness\": 1, \"terraces\": 1, \"terraceStep\": 6, \"spread\": 24}}");
+        double sa = Noises.sigma("altitude");
+        int onTread = 0, n = 0;
+        double lowest = Double.MAX_VALUE, highest = -Double.MAX_VALUE;
+        for (double a = -1; a <= 1; a += 0.01, n++) {
+            double top = eval(b, b.shape().top(), column(ISLANDS, islands(0.3, 1), ALTITUDE, a * sa), 0);
+            double layer = 150 + 24 * a;
+            assertTrue(top <= layer + 16 + 1e-9, "a tread never rises over the layer it floors: " + top + " at layer " + layer);
+            if (Math.abs((top - 166) / 6 - Math.round((top - 166) / 6)) < 0.05) onTread++;
+            lowest = Math.min(lowest, top);
+            highest = Math.max(highest, top);
+        }
+        assertTrue(onTread >= 0.8 * n, "the tilt lands on treads 6 apart: " + onTread + " of " + n);
+        assertTrue(highest - lowest >= 40, "the treads keep the tilt's 48 blocks of fall: " + lowest + " to " + highest);
     }
 
     // ---- validation ---------------------------------------------------------------------------------

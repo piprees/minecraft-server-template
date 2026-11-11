@@ -101,8 +101,8 @@ public enum TerrainFamily {
                     new TerrainParam("coverage", 0.02, 0.8, 0.3, "Share of the sky with islands"),
                     new TerrainParam("size", 0.25, 4, 1, "Island size; higher is larger and fewer"),
                     new TerrainParam("spread", 0, 80, 24, "Blocks island altitudes vary by"),
-                    new TerrainParam("flatness", 0, 1, 0, "Shape of an island's top: 0 a dome, 1 a flat table that rolls off over a short edge"),
-                    count("terraces", 0, 5, 0, "Plateau levels a flat top breaks into, each terraceStep above the last; 0 or 1 is one level"),
+                    new TerrainParam("flatness", 0, 1, 0, "Shape of an island's top: 0 a dome; higher reaches the full thickness nearer the edge and stays flat inside it, 1 a table with a short roll-off"),
+                    count("terraces", 0, 5, 0, "Plateau levels of an island top: 1 floors the layer's tilt into level treads terraceStep apart; 2 or more also lift patches of the top by up to one level fewer; 0 leaves the top unstepped"),
                     new TerrainParam("terraceStep", 2, 32, 6, "Blocks between plateau levels")), TerrainParam.TIERS),
             Map.of(),
             Map.of("coverage", 0.15, "thickness", 8.0, "underside", 14.0, "spread", 10.0),
@@ -599,7 +599,7 @@ public enum TerrainFamily {
         JsonElement n = laidOut(ctx, ctx.noise("islands", 1 / ctx.p("size"), 0), sigma);
         JsonElement core = Df.cache(ramp(n, t, t + sigma));
         JsonElement layer = add(spread(ctx), ctx.p("altitude"));
-        JsonElement top = islandTop(ctx, layer, core, ctx.p("thickness") * m, ctx.p("size"));
+        JsonElement top = islandTop(ctx, layer, core, ctx.p("thickness") * m, ctx.p("size"), ctx.p("altitude"));
         if (tiers(ctx) > 1) top = ctx.named("tier0_top", top);
         JsonElement bottom = add(sub(layer, mul(core, ctx.p("underside") * m)), 2);
         JsonElement y = negY(ctx.minY(), ctx.maxY());
@@ -624,29 +624,33 @@ public enum TerrainFamily {
     static final double TERRACE_SPAN = 1.5;
 
     /**
-     * An island's top over {@code layer}: {@code thickness} times a profile of its core, from the dome
-     * {@code sqrt(core)} at {@code flatness} 0 to a table that reaches its full height over the first
-     * {@link #FLAT_EDGE} of the core at 1. With {@code terraces} of 2 or more, the detail noise (at the
-     * island noise's frequency for {@code size}) lifts the table in {@code terraceStep} levels over the same edge,
-     * so a mass breaks into plateaus at different heights.
+     * An island's top over {@code layer} (whose nominal height is {@code altitude}): {@code thickness} times a
+     * profile of its core, {@code sqrt(min(1, core / edge))}: the dome {@code sqrt(core)} at {@code flatness} 0, and as
+     * flatness rises the top reaches its full height over a narrower edge, down to the first {@link #FLAT_EDGE} of the
+     * core at 1, flat across the rest. With {@code terraces} of 1 or more the layer under
+     * the top is floored into level treads {@code terraceStep} apart from {@code altitude}, so the tilt
+     * {@code spread} gives a mass becomes a stair of flat plateaus; with 2 or more the detail noise (at the
+     * island noise's frequency for {@code size}) first lifts patches of it by up to {@code terraces} − 1 levels
+     * over the same edge, so a mass breaks into plateaus standing over one another. A tread never rises above the
+     * layer it floors, so no sliver stands off an island's edge.
      */
-    private static JsonElement islandTop(Ctx ctx, JsonElement layer, JsonElement core, double thickness, double size) {
+    private static JsonElement islandTop(Ctx ctx, JsonElement layer, JsonElement core, double thickness, double size, double altitude) {
         double flat = ctx.p("flatness", 0);
         JsonElement dome = sqrt(core);
         JsonElement profile = dome;
-        if (flat > 0) {
-            JsonElement table = sqrt(ramp(core, 0, FLAT_EDGE));
-            profile = flat >= 1 ? table : add(mul(dome, 1 - flat), mul(table, flat));
-        }
-        JsonElement top = add(add(layer, mul(profile, thickness)), -2);
+        if (flat > 0) profile = sqrt(ramp(core, 0, 1 - (1 - FLAT_EDGE) * flat));
         int levels = (int) ctx.p("terraces", 0);
-        if (levels >= 2) {
+        JsonElement base = layer;
+        if (levels >= 1) {
             double step = ctx.p("terraceStep");
-            JsonElement d = clamp(mul(ctx.noise("detail", 1 / size, 0), 1 / Noises.sigma("detail")), -TERRACE_SPAN, TERRACE_SPAN);
-            JsonElement raw = mul(add(d, TERRACE_SPAN), (levels - TERRACE_RISER) * step / (2 * TERRACE_SPAN));
-            top = add(top, mul(steps(raw, 0, step, TERRACE_RISER), ramp(core, 0, FLAT_EDGE)));
+            if (levels >= 2) {
+                JsonElement d = clamp(mul(ctx.noise("detail", 1 / size, 0), 1 / Noises.sigma("detail")), -TERRACE_SPAN, TERRACE_SPAN);
+                JsonElement lift = mul(add(d, TERRACE_SPAN), (levels - 1) * step / (2 * TERRACE_SPAN));
+                base = add(base, mul(lift, ramp(core, 0, FLAT_EDGE)));
+            }
+            base = steps(base, altitude, step, TERRACE_RISER);
         }
-        return top;
+        return add(add(base, mul(profile, thickness)), -2);
     }
 
     /** The island layers a terrain over a void lays, counting its own. */
@@ -690,8 +694,9 @@ public enum TerrainFamily {
             double t = Noises.threshold(coverage, sigma);
             JsonElement n = laidOut(ctx, ctx.noise("islands", Math.pow(TIER_FREQUENCY, k) / size, 0), sigma);
             JsonElement core = Df.cache(ramp(n, t, t + sigma));
-            JsonElement layer = add(spread(ctx), ctx.p("altitude") + k * ctx.p("tierSpacing"));
-            JsonElement top = ctx.named("tier" + k + "_top", islandTop(ctx, layer, core, thickness * m, size));
+            double altitude = ctx.p("altitude") + k * ctx.p("tierSpacing");
+            JsonElement layer = add(spread(ctx), altitude);
+            JsonElement top = ctx.named("tier" + k + "_top", islandTop(ctx, layer, core, thickness * m, size, altitude));
             JsonElement bottom = ctx.named("tier" + k + "_bottom",
                     max(add(sub(layer, mul(core, underside * m)), 2), add(below, ctx.p("tierGap"))));
             JsonElement inside = min(add(top, y), sub(c(0), add(bottom, y)));

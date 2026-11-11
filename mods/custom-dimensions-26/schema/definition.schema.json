@@ -1757,14 +1757,14 @@
           "default": 24
         },
         "flatness": {
-          "description": "Shape of an island's top: 0 a dome, 1 a flat table that rolls off over a short edge",
+          "description": "Shape of an island's top: 0 a dome; higher reaches the full thickness nearer the edge and stays flat inside it, 1 a table with a short roll-off",
           "type": "number",
           "minimum": 0,
           "maximum": 1,
           "default": 0
         },
         "terraces": {
-          "description": "Plateau levels a flat top breaks into, each terraceStep above the last; 0 or 1 is one level",
+          "description": "Plateau levels of an island top: 1 floors the layer's tilt into level treads terraceStep apart; 2 or more also lift patches of the top by up to one level fewer; 0 leaves the top unstepped",
           "type": "integer",
           "minimum": 0,
           "maximum": 5,
