@@ -672,6 +672,11 @@ require_player_online() {
     printf 'Rejoin the client first: ./dev launch --dev-bridge\n' >&2
     exit 1
   fi
+  # A dead player stays on the death screen: commands report success and move nothing.
+  if rcon "data get entity $PLAYER Health" | grep -qE ' 0\.0f$'; then
+    printf '\033[31mREFUSING TO RUN\033[0m — %s is dead (on the death screen); respawn it first.\n' "$PLAYER" >&2
+    exit 1
+  fi
   note "player online: $PLAYER in $(player_dimension)"
 }
 
