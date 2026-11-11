@@ -430,7 +430,7 @@ EOF
   report_metric "$ID: the arrival the player landed in" "$AX $AY $AZ" \
     "carved or reused — an arrival coordinate is not stable across a break"
   assert_state "$ID: an arrival zone stands where the player landed" \
-    "[$(arrival_zone_select "$DIMENSION" "$AX" "$AY" "$AZ")] | length" 1
+    "[$(arrival_landed_select "$DIMENSION" "$AX" "$AY" "$AZ")] | length" 1
   ARR_AFTER="$(arrival_zone_count "$DIMENSION")"
   report_metric "$ID: arrival zones in $DIMENSION" "$ARR_AFTER" "was $ARR_BEFORE before the crossing"
   printf 'arrival after first crossing: %s %s %s (zones %s -> %s)\n' \
@@ -438,15 +438,8 @@ EOF
 
   # -------------------------------------------------------------- 3. RETURN
   say "  3. come back"
-  # The player is standing IN the arrival, so the return fires by itself once
-  # the portal cooldown expires. If it does not, put them back in the cell
-  # once and say which path was needed.
-  RETURN_PATH="unprompted"
-  if ! wait_for_dimension minecraft:overworld "$POLL_SECONDS"; then
-    RETURN_PATH="re-entered the arrival cell"
-    rcon "execute in $DIMENSION run tp $PLAYER $AX.5 $AY $AZ.5" >/dev/null
-    wait_for_dimension minecraft:overworld "$POLL_SECONDS" || true
-  fi
+  come_back_through "$DIMENSION" "$AX" "$AY" "$AZ" || true
+  RETURN_PATH="$RETURN_NOTE"
   if [ "$(player_dimension)" = "minecraft:overworld" ]; then
     _record ok "$ID: the return trip landed back in the overworld" \
       "minecraft:overworld" "$DIM_NOTE ($RETURN_PATH)"
@@ -491,7 +484,7 @@ EOF
     verdict S_BREAK fail
   elif [ "$SYMMETRIC" = "true" ]; then
     assert_state "$ID: the arrival unlinked with the source" \
-      "[$(arrival_zone_select "$DIMENSION" "$AX" "$AY" "$AZ")] | length" 0
+      "[$(arrival_landed_select "$DIMENSION" "$AX" "$AY" "$AZ")] | length" 0
     assert_file_contains "$ID: the server said it closed the far end" \
       "$RUN_DIR/dim/$ID.break.log" "Source portal broken in"
     verdict S_BREAK ok
@@ -499,7 +492,7 @@ EOF
     # PortalHelper.breakLinkedArrival returns 0 for an anchor definition: one
     # arrival is shared by every source into that dimension.
     assert_state "$ID: ANCHOR — the shared arrival survives the source break" \
-      "[$(arrival_zone_select "$DIMENSION" "$AX" "$AY" "$AZ")] | length" 1
+      "[$(arrival_landed_select "$DIMENSION" "$AX" "$AY" "$AZ")] | length" 1
     assert_at_most "$ID: ANCHOR — nothing claimed to close the far end" \
       "$RUN_DIR/dim/$ID.break.log" "Source portal broken in" 0
     verdict S_BREAK ok
@@ -525,16 +518,19 @@ EOF
     _record fail "$ID: the rebuilt frame lit again" "one source zone" \
       "$(state_read "[$(source_zone_select "$IX" "$IY" "$IZ")] | length")"
   fi
+  log_mark
   rcon "execute in minecraft:overworld run tp $PLAYER $ENTER $LOOK" >/dev/null
   if wait_for_dimension "$DIMENSION" "$POLL_SECONDS"; then
+    log_since "$RUN_DIR/dim/$ID.relight.log"
     BX2A="$(state_read "$PLAYER_SELECT | .blockPos[0]")"
     BY2A="$(state_read "$PLAYER_SELECT | .blockPos[1]")"
     BZ2A="$(state_read "$PLAYER_SELECT | .blockPos[2]")"
-    # findRegisteredPortalNear's own box: (5, 16) in (x/z, y).
-    if within_reuse_box "$BX2A" "$BY2A" "$BZ2A" "$AX" "$AY" "$AZ"; then
-      RELIGHT_SAW="linked-to-old"
-    else
+    # A new arrival on the same column stands on the same cells as the closed
+    # one, so the server's own "Created portal" line tells new from reused.
+    if grep -aq "Created portal in $DIMENSION" "$RUN_DIR/dim/$ID.relight.log"; then
       RELIGHT_SAW="new-arrival"
+    else
+      RELIGHT_SAW="linked-to-old"
     fi
     report_metric "$ID: what the re-lit frame did" "$RELIGHT_SAW" \
       "first arrival $AX $AY $AZ, second $BX2A $BY2A $BZ2A"
@@ -549,7 +545,7 @@ EOF
     AX="$BX2A"; AY="$BY2A"; AZ="$BZ2A"
     printf 'relight: expected %s, saw %s; arrival now %s %s %s\n' \
       "$RELIGHT_EXPECT" "$RELIGHT_SAW" "$AX" "$AY" "$AZ" >> "$BAY_LOG"
-    wait_for_dimension minecraft:overworld "$POLL_SECONDS" || true
+    come_back_here "$DIMENSION" || true
   else
     _record fail "$ID: the re-lit frame crossed again" "$DIMENSION" "$DIM_NOTE"
     verdict S_RELIGHT fail
@@ -595,7 +591,7 @@ EOF
           "[.zones[] | select(.kind==\"arrival\" and .world==\"$DIMENSION\")] | length" \
           "$ARR_BEFORE_TWIN"
         verdict S_PROX ok
-        wait_for_dimension minecraft:overworld "$POLL_SECONDS" || true
+        come_back_here "$DIMENSION" || true
       else
         _record fail "$ID: the neighbour crossed into $DIMENSION" "$DIMENSION" "$DIM_NOTE"
         verdict S_PROX fail
@@ -688,7 +684,7 @@ EOF
   if wait_for_dimension "$DIMENSION" "$POLL_SECONDS"; then
     sleep 3
     assert_shot "$ID: the destination itself, for comparison" "$ID-destination"
-    wait_for_dimension minecraft:overworld "$POLL_SECONDS" || true
+    come_back_here "$DIMENSION" || true
     verdict S_RENDER ok
   else
     _record fail "$ID: crossed to photograph the destination" "$DIMENSION" "$DIM_NOTE"
@@ -735,6 +731,12 @@ BAY_INDEX=0
 while [ "$BAY_INDEX" -lt "$TOTAL" ]; do
   run_bay
   BAY_INDEX=$((BAY_INDEX + 1))
+  # A dead player answers every later command with success and moves nowhere.
+  if [ "$DRY_RUN" -eq 0 ] && rcon "data get entity $PLAYER Health" | grep -qE ' 0\.0f$'; then
+    _record fail "the player is alive after bay $BAY_INDEX" "alive" \
+      "dead — the remaining $((TOTAL - BAY_INDEX)) bays were not run"
+    break
+  fi
 done
 
 # ---------------------------------------------------------------------------

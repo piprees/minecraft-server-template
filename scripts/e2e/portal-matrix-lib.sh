@@ -33,6 +33,70 @@ arrival_zone_select() { # world x y z
     "$1" "$2" "$3" "$4"
 }
 
+# The arrival a player landed in, from where they landed: PortalZone.landing
+# puts them in the opening's lowest cell, or one above it when the opening is flat.
+arrival_landed_select() { # world x y z
+  printf '.zones[] | select(.kind=="arrival" and .world=="%s" and (.axis as $a | any(.interior[]; . == [%s,%s,%s] or ($a == "Y" and . == [%s,%s,%s]))))' \
+    "$1" "$2" "$3" "$4" "$2" "$(( $3 - 1 ))" "$4"
+}
+
+# A block coordinate's centre as tp takes it: "$x.5" is the wrong block for a negative x.
+block_centre() { # integer
+  all_integers "$1" || return 2
+  awk -v v="$1" 'BEGIN { printf "%.1f", v + 0.5 }'
+}
+
+# Two standing places for the arrival found by arrival_landed_select, as
+# "outX outY outZ inX inY inZ" centres: one cell beside the opening (an upright
+# one's egress cell, which has footing; a flat one's frame ring), and the
+# opening's lowest corner cell. A player standing in a portal on cooldown keeps
+# the cooldown topped up (Entity.setAsInsidePortal), so the way back is out, then in.
+arrival_way_out() { # world x y z
+  local out
+  all_integers "$2" "$3" "$4" || return 2
+  out="$(state_read "[$(arrival_landed_select "$1" "$2" "$3" "$4")][0]
+    | if . == null then empty else
+        (.interior | map(.[0]) | min) as \$x | (.interior | map(.[1]) | min) as \$y
+        | (.interior | map(.[2]) | min) as \$z
+        | (if .axis == \"X\" then [\$x, \$y, \$z - 1]
+           elif .axis == \"Z\" then [\$x - 1, \$y, \$z]
+           else [\$x - 1, \$y + 1, \$z] end) as \$out
+        | [\$out[0] + 0.5, \$out[1], \$out[2] + 0.5, \$x + 0.5, \$y, \$z + 0.5]
+        | map(tostring) | join(\" \") end")" || return 1
+  printf '%s' "$out"
+}
+
+# Steps out of the arrival the player stands in and back into it, then waits
+# for the overworld. RETURN_NOTE says which path was taken.
+# shellcheck disable=SC2034  # RETURN_NOTE is read by e2e-portal-matrix.sh
+come_back_through() { # world x y z
+  local out_x out_y out_z in_x in_y in_z cx cz
+  if read -r out_x out_y out_z in_x in_y in_z <<EOF && [ -n "$in_z" ]
+$(arrival_way_out "$1" "$2" "$3" "$4")
+EOF
+  then
+    rcon "execute in $1 run tp $PLAYER $out_x $out_y $out_z" >/dev/null
+    sleep 2
+    rcon "execute in $1 run tp $PLAYER $in_x $in_y $in_z" >/dev/null
+    RETURN_NOTE="stepped out to $out_x $out_y $out_z and back in at $in_x $in_y $in_z"
+  else
+    cx="$(block_centre "$2")" && cz="$(block_centre "$4")" || { RETURN_NOTE="no landing cell"; return 1; }
+    rcon "execute in $1 run tp $PLAYER $cx $3 $cz" >/dev/null
+    RETURN_NOTE="no arrival zone at the landing; re-entered $cx $3 $cz"
+  fi
+  wait_for_dimension minecraft:overworld "$POLL_SECONDS"
+}
+
+# The same from wherever the player stands now.
+come_back_here() { # world
+  local x y z
+  state_refresh >/dev/null 2>&1 || true
+  x="$(state_read "$PLAYER_SELECT | .blockPos[0]")"
+  y="$(state_read "$PLAYER_SELECT | .blockPos[1]")"
+  z="$(state_read "$PLAYER_SELECT | .blockPos[2]")"
+  come_back_through "$1" "$x" "$y" "$z"
+}
+
 arrival_zone_count() { # world
   state_read "[.zones[] | select(.kind==\"arrival\" and .world==\"$1\")] | length"
 }

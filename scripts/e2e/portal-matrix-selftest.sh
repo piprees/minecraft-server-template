@@ -591,7 +591,13 @@ cat > "$FXS" <<'JSON'
    "axis": "X", "resident": true, "frameStands": true,
    "interior": [[57, 74, 74], [58, 74, 74]]},
   {"kind": "arrival", "world": "minecraft:overworld", "targetWorld": "adventure:the_crucible",
-   "axis": "X", "resident": true, "frameStands": true, "interior": [[300, 70, 300]]}]}
+   "axis": "X", "resident": true, "frameStands": true, "interior": [[300, 70, 300]]},
+  {"kind": "arrival", "world": "adventure:the_abyssal_shrine", "targetWorld": "minecraft:overworld",
+   "axis": "Y", "resident": true, "frameStands": true,
+   "interior": [[-425, 90, -375], [-424, 90, -375], [-425, 90, -374], [-424, 90, -374]]},
+  {"kind": "arrival", "world": "adventure:the_greywoods", "targetWorld": "minecraft:overworld",
+   "axis": "Z", "resident": true, "frameStands": true,
+   "interior": [[-40, 64, -12], [-40, 65, -12], [-40, 64, -11], [-40, 65, -11]]}]}
 JSON
 # shellcheck disable=SC2034  # read by lib.sh's state helpers
 STATE_FILE="$FXS"
@@ -611,6 +617,32 @@ expect "keyed on the world it STANDS in, the crucible holds exactly one arrival"
 expect "a source zone's own cell is not an arrival" fail "0" \
   assert_json "the source cell" "$FXS" \
   "[$(arrival_zone_select adventure:the_crucible 228 130 297)] | length" 1
+
+say "A flat arrival is landed on, one cell above its plane"
+expect_rc "a landing one above a flat opening finds it" 0 \
+  test "$(state_read "[$(arrival_landed_select adventure:the_abyssal_shrine -425 91 -375)] | length")" = "1"
+expect_rc "the plane cell itself finds it too" 0 \
+  test "$(state_read "[$(arrival_landed_select adventure:the_abyssal_shrine -425 90 -375)] | length")" = "1"
+expect_rc "one above an UPRIGHT opening's top is not that opening" 0 \
+  test "$(state_read "[$(arrival_landed_select adventure:the_greywoods -40 66 -12)] | length")" = "0"
+expect_rc "an upright opening's lowest cell finds it" 0 \
+  test "$(state_read "[$(arrival_landed_select adventure:the_crucible 57 74 74)] | length")" = "1"
+
+say "Block centres for tp — \$x.5 is the wrong block below zero"
+expect_rc "-425 centres at -424.5" 0 test "$(block_centre -425)" = "-424.5"
+expect_rc "57 centres at 57.5" 0 test "$(block_centre 57)" = "57.5"
+expect_rc "0 centres at 0.5" 0 test "$(block_centre 0)" = "0.5"
+expect_rc "a sentence is refused" 2 block_centre "No entity was found"
+
+say "The way out of an arrival and back in"
+expect_rc "flat: out onto the frame ring, in at the plane's corner" 0 \
+  test "$(arrival_way_out adventure:the_abyssal_shrine -425 91 -375)" = "-425.5 91 -374.5 -424.5 90 -374.5"
+expect_rc "upright X: out to the egress cell on the low z side" 0 \
+  test "$(arrival_way_out adventure:the_crucible 57 74 74)" = "57.5 74 73.5 57.5 74 74.5"
+expect_rc "upright Z: out to the egress cell on the low x side" 0 \
+  test "$(arrival_way_out adventure:the_greywoods -40 64 -12)" = "-40.5 64 -11.5 -39.5 64 -11.5"
+expect_rc "no arrival at the landing prints nothing" 0 \
+  test -z "$(arrival_way_out adventure:the_crucible 0 0 0)"
 
 say "An unloaded destination is not an unlink"
 expect_rc "a loaded world reads 1" 0 test "$(world_loaded adventure:the_crucible)" = "1"
