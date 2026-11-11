@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 2,
+  "description": "A pocket foundry burrowed in glassy rock. Basalt columns, thermal vents, quartz light in the dark — piglin engineers built this as a proving ground. Small, self-contained, still warm.",
+  "seed": 1093495015016354409,
+  "spawn": [
+    -128,
+    101,
+    128
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "caves"
+  },
+  "biomes": [
+    "adventure:crystal_hollows",
+    "minecraft:sulfur_caves",
+    "adventure:blackstone_basin",
+    "adventure:quartz_flats",
+    "minecraft:basalt_deltas",
+    "adventure:magmatic_caves"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:crystal_hollows": 12,
+      "minecraft:sulfur_caves": 6,
+      "adventure:blackstone_basin": 52,
+      "adventure:quartz_flats": 6,
+      "minecraft:basalt_deltas": 14,
+      "adventure:magmatic_caves": 10
+    },
+    "places": {
+      "groups": {
+        "columns": [
+          "minecraft:basalt_deltas",
+          "adventure:quartz_flats"
+        ],
+        "vents": [
+          "adventure:magmatic_caves",
+          "minecraft:sulfur_caves"
+        ]
+      }
+    }
+  },
+  "dimensionType": {
+    "hasSkylight": false,
+    "hasCeiling": true,
+    "infiniburn": "#minecraft:infiniburn_nether"
+  },
+  "atmosphere": {
+    "fogColor": "#3A1508",
+    "ambientLight": 0.12
+  },
+  "borders": {
+    "player": 256,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.5
+  },
+  "structures": {
+    "wants": {
+      "ati_structures:quarry": {
+        "min": 0,
+        "max": 256
+      }
+    },
+    "noise": {
+      "endgame": "sparse"
+    },
+    "force": [
+      {
+        "structure": "mns:crimson_forge",
+        "x": -60,
+        "z": -40
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:polished_blackstone",
+      "igniterItem": "minecraft:blaze_rod",
+      "color": "E8641E",
+      "lightLevel": 13,
+      "scale": 16.0,
+      "cooldown": 40,
+      "shape": "door",
+      "anchor": {
+        "pos": [
+          148,
+          64,
+          -97
+        ],
+        "exit": "bed"
+      },
+      "particleType": "minecraft:small_flame",
+      "sounds": {
+        "ignite": "item.firecharge.use",
+        "enter": "block.blastfurnace.fire_crackle",
+        "exit": "block.fire.extinguish"
+      },
+      "aura": {
+        "subsume": "natural",
+        "palette": [
+          "minecraft:blackstone",
+          "minecraft:basalt",
+          "minecraft:magma_block",
+          "minecraft:polished_blackstone",
+          "minecraft:quartz_block"
+        ],
+        "flora": [],
+        "fluids": [
+          "minecraft:lava"
+        ],
+        "fireChance": 0.05
+      }
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:sulfur_caves",
+      "adventure:magmatic_caves"
+    ]
+  }
+}
