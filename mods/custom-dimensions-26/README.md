@@ -698,8 +698,9 @@ What an aura may replace is the live `subsume` of the dimension whose nature
 leaks (the link's target, at both ends): `none` replaces nothing and adds no
 fire or fluid, `natural` (the default) spares `#adventure:aura_protected`, and
 `everything` replaces anything. Under every policy it never touches a claimed
-chunk, the opening and its neighbours (the frame), a block entity, bedrock or a
-portal. The tag lists crafted blocks and is checked against the 26.3 block list
+chunk, the opening and its neighbours (the frame) of any portal in the level,
+a block entity, bedrock or a portal; a source's passes also leave its own
+frame materials alone, so a second frame built beside it stands, lit or not. The tag lists crafted blocks and is checked against the 26.3 block list
 by `AuraDataTest`. Budgets and palettes are saved with the portal links every
 1200 ticks while they change, on exhaustion and at shutdown; 1.21.1 aura fields
 and `aura-site-v1` records load.
