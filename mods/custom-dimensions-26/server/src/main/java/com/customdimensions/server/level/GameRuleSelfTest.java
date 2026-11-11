@@ -21,6 +21,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.gamerules.GameRule;
@@ -39,9 +40,11 @@ import net.minecraft.world.phys.AABB;
  */
 public final class GameRuleSelfTest {
     static final String SLUG = "selftest_rules";
-    static final BlockPos DEATH = new BlockPos(2, 0, 2);
-    static final BlockPos BREAK = new BlockPos(6, 0, 2);
-    static final BlockPos ICE = new BlockPos(10, 0, 2);
+    /** A chunk of the section's own in both levels, away from every other section's positions. */
+    static final ChunkPos GROUND = new ChunkPos(-3, 5);
+    static final BlockPos DEATH = GROUND.getBlockAt(2, 0, 4);
+    static final BlockPos BREAK = GROUND.getBlockAt(7, 0, 4);
+    static final BlockPos ICE = GROUND.getBlockAt(12, 0, 4);
     static final int MELT_TICKS = 400;
     /** The fixture's seed: a lazy level generates from its definition's seed in every reader as a base world does. */
     static final long SEED = 3;
@@ -117,9 +120,12 @@ public final class GameRuleSelfTest {
         LevelManager manager = LevelManager.get().orElseThrow();
         return manager.activate(SLUG).thenCompose(a -> {
             ServerLevel lazy = a.level();
-            for (ServerLevel level : List.of(lazy, over)) level.setChunkForced(0, 0, true);
-            return until(() -> lazy.getChunkSource().getChunkNow(0, 0) != null && over.getChunkSource().getChunkNow(0, 0) != null, 20 * 60)
+            for (ServerLevel level : List.of(lazy, over)) level.setChunkForced(GROUND.x(), GROUND.z(), true);
+            return until(() -> entitiesTicking(lazy) && entitiesTicking(over), 20 * 60)
                     .thenCompose(loaded -> {
+                        for (ServerLevel level : List.of(lazy, over)) {
+                            for (BlockPos at : List.of(DEATH, BREAK, ICE)) clearGround(level, at);
+                        }
                         lines.add(LevelSeedSelfTest.seedLine(server, lazy, SEED));
                         lines.add(differ(lazy, over));
                         lines.add(deaths(lazy, over));
@@ -134,7 +140,7 @@ public final class GameRuleSelfTest {
                     .thenCompose(v -> sharedWeather(manager))
                     .thenCompose(v -> dragonFightSeed(manager))
                     .whenComplete((v, e) -> {
-                        for (ServerLevel level : List.of(lazy, over)) level.setChunkForced(0, 0, false);
+                        for (ServerLevel level : List.of(lazy, over)) level.setChunkForced(GROUND.x(), GROUND.z(), false);
                         LevelGameRules.selfTestValues(Level.OVERWORLD, overOwn);
                         store.set(GameRules.KEEP_INVENTORY, keep, server);
                         store.set(GameRules.BLOCK_DROPS, drops, server);
@@ -255,6 +261,24 @@ public final class GameRuleSelfTest {
                 + ", and the store's " + got.get(4) + " in the nether (want " + want + ")";
     }
 
+    /** {@link #GROUND} is entity-ticking with its entities loaded: an item added there is in a section a query sees. */
+    private static boolean entitiesTicking(ServerLevel level) {
+        return level.areEntitiesActuallyLoadedAndTicking(GROUND) && level.areEntitiesLoaded(GROUND.pack());
+    }
+
+    /** A stone floor under {@code at}'s column at the surface and open air above it, so drops land where they are counted. */
+    private static void clearGround(ServerLevel level, BlockPos at) {
+        int y = PortalWorld.surfaceY(level, at.getX(), at.getZ());
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                level.setBlockAndUpdate(new BlockPos(at.getX() + dx, y - 1, at.getZ() + dz), Blocks.STONE.defaultBlockState());
+                for (int dy = 0; dy < 4; dy++) {
+                    level.setBlockAndUpdate(new BlockPos(at.getX() + dx, y + dy, at.getZ() + dz), Blocks.AIR.defaultBlockState());
+                }
+            }
+        }
+    }
+
     /** {@code keep_inventory} judged in the level of the death: kept there and back after a respawn in the overworld, dropped in the overworld. */
     private String deaths(ServerLevel lazy, ServerLevel over) {
         int[] dropped = new int[2];
@@ -281,7 +305,19 @@ public final class GameRuleSelfTest {
         boolean ok = dropped[0] == 0 && carried[0] == 4 && dropped[1] == 4 && carried[1] == 0;
         return (ok ? "PASS" : "FAIL") + " keep_inventory acts in the level of the death: in " + SLUG + " " + dropped[0]
                 + " dropped and " + carried[0] + " carried after a respawn in the overworld; in the overworld " + dropped[1]
-                + " dropped and " + carried[1] + " carried";
+                + " dropped and " + carried[1] + " carried" + (ok ? "" : surroundings(levels, DEATH));
+    }
+
+    /** For a failing row: what each level holds around {@code at} and whether its entities are visible to a query. */
+    private static String surroundings(List<ServerLevel> levels, BlockPos at) {
+        List<String> out = new ArrayList<>();
+        for (ServerLevel level : levels) {
+            BlockPos top = new BlockPos(at.getX(), PortalWorld.surfaceY(level, at.getX(), at.getZ()), at.getZ());
+            out.add(level.dimension().identifier() + " surface " + top.getY() + " " + level.getBlockState(top.below()).getBlock().getDescriptionId()
+                    + ", items within 16 " + level.getEntitiesOfClass(ItemEntity.class, new AABB(top).inflate(16)).size()
+                    + ", entities ticking " + entitiesTicking(level));
+        }
+        return " (" + String.join("; ", out) + ")";
     }
 
     /** {@code block_drops}: a broken block drops nothing in {@value #SLUG} and its item in the overworld. */
@@ -297,8 +333,9 @@ public final class GameRuleSelfTest {
             drops[i] = items.size();
             items.forEach(Entity::discard);
         }
-        return (drops[0] == 0 && drops[1] > 0 ? "PASS" : "FAIL") + " block_drops acts per level: a broken dirt block dropped "
-                + drops[0] + " item(s) in " + SLUG + " and " + drops[1] + " in the overworld";
+        boolean ok = drops[0] == 0 && drops[1] > 0;
+        return (ok ? "PASS" : "FAIL") + " block_drops acts per level: a broken dirt block dropped "
+                + drops[0] + " item(s) in " + SLUG + " and " + drops[1] + " in the overworld" + (ok ? "" : surroundings(levels, BREAK));
     }
 
     /** {@code random_tick_speed} over ticks: ice under glowstone melts in {@value #SLUG} (1000) and stays in the overworld (0). */

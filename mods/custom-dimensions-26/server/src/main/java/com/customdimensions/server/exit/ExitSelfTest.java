@@ -169,13 +169,14 @@ public final class ExitSelfTest {
         return until(() -> server.getTickCount() >= end, n + 1);
     }
 
-    /** Opens {@code slug} and loads the chunk at {@code at}; the level, or a failed future. */
+    /** Opens {@code slug} and loads the chunk at {@code at} with its entities visible to a query; the level, or a failed future. */
     private CompletableFuture<ServerLevel> open(String slug, BlockPos at) {
         LevelManager m = LevelManager.get().orElseThrow();
         return m.activate(slug).thenCompose(a -> {
             ServerLevel level = a.level();
-            level.setChunkForced(at.getX() >> 4, at.getZ() >> 4, true);
-            return until(() -> level.getChunkSource().getChunkNow(at.getX() >> 4, at.getZ() >> 4) != null, 20 * 60)
+            net.minecraft.world.level.ChunkPos chunk = new net.minecraft.world.level.ChunkPos(at.getX() >> 4, at.getZ() >> 4);
+            level.setChunkForced(chunk.x(), chunk.z(), true);
+            return until(() -> level.areEntitiesActuallyLoadedAndTicking(chunk) && level.areEntitiesLoaded(chunk.pack()), 20 * 60)
                     .thenApply(ok -> level);
         });
     }
