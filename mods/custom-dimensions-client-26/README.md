@@ -83,10 +83,10 @@ client, not drawn`.
   vanilla; it comes back with a `companion-on:` line when the pack is turned
   off. Iris is read through its public API by reflection and is not a
   dependency. A pack replaces the block pipeline and would light and shadow
-  the squashed slab as if it stood in the opening.
+  the squashed slab as if it stood in the opening. Not yet run on the e2e rig here.
 - **Software GL:** under Xvfb with `GL_SHIM=1` the rig client holds a minimum of 23 fps over 5 s with the far side drawn (`e2e-companion-portal.sh`, `FPS_FLOOR=10`).
 - **Distant Horizons:** draws its LODs beyond the render distance and leaves
-  the far side alone.
+  the far side alone. Not yet run on the e2e rig here.
 
 ## The rig
 

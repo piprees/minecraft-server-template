@@ -25,7 +25,9 @@ answered from the data the far side is drawn from rather than from pixels:
 The fixture is the `rig-26/` levels (`e2e_one` holds every frame; `e2e_two`,
 `e2e_three` and `e2e_four` are the sky-lit, Nether-fogged and void far sides),
 built by `build-e2e-portal.sh` and `rig-frames-lib.sh`. Pixel readings at named
-coordinates (Steps 1 to 7, 13 and 14) have no 26.x bridge endpoint.
+coordinates (Steps 1 to 7, 13 and 14) have no 26.x bridge endpoint. The rig
+client runs the companion and Fabric API only; with Iris or Distant Horizons
+added it is not yet run here.
 
 ---
 
