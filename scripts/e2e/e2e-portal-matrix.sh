@@ -346,6 +346,8 @@ EOF
   rcon "execute in minecraft:overworld run forceload add $CFX $CFZ $CTX $CTZ" >/dev/null
   rcon "execute in minecraft:overworld run tp $PLAYER $STAND $LOOK" >/dev/null
   sleep 2
+  # A player who logged in elsewhere (the login places them back in their saved level) is moved across first.
+  wait_for_dimension minecraft:overworld "$POLL_SECONDS" >/dev/null || note "not in the overworld: $DIM_NOTE"
   if ! wait_for_chunk "$IX" "$IY" "$IZ" minecraft:overworld 60; then
     _record fail "$ID: the bay is loaded before anything is measured" \
       "a loaded column at $IX $IY $IZ" "still cold after 60s"
