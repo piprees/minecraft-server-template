@@ -10,14 +10,13 @@ Each item: what 1.21.1 does today, what 26.3 offers, the recommendation, and the
 
 **What the kit does with them.** `mc_game_rules` in `scripts/lib.sh` is the one list: the twelve values and `logAdminCommands true`. `restore_game_rules` in `deploy.sh` and a bounded block in `dev-up.sh` (after the op grant) apply it, so a local world matches production; a new 26.3 world runs vanilla defaults only until that block has run.
 
-**Options.** (a) Keep the twelve values as they are. (b) Also run the block from `dev-up.sh` after RCON answers, so local worlds match production. (c) Change values.
+**Options.** (a) Keep the twelve values as they are. (b) Change values.
 
-**Recommendation.** (a) + (b). The values are tuned for a small friends' server and nothing in 26.3 changes their reason. Add `logAdminCommands true` to `restore_game_rules` so the audit trail discord-sync relies on is enforced, not assumed.
+**Recommendation.** (a). The values are tuned for a small friends' server and nothing in 26.3 changes their reason. `logAdminCommands true` sits in the same list, so the audit trail discord-sync relies on is enforced, not assumed, and a local world gets the same rules as production.
 
 **Becomes.**
-- `scripts/deploy.sh` `restore_game_rules`: the twelve lines stay; add `rcon "gamerule $(mc_game_rule logAdminCommands true)"`.
+- `mc_game_rules` in `scripts/lib.sh` holds the chosen values; `restore_game_rules` in `scripts/deploy.sh` and the block in `scripts/dev-up.sh` read it.
 - AGENTS.md § Config sync states one place (the cutover's AGENTS.md says it).
-- Optional (b): `scripts/dev-up.sh` calls the same twelve over `docker exec … rcon-cli` once RCON answers; a shared function in `lib.sh` keeps one list.
 - Per-dimension game rules are available (decisions.md RB-38): a definition's `gameRules`, or `settings.json`'s `defaults.gameRules` for every dimension, holds a dimension's own values over the server-wide store. The twelve stay server-wide in `mc_game_rules`, so `/gamerule` and the deploy keep one place for them; a dimension that needs another value (a trial with `keep_inventory`, a gallery with `mob_griefing` off) says so in its definition. `advance_time` alone is refused there (the clocks are server-wide; `atmosphere.fixedTime` or `atmosphere.dayLength` set a dimension's time). Check in the rehearsal: `./ops rcon "execute in adventure:the_aviary run gamerule spawn_phantoms"` answers the server-wide value unless the definition sets its own.
 
 ## 2. Elytra and armour together — elytra-armor
@@ -173,7 +172,7 @@ Per dimension (82; every row a proposal):
 | `the_gritlands` | Untouched | "Nobody could live here. Nothing organised survives"; beds fail: `rules.bedsWork` |
 | `the_highland_crossing` | Server-wide | A trade route: ordinary life |
 | `the_icebound_rift` | Server-wide | A void of memory: `exits.void`, `rules` |
-| `the_lantern_pools` | Untouched | "Nobody built a town". "Glowing at dusk" is a `fixedTime` choice the card leaves to the owner |
+| `the_lantern_pools` | Untouched | "Nobody built a town". "Glowing at dusk" is a `fixedTime` choice the card leaves to the owner (open question 7) |
 | `the_lost_outpost` | Server-wide | "The soldiers … became the threat": patrols stay on |
 | `the_luminous_caverns` | Sanctuary | "No armies ever found this place": `hostileSpawning: false` |
 | `the_miredeep` | Untouched | "Too quiet for company" |
@@ -215,7 +214,7 @@ Per dimension (82; every row a proposal):
 
 Counts: Server-wide 55, Untouched 14, Still sky 8, Sanctuary 5, Trial 3, Canvas 1; four dimensions carry two profiles (`the_crystal_vale`, `the_pale_reach`, `the_tidepools`, `the_wuthering_wisteria`).
 
-**Becomes.** For each dimension the owner accepts, its profile's rules in the definition's `gameRules`, for example `"gameRules": {"spawn_patrols": false, "spawn_wandering_traders": false}`; for `the_starwell`, `"hostileSpawning": false` in its `difficulty`. A server proves each: `./ops rcon "execute in adventure:<slug> run gamerule <rule>"` answers the dimension's value and `customdim info <slug>` lists it.
+**Becomes.** For each dimension the owner accepts, its profile's rules in the definition's `gameRules`, for example `"gameRules": {"spawn_patrols": false, "spawn_wandering_traders": false}`; for `the_starwell`, if the owner says yes to question 5, `"hostileSpawning": false` in its `difficulty`. A server proves each: `./ops rcon "execute in adventure:<slug> run gamerule <rule>"` answers the dimension's value and `customdim info <slug>` lists it.
 
 **Open questions for the owner.**
 1. Profiles at all, or the server-wide twelve only (option a)?
@@ -224,3 +223,4 @@ Counts: Server-wide 55, Untouched 14, Still sky 8, Sanctuary 5, Trial 3, Canvas 
 4. `the_soulfields`: "nothing living is welcome" — `spawn_mobs: false` stops natural spawning of every mob, monsters included, leaving only spawners; is that the memorial's silence, or too empty?
 5. `the_starwell`: "a pocket of void where nothing hunts" — turn monsters off (`difficulty.hostileSpawning: false`)?
 6. `the_canvas`: should a builder also be spared falls (`fall_damage: false`) or TNT (`tnt_explodes: false`)?
+7. `the_lantern_pools`: "glowing at dusk" — hold it at dusk (`atmosphere.fixedTime`), or let its day run? The lead's standing choice for the fidelity pass is no `fixedTime`.
