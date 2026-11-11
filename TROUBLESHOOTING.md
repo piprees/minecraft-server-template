@@ -1596,6 +1596,12 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t251"></a>
+### T251 — A lit portal's aura ate the frame of a second portal beside it
+- **Symptom:** a second frame within a lit portal's aura radius refuses to light (`OPENING_NOT_ENCLOSED`), or lights and closes a second later with `frame check failed … ring x,y,z=<terrain block>`.
+- **Cause:** the aura converted the neighbour's ring cells to far-side terrain; its exclusion covered only its own opening and the cells beside it.
+- **Fix:** an aura leaves blocks of its portal's frame materials alone, and every portal's opening and frame ring in the level stay out of every aura pass (`Aura.pass` keep set, `PortalAuras.framesOf`). Read `e2e-state` `zones[].aura.spent` against the frame-check time to tell an aura from a rig fault.
+
 <a id="t250"></a>
 ### T250 — The roll agreement's noise column leaves out a structure's terrain adaptation
 - **Symptom:** `roll agreement` reports an unexplained column: noise blocks (the default block, with surface-rule blocks on it) over noise air, outside any structure piece.
