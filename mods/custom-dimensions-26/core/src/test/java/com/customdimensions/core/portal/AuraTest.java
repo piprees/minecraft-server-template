@@ -281,6 +281,32 @@ class AuraTest {
     }
 
     @Test
+    void aSecondFrameOfThePortalsOwnMaterialIsNeverEaten() {
+        FakeWorld world = filled("minecraft:stone", 3);
+        Set<BlockPos> neighbour = new java.util.HashSet<>();
+        for (int y = 0; y < 5; y++) {
+            neighbour.add(CENTRE.add(3, y - 1, 0));
+            neighbour.add(CENTRE.add(-3, y - 1, 0));
+        }
+        neighbour.forEach(p -> world.blocks.put(p, "minecraft:magma_block"));
+        for (int i = 0; i < 2000; i++) {
+            Aura.pass(world, CENTRE, Set.of(), Set.of("minecraft:magma_block"), palette("minecraft:copper_ore"),
+                    settings(3, 16), AuraPolicy.EVERYTHING, Integer.MAX_VALUE, new Random(i));
+        }
+        neighbour.forEach(p -> assertEquals("minecraft:magma_block", world.blockId(p)));
+        assertTrue(count(world, "minecraft:copper_ore") > 100);
+
+        FakeWorld bare = filled("minecraft:stone", 3);
+        neighbour.forEach(p -> bare.blocks.put(p, "minecraft:magma_block"));
+        for (int i = 0; i < 2000; i++) {
+            Aura.pass(bare, CENTRE, Set.of(), palette("minecraft:copper_ore"), settings(3, 16), AuraPolicy.EVERYTHING,
+                    Integer.MAX_VALUE, new Random(i));
+        }
+        assertTrue(neighbour.stream().anyMatch(p -> !bare.blockId(p).equals("minecraft:magma_block")),
+                "without a keep set the same passes reach the neighbour, so the first half proves the keep set");
+    }
+
+    @Test
     void claimsVetoEveryPolicyAndAreCounted() {
         FakeWorld world = filled("minecraft:stone", 8);
         for (int chunk = -1; chunk <= 0; chunk++) {

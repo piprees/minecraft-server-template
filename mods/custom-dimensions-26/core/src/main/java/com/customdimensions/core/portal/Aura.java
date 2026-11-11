@@ -211,6 +211,17 @@ public final class Aura {
      */
     public static Pass pass(AuraWorld world, BlockPos centre, Set<BlockPos> exclusion, AuraState state,
                             PortalDefinition.AuraSettings settings, String subsume, int remaining, Random random) {
+        return pass(world, centre, exclusion, Set.of(), state, settings, subsume, remaining, random);
+    }
+
+    /**
+     * {@link #pass} that also leaves every block in {@code keep} alone: the
+     * portal's own frame materials, so a second frame built beside a lit one
+     * is not eaten before (or after) it is lit.
+     */
+    public static Pass pass(AuraWorld world, BlockPos centre, Set<BlockPos> exclusion, Set<String> keep,
+                            AuraState state, PortalDefinition.AuraSettings settings, String subsume, int remaining,
+                            Random random) {
         if (remaining <= 0 || !world.resident(centre)) {
             return Pass.NONE;
         }
@@ -227,6 +238,9 @@ public final class Aura {
             }
             if (world.claimed(pos)) {
                 claimed++;
+                continue;
+            }
+            if (!keep.isEmpty() && !world.isAir(pos) && keep.contains(world.blockId(pos))) {
                 continue;
             }
             spent += convert(world, pos, state, settings, subsume, remaining - spent, random);

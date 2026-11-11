@@ -109,23 +109,34 @@ public final class PortalAuras {
 
     /** One pass at a source zone within its lifetime budget; returns the units spent. */
     static int runSource(ServerLevel level, PortalZone zone, PortalDefinition.AuraSettings settings, Random random) {
-        return run(level, zone.coreInterior(), zone.aura, settings, subsumeFor(zone.target, settings), random);
+        return run(level, zone.coreInterior(), Aura.frameMaterials(zone.definition), zone.aura, settings,
+                subsumeFor(zone.target, settings), random);
     }
 
     /** One pass at an aura site within its lifetime budget; returns the units spent. */
     static int runSite(ServerLevel level, PortalRegistry.AuraSite site, PortalDefinition.AuraSettings settings,
                        Random random) {
-        return run(level, core(site.interior()), site.state(), settings, subsumeFor(level.dimension(), settings), random);
+        return run(level, core(site.interior()), Set.of(), site.state(), settings, subsumeFor(level.dimension(), settings),
+                random);
     }
 
-    private static int run(ServerLevel level, Set<com.customdimensions.core.BlockPos> interior, AuraState state,
-                           PortalDefinition.AuraSettings settings, String subsume, Random random) {
+    /** Every opening in the level with its face neighbours: no aura touches any portal's frame ring. */
+    static Set<com.customdimensions.core.BlockPos> framesOf(ServerLevel level, Set<com.customdimensions.core.BlockPos> own) {
+        Set<com.customdimensions.core.BlockPos> out = new java.util.HashSet<>(Aura.exclusion(own));
+        for (PortalZone zone : PortalRegistry.get().zones(level.dimension())) {
+            out.addAll(Aura.exclusion(zone.coreInterior()));
+        }
+        return out;
+    }
+
+    private static int run(ServerLevel level, Set<com.customdimensions.core.BlockPos> interior, Set<String> keep,
+                           AuraState state, PortalDefinition.AuraSettings settings, String subsume, Random random) {
         int budget = settings.getBudget();
         if (Aura.exhausted(budget, state.spent)) {
             return 0;
         }
         com.customdimensions.core.BlockPos centre = PortalShape.centreOf(interior);
-        Aura.Pass pass = Aura.pass(new LevelAuraWorld(level), centre, Aura.exclusion(interior), state, settings,
+        Aura.Pass pass = Aura.pass(new LevelAuraWorld(level), centre, framesOf(level, interior), keep, state, settings,
                 subsume, Aura.remaining(budget, state.spent), random);
         state.spent += pass.spent();
         PortalJournal.auraPass(PortalJournal.key(level.dimension().identifier().toString(),
