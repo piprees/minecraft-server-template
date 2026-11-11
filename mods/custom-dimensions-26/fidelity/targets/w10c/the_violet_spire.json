@@ -1,0 +1,12 @@
+{
+ "slug": "the_violet_spire",
+ "targets": [
+  {"key": "surface.biomesPercent.adventure:wisteria_grove + surface.biomesPercent.adventure:lavender_fields", "per": "vertical.layerColumnsPercent.surface", "op": ">=", "value": 0.4, "from": "\"Wisteria islands\" and lavender at spawn: the violet half, over land columns"},
+  {"key": "terrain.surfaceHeight.p95", "op": ">=", "value": 200, "from": "\"Violet spires in the sky\""},
+  {"key": "surface.voidPercent", "op": "between", "value": [15, 60], "from": "sky islands with sky between"},
+  {"key": "placeness.landBiomeRegions.top3Percent", "op": ">=", "value": 60, "from": "place kind meeting of two worlds"},
+  {"key": "placeness.landBiomeRegions.major", "op": "<=", "value": 8, "from": "place kind meeting"},
+  {"key": "placeness.landBiomeRegions.specksPercent", "op": "<=", "value": 5, "from": "place kind meeting"},
+  {"key": "placeness.islands.dominantBiomePercent", "op": ">=", "value": 60, "from": "each island one of the two worlds"}
+ ]
+}

@@ -8,82 +8,10 @@
         "type": "minecraft:multi_noise",
         "biomes": [
           {
-            "biome": "adventure:crystal_hollows",
+            "biome": "adventure:wisteria_grove",
             "parameters": {
-              "temperature": [-2.0, -0.3066],
-              "humidity": [-2.0, 0.2744],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:jagged_peaks",
-            "parameters": {
-              "temperature": [-2.0, -0.3066],
-              "humidity": [0.2744, 2.0],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "adventure:sky_highlands",
-            "parameters": {
-              "temperature": [-0.3066, 0.4017],
-              "humidity": [-2.0, 0.3612],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:forest",
-            "parameters": {
-              "temperature": [-0.3066, 0.4017],
-              "humidity": [0.3612, 0.4925],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "adventure:ice_starfield",
-            "parameters": {
-              "temperature": [-0.3066, 0.4017],
-              "humidity": [0.4925, 2.0],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:cherry_grove",
-            "parameters": {
-              "temperature": [0.4017, 2.0],
-              "humidity": [-2.0, -0.2155],
-              "continentalness": [-2.0, 2.0],
-              "erosion": [-2.0, 2.0],
-              "weirdness": [-2.0, 2.0],
-              "depth": [-2.0, 2.0],
-              "offset": 0.0
-            }
-          },
-          {
-            "biome": "minecraft:dark_forest",
-            "parameters": {
-              "temperature": [0.4017, 2.0],
-              "humidity": [-0.2155, 0.0742],
+              "temperature": [-2.0, 0.0],
+              "humidity": [-2.0, 0.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -94,8 +22,8 @@
           {
             "biome": "adventure:lavender_fields",
             "parameters": {
-              "temperature": [0.4017, 2.0],
-              "humidity": [0.0742, 0.8587],
+              "temperature": [-2.0, 0.0],
+              "humidity": [0.0, 2.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -104,10 +32,10 @@
             }
           },
           {
-            "biome": "minecraft:stony_peaks",
+            "biome": "adventure:chorus_forest",
             "parameters": {
-              "temperature": [0.4017, 2.0],
-              "humidity": [0.8587, 0.9293],
+              "temperature": [0.0, 2.0],
+              "humidity": [-2.0, -0.75],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -116,10 +44,34 @@
             }
           },
           {
-            "biome": "adventure:wisteria_grove",
+            "biome": "adventure:umbrella_jungle",
             "parameters": {
-              "temperature": [0.4017, 2.0],
-              "humidity": [0.9293, 2.0],
+              "temperature": [0.0, 2.0],
+              "humidity": [-0.75, -0.25],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:cherry_grove",
+            "parameters": {
+              "temperature": [0.0, 2.0],
+              "humidity": [-0.25, 0.25],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:sky_highlands",
+            "parameters": {
+              "temperature": [0.0, 2.0],
+              "humidity": [0.25, 2.0],
               "continentalness": [-2.0, 2.0],
               "erosion": [-2.0, 2.0],
               "weirdness": [-2.0, 2.0],
@@ -1188,7 +1140,11 @@
           "temperature",
           "humidity"
         ],
-        "columns": [-0.3066, 0.4017],
+        "land": {
+          "axis": "continentalness",
+          "min": -0.7
+        },
+        "columns": [0.0],
         "radius": 683
       }
     },

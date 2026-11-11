@@ -7,31 +7,54 @@
     "type": "clone",
     "of": "adventure:the_aviary"
   },
+  "terrain": {
+    "base": "spires",
+    "floor": "islands",
+    "params": {
+      "landHeight": 120,
+      "spireHeight": 120,
+      "coverage": 0.12,
+      "thickness": 2.5,
+      "taper": 0.2
+    },
+    "scales": {
+      "climate": 3
+    }
+  },
   "biomes": [
-    "adventure:crystal_hollows",
-    "minecraft:jagged_peaks",
-    "adventure:ice_starfield",
-    "minecraft:forest",
+    "adventure:wisteria_grove",
+    "adventure:lavender_fields",
     "adventure:sky_highlands",
     "minecraft:cherry_grove",
-    "minecraft:dark_forest",
-    "adventure:lavender_fields",
-    "minecraft:stony_peaks",
-    "adventure:wisteria_grove"
+    "adventure:umbrella_jungle",
+    "adventure:chorus_forest"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:crystal_hollows": 20.9,
-      "minecraft:jagged_peaks": 11.9,
-      "adventure:ice_starfield": 8.5,
-      "minecraft:forest": 2.2,
-      "adventure:sky_highlands": 22.8,
-      "minecraft:cherry_grove": 11.1,
-      "minecraft:dark_forest": 4.1,
-      "adventure:lavender_fields": 11.1,
-      "minecraft:stony_peaks": 1,
-      "adventure:wisteria_grove": 1
+      "adventure:wisteria_grove": 20,
+      "adventure:lavender_fields": 20,
+      "adventure:sky_highlands": 15,
+      "minecraft:cherry_grove": 10,
+      "adventure:umbrella_jungle": 10,
+      "adventure:chorus_forest": 5
+    },
+    "over": "land"
+  },
+  "materials": {
+    "biomes": {
+      "adventure:chorus_forest": {
+        "cliffs": "minecraft:purpur_block"
+      },
+      "adventure:sky_highlands": {
+        "cliffs": "minecraft:amethyst_block"
+      },
+      "adventure:lavender_fields": {
+        "cliffs": "minecraft:amethyst_block"
+      },
+      "adventure:wisteria_grove": {
+        "cliffs": "minecraft:amethyst_block"
+      }
     }
   },
   "zones": [
