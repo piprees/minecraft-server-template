@@ -147,6 +147,8 @@ public final class Portals {
      */
     static void validate(ServerLevel level, PortalZone zone) {
         if (!PortalWorld.frameIntact(level, zone)) {
+            CustomDimensions.LOG.info("frame check failed in {} at {}; ring {}", level.dimension().identifier(),
+                    zone.landingCell(), cells(level, PortalGeometry.frameRing(zone.coreInterior(), Pos.core(zone.axis))));
             breakZone(level, zone);
             return;
         }
@@ -161,8 +163,21 @@ public final class Portals {
         if (empty) {
             PortalWorld.fill(level, zone.interior, zone.axis, colour(level, zone));
         } else if (!full) {
+            CustomDimensions.LOG.info("opening check failed in {} at {}; opening {}", level.dimension().identifier(),
+                    zone.landingCell(), cells(level, zone.coreInterior()));
             breakZone(level, zone);
         }
+    }
+
+    /** Each cell as "x,y,z=block", so a closed zone names what it found. */
+    private static String cells(ServerLevel level, java.util.Collection<com.customdimensions.core.BlockPos> cells) {
+        StringBuilder out = new StringBuilder();
+        for (com.customdimensions.core.BlockPos c : cells) {
+            BlockPos p = Pos.mc(c);
+            out.append(out.length() == 0 ? "" : " ").append(p.getX()).append(',').append(p.getY()).append(',')
+                    .append(p.getZ()).append('=').append(PortalWorld.blockId(level.getBlockState(p)));
+        }
+        return out.toString();
     }
 
     /** Breaks a zone at both ends, as a player breaking its frame does. */
