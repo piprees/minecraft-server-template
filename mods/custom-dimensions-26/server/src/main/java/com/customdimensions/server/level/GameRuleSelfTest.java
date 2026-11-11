@@ -140,10 +140,10 @@ public final class GameRuleSelfTest {
                         store.set(GameRules.BLOCK_DROPS, drops, server);
                         store.set(GameRules.RANDOM_TICK_SPEED, speed, server);
                     })
-                    .thenCompose(v -> manager.deactivate(SLUG).handle((n, e) -> null))
                     .thenRun(() -> {
                         if ("write".equals(persist)) lines.add(persistWrite());
-                    });
+                    })
+                    .thenCompose(v -> manager.deactivate(SLUG).handle((n, e) -> null));
         });
     }
 
