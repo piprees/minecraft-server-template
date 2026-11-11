@@ -19,8 +19,9 @@
     },
     "params": {
       "hollowDepth": 40,
-      "ringLakes": 1,
-      "gaps": 0.15
+      "ringLakes": 0,
+      "gaps": 0.15,
+      "islandShare": 0.02
     }
   },
   "biomes": [
