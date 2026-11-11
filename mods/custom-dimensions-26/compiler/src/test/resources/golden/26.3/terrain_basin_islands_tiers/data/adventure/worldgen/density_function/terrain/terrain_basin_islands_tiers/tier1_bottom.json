@@ -52,7 +52,7 @@
       "type": "minecraft:add"
     },
     "right": {
-      "left": "adventure:terrain/terrain_basin_islands_tiers/tier0_top",
+      "left": "adventure:terrain/terrain_basin_islands_tiers/tier0_crown",
       "right": 20.0,
       "type": "minecraft:add"
     },

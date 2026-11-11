@@ -840,8 +840,6 @@ public enum TerrainFamily {
         Stack stack = stack(ctx, new Stack(max(island, mass), place, islandTop), crown, y);
         return new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, mul(stack.inside(), 1 / 8.0), c(0.3), 0.1 + 0.6 * ctx.p("roughness"))
                 .withSolid(sealed).withPlace(stack.place(), stack.top());
-        return new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, mul(stack.inside(), 1 / 8.0), c(0.3), 0.1 + 0.6 * ctx.p("roughness"))
-                .withSolid(sealed).withPlace(stack.place(), stack.top());
     }
 
     private static Shape islands(Ctx ctx) {
