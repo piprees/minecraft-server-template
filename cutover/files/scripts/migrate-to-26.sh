@@ -50,9 +50,9 @@
 #     possible autopause (the JVM freezes when empty), never a failure.
 #   - Never prints .env values, never writes a secret, never edits the
 #     server's .env (CI generates it).
-#   - The world seed (notes step 12) and lazy levels' game rules (step 13)
-#     are open questions: verify measures and reports them; it never runs
-#     reset-seed.
+#   - verify reads each base world's seed against its definition (notes step
+#     12) and a lazy level's game rule against its own or the server-wide
+#     value (step 13); it never runs reset-seed.
 #   - Pre-generation (notes step 14) is not scripted: docs/migrate-to-26.md,
 #     beside scripts/ in the bundle, says how.
 set -euo pipefail
@@ -785,24 +785,42 @@ phase_verify() {
   printf '%s\n' "$SRV_OUT" | grep 'ERROR' | tail -5 | sed 's/^/    /' || true
 
   local blocking=0
-  head_line "E12 The world seed (confirm; open fact, measured here)"
-  local live def
-  rcon_q "seed"
-  live="$(printf '%s\n' "$RCON_OUT" | grep -oE '\[-?[0-9]+\]' | tr -d '[]' | head -1 || true)"
-  srv "grep -oE '\"seed\"[[:space:]]*:[[:space:]]*-?[0-9]+' data/config/custom-dimensions/dimensions/overworld.json | head -1 | grep -oE -- '-?[0-9]+\$'" || true
-  def="$(printf '%s' "$SRV_OUT" | tail -1)"
-  if [[ -z "$live" || -z "$def" ]]; then
-    later "no seed to compare (rcon seed: '${live}', overworld.json seed: '${def}')"
-  elif [[ "$live" == "$def" ]]; then
-    ok "the world seed $live is the overworld definition's"
-  else
-    say "  MISMATCH  the world generates from $live; the overworld definition says $def."
-    say "  Before anyone joins: ./ops reset-seed $def  (this script never runs it; then run verify again)"
+  local dims=data/config/custom-dimensions/dimensions ns
+  srv "sed -n 's/.*\"namespace\"[[:space:]]*:[[:space:]]*\"\\([a-z0-9_.-]*\\)\".*/\\1/p' $dims/settings.json 2>/dev/null | head -1; echo; ls $dims/ 2>/dev/null" || true
+  ns="$(printf '%s\n' "$SRV_OUT" | sed -n 1p)"
+  ns="${ns:-adventure}"
+  local listing="$SRV_OUT"
+
+  head_line "E12 The seeds (confirm; each base world against its definition)"
+  local world base id live def reset=0
+  srv "sed -n 's/^level-seed=//p' data/server.properties 2>/dev/null | head -1" || true
+  world="$(printf '%s' "$SRV_OUT" | tail -1 | tr -d '[:space:]')"
+  for base in $BASE_SLUGS; do
+    case "$base" in
+      the_aviary) id="$ns:$base" ;;
+      *) id="minecraft:$base" ;;
+    esac
+    rcon_q "execute in $id run seed"
+    live="$(printf '%s\n' "$RCON_OUT" | grep -oE '\[-?[0-9]+\]' | tr -d '[]' | head -1 || true)"
+    srv "grep -oE '\"seed\"[[:space:]]*:[[:space:]]*-?[0-9]+' $dims/$base.json 2>/dev/null | head -1 | grep -oE -- '-?[0-9]+\$'" || true
+    def="$(printf '%s' "$SRV_OUT" | tail -1)"
+    [[ -n "$def" ]] || def="$world"
+    if [[ -z "$live" || -z "$def" ]]; then
+      later "$id: no seed to compare (rcon: '${live}', definition or world seed: '${def}')"
+    elif [[ "$live" == "$def" ]]; then
+      ok "$id generates from $live, its definition's seed"
+    else
+      say "  MISMATCH  $id generates from $live; its definition says $def (its chunks were generated under $live, so the level kept it)."
+      reset=1
+    fi
+  done
+  if [[ $reset -eq 1 ]]; then
+    say "  Before anyone joins: ./ops reset-seed --same-seed  (this script never runs it; then run verify again)"
     blocking=1
   fi
 
   head_line "E13 Game rules and spawn (safe)"
-  local rule want got ow_phantoms=""
+  local rule want got ow_phantoms="" slug
   for rule in "doInsomnia false" "logAdminCommands true"; do
     # shellcheck disable=SC2046,SC2086 # two words: the rule and its value
     set -- $(mc_game_rule $rule 26.3)
@@ -819,28 +837,28 @@ phase_verify() {
       blocking=1
     fi
   done
-  local ns slug
-  srv "sed -n 's/.*\"namespace\"[[:space:]]*:[[:space:]]*\"\\([a-z0-9_.-]*\\)\".*/\\1/p' data/config/custom-dimensions/dimensions/settings.json 2>/dev/null | head -1; echo; ls data/config/custom-dimensions/dimensions/ 2>/dev/null" || true
-  ns="$(printf '%s\n' "$SRV_OUT" | sed -n 1p)"
-  ns="${ns:-adventure}"
   slug="$LAZY_SLUG"
   if [[ -z "$slug" ]]; then
-    slug="$(printf '%s\n' "$SRV_OUT" | sed 1d | grep -E '\.json$' | sed 's/\.json$//' | grep -vxE "settings|${BASE_SLUGS// /|}" | head -1 || true)"
+    slug="$(printf '%s\n' "$listing" | sed 1d | grep -E '\.json$' | sed 's/\.json$//' | grep -vxE "settings|${BASE_SLUGS// /|}" | head -1 || true)"
   fi
   if [[ -z "$slug" ]]; then
     note "no lazy dimension found to read game rules in"
   else
-    local rname="${ow_phantoms#*|}" ow="${ow_phantoms%%|*}" lazy
+    local rname="${ow_phantoms#*|}" ow="${ow_phantoms%%|*}" lazy own expect
+    srv "grep -oE '\"(minecraft:)?$rname\"[[:space:]]*:[[:space:]]*(true|false|-?[0-9]+)' $dims/$slug.json $dims/settings.json 2>/dev/null | head -1 | grep -oE '(true|false|-?[0-9]+)\$'" || true
+    own="$(printf '%s' "$SRV_OUT" | tail -1 | tr -d '[:space:]')"
+    expect="${own:-$ow}"
     rcon_q "customdim activate $slug"
     printf '%s\n' "$RCON_OUT" | head -3 | sed 's/^/    /'
     rcon_q "execute in $ns:$slug run gamerule $rname"
     lazy="$(printf '%s\n' "$RCON_OUT" | grep -oE '(true|false|[0-9]+)[[:space:]]*$' | tail -1 | tr -d '[:space:]' || true)"
-    if [[ -z "$lazy" ]]; then
-      note "open fact: $ns:$slug gave no answer for gamerule $rname; read it by hand"
-    elif [[ "$lazy" == "$ow" ]]; then
-      ok "open fact answered: the lazy level $ns:$slug follows the overworld ($rname $lazy)"
+    if [[ -z "$lazy" || -z "$expect" ]]; then
+      note "$ns:$slug gave no $rname to compare (level: '${lazy}', expected: '${expect}'); read it by hand"
+    elif [[ "$lazy" == "$expect" ]]; then
+      ok "$ns:$slug holds $rname $lazy, $( [[ -n "$own" ]] && printf 'its own value' || printf 'the server-wide value' )"
     else
-      say "  FINDING  the lazy level $ns:$slug has $rname $lazy, the overworld $ow: lazy levels do not follow the overworld's game rules"
+      say "  MISMATCH  $ns:$slug holds $rname $lazy; $( [[ -n "$own" ]] && printf 'its definition says' || printf 'the server-wide value is' ) $expect"
+      blocking=1
     fi
   fi
   [[ $blocking -eq 0 ]] || refuse "fix the mismatches above, then run verify again"
@@ -876,7 +894,7 @@ phase_plan() {
   (owner)      D9   owner    FLOODGATE_KEY_B64, STACK_READ_TOKEN                                     [--owner-done secrets]
   consumer     D10  confirm  .stack-version $TARGET, ./dev update, seed-viewer files out, commit, push [--yes-consumer]
   verify       E11  safe     bundle v6, ./ops doctor, customdim list and audit, mc log errors
-               E12  confirm  rcon seed against the overworld definition's seed (reports; never reset-seed)
+               E12  confirm  each base world's seed against its definition's (reports; never reset-seed)
                E13  safe     game rules; one lazy level's game rules (reports)
   (pointer)    E14  confirm  pre-generation: docs/migrate-to-26.md § Pre-generation
   first-backup E15  safe     restic snapshot of the 26.3 world

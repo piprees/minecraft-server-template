@@ -113,8 +113,8 @@ Why: a vanilla or Bedrock client shows the toast and the advancement tab with no
 Rejected: a scoreboard or a file of our own, which the client cannot show.
 
 **RB-31 — A dimension can keep or drop what a player carries when they die there.**
-`deaths.inventory` and `deaths.experience` are `keep` or `drop`; absent, the `keepInventory` game rule decides. Kept items and levels are taken before the drop and handed back on respawn, through Fabric's death and respawn events.
-Why: the game rule is server-wide, and a dimension built as a trial or a gallery needs its own rule.
+`deaths.inventory` and `deaths.experience` are `keep` or `drop`; absent, the dimension's `keep_inventory` game rule decides (RB-38). Kept items and levels are taken before the drop and handed back on respawn, through Fabric's death and respawn events.
+Why: inventory and experience are two choices where `keep_inventory` is one, and `deaths` names them where a trial or a gallery reads them.
 
 **RB-32 — A mob is scaled once, when it first enters a level, and keeps that scaling.**
 Scaling follows Fabric's entity-load event and a persistent attachment marks the mob, so a reload or a dimension change never scales it again; a zombie from the hardest dimension stays hard in the overworld. A peaceful dimension turns off its level's monster spawning and discards any monster that enters before it ticks, base worlds included.
@@ -136,3 +136,13 @@ Rejected: regenerating v2 from v1 with W8's edits as patches on top, which adds 
 
 **RB-36 — Cut biome and structure ids are replaced through one reviewed mapping table.**
 Each of the 371 distinct ids from a cut or rebuilt mod (313 written as ids, 58 reached only through a structure short name in `wants` or `shuns`) maps to a vanilla 26.3 biome, one of our library biomes, a bridged or vanilla structure, or removal; the owner reviews the table once and W8 applies it to every definition.
+
+**RB-37 — Every dimension generates from its own definition's seed, the base worlds included.**
+A definition's `seed` seeds its level: a lazy one through Fantasy, a base world through `ServerLevelSeedMixin` on `getSeed()` and the biome-zoom seed `MinecraftServerLevelsMixin` gives its level. `"env"` or none is the world seed. Each level records the seed it generated from beside its region folder; a level with chunks keeps that seed and warns when its definition names another.
+Why: the base worlds are four dimensions among the rest (AGENTS.md § Dimensions) and are rolled and picked like them; one mixin on the method every reader of a level's seed calls covers noise, biomes, structures, features, slime chunks and the End's spikes and gateways at once. The record keeps a hand-edited seed from splitting a world's terrain at a chunk seam.
+Rejected: building the four base worlds' generators ourselves, as 1.21.1's `CreateWorldsMixin` did, which changes the generator and not the seed every other reader takes from the level; and redirecting each reader of the seed one by one.
+
+**RB-38 — Game rules are held per dimension, over the server-wide store.**
+A definition's `gameRules` and `settings.json`'s `defaults.gameRules` give a level values of its own; `ServerLevelGameRulesMixin` answers `ServerLevel.getGameRules()`, through which 26.3 reads nearly every rule, from a view that reads the level's value first and writes to the store. `ServerPlayerRestoreMixin` judges `keep_inventory` on respawn by the level of the death. A client is sent its level's `immediate_respawn`, `limited_crafting` and `reduced_debug_info` after every change of level, every respawn and every server-wide change of one of them (`LevelClientRules`, `MinecraftServerGameRulesMixin`). A level that sets its own `advance_weather` keeps weather of its own in its data storage. `advance_time` alone is refused: the clocks it drives are one per day length, and `atmosphere.fixedTime` and `atmosphere.dayLength` are the per-dimension levers.
+Why: values live in the definition like every other field; writes through the view keep `/gamerule` and the deploy's `mc_game_rules` server-wide; one read site covers vanilla's rules and every mod rule read the same way.
+Rejected: Fantasy's `setGameRule`, which covers lazy levels only and whose delegating store takes a `/gamerule` run in the level as that level's own value; a `customdim rule` command, since `execute in <dimension> run gamerule <rule>` answers the value in force.

@@ -376,7 +376,7 @@ public final class LevelManager {
     private RuntimeLevelConfig config(LevelIndex.Entry entry) {
         LevelStem stem = index.decode(server, entry);
         Definition definition = entry.definition();
-        long seed = LevelMaths.resolveSeed(definition == null ? null : definition.seed(), server.overworld().getSeed());
+        long seed = LevelSeeds.lazySeed(server, entry.key(), definition == null ? null : definition.seed());
         WorldgenRuntime.apply(server, entry.key(), stem.generator(), seed);
         return new RuntimeLevelConfig()
                 .setDimensionType(stem.type())

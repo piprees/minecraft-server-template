@@ -385,6 +385,76 @@ files byte for byte.
 | `roll <dimension> [count]` | Scores `count` seeds (default 100, at most 500) from the `Sampler` off the server thread, renders the best ten and writes the contact sheet `renders/<dimension>/index.html` ([below](#rolling)). Refused for a dimension whose region folder holds chunks. Shares the one render job |
 | `pick <dimension> <seed>`, `pick <dimension> rank <n>` | Writes the seed, or the last roll's rank `n`, into the dimension's definition file; it applies after the next restart. Refused for a dimension whose region folder holds chunks |
 
+## Seeds
+
+Every level generates from its definition's `seed`, the four base worlds
+included; `"env"` or no seed takes the world seed (`level-seed`, which
+`reset-seed` writes from `SEED`). `execute in <dimension> run seed`,
+`customdim info`, `render`, `roll` and the survey all answer that seed
+(decisions.md RB-37). `server/.../level/LevelSeeds` chooses each base world's
+seed as the server starts, before vanilla creates the levels, and each lazy
+level's as it opens; `ServerLevelSeedMixin` answers a base world's
+`getSeed()` from it, so the noise, biomes, structures, features, slime chunks
+and the End's spikes and gateways all follow it, and `MinecraftServerLevelsMixin`
+gives each base world the biome-zoom seed of its own seed, the one its clients
+are sent. The level's structure check and dragon fight read the level's seed
+for lazy levels too.
+
+Each level records the seed it generated from in
+`<world>/dimensions/<namespace>/<path>/customdimensions-seed.json`. A region
+folder without chunks takes the definition's seed. One with chunks keeps the
+recorded seed (or, before any record, the seed it had: the world seed for a
+base world, the definition's for a lazy one), so its terrain stays continuous;
+when that differs from the definition's, the start logs one WARN naming both
+seeds and the remedy. `pick` is refused for a dimension with chunks, so a seed
+changes only on a fresh level: before a base world's first start, or after
+`reset-seed`.
+
+## Game rules
+
+A definition's `gameRules` maps 26.3 game rule ids (`keep_inventory`, or a
+mod's `othermod:rule`) to a boolean or a whole number, and `settings.json`'s
+`defaults.gameRules` gives values to every dimension (decisions.md RB-38). A
+level answers each rule with its definition's value, else the defaults', else
+the server-wide store's; two dimensions hold different values of one rule at
+once, and the game's own behaviour follows in each. The compile refuses an
+unknown `minecraft` rule, a value of the wrong type or outside the rule's
+bounds, and the server-wide rules below, naming the definition and the rule; a
+mod's rule is checked against the live registry when the server starts, and a
+bad one stops the start.
+
+Nearly every read of a rule in 26.3 passes through `ServerLevel.getGameRules()`,
+and `ServerLevelGameRulesMixin` answers it from a `LevelGameRules.View` over the
+store; Fantasy's levels fall through to the same method. A write through a view
+reaches the store, so `/gamerule <rule> <value>` keeps its server-wide meaning
+(the deploy's `mc_game_rules` relies on it) and a dimension's own value stays in
+force; `execute in <dimension> run gamerule <rule>` answers the value in force
+there, and `customdim info` lists the dimension's own values.
+`ServerPlayerRestoreMixin` judges `keep_inventory` on respawn by the dimension
+the player died in, which decided the drop; `deaths`, when set, wins over the
+rule.
+
+A client holds `immediate_respawn`, `limited_crafting` and
+`reduced_debug_info`. Vanilla sends them at login from the player's level and
+to everyone from the store when one changes; `LevelClientRules` sends a player
+their level's values after every change of level and every respawn, and
+`MinecraftServerGameRulesMixin` sends each player their own level's values
+after a server-wide change of one of the three.
+
+The server keeps one weather (`MinecraftServer.getWeatherData()`), which every
+level with a sky and no ceiling, the End aside, reads and advances. A dimension
+that sets its own `advance_weather` has weather of its own instead
+(`ServerLevelGameRulesMixin` on `getWeatherData()`): a copy of the server's
+when it is first read, saved in the level's own data storage and advanced or
+held by its rule; `/weather` run in that dimension changes it, and a
+server-wide `/weather` leaves it.
+
+Refused in a definition: `advance_time`. The world clocks are one per day
+length (T222) and `ServerClockManager` reads the rule through the overworld,
+so no dimension can hold time still on its own; the compile error says to set
+`atmosphere.fixedTime` for still time or `atmosphere.dayLength` for a
+different pace. The management API's rule methods read and write the store.
+
 ## Rendering
 
 `server/.../render/` draws a dimension from its generator alone; the
@@ -393,8 +463,7 @@ image-making half (grid, palette, layers, PNG and sidecar) is game-free in
 
 `/customdim render <dimension> [seed] [radius] [step] [centreX centreZ]` renders
 a base world or a lazy dimension, open or not. Without a seed it takes the seed
-the level has or would have: a base world's level seed, a lazy definition's
-`seed` (else the world seed). Radius 16 to 4096 blocks round 0,0, or round the
+the level has or would have ([Seeds](#seeds)). Radius 16 to 4096 blocks round 0,0, or round the
 centre given after the step (files `<seed>-r<radius>-at<x>_<z>-*`), default 1024; the step
 defaults to the smallest that keeps the image at 1024 pixels a side (2 at the
 default radius, 8 at 4096) and is refused below it. The command checks its

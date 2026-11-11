@@ -13,9 +13,9 @@ The mod compiles the definitions into `data/world/datapacks/customdimensions/` a
 
 | Change | Takes effect | On existing chunks |
 | --- | --- | --- |
-| `difficulty`, `rules`, `deaths`, `wins`, `exits`, `portals` (frames, colours, links), `borders.player`, `atmosphere` | Next restart (a full deploy) | Applies everywhere |
+| `difficulty`, `rules`, `gameRules`, `deaths`, `wins`, `exits`, `portals` (frames, colours, links), `borders.player`, `atmosphere` | Next restart (a full deploy) | Applies everywhere |
 | `structures` | Next restart | New chunks only; structures already placed stay |
-| `generator`, `terrain`, `biomes`, `biomeLayout`, `zones`, `liquids`, `materials`, `carvers`, `ores`, `dimensionType`, `seed` | Next restart | **New chunks only** ([D2](../../../TROUBLESHOOTING.md#d2)): old and new ground meet at a seam. The pack logs one WARN naming D2 per dimension whose noise settings or generator changed while its region folder holds chunks |
+| `generator`, `terrain`, `biomes`, `biomeLayout`, `zones`, `liquids`, `materials`, `carvers`, `ores`, `dimensionType`, `seed` | Next restart | **New chunks only** ([D2](../../../TROUBLESHOOTING.md#d2)): old and new ground meet at a seam. The pack logs one WARN naming D2 per dimension whose noise settings or generator changed while its region folder holds chunks. `seed` is the exception: a level with chunks keeps the seed they generated from (recorded in its folder's `customdimensions-seed.json`) and logs a WARN naming both seeds, so a new seed reaches a level only after its folder is wiped |
 
 A worldgen change on a dimension players have built in is a decision for the owner: accept the seam (far from builds), or reset that dimension.
 
@@ -26,7 +26,7 @@ All are `/customdim` (permission 4), over RCON as `./ops rcon "customdim …"`:
 | Command | Use |
 | --- | --- |
 | `list` | Every dimension's state (`base`, `lazy`, `queued`, `opening`, `active`, `unloading`, `deleting`), players and loaded chunks |
-| `info <dimension>` | Generator, seed, height, difficulty, portals, exits, wins, borders, state |
+| `info <dimension>` | Generator, seed, height, difficulty, portals, exits, wins, borders, the game rule values of its own, state |
 | `activate <dimension>`, `unload <dimension>` | Open or close a lazy level, one at a time ([K6](../../../TROUBLESHOOTING.md#k6)) |
 | `delete <dimension> [confirm]` | Without `confirm`, names the level folder that would go; with it, unloads and deletes it. Base worlds are refused; the definition stays, so the level is generated afresh on next entry |
 | `audit` | Writes `<world>/customdimensions/audit.md`: stale or missing compiled files, level folders with no definition, portal links to unknown dimensions, missing frame blocks, skipped biomes, the firewall's findings |

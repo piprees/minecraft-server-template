@@ -20,7 +20,7 @@ switch (RB-35). At the switch the v2 set moves to
 {
   "schemaVersion": 2,
   "description": "…",
-  "seed": 12345,                       // or "env"
+  "seed": 12345,                       // or "env": the world seed; base worlds too (RB-37)
   "spawn": [0, 64, 0],
   "generator": { "type": "noise", "preset": "overworld" },
   "terrain": { "base": "canyons", "setting": "extreme", "params": { "depth": 80 }, "scale": 1.5, "landShare": 0.7 },  // null base = the preset's own
@@ -49,7 +49,7 @@ switch (RB-35). At the switch the v2 set moves to
 | v1 | v2 | Notes |
 | --- | --- | --- |
 | *(none)* | `schemaVersion: 2` | Required. A file without it is v1 and is refused by the 26.3 mod. |
-| `description`, `seed`, `spawn`, `borders`, `difficulty` | same | Unchanged. |
+| `description`, `seed`, `spawn`, `borders`, `difficulty` | same | Unchanged. `seed` seeds every level, base worlds included (RB-37). |
 | `type` | `generator` | See the type table below. |
 | `noiseSettings` | `terrain.base` | `adventure:wide` and `adventure:compressed` are built from Terralith and Tectonic data, so they convert to `null` and are reported for W8. `adventure:void` converts to `generator.type: "void"`. `terrain` holds `base` (a library terrain, or null for the preset's own), `setting` (`gentle`, `default` or `extreme`), `params` (that terrain's parameters, each with a range) `scale` and `heightMultiplier`, and the large-scale `scales` and `layout` ([placeness.md](placeness.md)); `roofed` is the one terrain for the `caves` and `nether` presets, and without a `base` those and `end` take `scales.climate` alone; the library and its parameters are in [worldgen.md](worldgen.md#terrain-library). |
 | `biomes` | `biomes` | Object entries' `parameters` become `climate`. Ids from cut mods are kept and reported; `definitions/id-mapping.csv` replaces them (§ Applying the id mapping). |
@@ -62,11 +62,12 @@ switch (RB-35). At the switch the v2 set moves to
 | `environment` creation-time fields (`minY`, `height`, `logicalHeight`, `hasSkylight`, `hasCeiling`, `infiniburn`, `monsterSpawnLightLevel`, `monsterSpawnBlockLightLimit`) | `dimensionType` | 26.x dimension-type fields. |
 | `environment.skyColor`, `fogColor`, `ambientLight`, `fixedTime`, `effects` | `atmosphere` | The compiler writes environment attributes and a timeline. `atmosphere.dayLength` (no v1 source; v1 ran Better Days) sets real minutes of day and night, refused beside `fixedTime`; `settings.json`'s `defaults.atmosphere.dayLength` applies to every dimension with vanilla's day that sets neither. |
 | `environment.bedWorks`, `respawnAnchorWorks`, `piglinSafe`, `ultraWarm`, `natural`, `hasRaids` | `rules` | Renamed to read as rules: `bedsWork`, `respawnAnchorsWork`, `piglinsZombify` (= not `piglinSafe`), `ultraWarm`, `natural`, `raids`. |
+| *(none)* | `gameRules` | 26.3 game rule ids to a boolean or a whole number, held by the dimension's level over `settings.json`'s `defaults.gameRules` and the server-wide store (RB-38); `advance_time` is refused (the clocks are server-wide; `atmosphere.fixedTime` or `dayLength` instead). |
 | `structureDensity` | `structures.density` | |
 | `structures` | `structures` | Carried whole; the fields are in [Structures](#structures). `shuns` values are always `{}`. |
 | `portal` (object or array) | `portals` (array) | Each entry unchanged except `immersive` → `preview` (companion tuning; the vanilla slab is gone). |
 | `exitPortal`, `exits`, `exitShrines` | same | Unchanged. |
-| *(none)* | `deaths` | `inventory` and `experience`, each `keep` or `drop`; absent, the `keepInventory` game rule decides (RB-31). |
+| *(none)* | `deaths` | `inventory` and `experience`, each `keep` or `drop`; absent, the dimension's `keep_inventory` decides (RB-31). |
 | *(none)* | `wins` | Advancements the mod grants (RB-30); see below. |
 | `seedRoll` | `roll` | `mood`, `spawnFilter`, `water`, `terrain`, `heightRange`, `wants`, `shuns`, `allowHazardousSpawn`, `skip`. `family` is dropped: the generator decides it. |
 

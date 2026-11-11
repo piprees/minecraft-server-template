@@ -20,7 +20,7 @@ Each item: what 1.21.1 does today, what 26.3 offers, the recommendation, and the
 - `scripts/deploy.sh` `restore_game_rules`: the twelve lines stay; add `rcon "gamerule $(mc_game_rule logAdminCommands true)"`.
 - AGENTS.md § Config sync states one place (the cutover's AGENTS.md says it).
 - Optional (b): `scripts/dev-up.sh` calls the same twelve over `docker exec … rcon-cli` once RCON answers; a shared function in `lib.sh` keeps one list.
-- To decide: whether 26.3's lazy Fantasy levels follow the overworld's game rules. Check in the rehearsal: `./ops rcon "execute in adventure:the_aviary run gamerule spawn_phantoms"` after a deploy (T131 shows 26.3 resets a level's monster spawning per tick, so per-level state is real).
+- Per-dimension game rules are available (decisions.md RB-38): a definition's `gameRules`, or `settings.json`'s `defaults.gameRules` for every dimension, holds a dimension's own values over the server-wide store. The twelve stay server-wide in `mc_game_rules`, so `/gamerule` and the deploy keep one place for them; a dimension that needs another value (a trial with `keep_inventory`, a gallery with `mob_griefing` off) says so in its definition. `advance_time` alone is refused there (the clocks are server-wide; `atmosphere.fixedTime` or `atmosphere.dayLength` set a dimension's time). Check in the rehearsal: `./ops rcon "execute in adventure:the_aviary run gamerule spawn_phantoms"` answers the server-wide value unless the definition sets its own.
 
 ## 2. Elytra and armour together — elytra-armor
 

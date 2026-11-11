@@ -25,6 +25,8 @@ public final class VanillaData {
     private static final String PROBE_REPORT = "reports/biome_parameters/minecraft/overworld.json";
     /** The data generator's registry report: every built-in registry with its entries. */
     public static final String REGISTRIES_REPORT = "reports/registries.json";
+    /** The data generator's command tree; {@code gamerule}'s children give each game rule's argument type. */
+    public static final String COMMANDS_REPORT = "reports/commands.json";
     /** Datapack folders under {@code data/minecraft/} whose file names are ids. */
     static final List<String> DATA_FOLDERS = List.of("dimension_type", "timeline", "worldgen/biome",
             "worldgen/block_state_provider", "worldgen/carver", "worldgen/density_function", "worldgen/feature",
@@ -39,6 +41,11 @@ public final class VanillaData {
     private final Map<String, JsonElement> cache = new HashMap<>();
     private Set<String> biomeIds;
     private Map<String, Set<String>> registries;
+    private Map<String, GameRuleType> gameRules;
+
+    /** A game rule's value: a boolean, or a whole number within {@code min}..{@code max} (null for no bound). */
+    public record GameRuleType(boolean bool, Integer min, Integer max) {
+    }
 
     /** The files {@code :compiler:vanillaData} extracted into {@code root}. */
     public VanillaData(Path root) {
@@ -118,6 +125,33 @@ public final class VanillaData {
             registries = Map.copyOf(out);
         }
         return registries;
+    }
+
+    /**
+     * Vanilla's game rules by namespaced id, typed from the {@code gamerule}
+     * command's argument for each ({@link #COMMANDS_REPORT}): {@code brigadier:bool}
+     * or {@code brigadier:integer} with its bounds.
+     */
+    public Map<String, GameRuleType> gameRules() {
+        if (gameRules == null) {
+            Map<String, GameRuleType> out = new java.util.TreeMap<>();
+            JsonObject rules = object(COMMANDS_REPORT).getAsJsonObject("children").getAsJsonObject("gamerule")
+                    .getAsJsonObject("children");
+            for (Map.Entry<String, JsonElement> e : rules.entrySet()) {
+                JsonObject value = e.getValue().getAsJsonObject().getAsJsonObject("children").getAsJsonObject("value");
+                String parser = value.get("parser").getAsString();
+                JsonObject props = value.has("properties") ? value.getAsJsonObject("properties") : new JsonObject();
+                GameRuleType type = switch (parser) {
+                    case "brigadier:bool" -> new GameRuleType(true, null, null);
+                    case "brigadier:integer" -> new GameRuleType(false,
+                            props.has("min") ? props.get("min").getAsInt() : null, props.has("max") ? props.get("max").getAsInt() : null);
+                    default -> throw new IllegalStateException("game rule " + e.getKey() + " takes an argument of " + parser);
+                };
+                out.put(e.getKey().indexOf(':') < 0 ? "minecraft:" + e.getKey() : e.getKey(), type);
+            }
+            gameRules = Map.copyOf(out);
+        }
+        return gameRules;
     }
 
     /** Whether vanilla has a {@code data/minecraft/<folder>/<path>.json} for the {@code minecraft:} id. */

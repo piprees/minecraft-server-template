@@ -39,6 +39,7 @@
   "customdim.info.exits": "Exits: {exits}",
   "customdim.info.wins": "Wins: {wins}",
   "customdim.info.borders": "Borders: player {player}, generation {generation}",
+  "customdim.info.game_rules": "Game rules of its own: {rules}",
   "customdim.info.bedrock": "Bedrock: {warning}",
   "customdim.tp.console": "Name a player to teleport from the console.",
   "customdim.tp.done": "Teleported {player} to {dimension}.",

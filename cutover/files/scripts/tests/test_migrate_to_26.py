@@ -622,14 +622,18 @@ class FlowTests(Base):
         dims = fx.server / "data/config/custom-dimensions/dimensions"
         fx.write(dims, "overworld.json", '{\n  "schemaVersion": 2,\n  "seed": 4705305050088502262\n}')
         fx.write(dims, "settings.json", '{"schemaVersion": 2, "namespace": "adventure"}')
-        fx.write(dims, "the_ashgrove.json", "{}")
+        fx.write(dims, "the_ashgrove.json", '{"schemaVersion": 2, "gameRules": {"spawn_phantoms": true}}')
         fx.write(dims, "the_aviary.json", "{}")
+        fx.write(fx.server / "data", "server.properties", "level-name=world\nlevel-seed=20261022\n")
         (fx.tmp / "docker/mc").write_text("true")
         answers = {
             "list": "There are 0 of a max of 20 players online:",
             "customdim list": "82 dimensions: 4 base, 78 lazy, 4 open",
             "customdim audit": "audit: 0 stale, 0 missing, 0 orphan",
-            "seed": "Seed: [4705305050088502262]",
+            "execute in minecraft:overworld run seed": "Seed: [4705305050088502262]",
+            "execute in minecraft:the_nether run seed": "Seed: [20261022]",
+            "execute in minecraft:the_end run seed": "Seed: [20261022]",
+            "execute in adventure:the_aviary run seed": "Seed: [20261022]",
             "gamerule spawn_phantoms": "Gamerule spawn_phantoms is currently set to: false",
             "gamerule log_admin_commands": "Gamerule log_admin_commands is currently set to: true",
             "customdim activate the_ashgrove": "Activated adventure:the_ashgrove",
@@ -638,8 +642,10 @@ class FlowTests(Base):
         fx.rcon(answers)
         out = self.ok(fx.run("verify"))
         self.assertIn("82 dimensions: 4 base, 78 lazy", out)
-        self.assertIn("the world seed 4705305050088502262 is the overworld definition's", out)
-        self.assertIn("FINDING  the lazy level adventure:the_ashgrove has spawn_phantoms true", out)
+        self.assertIn("minecraft:overworld generates from 4705305050088502262, its definition's seed", out)
+        self.assertIn("minecraft:the_end generates from 20261022, its definition's seed", out)
+        self.assertIn("adventure:the_aviary generates from 20261022, its definition's seed", out)
+        self.assertIn("adventure:the_ashgrove holds spawn_phantoms true, its own value", out)
         self.assertIn("docs/migrate-to-26.md § Pre-generation", out)
         (fx.tmp / "next-snapshot").write_text("5e6f7a8b")
         out = self.ok(fx.run("first-backup"))
@@ -661,16 +667,35 @@ class FlowTests(Base):
         self.assertEqual(fx.git("log", "-1", "--format=%s").strip(), "init")
 
     def test_verify_reports_a_seed_mismatch_and_never_resets(self):
+        # The overworld's definition says -42; its level answers 123, the seed its chunks kept.
         fx = self.fx
         fx.prime(done_preflight=1, done_pin=1, done_archive=1, done_host=1, done_clean=1, done_consumer=1)
         fx.set_server_stack("v6.0.0")
         fx.write(fx.server / "data/config/custom-dimensions/dimensions", "overworld.json", '{"seed": -42}')
-        fx.rcon({"customdim list": "82 dimensions: 4 base, 78 lazy, 0 open", "seed": "Seed: [123]",
-                 "gamerule spawn_phantoms": "x: false", "gamerule log_admin_commands": "x: true"})
+        fx.write(fx.server / "data", "server.properties", "level-seed=123\n")
+        fx.rcon(dict(BASE_SEEDS_123, **{"customdim list": "82 dimensions: 4 base, 78 lazy, 0 open",
+                 "gamerule spawn_phantoms": "x: false", "gamerule log_admin_commands": "x: true"}))
         r = fx.run("verify")
-        self.assertEqual(r.returncode, 1)
-        self.assertIn("./ops reset-seed -42", r.stdout)
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("MISMATCH  minecraft:overworld generates from 123; its definition says -42", r.stdout)
+        self.assertIn("./ops reset-seed --same-seed", r.stdout)
         self.assertNotIn("reset-seed", fx.calls())
+        self.assertNotIn("done_verify", fx.state())
+
+    def test_verify_refuses_a_lazy_level_off_the_server_wide_rule(self):
+        fx = self.fx
+        fx.prime(done_preflight=1, done_pin=1, done_archive=1, done_host=1, done_clean=1, done_consumer=1)
+        fx.set_server_stack("v6.0.0")
+        dims = fx.server / "data/config/custom-dimensions/dimensions"
+        fx.write(dims, "settings.json", '{"schemaVersion": 2, "namespace": "adventure"}')
+        fx.write(dims, "the_ashgrove.json", '{"schemaVersion": 2}')
+        fx.write(fx.server / "data", "server.properties", "level-seed=123\n")
+        fx.rcon({**BASE_SEEDS_123, "customdim list": "82 dimensions: 4 base, 78 lazy, 0 open",
+                 "gamerule spawn_phantoms": "x: false", "gamerule log_admin_commands": "x: true",
+                 "execute in adventure:the_ashgrove run gamerule spawn_phantoms": "x: true"})
+        r = fx.run("verify")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("MISMATCH  adventure:the_ashgrove holds spawn_phantoms true; the server-wide value is false", r.stdout)
         self.assertNotIn("done_verify", fx.state())
 
     def test_verify_waits_on_a_silent_server(self):
@@ -692,6 +717,11 @@ class FlowTests(Base):
         for line in calls.splitlines():
             if line.startswith("docker logs"):
                 self.assertIn("--tail", line)
+
+
+# Every base world answering the world seed 123.
+BASE_SEEDS_123 = {"execute in %s run seed" % level: "Seed: [123]" for level in
+                  ("minecraft:overworld", "minecraft:the_nether", "minecraft:the_end", "adventure:the_aviary")}
 
 
 class LocalTests(Base):

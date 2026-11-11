@@ -3,6 +3,7 @@ package com.customdimensions.server.level;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.customdimensions.core.BlockPos;
 import com.customdimensions.core.ChunkPos;
@@ -65,6 +66,33 @@ class LevelMathsTest {
         assertEquals(8192, LevelMaths.playerBorderRadius(null, defaults));
         assertNull(LevelMaths.playerBorderRadius(null, new JsonObject()));
         assertNull(LevelMaths.playerBorderRadius(null, null));
+    }
+
+    @Test
+    void aLevelWithoutChunksTakesTheDefinitionsSeedAndRecordsIt() {
+        assertEquals(new LevelMaths.SeedChoice(7, true, null), LevelMaths.chooseSeed("a:x", 7, null, false, 1));
+        assertEquals(new LevelMaths.SeedChoice(7, true, null), LevelMaths.chooseSeed("a:x", 7, 5L, false, 1));
+        assertEquals(new LevelMaths.SeedChoice(7, false, null), LevelMaths.chooseSeed("a:x", 7, 7L, false, 1));
+    }
+
+    @Test
+    void aLevelWithChunksKeepsTheRecordedSeedAndWarnsWhenTheDefinitionDiffers() {
+        assertEquals(new LevelMaths.SeedChoice(7, false, null), LevelMaths.chooseSeed("a:x", 7, 7L, true, 1));
+        LevelMaths.SeedChoice kept = LevelMaths.chooseSeed("minecraft:overworld", 9, 7L, true, 1);
+        assertEquals(7, kept.seed());
+        assertEquals(false, kept.write());
+        assertTrue(kept.warning().startsWith("minecraft:overworld: its region folder holds chunks generated from seed 7, and its definition's seed is 9"),
+                kept.warning());
+        assertTrue(kept.warning().contains("reset-seed") && kept.warning().contains("set the definition's seed to 7"), kept.warning());
+    }
+
+    @Test
+    void chunksOlderThanAnyRecordKeepTheSeedTheLevelHadAndRecordIt() {
+        LevelMaths.SeedChoice base = LevelMaths.chooseSeed("minecraft:the_end", 9, null, true, 20261022);
+        assertEquals(20261022, base.seed());
+        assertTrue(base.write());
+        assertTrue(base.warning().contains("generated from seed 20261022"), base.warning());
+        assertEquals(new LevelMaths.SeedChoice(9, true, null), LevelMaths.chooseSeed("adventure:x", 9, null, true, 9));
     }
 
     private static void assertChunk(int x, int z, ChunkPos chunk) {

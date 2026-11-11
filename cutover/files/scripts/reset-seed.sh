@@ -44,10 +44,13 @@
 # valid across a reset and are irrelevant to the world just destroyed).
 #
 # The seed argument updates SEED in .env locally and on the server, which
-# seeds level.dat ONLY. Terrain comes from each dimension's own config
-# (TROUBLESHOOTING.md#t31), so a new seed here changes nothing on its own:
-# put the seed in the config, deploy it, and reset AFTER it is on the server.
-# Same for spawn — the overworld entry's "spawn" replaces SPAWN_X/Y/Z.
+# seeds level.dat: the world seed. Only a dimension whose definition says
+# "env" or has no "seed" generates from it; every other dimension, the base
+# worlds included, generates from its definition's seed (decisions.md RB-37).
+# To change a dimension's terrain, put the seed in its definition, deploy it,
+# and reset AFTER it is on the server; a level whose chunks generated under
+# another seed keeps that seed until the reset. Same for spawn — the
+# overworld entry's "spawn" replaces SPAWN_X/Y/Z.
 #
 # Optionally wipes restic backups in R2 (--wipe-backups flag). The wipe is
 # verified by re-listing the repository afterwards and aborts the reset if

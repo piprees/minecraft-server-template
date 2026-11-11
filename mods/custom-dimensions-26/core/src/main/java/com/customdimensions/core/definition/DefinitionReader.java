@@ -93,6 +93,7 @@ public final class DefinitionReader {
                 ctx.closed(root, "rules", RULES_FIELDS, (c, o) -> new Rules(
                         c.bool(o, "bedsWork"), c.bool(o, "respawnAnchorsWork"), c.bool(o, "piglinsZombify"),
                         c.bool(o, "ultraWarm"), c.bool(o, "natural"), c.bool(o, "raids"))),
+                GameRuleValues.parse(root.get("gameRules"), source + ": gameRules"),
                 ctx.closed(root, "borders", BORDERS_FIELDS, (c, o) -> new Borders(
                         c.integer(o, "player"), c.integer(o, "generation"))),
                 ctx.object(root, "difficulty"),

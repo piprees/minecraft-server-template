@@ -23,7 +23,8 @@ Sources of truth, in order: `mods/custom-dimensions-26/schema/definition.schema.
 | Field | What it sets |
 | --- | --- |
 | `description` | The intent every review is checked against |
-| `seed`, `spawn` | A number or `"env"`; `[x, y, z]`. `roll` and `/customdim pick` write `seed` |
+| `seed`, `spawn` | A number or `"env"` (the world seed), base worlds included; `[x, y, z]`. `roll` and `/customdim pick` write `seed`. A level with chunks keeps the seed they generated from |
+| `gameRules` | 26.3 game rule ids (`keep_inventory`, `mob_griefing`, a mod's `ns:rule`) to a boolean or a whole number, held by this dimension over `settings.json`'s `defaults.gameRules` and the server-wide `/gamerule`. `advance_time` is refused (the clocks are server-wide): `atmosphere.fixedTime` holds time still, `atmosphere.dayLength` sets its pace. A dimension that sets `advance_weather` keeps weather of its own |
 | `generator` | `type`: `noise` (with `preset`: `overworld`, `large_biomes`, `amplified`, `caves`, `floating_islands`, `nether`, `end`; `endIsland` for the End), `checkerboard` (`cellScale`), `single_biome` (`biome`, `preset`), `flat` (`layers`, `biome`), `void`, `clone` (`of`) |
 | `terrain` | `base` (a library terrain: `continents`, `erosion`, `ridges`, `terraces`, `canyons`, `rivers`, `floating_islands`, `basin_islands`, `islands`, `voids`, `shattered`, `spires`), `setting` (`gentle`, `default`, `extreme`), `params`, `scale` (0.25–4), `heightMultiplier` (0.25–3), `scales` (`continents`, `erosion`, `ridges`, `climate`; each 0.25–4), `layout` (`radial`, `ring`, `linear`). Refused on the `caves`, `nether` and `end` presets |
 | `biomes` | Vanilla 26.3 ids and our library's (`<namespace>:<id>`); an entry may carry a `climate` box |

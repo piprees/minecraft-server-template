@@ -3,7 +3,7 @@ package com.customdimensions.server.render;
 import com.customdimensions.core.render.ColumnSamples;
 import com.customdimensions.server.level.LevelIndex;
 import com.customdimensions.server.level.LevelManager;
-import com.customdimensions.server.level.LevelMaths;
+import com.customdimensions.server.level.LevelSeeds;
 import com.customdimensions.server.structure.StructureRuntime;
 import java.util.List;
 import java.util.Optional;
@@ -122,7 +122,7 @@ public final class Sampler {
     /**
      * The dimension {@code slug} names, a base world or a lazy one, which need
      * not be open. A null {@code seed} takes the seed its level has or would
-     * have: the world seed for a base world, the definition's for a lazy one.
+     * have ({@link LevelSeeds}).
      */
     public static Sampler forDimension(MinecraftServer server, LevelManager manager, String slug, Long seed) {
         for (LevelIndex.BaseWorld base : manager.index().baseWorlds()) {
@@ -147,15 +147,17 @@ public final class Sampler {
                 server.getStructureTemplateManager());
     }
 
-    /** The seed {@code slug}'s level has or would have: the level's for a base world, the definition's (else the world's) for a lazy one. */
+    /** The seed {@code slug}'s level has or would have: an open level's own, else the one {@link LevelSeeds} would open it with. */
     public static long defaultSeed(MinecraftServer server, LevelManager manager, String slug) {
         for (LevelIndex.BaseWorld base : manager.index().baseWorlds()) {
             if (!base.slug().equals(slug)) continue;
             ServerLevel level = server.getLevel(base.key());
-            return level == null ? server.overworld().getSeed() : level.getSeed();
+            Long own = LevelSeeds.baseSeedOrNull(base.key());
+            return level != null ? level.getSeed() : own != null ? own : LevelSeeds.worldSeed(server);
         }
         LevelIndex.Entry entry = manager.index().lazy(slug).orElseThrow(() -> new IllegalArgumentException("no dimension " + slug));
-        return LevelMaths.resolveSeed(entry.definition() == null ? null : entry.definition().seed(), server.overworld().getSeed());
+        ServerLevel open = server.getLevel(entry.key());
+        return open != null ? open.getSeed() : LevelSeeds.peekLazySeed(server, entry.key(), entry.definition() == null ? null : entry.definition().seed());
     }
 
     public boolean hasZones() {

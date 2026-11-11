@@ -44,6 +44,7 @@ public final class Messages {
             Map.entry("customdim.info.exits", "Exits: {exits}"),
             Map.entry("customdim.info.wins", "Wins: {wins}"),
             Map.entry("customdim.info.borders", "Borders: player {player}, generation {generation}"),
+            Map.entry("customdim.info.game_rules", "Game rules of its own: {rules}"),
             Map.entry("customdim.info.bedrock", "Bedrock: {warning}"),
             Map.entry("customdim.tp.console", "Name a player to teleport from the console."),
             Map.entry("customdim.tp.done", "Teleported {player} to {dimension}."),

@@ -14,6 +14,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.serialization.JsonOps;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.Optional;
 import net.minecraft.commands.CommandSourceStack;
@@ -28,7 +29,8 @@ import net.minecraft.world.level.dimension.LevelStem;
 
 /**
  * {@code /customdim info <dimension>}: generator, seed, height, difficulty,
- * peaceful, portals, exits, wins, borders, state and any Bedrock height warning.
+ * peaceful, portals, exits, wins, borders, the game rule values of its own,
+ * state and any Bedrock height warning.
  */
 final class InfoCommand {
     private InfoCommand() {}
@@ -50,8 +52,8 @@ final class InfoCommand {
         CustomDimCommands.ok(source, "customdim.info.header", "dimension", d.slug(), "state",
                 CustomDimCommands.state(manager.get(), d));
         CustomDimCommands.ok(source, "customdim.info.generator", "generator", generator(def));
-        CustomDimCommands.ok(source, "customdim.info.seed", "seed", level.map(l -> String.valueOf(l.getSeed()))
-                .orElse(def == null || def.seed() == null ? "?" : String.valueOf(def.seed().value())));
+        CustomDimCommands.ok(source, "customdim.info.seed", "seed", String.valueOf(level.map(ServerLevel::getSeed)
+                .orElseGet(() -> com.customdimensions.server.render.Sampler.defaultSeed(server, manager.get(), d.slug()))));
         Optional<Holder<DimensionType>> type = type(server, manager.get(), d);
         type.ifPresent(t -> CustomDimCommands.ok(source, "customdim.info.height", "minY", String.valueOf(t.value().minY()),
                 "maxY", String.valueOf(t.value().minY() + t.value().height()), "height", String.valueOf(t.value().height())));
@@ -70,6 +72,9 @@ final class InfoCommand {
         if (generation == null) generation = defaultGeneration(manager.get());
         CustomDimCommands.ok(source, "customdim.info.borders", "player", d.borderRadius() == null ? "none" : String.valueOf(d.borderRadius()),
                 "generation", generation == null ? "none" : String.valueOf(generation));
+        Map<String, String> rules = com.customdimensions.server.level.LevelGameRules.ownValues(d.key());
+        CustomDimCommands.ok(source, "customdim.info.game_rules", "rules", rules.isEmpty() ? "none"
+                : String.join(", ", rules.entrySet().stream().map(e -> e.getKey() + " " + e.getValue()).toList()));
         type.flatMap(t -> bedrock(server, t)).ifPresent(w -> CustomDimCommands.ok(source, "customdim.info.bedrock", "warning", w));
         return 1;
     }
