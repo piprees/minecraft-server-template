@@ -19,7 +19,7 @@ then 90 degrees either side. Every camera is checked again by the rig's clear-ca
 The frame gate rejects a frame with more than BORDER_MAX percent of its rays reaching the world border before any block
 (FrameGate.BORDER_MAX, FrameCensus's ray grid), and a ray that hits nothing (sky, or void under a sky world) counts as
 travelling the whole render distance. So a far view from a summit near the border of a small sky world cannot pass.
-With the border's half-size known (--border, else the survey's census radius) each far candidate is scored by
+With the border's half-size known (--border, else the dossier's borders.player or census radius) each far candidate is scored by
 border_share(): the share of its rays that would reach the border if every one of them hit nothing, which is the gate's
 own rule at its strictest, so a candidate under BORDER_MAX passes the border test whatever it sees. When the summit's
 camera scores over it, the far view and its alternates are the candidates that pass: cameras on the border ring
@@ -31,7 +31,7 @@ follows them while alternates remain. A ring point near a corner of the border s
 Usage: pick-shots.py <dossier.json> <out.json> [--features N] [--landmarks N] [--max-per-layer N] [--border N]
                      [--render-distance N]
   --max-per-layer keeps each layer's N highest-scoring types (default all).
-  --border gives the world border's half-size in blocks round (0, 0) (default the census radius in the dossier).
+  --border gives the world border's half-size in blocks round (0, 0) (default the dossier's borders.player, else its census radius).
   --render-distance is the rig's, in chunks (default 32, rig.sh --render-distance 32).
 Gotchas: night vision lights underground and roof shots. A dimension that is dark (no skylight, or held at night by a
 definition fixedTime of 13000-23000) or fog-bound (its registered type's visual attributes or skybox name the nether,
@@ -86,7 +86,7 @@ def pick(d, features=6, landmarks=3, per_layer=None, border=None, render_distanc
                'nightVision': False,
                'at': vista['lookAt'], 'radius': 24, 'hold': 45, 'why': 'vista: summit of the coarse map, facing its largest drop',
                'alternates': inward(vista)}
-        half = border if border is not None else census_radius(d)
+        half = border if border is not None else border_of(d)
         if half and not ceiling:
             far = within_border(far, vista, half, render_distance * 16.0, top(d))
         out.append(far)
@@ -137,8 +137,11 @@ def pick(d, features=6, landmarks=3, per_layer=None, border=None, render_distanc
     return out
 
 
-def census_radius(d):
-    """The border the survey measured over, from its structure census note; None without one."""
+def border_of(d):
+    """The player border's half-size: the dossier's borders.player, else the radius its structure census note names; None."""
+    player = (d.get('borders') or {}).get('player')
+    if player:
+        return int(player)
     note = (d.get('structures', {}).get('census') or {}).get('note', '')
     m = CENSUS_RADIUS.search(note)
     return int(m.group(1)) if m else None

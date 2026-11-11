@@ -202,7 +202,7 @@ cluster, then the camera turned 90, 180 and 270 degrees; the far view's face
 inward, towards the border centre, then 90 degrees either side. A ray that hits
 nothing counts against the border gate as travelling the whole render distance,
 so a far view from a summit near the border of a small sky world cannot pass:
-with the border's half-size (`--border N`, else the survey's census radius) and
+with the player border's half-size (`--border N`, else the dossier's `borders.player`, which `/customdim survey` writes beside `generation` and `surveyed`) and
 the rig's `--render-distance` (default 32), `pick-shots.py` scores the summit's
 camera with every ray a miss, and when that fails the gate's 2% it takes cameras
 that pass instead: on the border ring 16 blocks in and 40 over the summit, facing

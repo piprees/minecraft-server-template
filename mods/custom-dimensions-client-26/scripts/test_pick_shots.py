@@ -175,6 +175,13 @@ class BorderGeometryTest(unittest.TestCase):
     def test_no_border_known_leaves_the_far_view_alone(self):
         self.assertEqual(self.far(ps.pick(dossier()))['at'], [50, 60, 0])
 
+    def test_the_player_border_wins_over_the_census_radius(self):
+        d = self.sky([-300, 200, -500], [-140, 60, -500])
+        d['borders'] = {'player': 683, 'generation': 1024, 'surveyed': 512}
+        self.assertEqual(ps.border_of(d), 683)
+        self.assertEqual(ps.border_of(self.sky([0, 0, 0], [0, 0, 0])), 512)
+        self.assertIsNone(ps.border_of(dossier()))
+
     def test_the_top_of_the_world_caps_the_camera(self):
         f = self.far(ps.pick(self.sky([-300, 300, -500], [-140, 60, -500])))
         self.assertEqual(f['y'], str(320 - 2))
