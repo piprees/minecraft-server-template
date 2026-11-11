@@ -46,3 +46,12 @@ Secrets, in the Elfydd repository's `production` environment, before step 6 is p
 8. `STACK_READ_TOKEN`, only while the template repository is private: a fine-grained token with read access to `piprees/minecraft-server-template` contents and releases.
 
 Nothing else in Elfydd names 1.21.1: no overlay config of a cut mod (`betterdays/`, `lootr/`, `tectonic.json`, the flat Serilum files) is present.
+
+## Rehearsing the patch before `v6.0.0` is published
+
+Steps 2 to 5 on a copy of Elfydd, with the scaffold files of step 3 taken from the checkout's `examples/consumer/` (no v6 bundle to pull yet), then `MC_VERSION_OVERRIDE=26.3 ./dev link <checkout>` and `./dev up`, boot Elfydd on 26.3:
+
+- `.stack-version` `v6.0.0` makes `./dev up` pull `defaults-seed:6.0.0`, which does not exist until the release: put `IMAGE_TAG='5.27.1'` (the images already on the machine) in the copy's `.env` for the rehearsal.
+- A new compose project starts with an empty `<slug>_stack-mods` volume, so the seed resolves every pin from Modrinth inside its container; a machine whose containers cannot reach Modrinth hangs there.
+- Checked on the booted copy: `overlay/config/deploy-banner.txt` and `overlay/config/README.md` reach the stack config byte for byte; the nav bar carries `BRAND_NAME` Elfydd; the seed-viewer files are gone and nothing asks for them; `overlay/modpack/manifest.json` and `overlay/assets/` are read by the modpack build, which is the one step a rehearsal without network access to Modrinth from its containers cannot run.
+- Passing on the copy: 86 dimensions, admin parity 49/49, the Bedrock ping, an unmodded 26.3 join with three portal crossings, the server pack's tinted portals, and the companion's crossing.
