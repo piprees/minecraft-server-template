@@ -28,6 +28,8 @@ public final class Noises {
             Map.entry("shatter", new Spec(-6, new double[]{1, 0.5, 0.25}, 0.251)),
             Map.entry("spires", new Spec(-5, new double[]{1, 0.3}, 0.254)),
             Map.entry("voids", new Spec(-7, new double[]{1, 0.5, 0.25}, 0.252)),
+            Map.entry("warp_x", new Spec(-8, new double[]{1, 0.5}, 0.274)),
+            Map.entry("warp_z", new Spec(-8, new double[]{1, 0.5}, 0.274)),
             Map.entry("wear", new Spec(-8, new double[]{1, 0.5, 0.25}, 0.248))));
 
     private Noises() {

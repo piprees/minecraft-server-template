@@ -94,7 +94,8 @@ public enum TerrainFamily {
             Map.of("width", 0.08, "depth", 12.0, "bankWidth", 0.12, "frequency", 1.4),
             false, TerrainFamily::rivers),
 
-    FLOATING_ISLANDS("floating_islands", "Islands in the sky over a void: domed or flat-topped, tapering undersides, in one layer or stacked tiers.",
+    FLOATING_ISLANDS("floating_islands", "Islands in the sky over a void: domed or flat-topped, tapering undersides, in one layer or stacked tiers, "
+            + "with spires standing on the lowest tier's tops.",
             join(List.of(new TerrainParam("altitude", 40, 240, 150, "Height of the island layer"),
                     new TerrainParam("thickness", 4, 64, 18, "Blocks an island's top rises above the layer"),
                     new TerrainParam("underside", 4, 120, 40, "Blocks an island's underside hangs below the layer"),
@@ -103,7 +104,11 @@ public enum TerrainFamily {
                     new TerrainParam("spread", 0, 80, 24, "Blocks island altitudes vary by"),
                     new TerrainParam("flatness", 0, 1, 0, "Shape of an island's top: 0 a dome; higher reaches the full thickness nearer the edge and stays flat inside it, 1 a table with a short roll-off"),
                     count("terraces", 0, 5, 0, "Plateau levels of an island top: 1 floors the layer's tilt into level treads terraceStep apart; 2 or more also lift patches of the top by up to one level fewer; 0 leaves the top unstepped"),
-                    new TerrainParam("terraceStep", 2, 32, 6, "Blocks between plateau levels")), TerrainParam.TIERS),
+                    new TerrainParam("terraceStep", 2, 32, 6, "Blocks between plateau levels"),
+                    new TerrainParam("spires", 0, 0.3, 0, "Share of the lowest tier's island tops under spires, several to a broad island; 0 none"),
+                    new TerrainParam("spireHeight", 16, 200, 70, "Blocks a spire rises above the island top it stands on"),
+                    new TerrainParam("spireThickness", 0.25, 4, 1, "Spire girth; higher is thicker"),
+                    new TerrainParam("spireTaper", 0, 1, 0.5, "0 is straight-sided columns, 1 is cones")), TerrainParam.TIERS),
             Map.of(),
             Map.of("coverage", 0.15, "thickness", 8.0, "underside", 14.0, "spread", 10.0),
             Map.of("coverage", 0.5, "thickness", 40.0, "underside", 100.0, "spread", 60.0, "size", 2.0),
@@ -122,7 +127,10 @@ public enum TerrainFamily {
                     new TerrainParam("rimHeight", 1, 16, 4, "Blocks the rim round a mass stands above the water line"),
                     new TerrainParam("gaps", 0, 0.5, 0.35, "Share of the rim cut below the water line, where a basin spills into the void"),
                     new TerrainParam("islandShare", 0.02, 0.8, 0.3, "Share of a lake mass's basin with islands, smaller and more of them than outside"),
-                    new TerrainParam("islandRise", 0, 60, 8, "Blocks of cliff the islands inside a lake mass rise by out of the water")),
+                    new TerrainParam("islandRise", 0, 60, 8, "Blocks of cliff the islands inside a lake mass rise by out of the water"),
+                    new TerrainParam("hollowDepth", 0, 60, 0, "With a ring terrain.layout: blocks below the water line the floor of one lake filling the ring's hollow lies, "
+                            + "held by a rim at the hollow's edge; 0 leaves the hollow open void"),
+                    count("ringLakes", 0, 1, 1, "With a hollow lake: 1 keeps the lake masses round the ring, 0 makes the hollow's lake the only one")),
                     TerrainParam.TIERS),
             Map.of(),
             Map.of("lakeShare", 0.25, "basinDepth", 4.0, "rimHeight", 2.0, "gaps", 0.15, "islandRise", 4.0, "spread", 10.0,
@@ -599,7 +607,7 @@ public enum TerrainFamily {
         JsonElement n = laidOut(ctx, ctx.noise("islands", 1 / ctx.p("size"), 0), sigma);
         JsonElement core = Df.cache(ramp(n, t, t + sigma));
         JsonElement layer = add(spread(ctx), ctx.p("altitude"));
-        JsonElement top = islandTop(ctx, layer, core, ctx.p("thickness") * m, ctx.p("size"), ctx.p("altitude"));
+        JsonElement top = withSpires(ctx, islandTop(ctx, layer, core, ctx.p("thickness") * m, ctx.p("size"), ctx.p("altitude")), core);
         if (tiers(ctx) > 1) top = ctx.named("tier0_top", top);
         JsonElement bottom = add(sub(layer, mul(core, ctx.p("underside") * m)), 2);
         JsonElement y = negY(ctx.minY(), ctx.maxY());
@@ -651,6 +659,28 @@ public enum TerrainFamily {
             base = steps(base, altitude, step, TERRACE_RISER);
         }
         return add(add(base, mul(profile, thickness)), -2);
+    }
+
+    /** The island noise's {@code core} over which a spire's foot comes onto an island: a spire never overhangs the void. */
+    static final double SPIRE_FOOT_FROM = 0.05, SPIRE_FOOT_TO = 0.25;
+
+    /**
+     * {@code top} with columns raised on it where the spire noise lies in its highest {@code spires} share, as
+     * {@link #spires} raises them on land: {@code spireHeight} at the crest, {@code spireTaper} from straight-sided to
+     * cones, {@code spireThickness} their girth. A spire stands only where the island is held, its foot coming onto
+     * the island over {@link #SPIRE_FOOT_FROM} to {@link #SPIRE_FOOT_TO} of {@code core}, so one broad island carries
+     * several and none hangs over the void; {@code top} unchanged at {@code spires} 0.
+     */
+    private static JsonElement withSpires(Ctx ctx, JsonElement top, JsonElement core) {
+        double share = ctx.p("spires", 0);
+        if (share <= 0) return top;
+        double sigma = Noises.sigma("spires");
+        double t = Noises.threshold(share, sigma);
+        JsonElement s = ctx.noise("spires", 1 / ctx.p("spireThickness"), 0);
+        JsonElement a = Df.cache(mul(ramp(s, t, t + 0.6 * sigma), ramp(core, SPIRE_FOOT_FROM, SPIRE_FOOT_TO)));
+        JsonElement column = clamp(mul(a, 6), 0, 1);
+        JsonElement profile = lerp(c(ctx.p("spireTaper")), column, a);
+        return add(top, mul(profile, ctx.p("spireHeight") * ctx.heightMultiplier()));
     }
 
     /** The island layers a terrain over a void lays, counting its own. */
@@ -714,6 +744,8 @@ public enum TerrainFamily {
      * {@code tierSpacing} with no room for an island over {@code tierGap}.
      */
     public static void checkStack(String slug, TerrainSpec spec, int maxY) {
+        checkSpires(slug, spec, maxY);
+        checkHollow(slug, spec);
         if (!spec.params().containsKey("tiers") || spec.param("tiers") <= 1) return;
         int tiers = (int) spec.param("tiers");
         double spacing = spec.param("tierSpacing"), gap = spec.param("tierGap");
@@ -730,6 +762,20 @@ public enum TerrainFamily {
             throw new IllegalArgumentException(slug + ": terrain.params.tiers " + tiers + " at tierSpacing " + TerrainSpec.fmt(spacing)
                     + " from altitude " + TerrainSpec.fmt(spec.param("altitude")) + " lift the top tier's islands to y "
                     + Math.round(top) + ", above the dimension's top at " + maxY);
+        }
+    }
+
+    /** Refuses spires on island tops whose crests would stand over {@code maxY}. */
+    static void checkSpires(String slug, TerrainSpec spec, int maxY) {
+        if (spec.params().getOrDefault("spires", 0.0) <= 0) return;
+        double m = spec.heightMultiplier();
+        double levels = spec.params().getOrDefault("terraces", 0.0);
+        double terraces = levels >= 2 ? (levels - 1) * spec.param("terraceStep") : 0;
+        double crest = spec.param("altitude") + (spec.param("thickness") + spec.param("spireHeight")) * m + terraces;
+        if (crest > maxY) {
+            throw new IllegalArgumentException(slug + ": terrain.params.spireHeight " + TerrainSpec.fmt(spec.param("spireHeight"))
+                    + " on islands at altitude " + TerrainSpec.fmt(spec.param("altitude")) + " lifts the spires' crests to y "
+                    + Math.round(crest) + ", above the dimension's top at " + maxY);
         }
     }
 
@@ -771,7 +817,9 @@ public enum TerrainFamily {
      * {@link #INNER_DOME} of {@code thickness}; outside, islands keep the layer's spread.
      * Where the {@code detail} noise lies in its highest {@code gaps} share the
      * rim is cut to {@link #GAP_DROP} under the water line, its outer lip lower still
-     * to the edge, and no island stands in the cut, so the basin spills off the edge. The basin and its floor
+     * to the edge, and no island stands in the cut, so the basin spills off the edge. With {@code hollowDepth} above 0
+     * a ring layout's hollow is one more lake mass ({@link #hollowLake}), its floor {@code hollowDepth} below the water
+     * line at its heart; {@code ringLakes} 0 leaves it the only mass. The basin and its floor
      * are written as {@link #BASIN} and {@link #BASIN_FLOOR} for {@code liquids.basins}; the mass up
      * to a block under its floor is ground no cave cuts, so a basin holds its water.
      */
@@ -782,13 +830,16 @@ public enum TerrainFamily {
         double t = Noises.threshold(ctx.p("coverage"), sigma);
         double sl = Noises.sigma("lakes");
         double tl = Noises.threshold(ctx.p("lakeShare"), sl);
-        JsonElement lakes = ctx.named("lakes", laidOut(ctx, ctx.noise("lakes", 1 / ctx.p("lakeSize"), 0), sl));
         double edge = tl;
         double risen = tl + 0.08 * sl;
         double crest = tl + 0.14 * sl;
         double crestEnd = tl + 0.2 * sl;
         double shore = tl + 0.32 * sl;
         double heart = tl + 0.8 * sl;
+        JsonElement hollow = hollowLake(ctx, edge, crestEnd, shore, heart, sl);
+        JsonElement lakeNoise = laidOut(ctx, ctx.noise("lakes", 1 / ctx.p("lakeSize"), 0), sl);
+        if (hollow != null) lakeNoise = ctx.p("ringLakes") >= 1 ? max(lakeNoise, hollow) : hollow;
+        JsonElement lakes = ctx.named("lakes", lakeNoise);
         double ti = Noises.threshold(ctx.p("islandShare"), sigma);
         JsonElement outerCore = mul(ramp(laidOut(ctx, ctx.noise("islands", 1 / ctx.p("size"), 0), sigma), t, t + sigma),
                 ramp(lakes, edge, edge - 0.1 * sl));
@@ -808,8 +859,13 @@ public enum TerrainFamily {
             cut = ctx.named("gap", mul(gap, band));
             massTop = sub(massTop, mul(cut, rim + GAP_DROP));
         }
-        JsonElement floor = ctx.named(BASIN_FLOOR, massTop);
         JsonElement massBottom = spline(lakes, edge, a - 2, crestEnd, a - depth - 4, heart, a - depth - 4 - 0.5 * ctx.p("underside") * m);
+        if (hollow != null) {
+            JsonElement deeper = mul(ramp(hollow, shore, heart), ctx.p("hollowDepth") - depth);
+            massTop = sub(massTop, deeper);
+            massBottom = sub(massBottom, deeper);
+        }
+        JsonElement floor = ctx.named(BASIN_FLOOR, massTop);
         JsonElement inMass = ramp(lakes, edge - 0.1 * sl, edge);
         JsonElement spread = add(mul(ctx.noise("altitude", 1, 0), ctx.p("spread") * m / Noises.sigma("altitude")), a);
         JsonElement layer = lerp(inMass, spread, c(a));
@@ -840,6 +896,46 @@ public enum TerrainFamily {
         Stack stack = stack(ctx, new Stack(max(island, mass), place, islandTop), crown, y);
         return new Shape(c(ctx.minY() - 64.0), ctx.factor(), c(0), null, mul(stack.inside(), 1 / 8.0), c(0.3), 0.1 + 0.6 * ctx.p("roughness"))
                 .withSolid(sealed).withPlace(stack.place(), stack.top());
+    }
+
+    /** Blocks inside the hollow's edge where its rim's crest ends, where its shore lies, and where its floor reaches full depth. */
+    static final double HOLLOW_CREST = 10, HOLLOW_SHORE = 24, HOLLOW_HEART = 64;
+    /** Blocks past the hollow's edge over which its lake noise falls away under the threshold of any lake mass. */
+    static final double HOLLOW_OUTSIDE = 8;
+
+    /** The edge of a ring layout's hollow, in blocks from its centre: where the layout's shape crosses 0, halfway down its inner fall. */
+    static double hollowEdge(TerrainShaping.Layout l) {
+        return l.radius() - l.falloff() / 2;
+    }
+
+    /**
+     * With {@code hollowDepth} above 0, the lake noise of one mass filling a ring layout's hollow, from its distance
+     * to the layout's centre: the mass's threshold at the hollow's edge ({@link #hollowEdge}), its rim's crest ending
+     * {@link #HOLLOW_CREST} blocks inside, its shore {@link #HOLLOW_SHORE} and its heart {@link #HOLLOW_HEART}, so
+     * {@link #basinIslands} lays the hollow's rim, shore and basin as it lays any lake mass's; null without one.
+     */
+    private static JsonElement hollowLake(Ctx ctx, double edge, double crestEnd, double shore, double heart, double sl) {
+        if (ctx.p("hollowDepth") <= 0) return null;
+        TerrainShaping.Layout l = ctx.layout();
+        double r = hollowEdge(l);
+        JsonElement d = com.customdimensions.compiler.zone.ZoneDensity.distance(Math.round(l.centreX()), Math.round(l.centreZ()));
+        return spline(d, r - HOLLOW_HEART, heart, r - HOLLOW_SHORE, shore, r - HOLLOW_CREST, crestEnd, r, edge,
+                r + HOLLOW_OUTSIDE, edge - 0.2 * sl);
+    }
+
+    /** Refuses a hollow lake without a ring layout, or in a hollow too small to hold a basin past its shore. */
+    static void checkHollow(String slug, TerrainSpec spec) {
+        if (spec.params().getOrDefault("hollowDepth", 0.0) <= 0) return;
+        TerrainShaping.Layout l = spec.shaping().layout();
+        if (l == null || !"ring".equals(l.type())) {
+            throw new IllegalArgumentException(slug + ": terrain.params.hollowDepth fills a ring layout's hollow; set terrain.layout.type ring");
+        }
+        double r = hollowEdge(l);
+        if (r < HOLLOW_HEART + 16) {
+            throw new IllegalArgumentException(slug + ": terrain.params.hollowDepth needs a hollow at least " + Math.round(HOLLOW_HEART + 16)
+                    + " blocks across its radius; terrain.layout.radius " + TerrainSpec.fmt(l.radius()) + " less half its falloff "
+                    + TerrainSpec.fmt(l.falloff()) + " leaves " + Math.round(r));
+        }
     }
 
     private static Shape islands(Ctx ctx) {

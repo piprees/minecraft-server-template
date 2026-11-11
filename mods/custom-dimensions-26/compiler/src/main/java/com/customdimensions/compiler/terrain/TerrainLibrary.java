@@ -124,6 +124,7 @@ public final class TerrainLibrary {
             functions.put(key, scaled(vanilla.densityFunction(path(source.getAsString())), spec.shaping().stretch(key)));
         }
         functions.put("continents", layout(functions.get("continents"), spec.shaping()));
+        climate(functions, spec.shaping().climate(), namespace);
         Map<String, String> ids = ids(prefix);
         functions.put("ridges_folded", replace(vanilla.densityFunction("overworld/ridges_folded"), ids));
 
@@ -190,6 +191,7 @@ public final class TerrainLibrary {
         for (String noise : ctx.noises()) {
             files.put(dataPath(namespace + ":terrain/" + noise, "worldgen/noise"), Noises.json(noise));
         }
+        warpNoises(files, spec.shaping().climate(), namespace);
         return new Compiled(out, files);
     }
 
@@ -221,6 +223,7 @@ public final class TerrainLibrary {
             functions.put(key, scaled(vanilla.densityFunction(path(router.get(key).getAsString())), shaping.stretch(key)));
         }
         functions.put("continents", layout(functions.get("continents"), shaping));
+        climate(functions, shaping.climate(), namespace);
         functions.put("ridges_folded", replace(vanilla.densityFunction("overworld/ridges_folded"), ids));
         for (String n : PRESET_SHAPE) {
             JsonObject f = replace(vanilla.densityFunction(own + "/" + n), ids);
@@ -233,6 +236,7 @@ public final class TerrainLibrary {
         out.remove("debug_functions");
         Map<String, JsonObject> files = new TreeMap<>();
         functions.forEach((key, json) -> files.put(dataPath(prefix + "/" + key, "worldgen/density_function"), json));
+        warpNoises(files, shaping.climate(), namespace);
         return new Compiled(out, files);
     }
 
@@ -267,12 +271,13 @@ public final class TerrainLibrary {
 
     /**
      * {@code settings}' router temperature and vegetation, each read from its
-     * id or written in place, stretched by {@code stretch} under
+     * id or written in place, stretched by {@code stretch} and given {@code climate}'s shift and warp under
      * {@code <namespace>:terrain/<name>/}; constants stay as they are.
      */
-    public static Climate stretchClimate(String namespace, String name, JsonObject settings, double stretch, VanillaData vanilla) {
+    public static Climate stretchClimate(String namespace, String name, JsonObject settings, double stretch,
+                                         TerrainShaping.Climate climate, VanillaData vanilla) {
         Map<String, JsonObject> files = new TreeMap<>();
-        if (stretch == 1) return new Climate(files, false);
+        if (stretch == 1 && climate.isNone()) return new Climate(files, false);
         JsonObject router = settings.getAsJsonObject("noise_router");
         String prefix = namespace + ":terrain/" + name;
         for (String key : List.of("temperature", "vegetation")) {
@@ -285,10 +290,63 @@ public final class TerrainLibrary {
             } else {
                 continue;
             }
-            files.put(dataPath(prefix + "/" + key, "worldgen/density_function"), scaled(function, stretch));
+            files.put(dataPath(prefix + "/" + key, "worldgen/density_function"), climate(scaled(function, stretch), key, climate, namespace));
             router.addProperty(key, prefix + "/" + key);
         }
-        return new Climate(files, !files.isEmpty());
+        boolean changed = !files.isEmpty();
+        if (changed) warpNoises(files, climate, namespace);
+        return new Climate(files, changed);
+    }
+
+    /** The noises a climate warp moves its sampling point along, on x and on z. */
+    static final List<String> WARP_NOISES = List.of("warp_x", "warp_z");
+    /** Blocks across one feature of a warp noise at {@code xz_scale} 1: its base octave is -8. */
+    static final double WARP_FEATURE = 256;
+
+    /** {@code functions}' temperature and vegetation with {@code climate} applied ({@link #climate(JsonObject, String, TerrainShaping.Climate, String)}). */
+    private static void climate(Map<String, JsonObject> functions, TerrainShaping.Climate climate, String namespace) {
+        if (climate.isNone()) return;
+        for (String key : List.of("temperature", "vegetation")) {
+            functions.put(key, climate(functions.get(key), key, climate, namespace));
+        }
+    }
+
+    /**
+     * {@code function}, a router temperature or vegetation, with {@code climate}'s shift for {@code key} added and,
+     * with a warp, every shifted noise in it sampled at a point moved along the {@link #WARP_NOISES}: two standard
+     * deviations of each move {@code warp} blocks, over features {@code wavelength} blocks across. Vanilla's shifted
+     * noise samples at {@code block * xz_scale + shift}, so a move of {@code b} blocks is a shift of
+     * {@code b * xz_scale}. The warp noises are {@code namespace}'s.
+     */
+    static JsonObject climate(JsonObject function, String key, TerrainShaping.Climate climate, String namespace) {
+        if (climate.isNone()) return function;
+        JsonObject out = function.deepCopy();
+        if (climate.warp() > 0) warp(out, climate, namespace);
+        double shift = "temperature".equals(key) ? climate.temperature() : climate.vegetation();
+        return shift == 0 ? out : add(out, shift);
+    }
+
+    private static void warp(JsonElement e, TerrainShaping.Climate climate, String namespace) {
+        if (e.isJsonArray()) {
+            e.getAsJsonArray().forEach(v -> warp(v, climate, namespace));
+            return;
+        }
+        if (!e.isJsonObject()) return;
+        JsonObject o = e.getAsJsonObject();
+        o.entrySet().forEach(kv -> warp(kv.getValue(), climate, namespace));
+        if (!o.has("type") || !"minecraft:noise".equals(o.get("type").getAsString()) || !o.has("shift_x")) return;
+        double k = climate.warp() / (2 * Noises.sigma("warp_x")) * o.get("xz_scale").getAsDouble();
+        double frequency = WARP_FEATURE / climate.wavelength();
+        o.add("shift_x", add(o.get("shift_x"), mul(Df.noise(namespace + ":terrain/warp_x", frequency, 0, false), k)));
+        o.add("shift_z", add(o.get("shift_z"), mul(Df.noise(namespace + ":terrain/warp_z", frequency, 0, false), k)));
+    }
+
+    /** {@code files} with the warp noises' files under {@code namespace} when {@code climate} warps. */
+    private static void warpNoises(Map<String, JsonObject> files, TerrainShaping.Climate climate, String namespace) {
+        if (climate.warp() <= 0) return;
+        for (String noise : WARP_NOISES) {
+            files.put(dataPath(namespace + ":terrain/" + noise, "worldgen/noise"), Noises.json(noise));
+        }
     }
 
     /** {@link #findTopSurface} below a preset's nominal height, which its {@code offset} gives as {@code height / 128 - 1}. */

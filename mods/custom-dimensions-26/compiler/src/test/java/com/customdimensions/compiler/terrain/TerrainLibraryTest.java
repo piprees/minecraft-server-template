@@ -451,6 +451,15 @@ class TerrainLibraryTest {
                 params.addProperty("tierSpacing", 72);
                 params.addProperty("thickness", 4);
                 if (family.param("terraceStep") != null) params.addProperty("terraceStep", 2);
+                // spires at their thickest share, short enough to stand under 320 at three times the height
+                if (family.param("spireHeight") != null) params.addProperty("spireHeight", 16);
+            }
+            if (family.param("hollowDepth") != null) {
+                JsonObject layout = new JsonObject();
+                layout.addProperty("type", "ring");
+                layout.addProperty("radius", high ? 8192 : 300);
+                layout.addProperty("falloff", high ? 8192 : 16);
+                terrain.add("layout", layout);
             }
             compile(TerrainSpec.parse("t", terrain), home(family), null);
         }
@@ -499,7 +508,7 @@ class TerrainLibraryTest {
         assertEquals("t: terrain.heightMultiplier = 0 is outside [0.25, 3]", error("{\"base\": \"canyons\", \"heightMultiplier\": 0}"));
         assertEquals("t: terrain.setting \"wild\" is not one of gentle, default, extreme", error("{\"base\": \"canyons\", \"setting\": \"wild\"}"));
         assertEquals("t: terrain.params needs a terrain.base", error("{\"base\": null, \"params\": {\"depth\": 20}}"));
-        assertEquals("t: terrain.roughness is not a terrain field; fields: base, floor, heightMultiplier, landShare, layout, params, scale, scales, setting",
+        assertEquals("t: terrain.roughness is not a terrain field; fields: base, climateShift, climateWarp, floor, heightMultiplier, landShare, layout, params, scale, scales, setting",
                 error("{\"base\": \"canyons\", \"roughness\": 1}"));
         assertEquals("t: terrain.params must be an object", error("{\"base\": \"canyons\", \"params\": 3}"));
     }

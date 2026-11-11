@@ -26,24 +26,28 @@ class SkyTiersTest {
     private static final String ISLANDS = "adventure:terrain/islands", ALTITUDE = "adventure:terrain/altitude", DETAIL = "adventure:terrain/detail";
     private static final int MIN_Y = 0, MAX_Y = 256;
 
-    private record Built(TerrainFamily.Shape shape, Map<String, JsonElement> named) {}
+    record Built(TerrainFamily.Shape shape, Map<String, JsonElement> named) {}
 
-    private static Built build(String json) {
+    static Built build(String json) {
         TerrainSpec spec = TerrainLibraryTest.spec(json);
         Ctx ctx = new Ctx(spec, "adventure", PREFIX, MIN_Y, MIN_Y, MAX_Y);
         TerrainFamily.Shape shape = spec.family().build(ctx);
         return new Built(shape, new HashMap<>(ctx.namedFunctions()));
     }
 
-    /** A column: each noise's value by id and, where one id is read at several frequencies, by id at {@code xz_scale}. */
-    private record Column(Map<String, Double> noises) {
+    /** A column at {@code x, z}: each noise's value by id and, where one id is read at several frequencies, by id at {@code xz_scale}. */
+    record Column(Map<String, Double> noises, double x, double z) {
+        Column(Map<String, Double> noises) {
+            this(noises, 0, 0);
+        }
+
         double noise(String id, double xzScale) {
             Double v = noises.get(id + "@" + Math.round(xzScale * 10000) / 10000.0);
             return v != null ? v : noises.getOrDefault(id, 0.0);
         }
     }
 
-    private static double eval(Built b, JsonElement f, Column column, double y) {
+    static double eval(Built b, JsonElement f, Column column, double y) {
         if (f.isJsonPrimitive() && f.getAsJsonPrimitive().isNumber()) return f.getAsDouble();
         if (f.isJsonPrimitive()) {
             String id = f.getAsString();
@@ -60,6 +64,8 @@ class SkyTiersTest {
             case "minecraft:min" -> Math.min(eval(b, o.get("left"), column, y), eval(b, o.get("right"), column, y));
             case "minecraft:max" -> Math.max(eval(b, o.get("left"), column, y), eval(b, o.get("right"), column, y));
             case "minecraft:sqrt" -> Math.sqrt(eval(b, o.get("input"), column, y));
+            case "minecraft:square" -> Math.pow(eval(b, o.get("input"), column, y), 2);
+            case "minecraft:abs" -> Math.abs(eval(b, o.get("input"), column, y));
             case "minecraft:floor" -> Math.floor(eval(b, o.get("input"), column, y));
             case "minecraft:cache" -> eval(b, o.get("input"), column, y);
             case "minecraft:clamp" -> Math.max(o.get("min").getAsDouble(), Math.min(o.get("max").getAsDouble(), eval(b, o.get("input"), column, y)));
@@ -70,7 +76,9 @@ class SkyTiersTest {
             case "minecraft:noise" -> column.noise(o.get("noise").getAsString(), o.get("xz_scale").getAsDouble());
             case "minecraft:gradient" -> {
                 double from = o.get("from_coordinate").getAsDouble(), to = o.get("to_coordinate").getAsDouble();
-                double t = Math.max(0, Math.min(1, (y - from) / (to - from)));
+                String axis = o.has("axis") ? o.get("axis").getAsString() : "y";
+                double at = "x".equals(axis) ? column.x() : "z".equals(axis) ? column.z() : y;
+                double t = Math.max(0, Math.min(1, (at - from) / (to - from)));
                 yield o.get("from_value").getAsDouble() + t * (o.get("to_value").getAsDouble() - o.get("from_value").getAsDouble());
             }
             case "minecraft:spline" -> {
@@ -98,7 +106,7 @@ class SkyTiersTest {
     }
 
     /** The solid runs of a column, {@code {bottom, top}} in blocks, sampled every quarter block. */
-    private static List<double[]> runs(Built b, Column column) {
+    static List<double[]> runs(Built b, Column column) {
         List<double[]> runs = new ArrayList<>();
         double start = Double.NaN;
         for (double y = MIN_Y; y <= MAX_Y; y += 0.25) {
@@ -115,11 +123,11 @@ class SkyTiersTest {
     private static final double SIGMA = Noises.sigma("islands");
 
     /** The islands noise value at which a layer of {@code coverage} has core {@code core} (0 at its edge, 1 at its heart). */
-    private static double islands(double coverage, double core) {
+    static double islands(double coverage, double core) {
         return Noises.threshold(coverage, SIGMA) + core * SIGMA;
     }
 
-    private static Column column(Object... pairs) {
+    static Column column(Object... pairs) {
         Map<String, Double> m = new HashMap<>();
         for (int i = 0; i < pairs.length; i += 2) m.put((String) pairs[i], (Double) pairs[i + 1]);
         return new Column(m);

@@ -51,6 +51,30 @@ public final class TerrainShaping {
                          double strength) {
     }
 
+    /**
+     * The router climate's own changes: {@code temperature} and {@code vegetation} added to the router's values (a
+     * shift, not a clamp: a biome whose climate box lies past the shifted range takes less of the map or none, and
+     * the box at the far end takes what lies beyond it), and its sampling point moved by up to {@code warp} blocks
+     * (two standard deviations) over features {@code wavelength} blocks across, so every climate boundary between
+     * biomes wanders.
+     */
+    public record Climate(double temperature, double vegetation, double warp, double wavelength) {
+        public static final Climate NONE = new Climate(0, 0, 0, 512);
+
+        public boolean isNone() {
+            return equals(NONE);
+        }
+    }
+
+    public static final TerrainParam SHIFT = new TerrainParam("climateShift", -1, 1, 0,
+            "Added to the router's temperature or vegetation; vanilla's biome bands are about 0.3 to 0.55 wide");
+    public static final TerrainParam WARP = new TerrainParam("blocks", 0, 1024, 0,
+            "Blocks the climate's sampling point moves by, two standard deviations; every biome boundary wanders by about as much");
+    public static final TerrainParam WAVELENGTH = new TerrainParam("wavelength", 64, 4096, 512,
+            "Blocks across the warp's features: a boundary bends about once a wavelength");
+    public static final List<String> SHIFT_KEYS = List.of("temperature", "vegetation");
+    public static final List<String> WARP_KEYS = List.of("blocks", "wavelength");
+
     public static final List<String> SCALE_KEYS = List.of("continents", "erosion", "ridges", "climate");
     public static final List<String> LAYOUT_TYPES = List.of("radial", "ring", "linear", "none");
     static final Set<String> LAYOUT_KEYS = Set.of("type", "centre", "radius", "direction", "falloff", "strength");
@@ -72,15 +96,17 @@ public final class TerrainShaping {
     private final Scales scales;
     private final Layout layout;
     private final Double landShare;
+    private final Climate climate;
 
-    private TerrainShaping(double scale, Scales scales, Layout layout, Double landShare) {
+    private TerrainShaping(double scale, Scales scales, Layout layout, Double landShare, Climate climate) {
         this.scale = scale;
         this.scales = scales;
         this.layout = layout;
         this.landShare = landShare;
+        this.climate = climate;
     }
 
-    public static final TerrainShaping NONE = new TerrainShaping(1, Scales.NONE, null, null);
+    public static final TerrainShaping NONE = new TerrainShaping(1, Scales.NONE, null, null, Climate.NONE);
 
     public double scale() {
         return scale;
@@ -100,9 +126,14 @@ public final class TerrainShaping {
         return landShare;
     }
 
-    /** Whether the shaping changes nothing: every stretch 1, no layout and no land share. */
+    /** The climate's shift and warp; {@link Climate#NONE} for neither. */
+    public Climate climate() {
+        return climate;
+    }
+
+    /** Whether the shaping changes nothing: every stretch 1, no layout, no land share and no climate shift or warp. */
     public boolean isNone() {
-        return scale == 1 && scales.equals(Scales.NONE) && layout == null && landShare == null;
+        return scale == 1 && scales.equals(Scales.NONE) && layout == null && landShare == null && climate.isNone();
     }
 
     /**
@@ -146,7 +177,25 @@ public final class TerrainShaping {
             layout = layout(slug, terrain.get("layout"));
         }
         Double landShare = terrain.has("landShare") ? number(slug, "terrain.landShare", terrain.get("landShare"), LAND_SHARE) : null;
-        return new TerrainShaping(scale, scales, layout, landShare);
+        double[] shift = object(slug, terrain, "climateShift", SHIFT_KEYS, new double[]{0, 0}, new TerrainParam[]{SHIFT, SHIFT});
+        double[] warp = object(slug, terrain, "climateWarp", WARP_KEYS, new double[]{0, WAVELENGTH.defaultValue()},
+                new TerrainParam[]{WARP, WAVELENGTH});
+        return new TerrainShaping(scale, scales, layout, landShare, new Climate(shift[0], shift[1], warp[0], warp[1]));
+    }
+
+    /** The numbers of {@code terrain.<field>}, an object of {@code keys} each in its range; {@code defaults} for absent ones. */
+    private static double[] object(String slug, JsonObject terrain, String field, List<String> keys, double[] defaults,
+                                   TerrainParam[] ranges) {
+        double[] v = defaults.clone();
+        if (!terrain.has(field)) return v;
+        JsonElement e = terrain.get(field);
+        if (!e.isJsonObject()) throw error(slug, "terrain." + field + " must be an object");
+        for (var kv : e.getAsJsonObject().entrySet()) {
+            int i = keys.indexOf(kv.getKey());
+            if (i < 0) throw error(slug, "terrain." + field + "." + kv.getKey() + " is not a field; fields: " + String.join(", ", keys));
+            v[i] = number(slug, "terrain." + field + "." + kv.getKey(), kv.getValue(), ranges[i]);
+        }
+        return v;
     }
 
     private static Layout layout(String slug, JsonElement e) {

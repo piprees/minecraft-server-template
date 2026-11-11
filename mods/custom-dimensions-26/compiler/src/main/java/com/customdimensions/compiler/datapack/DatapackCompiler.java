@@ -748,12 +748,18 @@ public final class DatapackCompiler {
         }
         double climate = climateOnly ? shaping.stretch("temperature")
                 : terrain != null && terrain.family().ownRouter() ? terrain.shaping().stretch("temperature") : 1;
-        if (climate != 1) {
-            TerrainLibrary.Climate stretched = TerrainLibrary.stretchClimate(namespace, slug, settings, climate, vanilla);
+        com.customdimensions.compiler.terrain.TerrainShaping.Climate climateMods = climateOnly ? shaping.climate()
+                : terrain != null && terrain.family().ownRouter() ? terrain.shaping().climate()
+                : com.customdimensions.compiler.terrain.TerrainShaping.Climate.NONE;
+        if (climate != 1 || !climateMods.isNone()) {
+            TerrainLibrary.Climate stretched = TerrainLibrary.stretchClimate(namespace, slug, settings, climate, climateMods, vanilla);
             stretched.files().forEach((path, json) -> put(path, sorted(json), entry));
             entry.note(stretched.stretched()
-                    ? "Climate (temperature, vegetation) stretched " + climate + "x under `" + namespace + ":terrain/" + slug + "/`"
-                    : "terrain.scales.climate has no effect: the " + preset + " preset's biomes read no climate without a biome list");
+                    ? (climate != 1 ? "Climate (temperature, vegetation) stretched " + climate + "x" : "Climate (temperature, vegetation)")
+                    + (climateMods.isNone() ? "" : " shifted and warped") + " under `" + namespace + ":terrain/" + slug + "/`"
+                    : (climateMods.isNone() ? "terrain.scales.climate has no effect" : "terrain.scales.climate, climateShift and climateWarp have no effect")
+                    + ": the " + preset
+                    + " preset's biomes read no climate without a biome list");
         }
         if (voidCells != null) {
             JsonObject router = settings.getAsJsonObject("noise_router");

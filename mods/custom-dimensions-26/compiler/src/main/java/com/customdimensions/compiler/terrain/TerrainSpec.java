@@ -23,12 +23,13 @@ public record TerrainSpec(TerrainFamily family, String setting, Map<String, Doub
             "Horizontal stretch of every terrain noise and of the biome climate; 2 is twice as broad. scales multiply it per router noise");
     public static final TerrainParam HEIGHT_MULTIPLIER = new TerrainParam("heightMultiplier", 0.25, 3, 1,
             "Multiplies every height above or below sea level");
-    static final Set<String> KEYS = Set.of("base", "setting", "params", "scale", "heightMultiplier", "scales", "layout", "floor", "landShare");
+    static final Set<String> KEYS = Set.of("base", "setting", "params", "scale", "heightMultiplier", "scales", "layout", "floor", "landShare",
+            "climateShift", "climateWarp");
     /** What a {@code spires} terrain's columns stand on: the land, a void, a sea floor, or islands of their own over a void. */
     public static final List<String> FLOORS = List.of("land", "void", "sea", "islands");
     public static final String LAND_FLOOR = "land";
     /** Fields that shape a preset's own terrain, without a {@code base}. */
-    static final Set<String> PRESET_KEYS = Set.of("base", "scale", "scales", "layout", "landShare");
+    static final Set<String> PRESET_KEYS = Set.of("base", "scale", "scales", "layout", "landShare", "climateShift", "climateWarp");
 
     /** The terrain a definition asks for, or null when it keeps the preset's own ({@code base} absent or null). */
     public static TerrainSpec parse(String slug, JsonObject terrain) {

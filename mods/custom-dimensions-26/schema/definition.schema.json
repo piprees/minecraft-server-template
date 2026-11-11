@@ -79,6 +79,24 @@
           "minimum": 0,
           "maximum": 1
         },
+        "climateShift": {
+          "description": "Added to the router's temperature and vegetation before biomes read them: a shift, not a clamp. A biome whose climate box lies past the shifted range takes less of the map or none, and the box at the far end takes all that lies beyond it, so +0.3 on temperature warms a cold seed by about one vanilla band and -0.5 freezes all but the hottest land. On a base terrain, the preset's own terrain, the nether, caves and end presets, and a roofed or end terrain alike.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "temperature": { "description": "Added to the router's temperature or vegetation; vanilla's biome bands are about 0.3 to 0.55 wide", "type": "number", "minimum": -1, "maximum": 1, "default": 0 },
+            "vegetation": { "description": "Added to the router's temperature or vegetation; vanilla's biome bands are about 0.3 to 0.55 wide", "type": "number", "minimum": -1, "maximum": 1, "default": 0 }
+          }
+        },
+        "climateWarp": {
+          "description": "Moves the point the router's temperature and vegetation are sampled at along two noises, so every climate boundary between biomes (bands, regions, a biome list's cells) wanders like an ecotone instead of running straight across a broad climate. It moves boundaries; it does not change any biome's share of the map.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "blocks": { "description": "Blocks the climate's sampling point moves by, two standard deviations; every biome boundary wanders by about as much", "type": "number", "minimum": 0, "maximum": 1024, "default": 0 },
+            "wavelength": { "description": "Blocks across the warp's features: a boundary bends about once a wavelength", "type": "number", "minimum": 64, "maximum": 4096, "default": 512 }
+          }
+        },
         "floor": {
           "description": "What a spires terrain's columns stand on: land (the shared land, columns rising inland), sea (a sea floor at seaFloor with every column rising out of the sea), void (nothing between them: each column stands from the bottom of an open world) or islands (each column on a domed island of its own over a void). void and islands are terrains over a void, with no aquifers.",
           "enum": ["land", "void", "sea", "islands"],
@@ -1675,7 +1693,7 @@
       }
     },
     "terrain_floating_islands": {
-      "description": "Islands in the sky over a void: domed or flat-topped, tapering undersides, in one layer or stacked tiers.",
+      "description": "Islands in the sky over a void: domed or flat-topped, tapering undersides, in one layer or stacked tiers, with spires standing on the lowest tier's tops.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -1776,6 +1794,34 @@
           "minimum": 2,
           "maximum": 32,
           "default": 6
+        },
+        "spires": {
+          "description": "Share of the lowest tier's island tops under spires, several to a broad island; 0 none",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.3,
+          "default": 0
+        },
+        "spireHeight": {
+          "description": "Blocks a spire rises above the island top it stands on",
+          "type": "number",
+          "minimum": 16,
+          "maximum": 200,
+          "default": 70
+        },
+        "spireThickness": {
+          "description": "Spire girth; higher is thicker",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "spireTaper": {
+          "description": "0 is straight-sided columns, 1 is cones",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
         },
         "tiers": {
           "description": "Island layers, counting the terrain's own: each further tier floats tierSpacing above the one under it",
@@ -1944,6 +1990,20 @@
           "minimum": 0,
           "maximum": 60,
           "default": 8
+        },
+        "hollowDepth": {
+          "description": "With a ring terrain.layout: blocks below the water line the floor of one lake filling the ring's hollow lies, held by a rim at the hollow's edge; 0 leaves the hollow open void",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60,
+          "default": 0
+        },
+        "ringLakes": {
+          "description": "With a hollow lake: 1 keeps the lake masses round the ring, 0 makes the hollow's lake the only one",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
         },
         "tiers": {
           "description": "Island layers, counting the terrain's own: each further tier floats tierSpacing above the one under it",
