@@ -4,7 +4,6 @@ import com.customdimensions.core.render.ColumnSamples;
 import com.customdimensions.core.render.RenderFiles;
 import com.customdimensions.core.render.RenderGrid;
 import com.customdimensions.core.render.RenderLayers;
-import com.customdimensions.core.score.RollFacts;
 import com.customdimensions.server.mixin.NoiseBasedChunkGeneratorAccessor;
 import com.customdimensions.server.render.RenderJob;
 import com.customdimensions.server.render.Sampler;
@@ -38,7 +37,6 @@ import net.minecraft.world.level.NoiseColumn;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 /**
  * {@code /customdim fastrender}: a whole dimension, border to border, from
