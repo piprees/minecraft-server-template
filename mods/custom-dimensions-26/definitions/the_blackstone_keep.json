@@ -13,27 +13,33 @@
     "minecraft:soul_sand_valley",
     "adventure:ash_barrens",
     "adventure:crimson_pinewood",
-    "minecraft:crimson_forest"
+    "minecraft:crimson_forest",
+    "minecraft:nether_wastes",
+    "adventure:upside_down_forest"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:blackstone_basin": 55,
-      "minecraft:basalt_deltas": 12,
+      "adventure:blackstone_basin": 52,
+      "minecraft:basalt_deltas": 10,
       "minecraft:soul_sand_valley": 10,
-      "adventure:ash_barrens": 8,
-      "adventure:crimson_pinewood": 8,
-      "minecraft:crimson_forest": 7
+      "adventure:ash_barrens": 7,
+      "minecraft:nether_wastes": 4,
+      "adventure:crimson_pinewood": 7,
+      "minecraft:crimson_forest": 9,
+      "adventure:upside_down_forest": 1
     },
     "places": {
       "groups": {
         "ash_and_basalt": [
           "minecraft:basalt_deltas",
-          "adventure:ash_barrens"
+          "adventure:ash_barrens",
+          "minecraft:nether_wastes"
         ],
         "wart_woods": [
           "adventure:crimson_pinewood",
-          "minecraft:crimson_forest"
+          "minecraft:crimson_forest",
+          "adventure:upside_down_forest"
         ]
       },
       "arrangement": "core",

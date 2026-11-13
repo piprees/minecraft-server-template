@@ -24,6 +24,18 @@
    "op": ">=",
    "value": 40,
    "from": "\"soul ground\""
+  },
+  {
+   "key": "placeness.places.byPlace.adventure:withered_forest.landPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "one place with a fringe: the withered forest place holds half the land"
+  },
+  {
+   "key": "placeness.places.landRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "places, not perlin: no scatter of place specks"
   }
  ]
 }

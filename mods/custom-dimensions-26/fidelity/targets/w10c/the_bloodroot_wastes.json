@@ -24,6 +24,18 @@
    "op": "<=",
    "value": 10,
    "from": "\"crimson fungus at spawn\": the wastes are a fringe, not the country"
+  },
+  {
+   "key": "placeness.places.byPlace.minecraft:crimson_forest.landPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "one place with a fringe: the crimson forest place holds half the land"
+  },
+  {
+   "key": "placeness.places.landRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "places, not perlin: no scatter of place specks"
   }
  ]
 }

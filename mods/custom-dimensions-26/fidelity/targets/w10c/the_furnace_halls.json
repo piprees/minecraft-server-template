@@ -24,6 +24,18 @@
    "op": ">=",
    "value": 8,
    "from": "\"fortress corridors that defined piglin military power\" (restates the description set's nether brick share of the sampled ground: brick is a structure's, and the survey's 6 ha of patches meet a fortress by chance)"
+  },
+  {
+   "key": "placeness.places.landRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting, measured by place"
+  },
+  {
+   "key": "placeness.places.landRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting, measured by place"
   }
  ]
 }

@@ -93,5 +93,8 @@
     "scales": {
       "climate": 1.8
     }
+  },
+  "liquids": {
+    "seaLevel": 24
   }
 }

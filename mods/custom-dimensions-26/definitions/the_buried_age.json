@@ -12,16 +12,20 @@
     "adventure:quartz_flats",
     "minecraft:soul_sand_valley",
     "minecraft:nether_wastes",
-    "adventure:upside_down_forest"
+    "adventure:upside_down_forest",
+    "minecraft:crimson_forest",
+    "adventure:ash_barrens"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "minecraft:basalt_deltas": 30,
-      "adventure:quartz_flats": 20,
-      "minecraft:soul_sand_valley": 15,
-      "minecraft:nether_wastes": 15,
-      "adventure:upside_down_forest": 10
+      "minecraft:basalt_deltas": 27,
+      "adventure:quartz_flats": 18,
+      "minecraft:soul_sand_valley": 14,
+      "minecraft:nether_wastes": 14,
+      "adventure:upside_down_forest": 9,
+      "minecraft:crimson_forest": 9,
+      "adventure:ash_barrens": 9
     }
   },
   "liquids": {
