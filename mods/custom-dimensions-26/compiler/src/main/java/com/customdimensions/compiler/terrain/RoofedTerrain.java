@@ -155,7 +155,7 @@ final class RoofedTerrain {
         if (ctx.p("pit") > 0) {
             JsonElement field = mul(ctx.noise("lakes", 1 / ctx.p("pitSize"), 0), 1 / Noises.sigma("lakes"));
             if (shaping.layout() != null) {
-                field = add(field, mul(TerrainShaping.shape(shaping.layout()), PIT_LAYOUT * shaping.layout().strength()));
+                field = add(field, mul(ctx.layoutShape(), PIT_LAYOUT * shaping.layout().strength()));
             }
             double t = Noises.inverseNormal(1 - ctx.p("pit"));
             JsonElement wall = spline(field, t, 0, t + PIT_WALL, 1);

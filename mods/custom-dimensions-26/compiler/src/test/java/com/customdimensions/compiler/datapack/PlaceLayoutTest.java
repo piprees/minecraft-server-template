@@ -161,6 +161,28 @@ class PlaceLayoutTest {
         assertEquals(Fixtures.compile("p", body).files(), Fixtures.compile("p", body).files());
     }
 
+    /** The survey's {@link com.customdimensions.core.survey.PlaceMap} reads the compiled biome source's places as the compiler laid them. */
+    @Test
+    void theSurveyReadsThePlacesFromTheCompiledBiomeSource() {
+        String places = "{\"groups\": {\"warm\": [\"minecraft:plains\", \"minecraft:desert\"]}}";
+        Field f = field("p", body(null, FOUR, places, ""));
+        PlaceLayout.Places laid = PlaceLayout.build("p", JsonParser.parseString("{\"places\": " + places + "}").getAsJsonObject(),
+                List.of("temperature", "humidity"), FOUR, FOUR, Map.of(), List.of(), RADIUS);
+        com.customdimensions.core.survey.PlaceMap map = com.customdimensions.core.survey.PlaceMap.of(f.source(),
+                Map.of("warm", List.of("minecraft:plains", "minecraft:desert")), id -> id.contains("ocean"));
+        assertEquals(laid.names(), map.names());
+        assertEquals("temperature", map.axis());
+        for (int p = 0; p < laid.size(); p++) {
+            for (String id : laid.members().get(p)) assertEquals(p, map.of(id), id);
+        }
+        DfEval eval = new DfEval(f.out().files(), 1);
+        int[] labels = f.labels(1);
+        for (int i = 0; i < labels.length; i += 97) {
+            float v = eval.at(f.place(), -RADIUS + STEP / 2 + (i % GRID) * STEP, -RADIUS + STEP / 2 + (i / GRID) * STEP);
+            assertEquals(labels[i], map.index(v), "the field's value reads back as its place");
+        }
+    }
+
     @Test
     void theWarpMovesEdgesButSplitsNoPlaceAtItsLimit() {
         Field straight = field("p", body(null, SEVEN, "{\"warp\": {\"blocks\": 0}}", ""));
@@ -347,6 +369,49 @@ class PlaceLayoutTest {
             assertHeld(cl, 380, -380, MARGIN, 0, "corner pin, seed " + seed);
             assertShares(c.shares(seed), new double[]{0.08, 0.52, 0.2, 0.2}, 0.01, "corner pin, seed " + seed);
         }
+    }
+
+    /**
+     * A heart's disc is read at the point the whole warp moves: near the border the taper would leave its edge a drawn
+     * circle. Each cell is the heart exactly where its untapered warped point lies inside the disc.
+     */
+    @Test
+    void aHeartsEdgeWandersByTheWholeWarp() {
+        Field f = field("p", body(null, FOUR.subList(0, 2), "{\"at\": {\"minecraft:forest\": [0, 0]}, \"warp\": {\"blocks\": 38, \"wavelength\": 256}}", ""));
+        double r = Math.sqrt(4 * 0.5 / Math.PI);
+        com.google.gson.JsonPrimitive hu = new com.google.gson.JsonPrimitive(Fixtures.NAMESPACE + ":places/p/heart_u");
+        com.google.gson.JsonPrimitive hv = new com.google.gson.JsonPrimitive(Fixtures.NAMESPACE + ":places/p/heart_v");
+        for (long seed = 1; seed <= 3; seed++) {
+            DfEval eval = new DfEval(f.out().files(), seed);
+            int[] labels = f.labels(seed);
+            int differ = 0, moved = 0;
+            for (int row = 0; row < GRID; row++) {
+                for (int c = 0; c < GRID; c++) {
+                    int x = -RADIUS + STEP / 2 + c * STEP, z = -RADIUS + STEP / 2 + row * STEP;
+                    double u = eval.at(hu, x, z), v = eval.at(hv, x, z);
+                    boolean inside = u * u + v * v < r * r;
+                    if (inside != (labels[row * GRID + c] == 1)) differ++;
+                    if (inside != (Math.hypot(x, z) / RADIUS < r)) moved++;
+                }
+            }
+            assertTrue(differ <= GRID / 16, "seed " + seed + ": " + differ + " cells differ from the disc at the warped point");
+            assertTrue(moved > GRID, "seed " + seed + ": the warp moves " + moved + " cells of the heart's edge");
+            assertOneRegionEach(labels, 2, "warped heart, seed " + seed);
+            assertHeld(labels, 0, 0, MARGIN / 2, 1, "warped heart, seed " + seed);
+        }
+    }
+
+    @Test
+    void aHeartKeepsItsWarpClearOfTheBorder() {
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> field("p", body(null, FOUR.subList(0, 2),
+                "{\"at\": {\"minecraft:forest\": [0, 0]}, \"warp\": {\"blocks\": 60, \"wavelength\": 512}}", "")));
+        assertTrue(e.getMessage().contains("heart, minecraft:forest, has 52 blocks"), e.getMessage());
+        Field taken = field("p", "\"generator\": {\"type\": \"noise\", \"preset\": \"overworld\"}, \"terrain\": {\"climateWarp\": {\"blocks\": 60, "
+                + "\"wavelength\": 512}}, " + list(FOUR.subList(0, 2)) + ", \"borders\": {\"player\": " + RADIUS + "}, \"biomeLayout\": "
+                + "{\"mode\": \"regions\", \"places\": {\"at\": {\"minecraft:forest\": [0, 0]}}}");
+        assertTrue(taken.note().contains("edges warped 52 blocks over 512"), taken.note());
+        Field ring = field("p", body(null, FOUR, "{\"warp\": {\"blocks\": 76, \"wavelength\": 512}}", ""));
+        assertTrue(ring.note().contains("edges warped 76 blocks"), "no heart, no room to keep: " + ring.note());
     }
 
     @Test

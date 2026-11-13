@@ -90,6 +90,61 @@ class TerrainShapingTest {
         assertTrue(c.files().get(P + "offset.json").toString().contains("adventure:terrain/t/height"));
     }
 
+    /** Every distance-from-centre ({@code minecraft:sqrt}) in {@code files} as JSON text. */
+    private static List<String> distances(java.util.Map<String, JsonObject> files) {
+        List<String> out = new java.util.ArrayList<>();
+        files.values().forEach(f -> collect(f, out));
+        return out;
+    }
+
+    private static void collect(com.google.gson.JsonElement e, List<String> out) {
+        if (e.isJsonArray()) e.getAsJsonArray().forEach(v -> collect(v, out));
+        if (!e.isJsonObject()) return;
+        JsonObject o = e.getAsJsonObject();
+        if (o.has("type") && "minecraft:sqrt".equals(o.get("type").getAsString())) out.add(o.toString());
+        o.entrySet().forEach(kv -> collect(kv.getValue(), out));
+    }
+
+    @Test
+    void aWarpedLayoutIsReadAtTheWarpedPointAndShipsItsNoises() {
+        TerrainLibrary.Compiled c = TerrainLibraryTest.compile("{\"base\": \"continents\", \"layout\": {\"type\": \"ring\", \"radius\": 700, "
+                + "\"falloff\": 200, \"warp\": {\"blocks\": 60, \"wavelength\": 512}}}");
+        String ring = c.files().get(P + "continents.json").toString();
+        assertTrue(ring.contains("adventure:terrain/warp_x") && ring.contains("adventure:terrain/warp_z"), ring);
+        assertTrue(ring.contains("\"xz_scale\":0.5"), "256 / 512: " + ring);
+        assertTrue(ring.contains("\"right\":109.489051"), "two deviations (0.274 each) are 60 blocks: " + ring);
+        assertTrue(c.files().containsKey("data/adventure/worldgen/noise/terrain/warp_x.json"), c.files().keySet().toString());
+        String still = TerrainLibraryTest.compile("{\"base\": \"continents\", \"layout\": {\"type\": \"ring\", \"radius\": 700, \"falloff\": 200}}")
+                .files().get(P + "continents.json").toString();
+        assertFalse(still.contains("warp_x"), "no warp, the shape is read where it stands: " + still);
+        String linear = TerrainLibraryTest.compile("{\"base\": \"continents\", \"layout\": {\"type\": \"linear\", \"direction\": 90, "
+                + "\"falloff\": 1000, \"warp\": {\"blocks\": 40}}}").files().get(P + "continents.json").toString();
+        assertTrue(linear.contains("warp_z") && linear.contains("\"xz_scale\":0.5"), "the default wavelength is 512: " + linear);
+    }
+
+    @Test
+    void aWarpedRingMovesItsHollowAndItsCoverageAlike() {
+        String hollow = "{\"base\": \"basin_islands\", \"params\": {\"hollowDepth\": 30, \"basinDepth\": 8, \"rimHeight\": 4}, "
+                + "\"layout\": {\"type\": \"ring\", \"radius\": 400, \"falloff\": 160, \"strength\": 0.8, \"warp\": {\"blocks\": 70, \"wavelength\": 600}}}";
+        List<String> d = distances(TerrainLibraryTest.compile(hollow).files());
+        assertTrue(d.size() >= 2, "the coverage shift and the hollow's lake both read the distance: " + d.size());
+        for (String s : d) assertTrue(s.contains("adventure:terrain/warp_x"), "every distance from the ring's centre is warped: " + s);
+        for (String s : distances(TerrainLibraryTest.compile(hollow.replace(", \"warp\": {\"blocks\": 70, \"wavelength\": 600}", "")).files())) {
+            assertFalse(s.contains("warp_x"), s);
+        }
+    }
+
+    @Test
+    void aLayoutWarpIsCappedWhereItCouldSplitTheShape() {
+        assertEquals("t: terrain.layout.warp moves 77 blocks over a 512-block wavelength; above 0.15 of the wavelength the warp can fold the map "
+                + "and split the ring's shape", error("{\"layout\": {\"type\": \"ring\", \"radius\": 700, \"warp\": {\"blocks\": 77, \"wavelength\": 512}}}"));
+        assertTrue(error("{\"layout\": {\"type\": \"ring\", \"radius\": 700, \"warp\": {\"size\": 7}}}")
+                .startsWith("t: terrain.layout.warp.size is not a field"));
+        assertEquals("t: terrain.layout.warp.wavelength = 32 is outside [64, 4096]",
+                error("{\"layout\": {\"type\": \"radial\", \"radius\": 300, \"warp\": {\"blocks\": 4, \"wavelength\": 32}}}"));
+        TerrainSpec.presetShaping("t", terrain("{\"layout\": {\"type\": \"ring\", \"radius\": 700, \"warp\": {\"blocks\": 76, \"wavelength\": 512}}}"));
+    }
+
     @Test
     void ringAndLinearLayouts() {
         String ring = TerrainLibraryTest.compile("{\"base\": \"continents\", \"layout\": {\"type\": \"ring\", \"radius\": 700, \"falloff\": 200}}")

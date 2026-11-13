@@ -137,7 +137,16 @@
             "minimum": 0,
             "maximum": 1,
             "default": 0.5
-          }
+          },
+            "warp": {
+              "description": "How far the shape's edges wander: the point the shape (and a ring's hollow) is read at moves along the warp noises terrain.climateWarp uses, by up to blocks (two standard deviations) over features wavelength blocks across, so a ring's rim and a continent's coast are no drawn circle. blocks at most 0.15 of wavelength, which keeps the map from folding, so a ring stays one ring. Absent: the shape stands still.",
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "blocks": { "type": "number", "minimum": 0, "maximum": 1024, "default": 0 },
+                "wavelength": { "type": "number", "minimum": 64, "maximum": 4096, "default": 512 }
+              }
+            }
           }
         }
       },
@@ -509,7 +518,7 @@
               }
             },
             "warp": {
-              "description": "How far place edges wander: the sampling point moves by up to blocks (two standard deviations) over features wavelength blocks across, tapered to nothing at the border. blocks at most a quarter of wavelength, which keeps every place one region. Absent: terrain.climateWarp when it warps, else blocks 0.15 of a wavelength of half the border's radius.",
+              "description": "How far place edges wander: the sampling point moves by up to blocks (two standard deviations) over features wavelength blocks across, tapered to nothing at the border; a heart's disc takes the whole warp all round, held to the room between the heart and a tenth of the radius inside the border. blocks at most 0.15 of wavelength, which keeps every place one region. Absent: terrain.climateWarp when it warps (capped at 0.15 of its wavelength), else blocks 0.1 of a wavelength of half the border's radius; either is cut to a heart's room.",
               "type": "object",
               "additionalProperties": false,
               "properties": {
