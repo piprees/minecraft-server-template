@@ -24,8 +24,13 @@ public interface ColumnModel extends AutoCloseable {
     /** The density's interpolation cell {xz, y}, {0, 0} when the scout reads it directly or there is no density. */
     int[] cell();
 
-    /** Scout points, cells refined block by block, and columns, so far. */
+    /** Density evaluations (scout points or interpolation corners, summed over terms), cells refined block by block, and columns, so far. */
     long[] counts();
+
+    /** How runs are found: {@link TileSampler#LATTICE}, {@link TileSampler#REFINE}, or {@code noise-column}. */
+    default String mode() {
+        return "noise-column";
+    }
 
     @Override
     void close();

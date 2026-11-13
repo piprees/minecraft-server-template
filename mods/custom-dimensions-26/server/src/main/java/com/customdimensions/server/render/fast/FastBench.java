@@ -102,7 +102,7 @@ public final class FastBench {
             CustomDimensions.LOG.error("fast bench failed", t);
             code = 1;
         }
-        Runtime.getRuntime().halt(code);
+        System.exit(code);
     }
 
     static List<Case> cases(String spec) {
@@ -138,10 +138,20 @@ public final class FastBench {
                         RenderGrid grid = RenderGrid.wide(0, 0, c.radius(), c.step());
                         long started = System.nanoTime();
                         FastRender.Result r = FastRender.run(sampler, grid, pool, c.threads(), out.resolve(c.slug()), null, p -> {}, started);
-                        String line = String.format(Locale.ROOT, "%s pass %d: %d columns s%d t%d: %d col/s, reference %d col/s, %.2fx; "
-                                        + "heights within 1 %.4f, biomes %.4f -> %s", c.slug(), i, grid.columns(), c.step(), c.threads(),
-                                r.columnsPerSecond(), Math.round(r.columnsPerSecond() / Math.max(r.speedup(), 1e-9)), r.speedup(),
-                                r.heightsWithinOne(), r.biomesEqual(), r.sidecar());
+                        long dense = referenceRate(sampler, grid, pool, c.threads());
+                        var side = JsonParser.parseString(Files.readString(r.sidecar())).getAsJsonObject();
+                        var fast = side.getAsJsonObject("fast");
+                        var timings = side.getAsJsonObject("timings");
+                        String line = String.format(Locale.ROOT, "%s pass %d: %d columns s%d t%d %s: %d col/s, reference %d col/s, %.2fx; "
+                                        + "dense reference %d col/s, %.2fx; %s evaluations/column; scan %s ms, dress %s ms (thread); "
+                                        + "heights within 1 %.4f, biomes %.4f, fluids %s -> %s", c.slug(), i,
+                                grid.columns(), c.step(), c.threads(), fast.getAsJsonObject("scout").get("mode").getAsString(),
+                                r.columnsPerSecond(), Math.round(r.columnsPerSecond() / Math.max(r.speedup(), 1e-9)), r.speedup(), dense,
+                                (double) r.columnsPerSecond() / dense,
+                                fast.getAsJsonObject("scout").get("evaluationsPerColumn").getAsString(),
+                                timings.get("sampleScanThreadMillis").getAsString(), timings.get("sampleDressThreadMillis").getAsString(),
+                                r.heightsWithinOne(), r.biomesEqual(),
+                                fast.getAsJsonObject("comparison").get("fluidsEqual").getAsString(), r.sidecar());
                         CustomDimensions.LOG.info("fast bench: {}", line);
                         if (i == repeat) {
                             summary.add(line);
@@ -155,6 +165,37 @@ public final class FastBench {
             }
         }
         Files.write(out.resolve("summary.txt"), summary);
+    }
+
+    /** Columns per side of the dense reference grid. */
+    static final int DENSE_SIDE = 256;
+
+    /**
+     * {@link Sampler#sample}'s rate on {@code threads} workers over a
+     * {@value #DENSE_SIDE}² subset of {@code grid}'s columns spread evenly
+     * over it: a steadier figure than the sidecar's sparse comparison.
+     */
+    static long referenceRate(Sampler sampler, RenderGrid grid, ExecutorService pool, int threads) {
+        int k = Math.max(1, grid.side() / DENSE_SIDE);
+        int n = Math.ceilDiv(grid.side(), k);
+        long t = System.nanoTime();
+        List<java.util.concurrent.Future<?>> work = new ArrayList<>();
+        for (int w = 0; w < threads; w++) {
+            int first = w;
+            work.add(pool.submit(() -> {
+                for (int j = first; j < n; j += threads) {
+                    for (int i = 0; i < n; i++) sampler.sample(grid.x(i * k), grid.z(j * k));
+                }
+            }));
+        }
+        for (var f : work) {
+            try {
+                f.get();
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        }
+        return (long) n * n * 1_000_000_000L / Math.max(1, System.nanoTime() - t);
     }
 
     /** The world and dimension registries from {@code resources}, as a start loads them, with every tag bound. */

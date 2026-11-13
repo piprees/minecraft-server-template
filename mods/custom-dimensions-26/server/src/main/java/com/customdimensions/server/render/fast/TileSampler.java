@@ -41,7 +41,14 @@ import net.minecraft.world.level.levelgen.material.rule.RuleEvaluator;
  * fluid rules are the level's own. Not thread-safe; close it when done.
  */
 public final class TileSampler implements ColumnModel {
+    /** Every block from the cell corners under the tile ({@link LatticeScanner}). */
+    public static final String LATTICE = "lattice";
+    /** A scout on cell rows, crossings refined block by block ({@link RunScanner}). */
+    public static final String REFINE = "refine";
+    /** Picks {@value #REFINE} for a measurement against it; a density without {@code interpolated} always refines. */
+    public static final String SCAN_PROPERTY = "customdimensions.fastrender.scan";
     private final RandomState random;
+    private final LatticeScanner corners;
     private final DensityBufferPool pool;
     private final DensitySampler.Bound exact;
     private final DensitySampler.Bound lattice;
@@ -75,6 +82,8 @@ public final class TileSampler implements ColumnModel {
         this.lo = lo;
         this.hi = hi;
         this.scanner = new RunScanner(volume(lattice), volume(exact), lo, hi, cell[0], cell[1]);
+        this.corners = scan().equals(LATTICE) && LatticeInterpolation.interpolates(density)
+                ? new LatticeScanner(samplers.get(LatticeInterpolation.rewrite(density)), density, lo, hi) : null;
         this.biomes = generator.getBiomeSource().createResolver(random.createClimateSampler(context));
         this.minQuartY = QuartPos.fromBlock(heights.getMinY());
         this.maxQuartY = minQuartY + QuartPos.fromBlock(heights.getHeight()) - 1;
@@ -140,11 +149,22 @@ public final class TileSampler implements ColumnModel {
     @Override
     public ColumnRuns[] scan(int x0, int z0, int step, int nx, int nz) {
         quarts.clear();
-        return scanner.scan(x0, z0, step, nx, nz);
+        return corners != null ? corners.scan(x0, z0, step, nx, nz) : scanner.scan(x0, z0, step, nx, nz);
     }
 
     public RunScanner scanner() {
         return scanner;
+    }
+
+    /** {@value #LATTICE} or {@value #REFINE}: how runs are found ({@value #SCAN_PROPERTY}, {@value #LATTICE} by default). */
+    static String scan() {
+        return System.getProperty(SCAN_PROPERTY, LATTICE);
+    }
+
+    /** {@value #LATTICE} when the runs come from a {@link LatticeScanner}, {@value #REFINE} from a {@link RunScanner}. */
+    @Override
+    public String mode() {
+        return corners != null ? LATTICE : REFINE;
     }
 
     @Override
@@ -154,6 +174,7 @@ public final class TileSampler implements ColumnModel {
 
     @Override
     public long[] counts() {
+        if (corners != null) return new long[] {corners.corners(), 0, corners.columns()};
         return new long[] {scanner.scoutPoints(), scanner.refinedCells(), scanner.columns()};
     }
 
