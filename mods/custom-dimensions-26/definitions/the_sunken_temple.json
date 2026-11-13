@@ -48,6 +48,21 @@
     "over": "land",
     "roles": {
       "adventure:hanging_gardens": "underside"
+    },
+    "places": {
+      "groups": {
+        "jungle_coast": [
+          "minecraft:jungle",
+          "minecraft:warm_ocean"
+        ],
+        "highlands": [
+          "adventure:sky_highlands",
+          "minecraft:meadow"
+        ]
+      },
+      "at": {
+        "highlands": [0, 0]
+      }
     }
   },
   "liquids": {
