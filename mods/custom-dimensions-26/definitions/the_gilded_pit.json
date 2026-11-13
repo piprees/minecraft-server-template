@@ -7,6 +7,33 @@
     "type": "noise",
     "preset": "nether"
   },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 84,
+      "floorRelief": 6,
+      "ceilingGap": 22,
+      "roughness": 0.2,
+      "pit": 0.02,
+      "pitDepth": 60,
+      "ledges": 0.7,
+      "ledgeStep": 10
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 0],
+      "radius": 470,
+      "falloff": 48,
+      "strength": 1,
+      "warp": {
+        "blocks": 38,
+        "wavelength": 256
+      }
+    },
+    "scales": {
+      "climate": 1.5
+    }
+  },
   "biomes": [
     "adventure:blackstone_basin",
     "minecraft:nether_wastes",
@@ -42,6 +69,9 @@
         "wavelength": 512
       }
     }
+  },
+  "liquids": {
+    "seaLevel": 20
   },
   "borders": {
     "player": 683,
@@ -142,11 +172,6 @@
       }
     }
   ],
-  "exitPortal": {
-    "enabled": true,
-    "pos": "spawn",
-    "target": "bed"
-  },
   "roll": {
     "mood": "hard",
     "allowHazardousSpawn": true,
@@ -160,34 +185,9 @@
       "mns:nether_tower": "near_border"
     }
   },
-  "terrain": {
-    "base": "roofed",
-    "params": {
-      "floorHeight": 84,
-      "floorRelief": 6,
-      "ceilingGap": 22,
-      "roughness": 0.2,
-      "pit": 0.02,
-      "pitDepth": 60,
-      "ledges": 0.7,
-      "ledgeStep": 10
-    },
-    "layout": {
-      "type": "radial",
-      "centre": [0, 0],
-      "radius": 470,
-      "falloff": 48,
-      "strength": 1,
-      "warp": {
-        "blocks": 38,
-        "wavelength": 256
-      }
-    },
-    "scales": {
-      "climate": 1.5
-    }
-  },
-  "liquids": {
-    "seaLevel": 20
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
   }
 }

@@ -7,6 +7,17 @@
     "type": "noise",
     "preset": "nether"
   },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 80,
+      "floorRelief": 8,
+      "ceilingGap": 26,
+      "roughness": 0.25,
+      "chasms": 0.16,
+      "chasmDepth": 62
+    }
+  },
   "biomes": [
     "adventure:quartz_flats",
     "minecraft:soul_sand_valley",
@@ -28,6 +39,9 @@
         "wavelength": 512
       }
     }
+  },
+  "liquids": {
+    "seaLevel": 10
   },
   "atmosphere": {
     "fogColor": "#2B1B3B",
@@ -83,11 +97,6 @@
       }
     }
   ],
-  "exitPortal": {
-    "enabled": true,
-    "pos": "spawn",
-    "target": "bed"
-  },
   "roll": {
     "mood": "hard",
     "allowHazardousSpawn": true,
@@ -107,18 +116,9 @@
       "bastion"
     ]
   },
-  "terrain": {
-    "base": "roofed",
-    "params": {
-      "floorHeight": 80,
-      "floorRelief": 8,
-      "ceilingGap": 26,
-      "roughness": 0.25,
-      "chasms": 0.16,
-      "chasmDepth": 62
-    }
-  },
-  "liquids": {
-    "seaLevel": 10
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
   }
 }

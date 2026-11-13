@@ -7,6 +7,19 @@
     "type": "noise",
     "preset": "nether"
   },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 33,
+      "floorRelief": 8,
+      "ceilingGap": 80,
+      "roughness": 0.05,
+      "flats": 0.5
+    },
+    "scales": {
+      "climate": 1.5
+    }
+  },
   "biomes": [
     "adventure:magma_land",
     "adventure:ash_barrens",
@@ -86,18 +99,5 @@
       "towns_and_towers:exclusives/village_piglin",
       "mvs:large_warped_tower"
     ]
-  },
-  "terrain": {
-    "base": "roofed",
-    "params": {
-      "floorHeight": 33,
-      "floorRelief": 8,
-      "ceilingGap": 80,
-      "roughness": 0.05,
-      "flats": 0.5
-    },
-    "scales": {
-      "climate": 1.5
-    }
   }
 }
