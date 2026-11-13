@@ -83,7 +83,8 @@ public final class TileSampler implements ColumnModel {
         this.hi = hi;
         this.scanner = new RunScanner(volume(lattice), volume(exact), lo, hi, cell[0], cell[1]);
         this.corners = scan().equals(LATTICE) && LatticeInterpolation.interpolates(density)
-                ? new LatticeScanner(samplers.get(LatticeInterpolation.rewrite(density)), density, lo, hi) : null;
+                ? new LatticeScanner(samplers.get(LatticeInterpolation.rewrite(lazy() ? LazyLerp.rewrite(density) : density)), density,
+                lo, hi) : null;
         this.biomes = generator.getBiomeSource().createResolver(random.createClimateSampler(context));
         this.minQuartY = QuartPos.fromBlock(heights.getMinY());
         this.maxQuartY = minQuartY + QuartPos.fromBlock(heights.getHeight()) - 1;
@@ -152,6 +153,18 @@ public final class TileSampler implements ColumnModel {
         return corners != null ? corners.scan(x0, z0, step, nx, nz) : scanner.scan(x0, z0, step, nx, nz);
     }
 
+    @Override
+    public ColumnRuns[] scan(int x0, int z0, int step, int nx, int nz, int from, int to) {
+        if (corners == null) return scan(x0, z0, step, nx, nz);
+        quarts.clear();
+        return corners.scan(x0, z0, step, nx, nz, from, to);
+    }
+
+    @Override
+    public int align() {
+        return corners == null ? 0 : corners.align();
+    }
+
     public RunScanner scanner() {
         return scanner;
     }
@@ -160,6 +173,13 @@ public final class TileSampler implements ColumnModel {
     static String scan() {
         return System.getProperty(SCAN_PROPERTY, LATTICE);
     }
+
+    /** Whether lerps sample each side only where it is used ({@link LazyLerp}); {@value #LAZY_PROPERTY}={@code off} samples both everywhere. */
+    static boolean lazy() {
+        return !"off".equals(System.getProperty(LAZY_PROPERTY));
+    }
+
+    public static final String LAZY_PROPERTY = "customdimensions.fastrender.lazy";
 
     /** {@value #LATTICE} when the runs come from a {@link LatticeScanner}, {@value #REFINE} from a {@link RunScanner}. */
     @Override

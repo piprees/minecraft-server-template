@@ -61,15 +61,26 @@ public final class LatticeScanner {
 
     /** The runs of the {@code nx × nz} columns at {@code (x0 + i * step, z0 + j * step)}, index {@code i + nx * j}. */
     public ColumnRuns[] scan(int x0, int z0, int step, int nx, int nz) {
-        int ny = hi - lo + 1;
-        DensityVolume v = new DensityVolume(nx, ny, nz, x0, lo, z0, step, 1, step);
+        return scan(x0, z0, step, nx, nz, lo, hi);
+    }
+
+    /**
+     * As {@link #scan(int, int, int, int, int)} over blocks {@code from} to
+     * {@code to} only. {@code from} must be {@code lo} or the bottom of an
+     * interpolation cell row ({@link #align()}), so each block keeps the value
+     * a whole column gives it.
+     */
+    public ColumnRuns[] scan(int x0, int z0, int step, int nx, int nz, int from, int to) {
+        if (from < lo || to > hi || from > to) throw new IllegalArgumentException("window " + from + ".." + to);
+        int ny = to - from + 1;
+        DensityVolume v = new DensityVolume(nx, ny, nz, x0, from, z0, step, 1, step);
         ColumnRuns[] out = new ColumnRuns[nx * nz];
         try (ScopedDensityBuffer buffer = density.sampleVolume(v)) {
             for (int j = 0; j < nz; j++) {
                 for (int i = 0; i < nx; i++) {
                     int base = v.indexUnchecked(i, 0, j);
                     for (int y = 0; y < ny; y++) solid[y] = buffer.get(base + y) > 0;
-                    out[i + nx * j] = ColumnRuns.of(solid, lo, ny);
+                    out[i + nx * j] = ColumnRuns.of(solid, from, ny);
                 }
             }
         }
@@ -90,5 +101,13 @@ public final class LatticeScanner {
     /** {@code interpolated} occurrences in the final density. */
     public int terms() {
         return cells.size();
+    }
+
+    /** The cell height a window's floor snaps to: the tallest term's, when every term's divides it; 0 when none does. */
+    public int align() {
+        int a = 0;
+        for (int[] c : cells) a = Math.max(a, c[1]);
+        for (int[] c : cells) if (a % c[1] != 0) return 0;
+        return a;
     }
 }
