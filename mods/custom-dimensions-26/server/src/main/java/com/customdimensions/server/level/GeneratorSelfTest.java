@@ -93,8 +93,10 @@ public final class GeneratorSelfTest {
         chain = step(chain, "large_biomes", "the_endless_expanse", spaced(), this::largeBiomes);
         chain = step(chain, "amplified", "the_amplified_reaches", spaced(), this::amplified);
         chain = step(chain, "caves", "the_underdark", square(-2, -2, 4), this::caves);
-        chain = step(chain, "floating_islands", "the_aviary", square(-4, -4, 8), this::floatingIslands);
-        chain = step(chain, "clone", "selftest_clone", square(-4, -4, 8), this::clone);
+        Definition aviaryDefinition = definition("the_aviary");
+        List<ChunkPos> aviaryArea = squareAround(aviaryDefinition == null ? null : aviaryDefinition.spawn(), 8);
+        chain = step(chain, "floating_islands", "the_aviary", aviaryArea, this::floatingIslands);
+        chain = step(chain, "clone", "selftest_clone", aviaryArea, this::clone);
         chain = step(chain, "nether", "the_nether", square(-4, -4, 8), this::nether);
         chain = step(chain, "end", "the_end", endArea(), this::end);
         chain = step(chain, "flat", "the_canvas", square(-2, -2, 4), this::flat);
@@ -590,6 +592,13 @@ public final class GeneratorSelfTest {
             for (int z = -16; z < 16; z += 4) out.add(new ChunkPos(x, z));
         }
         return out;
+    }
+
+    /** An n-chunk square centred on {@code spawn}, the ground a sky world's definition holds; on 0,0 without one. */
+    static List<ChunkPos> squareAround(com.customdimensions.core.BlockPos spawn, int n) {
+        int cx = spawn == null ? 0 : spawn.x() >> 4;
+        int cz = spawn == null ? 0 : spawn.z() >> 4;
+        return square(cx - n / 2, cz - n / 2, n);
     }
 
     private static List<ChunkPos> square(int x0, int z0, int n) {
