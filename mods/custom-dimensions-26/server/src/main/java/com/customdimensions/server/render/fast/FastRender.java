@@ -4,6 +4,7 @@ import com.customdimensions.core.render.ColumnSamples;
 import com.customdimensions.core.render.RenderFiles;
 import com.customdimensions.core.render.RenderGrid;
 import com.customdimensions.core.render.RenderLayers;
+import com.customdimensions.core.render.SliceChoice;
 import com.customdimensions.server.mixin.NoiseBasedChunkGeneratorAccessor;
 import com.customdimensions.server.render.RenderJob;
 import com.customdimensions.server.render.Sampler;
@@ -52,6 +53,22 @@ import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 public final class FastRender {
     /** Columns per tile side: one batch of the scout. */
     public static final int TILE = 16;
+    /** {@value #BATCH_PROPERTY}={@code n} scans batches of n × n columns, for a measurement against {@link #TILE}. */
+    public static final String BATCH_PROPERTY = "customdimensions.fastrender.batch";
+
+    /** A step at or over which columns share no interpolation corners, so smaller batches only tighten windows. */
+    static final int COARSE_STEP = 16;
+
+    /**
+     * Columns per batch side: half a {@link #TILE} from {@value #COARSE_STEP}
+     * blocks a step (a tile's scan window spans less relief), else a tile;
+     * {@value #BATCH_PROPERTY} when set.
+     */
+    static int batch(int step) {
+        Integer set = Integer.getInteger(BATCH_PROPERTY);
+        if (set != null) return Math.clamp(set, 1, 64);
+        return step >= COARSE_STEP ? TILE / 2 : TILE;
+    }
     public static final int MAX_STEP = 16;
     /** The image side the default step aims at. */
     public static final int TARGET_SIDE = 2048;
@@ -102,9 +119,33 @@ public final class FastRender {
         return () -> new NoiseColumns(sampler);
     }
 
+    /**
+     * What a render draws besides the terrain: {@code base} names its files
+     * (null for {@link #baseName}); the comparison, structure footprints and
+     * run list each on or off; the fixed heights to slice; a pre-scan to
+     * reuse (null to make one); and {@code floorFirst}, which scans a roofed
+     * world from its floor to under its roof ({@link ScanWindow#FLOOR}) and
+     * draws the floor in place of the roof.
+     */
+    record Options(String base, boolean compare, boolean structures, boolean runs, List<SliceChoice.Slice> slices,
+                   Prescan prescan, boolean floorFirst) {
+        static Options full() {
+            return new Options(null, true, true, true, List.of(), null, false);
+        }
+    }
+
+    /** A render's result with what it drew, for a wave's sheet and a bench's comparisons. */
+    record Rendered(Result result, ColumnSamples samples, FastPixels pixels, FastSlices slices, Map<String, int[]> rgb,
+                    Map<String, Path> images, int[] colours, Prescan prescan, String windowMode, Map<String, Long> timings) {}
+
     /** Renders {@code grid} for {@code sampler} on {@code pool} into {@code dir}. */
     public static Result run(Sampler sampler, RenderGrid grid, ExecutorService pool, int threads, Path dir, RenderJob job,
                              IntConsumer progress, long started) throws IOException {
+        return render(sampler, grid, pool, threads, dir, job, progress, started, Options.full()).result();
+    }
+
+    static Rendered render(Sampler sampler, RenderGrid grid, ExecutorService pool, int threads, Path dir, RenderJob job,
+                           IntConsumer progress, long started, Options options) throws IOException {
         Map<String, Long> timings = new LinkedHashMap<>();
         timings.put("prepare", (System.nanoTime() - started) / 1_000_000);
         int side = grid.side();
@@ -122,12 +163,16 @@ public final class FastRender {
         Palette palette = new Palette();
         try {
             long t = System.nanoTime();
-            Prescan pre = prescan(grid, pool, models, lo, hi);
+            Prescan pre = options.prescan() != null ? options.prescan() : prescan(grid, pool, models, lo, hi, minY, sampler.seaLevel());
             timings.put("prescan", (System.nanoTime() - t) / 1_000_000);
+            boolean floorFirst = options.floorFirst() && pre.floorFirstHolds() && pre.window().align() > 0;
+            ScanWindow window = pre.window().as(floorFirst ? ScanWindow.FLOOR : pre.window().mode());
 
             ColumnSamples samples = new ColumnSamples(grid, minY, sampler.maxY(), sampler.seaLevel());
             FastPixels pixels = new FastPixels(side);
-            List<RenderGrid.Band> bands = grid.bands(TILE);
+            FastSlices slices = new FastSlices(side, options.slices());
+            int batch = batch(step);
+            List<RenderGrid.Band> bands = grid.bands(batch);
             byte[][] runData = new byte[bands.size()][];
             t = System.nanoTime();
             List<CompletableFuture<Void>> work = new ArrayList<>();
@@ -136,8 +181,8 @@ public final class FastRender {
                 int index = b;
                 RenderGrid.Band band = bands.get(b);
                 work.add(CompletableFuture.runAsync(() -> {
-                    runData[index] = band(sampler, grid, band, models.get(), samples, pixels, palette, pre, lo, hi, minY,
-                            scanNanos);
+                    runData[index] = band(sampler, grid, band, batch, models.get(), samples, pixels, palette, pre.cutY(), window,
+                            floorFirst, slices, options.runs(), lo, hi, minY, scanNanos);
                     if (job != null) job.advance((long) band.rows() * side, progress);
                 }, pool));
             }
@@ -159,10 +204,13 @@ public final class FastRender {
                 if (mode == null) mode = m.mode();
             }
 
+            timings.put("slicesRowThreadMillis", slices.rowNanos.sum() / 1_000_000);
+            timings.put("slicesColumnThreadMillis", slices.columnNanos.sum() / 1_000_000);
+
             t = System.nanoTime();
             List<FastLayers.Footprint> footprints = Collections.synchronizedList(new ArrayList<>());
             String structureError = null;
-            try {
+            if (options.structures()) try {
                 int reach = (int) Math.ceil(grid.radius() * Math.sqrt(2));
                 StructureStarts.find(sampler, sampler.structureState(), id -> true, grid.centreX(), grid.centreZ(), reach, pool,
                         id -> StructureStarts.CAP, id -> reach, null, (start, box) -> {
@@ -174,41 +222,77 @@ public final class FastRender {
             timings.put("structures", (System.nanoTime() - t) / 1_000_000);
 
             t = System.nanoTime();
-            Comparison comparison = compare(sampler, grid, samples, pool);
+            Comparison comparison = options.compare() ? compare(sampler, grid, samples, pool) : Comparison.NONE;
             timings.put("compare", (System.nanoTime() - t) / 1_000_000);
 
             t = System.nanoTime();
             Files.createDirectories(dir);
-            String base = baseName(sampler.seed(), grid);
+            String base = options.base() != null ? options.base() : baseName(sampler.seed(), grid);
             int[] colours = palette.colours();
             Map<String, Path> images = new LinkedHashMap<>();
-            write(dir, base, "biome", side, RenderLayers.BIOME.paint(samples), images);
-            write(dir, base, "height", side, RenderLayers.HEIGHT.paint(samples), images);
-            if (samples.hasZones()) write(dir, base, "zones", side, RenderLayers.ZONES.paint(samples), images);
-            int[] hillshade = FastLayers.hillshade(samples);
-            write(dir, base, "hillshade", side, hillshade, images);
-            int[] map = FastLayers.map(pixels, colours);
-            write(dir, base, "map", side, map, images);
+            Map<String, int[]> rgb = new LinkedHashMap<>();
             long columns = grid.columns();
             int roofed = pixels.roofedCount();
-            boolean roofLayers = roofed >= LAYER_SHARE * columns;
-            if (roofLayers) {
-                write(dir, base, "roofoff", side, FastLayers.floor(pixels, colours, samples), images);
-                write(dir, base, "cut", side, FastLayers.cut(pixels, colours, pre.cutY()), images);
+            boolean roofLayers = !floorFirst && roofed >= LAYER_SHARE * columns;
+            int[] floor = roofLayers || floorFirst ? FastLayers.floor(pixels, colours, samples) : null;
+            int[] map = floorFirst ? floor : FastLayers.map(pixels, colours);
+            List<CompletableFuture<Void>> writes = new ArrayList<>();
+            java.util.function.BiConsumer<String, java.util.function.Supplier<int[]>> layer = (name, paint) -> {
+                synchronized (rgb) {
+                    rgb.put(name, null);
+                    images.put(name, dir.resolve(base + "-" + name + ".png"));
+                }
+                writes.add(CompletableFuture.runAsync(() -> {
+                    int[] image = paint.get();
+                    synchronized (rgb) {
+                        rgb.put(name, image);
+                    }
+                    try {
+                        RenderFiles.png(dir.resolve(base + "-" + name + ".png"), side, image);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }, pool));
+            };
+            if (floorFirst) {
+                layer.accept("roofoff", () -> floor);
+            } else {
+                layer.accept("map", () -> map);
+                if (roofLayers) {
+                    layer.accept("roofoff", () -> floor);
+                    layer.accept("cut", () -> FastLayers.cut(pixels, colours, pre.cutY()));
+                }
             }
+            layer.accept("biome", () -> RenderLayers.BIOME.paint(samples));
+            layer.accept("height", () -> RenderLayers.HEIGHT.paint(samples));
+            if (samples.hasZones()) layer.accept("zones", () -> RenderLayers.ZONES.paint(samples));
+            layer.accept("hillshade", () -> FastLayers.hillshade(samples));
             List<Integer> tiers = new ArrayList<>();
-            for (int tier = 0; tier < FastPixels.TIERS; tier++) {
+            for (int tier = 0; tier < FastPixels.TIERS && !floorFirst; tier++) {
                 if (pixels.withRun(tier + 1) < LAYER_SHARE * columns) break;
                 tiers.add(tier + 1);
-                write(dir, base, "tier" + (tier + 1), side, FastLayers.tier(pixels, colours, tier), images);
+                int index = tier;
+                layer.accept("tier" + (tier + 1), () -> FastLayers.tier(pixels, colours, index));
             }
-            write(dir, base, "structures", side, FastLayers.structures(roofLayers ? FastLayers.floor(pixels, colours, samples) : map,
-                    grid, footprints), images);
+            List<String> slicesDrawn = new ArrayList<>();
+            for (int s = 0; s < slices.size(); s++) {
+                int index = s;
+                String name = "slice-" + slices.slices.get(s).name();
+                layer.accept(name, () -> slices.paint(index, colours));
+                if (slices.differShare(s) > 0) {
+                    layer.accept(name + "-biome", () -> slices.paintBiome(index));
+                    slicesDrawn.add(name + "-biome");
+                }
+            }
+            if (options.structures()) {
+                layer.accept("structures", () -> FastLayers.structures(roofLayers ? floor : map, grid, footprints));
+            }
+            CompletableFuture.allOf(writes.toArray(CompletableFuture[]::new)).join();
             timings.put("images", (System.nanoTime() - t) / 1_000_000);
 
             t = System.nanoTime();
-            Path runsFile = dir.resolve(base + "-runs.bin.gz");
-            writeRuns(runsFile, grid, minY, hi, runData);
+            Path runsFile = options.runs() ? dir.resolve(base + "-runs.bin.gz") : null;
+            if (runsFile != null) writeRuns(runsFile, grid, minY, hi, runData);
             timings.put("runs", (System.nanoTime() - t) / 1_000_000);
 
             long total = (System.nanoTime() - started) / 1_000_000;
@@ -219,30 +303,50 @@ public final class FastRender {
             root.addProperty("kind", KIND);
             long rate = columns * 1000 / sampleMs;
             double speedup = comparison.referenceRate() <= 0 ? 0 : (double) rate / comparison.referenceRate();
-            root.add("fast", fastBlock(grid, threads, lo, hi, cell, mode, counts, pixels, roofLayers, roofed, tiers, pre, palette,
-                    footprints, structureError, comparison, rate, speedup, runsFile));
+            JsonObject fast = fastBlock(grid, threads, lo, hi, cell, mode, counts, pixels, roofLayers, roofed, tiers, pre, window, palette,
+                    footprints, structureError, comparison, rate, speedup, runsFile);
+            fast.addProperty("floorFirst", floorFirst);
+            fast.add("slices", slicesBlock(slices));
+            root.add("fast", fast);
             Path sidecar = dir.resolve(base + ".json");
             Path tmp = sidecar.resolveSibling(sidecar.getFileName() + ".tmp");
             Files.writeString(tmp, new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(root) + "\n");
             Files.move(tmp, sidecar, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-            return new Result(sampler.dimension(), sampler.seed(), grid, sidecar, sampleMs, total, rate, speedup,
+            Result result = new Result(sampler.dimension(), sampler.seed(), grid, sidecar, sampleMs, total, rate, speedup,
                     comparison.heightsWithinOne(), comparison.biomesEqual(), samples.biomeCounts().size(), threads);
+            return new Rendered(result, samples, pixels, slices, rgb, images, colours, pre, window.mode(), timings);
         } finally {
             for (ColumnModel m : made) m.close();
         }
     }
 
-    private static void write(Path dir, String base, String name, int side, int[] rgb, Map<String, Path> images) throws IOException {
-        Path out = dir.resolve(base + "-" + name + ".png");
-        RenderFiles.png(out, side, rgb);
-        images.put(name, out);
+    private static JsonObject slicesBlock(FastSlices slices) {
+        JsonObject out = new JsonObject();
+        out.addProperty("rule", "each fixed height top-down: solid ground by the material rule's block (the run's depths where the "
+                + "scan window holds the height, " + FastSlices.ASSUMED_DEPTH + " blocks either side otherwise), a fluid by the "
+                + "level's global fluid picker where nothing is solid over the height or the level has no aquifers, open space under "
+                + "ground black and under open sky slate; the biome at that height where it differs from the surface biome");
+        out.addProperty("rowsSampled", slices.rowsSampled.sum());
+        out.addProperty("rowsFromRuns", slices.rowsFromRuns.sum());
+        JsonArray list = new JsonArray();
+        for (int s = 0; s < slices.size(); s++) {
+            SliceChoice.Slice slice = slices.slices.get(s);
+            JsonObject o = new JsonObject();
+            o.addProperty("name", slice.name());
+            o.addProperty("y", slice.y());
+            o.addProperty("rule", slice.rule());
+            o.addProperty("solidShare", Math.round(slices.solidShare(s) * 10000) / 10000.0);
+            o.addProperty("biomeDiffersShare", Math.round(slices.differShare(s) * 10000) / 10000.0);
+            list.add(o);
+        }
+        out.add("heights", list);
+        return out;
     }
 
     /** One band of rows: its pixels filled, its run list returned as one gzip member. */
-    static byte[] band(Sampler sampler, RenderGrid grid, RenderGrid.Band band, ColumnModel model, ColumnSamples samples,
-                       FastPixels px, Palette palette, Prescan pre, int lo, int hi, int minY,
-                       java.util.concurrent.atomic.LongAdder scanNanos) {
-        int cutY = pre.cutY();
+    static byte[] band(Sampler sampler, RenderGrid grid, RenderGrid.Band band, int batch, ColumnModel model, ColumnSamples samples,
+                       FastPixels px, Palette palette, int cutY, ScanWindow scanWindow, boolean floorFirst, FastSlices slices,
+                       boolean keepRuns, int lo, int hi, int minY, java.util.concurrent.atomic.LongAdder scanNanos) {
         int side = grid.side();
         int step = grid.step();
         int rows = band.rows();
@@ -252,18 +356,40 @@ public final class FastRender {
         RunDress.Materials<BlockState> materials = model.materials();
         RunDress.Fluids<BlockState> fluids = model.fluids();
         BlockState fallback = model.defaultBlock();
-        for (int tx = 0; tx < side; tx += TILE) {
-            int nx = Math.min(TILE, side - tx);
+        for (int tx = 0; tx < side; tx += batch) {
+            int nx = Math.min(batch, side - tx);
             int x0 = grid.x(tx);
             int z0 = grid.z(band.firstRow());
             long t = System.nanoTime();
-            int[] window = pre.window().window(tx, band.firstRow(), nx, rows);
+            int[] window = scanWindow.windowAt(x0, z0, grid.x(tx + nx - 1), grid.z(band.firstRow() + rows - 1));
             ColumnRuns[] runs = model.scan(x0, z0, step, nx, rows, window[0], window[1]);
-            for (int[] wider = pre.window().widen(runs, window[0], window[1]); wider != null;
-                 wider = pre.window().widen(runs, wider[0], wider[1])) {
+            for (int[] wider = scanWindow.widen(runs, window[0], window[1]); wider != null;
+                 wider = scanWindow.widen(runs, wider[0], wider[1])) {
+                window = wider;
                 runs = model.scan(x0, z0, step, nx, rows, wider[0], wider[1]);
             }
+            ColumnRuns[] scanned = runs;
+            if (floorFirst) {
+                runs = runs.clone();
+                for (int i = 0; i < runs.length; i++) {
+                    if (runs[i].count() == 0 || runs[i].top(0) < window[1]) continue;
+                    // Solid from the window's top to the noise floor: the roof is taken to reach the noise top, as a whole column reads it.
+                    runs[i] = runs[i].bottom(0) <= lo ? new ColumnRuns(new int[] {lo}, new int[] {hi}, false) : runs[i].from(1);
+                }
+            }
             scanNanos.add(System.nanoTime() - t);
+            boolean[][] sliceRows = new boolean[slices.size()][];
+            long ts = System.nanoTime();
+            for (int s = 0; s < slices.size(); s++) {
+                int y = slices.slices.get(s).y();
+                if (y >= window[0] && y <= window[1] || model.align() <= 0) {
+                    slices.rowsFromRuns.increment();
+                    continue;
+                }
+                sliceRows[s] = y < lo || y > hi ? new boolean[nx * rows] : model.solidRow(x0, z0, step, nx, rows, y);
+                slices.rowsSampled.increment();
+            }
+            slices.rowNanos.add(System.nanoTime() - ts);
             int[] surfaceTop = new int[runs.length];
             for (int i = 0; i < runs.length; i++) {
                 int r = runs[i].surfaceRun(hi, minY);
@@ -283,13 +409,60 @@ public final class FastRender {
                     int pxl = tx + i;
                     int pyl = band.firstRow() + j;
                     fill(sampler, model, samples, px, palette, r, d, x, z, pxl, pyl, cutY, hi, minY);
-                    bandRuns[j * side + pxl] = r;
-                    bandDress[j * side + pxl] = d;
+                    if (slices.size() > 0) {
+                        long tc = System.nanoTime();
+                        slice(model, samples, slices, palette, materials, fluids, fallback, scanned[c], sliceRows, c, floorFirst, x, z,
+                                pyl * side + pxl, pxl, pyl);
+                        slices.columnNanos.add(System.nanoTime() - tc);
+                    }
+                    if (keepRuns) {
+                        bandRuns[j * side + pxl] = r;
+                        bandDress[j * side + pxl] = d;
+                    }
                 }
             }
         }
         if (model instanceof TileSampler tiles) tiles.trim();
-        return serialise(bandRuns, bandDress, palette);
+        return keepRuns ? serialise(bandRuns, bandDress, palette) : null;
+    }
+
+    /**
+     * Pixel {@code i} at each slice: solid from the scanned runs where they
+     * hold the height, else from {@code rows}; a solid block dressed by the
+     * material rule, open space filled by the fluid picker where nothing
+     * solid is over it or the level has no aquifers.
+     */
+    private static void slice(ColumnModel model, ColumnSamples samples, FastSlices slices, Palette palette,
+                              RunDress.Materials<BlockState> materials, RunDress.Fluids<BlockState> fluids, BlockState fallback,
+                              ColumnRuns runs, boolean[][] rows, int c, boolean floorFirst, int x, int z, int i, int px, int py) {
+        int top = runs.count() > 0 ? runs.top(0) : Integer.MIN_VALUE;
+        String surfaceBiome = samples.biome(px, py);
+        for (int s = 0; s < slices.size(); s++) {
+            int y = slices.slices.get(s).y();
+            int run = rows[s] == null ? runs.runAt(y) : -1;
+            boolean solid = rows[s] == null ? run >= 0 : rows[s][c];
+            byte kind;
+            short block;
+            if (solid) {
+                int above = run >= 0 ? runs.top(run) - y + 1 : FastSlices.ASSUMED_DEPTH;
+                int below = run >= 0 ? y - runs.bottom(run) + 1 : FastSlices.ASSUMED_DEPTH;
+                BlockState state = materials.at(x, y, z, above, below, Integer.MIN_VALUE);
+                kind = FastSlices.SOLID;
+                block = palette.index(state != null ? state : fallback);
+            } else {
+                boolean sky = !floorFirst && y > top;
+                RunDress.Fluid<BlockState> fluid = sky || !model.aquifers() ? fluids.at(x, y, z) : null;
+                if (fluid != null) {
+                    kind = FastSlices.FLUID;
+                    block = palette.index(fluid.state());
+                } else {
+                    kind = sky ? FastSlices.SKY : FastSlices.CAVE;
+                    block = FastPixels.NONE;
+                }
+            }
+            String id = Sampler.id(model.biome(x, y, z));
+            slices.set(s, i, kind, block, id, !id.equals(surfaceBiome));
+        }
     }
 
     private static void fill(Sampler sampler, ColumnModel model, ColumnSamples samples, FastPixels p, Palette palette,
@@ -384,8 +557,63 @@ public final class FastRender {
         Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
     }
 
-    /** The cut height and the coarse grid's roof share. */
-    record Prescan(int cutY, String rule, int columns, int roofed, int floating, ScanWindow window) {}
+    /**
+     * The cut height, the coarse grid's roof share, its floors (the top of the
+     * run under a roof, else the top run; {@link Integer#MIN_VALUE} for none),
+     * the profile slices are chosen from, and the roof's thickness (blocks from
+     * the noise top to its underside) at the {@value #ROOF_QUANTILE} quantile.
+     * A floor window's top is that thickness and {@value #ROOF_MARGIN} under the
+     * noise top, or {@value #ROOF_MARGIN} over the floors' {@value #FLOOR_QUANTILE}
+     * quantile when that is higher.
+     */
+    record Prescan(int cutY, String rule, int columns, int roofed, int floating, ScanWindow window, int[] floors,
+                   SliceChoice.Profile profile, int roofThickness, double floorAgreement) {
+        /** Whether a roofed world's floor-first scan holds on the pre-scan's own columns ({@value #FLOOR_FIRST_AGREEMENT}). */
+        boolean floorFirstHolds() {
+            return roofedWorld() && floorAgreement >= FLOOR_FIRST_AGREEMENT;
+        }
+
+        /** Whether a roof covers {@link #LAYER_SHARE} of the coarse columns. */
+        boolean roofedWorld() {
+            return floors != null && roofed > 0 && roofed >= LAYER_SHARE * columns;
+        }
+    }
+
+    /** The quantile of roof thickness a floor window starts under. */
+    static final double ROOF_QUANTILE = 0.5;
+    /** Blocks between the measured roof and the top of a floor window. */
+    static final int ROOF_MARGIN = 8;
+    /** The share of pre-scan columns whose floor a floor window must find within one block before a pass scans from the floor. */
+    static final double FLOOR_FIRST_AGREEMENT = 0.95;
+
+    /**
+     * The share of {@code runs} (whole columns) whose surface a floor window
+     * topped at {@code start} reads within one block of the whole column's: a
+     * run reaching {@code start} dropped as the roof's, or, reaching the noise
+     * floor too, read as solid to the noise top.
+     */
+    static double floorAgreement(ColumnRuns[] runs, int start, int lo, int hi, int minY) {
+        long n = 0;
+        long within = 0;
+        for (ColumnRuns r : runs) {
+            if (r == null) continue;
+            n++;
+            int i = 0;
+            while (i < r.count() && r.bottom(i) > start) i++;
+            ColumnRuns clipped = r.from(i);
+            int floor;
+            if (clipped.count() > 0 && clipped.top(0) >= start) {
+                floor = clipped.bottom(0) <= lo ? hi + 1 : clipped.from(1).surface(hi, minY);
+            } else {
+                floor = clipped.surface(hi, minY);
+            }
+            if (Math.abs(floor - r.surface(hi, minY)) <= 1) within++;
+        }
+        return n == 0 ? 0 : (double) within / n;
+    }
+
+    /** The quantile of floor heights a floor window's top stays over. */
+    static final double FLOOR_QUANTILE = 0.99;
 
     /** {@value #WINDOW_PROPERTY}={@code off} scans whole columns, for a measurement against windows. */
     public static final String WINDOW_PROPERTY = "customdimensions.fastrender.window";
@@ -395,14 +623,28 @@ public final class FastRender {
      * the height open in the most roofed columns, between a roof and the
      * floor under it. The middle of the noise when nothing is roofed.
      */
-    static Prescan prescan(RenderGrid grid, ExecutorService pool, ThreadLocal<ColumnModel> models, int lo, int hi) {
-        int k = Math.max(1, COMPARE_SPACING / grid.step());
+    static Prescan prescan(RenderGrid grid, ExecutorService pool, ThreadLocal<ColumnModel> models, int lo, int hi, int minY,
+                           int seaLevel) {
+        return prescan(grid, pool, models, lo, hi, minY, seaLevel, COMPARE_SPACING);
+    }
+
+    /** As above on a coarse grid about {@code spacing} blocks apart (a whole number of {@code grid}'s steps). */
+    static Prescan prescan(RenderGrid grid, ExecutorService pool, ThreadLocal<ColumnModel> models, int lo, int hi, int minY,
+                           int seaLevel, int spacing) {
+        int k = Math.max(1, spacing / grid.step());
         int n = Math.ceilDiv(grid.side(), k);
         int coarse = grid.step() * k;
         AtomicLongArray open = new AtomicLongArray(hi - lo + 2);
         long[] roofed = new long[1];
         int[] tops = new int[n * n];
         java.util.Arrays.fill(tops, Integer.MIN_VALUE);
+        int[] floors = new int[n * n];
+        java.util.Arrays.fill(floors, Integer.MIN_VALUE);
+        ColumnRuns[] all = new ColumnRuns[n * n];
+        AtomicLongArray solid = new AtomicLongArray(hi - lo + 2);
+        AtomicLongArray middles = new AtomicLongArray(hi - lo + 1);
+        java.util.concurrent.ConcurrentLinkedQueue<Integer> undersides = new java.util.concurrent.ConcurrentLinkedQueue<>();
+        java.util.concurrent.atomic.AtomicInteger solidColumns = new java.util.concurrent.atomic.AtomicInteger();
         java.util.concurrent.atomic.AtomicInteger lowest = new java.util.concurrent.atomic.AtomicInteger(Integer.MAX_VALUE);
         java.util.concurrent.atomic.AtomicInteger floating = new java.util.concurrent.atomic.AtomicInteger();
         int[] align = {0};
@@ -419,8 +661,19 @@ public final class FastRender {
                     ColumnRuns[] scanned = model.scan(grid.x(tx * k), grid.z(z0 * k), coarse, nx, nz);
                     for (int c = 0; c < scanned.length; c++) {
                         ColumnRuns r = scanned[c];
+                        all[(z0 + c / nx) * n + tx + c % nx] = r;
                         if (r.count() > 0) {
-                            tops[(z0 + c / nx) * n + tx + c % nx] = r.top(0);
+                            int at = (z0 + c / nx) * n + tx + c % nx;
+                            tops[at] = r.top(0);
+                            int sr = r.surfaceRun(hi, minY);
+                            floors[at] = sr == -2 ? r.top(0) : sr >= 0 ? r.top(sr) : Integer.MIN_VALUE;
+                            solidColumns.incrementAndGet();
+                            for (int i = 0; i < r.count(); i++) {
+                                solid.incrementAndGet(r.bottom(i) - lo);
+                                solid.decrementAndGet(r.top(i) - lo + 1);
+                                middles.incrementAndGet((r.bottom(i) + r.top(i)) / 2 - lo);
+                            }
+                            if (r.roofed(hi)) undersides.add(r.bottom(0));
                             int bottom = r.bottom(r.count() - 1);
                             lowest.accumulateAndGet(bottom, Math::min);
                             if (bottom > lo) floating.incrementAndGet();
@@ -442,10 +695,30 @@ public final class FastRender {
         for (CompletableFuture<Integer> f : work) roofed[0] += f.join();
         String mode = "off".equals(System.getProperty(WINDOW_PROPERTY)) ? ScanWindow.FULL
                 : ScanWindow.mode((long) n * n, roofed[0], floating.get());
-        ScanWindow window = new ScanWindow(mode, lo, hi, align[0], k, n, tops, lowest.get());
+        long[] middleCounts = new long[hi - lo + 1];
+        for (int y = 0; y < middleCounts.length; y++) middleCounts[y] = middles.get(y);
+        long[] histogram = new long[hi - lo + 1];
+        long running = 0;
+        for (int y = 0; y < histogram.length; y++) {
+            running += solid.get(y);
+            histogram[y] = running;
+        }
+        List<Integer> floorList = new ArrayList<>();
+        for (int f : floors) if (f != Integer.MIN_VALUE) floorList.add(f);
+        List<Integer> under = new ArrayList<>(undersides);
+        Collections.sort(floorList);
+        Collections.sort(under);
+        int thickness = under.isEmpty() ? 0 : hi - under.get((int) Math.floor((under.size() - 1) * (1 - ROOF_QUANTILE))) + 1;
+        int floorTop = floorList.isEmpty() ? lo : floorList.get((int) Math.floor((floorList.size() - 1) * FLOOR_QUANTILE));
+        int start = Math.clamp(Math.max(hi - thickness - ROOF_MARGIN, floorTop + ROOF_MARGIN), lo, hi - 1);
+        double columns = Math.max(1, (long) n * n);
+        SliceChoice.Profile profile = new SliceChoice.Profile(lo, hi, seaLevel, n * n, solidColumns.get(),
+                floorList.isEmpty() ? null : floorList.get(floorList.size() / 2), roofed[0] / columns, floating.get() / columns,
+                under.isEmpty() ? null : under.get(under.size() / 2), histogram, middleCounts);
+        ScanWindow window = new ScanWindow(mode, lo, hi, align[0], grid.x(0), grid.z(0), coarse, n, tops, lowest.get(), floors, start);
         if (roofed[0] == 0) {
             return new Prescan((lo + hi) / 2, "the middle of the noise: no roofed column on the coarse grid", n * n, 0, floating.get(),
-                    window);
+                    window, floors, profile, 0, 0);
         }
         long run = 0;
         long best = -1;
@@ -457,13 +730,15 @@ public final class FastRender {
                 bestY = y;
             }
         }
-        return new Prescan(bestY, "the height open in the most roofed columns of a grid every " + COMPARE_SPACING + " blocks",
-                n * n, (int) roofed[0], floating.get(), window);
+        return new Prescan(bestY, "the height open in the most roofed columns of a grid every " + coarse + " blocks",
+                n * n, (int) roofed[0], floating.get(), window, floors, profile, thickness, floorAgreement(all, start, lo, hi, minY));
     }
 
     /** Agreement with {@link Sampler#sample} on the comparison grid. */
     record Comparison(int columns, double heightsWithinOne, double heightsExact, double biomesEqual, double fluidsEqual,
-                      long referenceMillis, long referenceRate, List<String> examples) {}
+                      long referenceMillis, long referenceRate, List<String> examples) {
+        static final Comparison NONE = new Comparison(0, 0, 0, 0, 0, 0, 0, List.of());
+    }
 
     static Comparison compare(Sampler sampler, RenderGrid grid, ColumnSamples samples, ExecutorService pool) {
         int k = Math.max(1, COMPARE_SPACING / grid.step());
@@ -513,7 +788,8 @@ public final class FastRender {
 
     private static JsonObject fastBlock(RenderGrid grid, int threads, int lo, int hi, int[] cell, String mode, long[] counts,
                                         FastPixels pixels,
-                                        boolean roofLayers, int roofed, List<Integer> tiers, Prescan pre, Palette palette,
+                                        boolean roofLayers, int roofed, List<Integer> tiers, Prescan pre, ScanWindow scanWindow,
+                                        Palette palette,
                                         List<FastLayers.Footprint> footprints, String structureError, Comparison c, long rate,
                                         double speedup, Path runsFile) {
         JsonObject fast = new JsonObject();
@@ -560,13 +836,13 @@ public final class FastRender {
         runs.addProperty("max", max);
         runs.addProperty("mean", Math.round(total * 100.0 / pixels.runs.length) / 100.0);
         runs.addProperty("atCap", truncatedAtCap);
-        runs.addProperty("file", runsFile.getFileName().toString());
+        if (runsFile != null) runs.addProperty("file", runsFile.getFileName().toString());
         JsonObject window = new JsonObject();
-        window.addProperty("mode", pre.window().mode());
-        window.addProperty("rule", pre.window().rule());
-        window.addProperty("tiles", pre.window().tiles());
-        window.addProperty("tilesScannedAgain", pre.window().rescanned());
-        window.addProperty("meanBlocks", Math.round(pre.window().meanRows() * 10) / 10.0);
+        window.addProperty("mode", scanWindow.mode());
+        window.addProperty("rule", scanWindow.rule());
+        window.addProperty("tiles", scanWindow.tiles());
+        window.addProperty("tilesScannedAgain", scanWindow.rescanned());
+        window.addProperty("meanBlocks", Math.round(scanWindow.meanRows() * 10) / 10.0);
         runs.add("window", window);
         runs.addProperty("format", RUNS_FORMAT);
         fast.add("runs", runs);
@@ -578,6 +854,12 @@ public final class FastRender {
         cut.addProperty("prescanColumns", pre.columns());
         cut.addProperty("prescanRoofed", pre.roofed());
         cut.addProperty("prescanFloating", pre.floating());
+        cut.addProperty("roofThickness", pre.roofThickness());
+        cut.addProperty("roofThicknessRule", "blocks from the noise top to the roof's underside in roofed pre-scan columns, at the "
+                + ROOF_QUANTILE + " quantile; a floor window's top is " + ROOF_MARGIN + " blocks under it, or " + ROOF_MARGIN
+                + " over the floors' " + FLOOR_QUANTILE + " quantile when higher");
+        cut.addProperty("floorWindowTop", scanWindow.start());
+        cut.addProperty("floorAgreement", Math.round(pre.floorAgreement() * 10000) / 10000.0);
         fast.add("cut", cut);
         JsonArray tierList = new JsonArray();
         tiers.forEach(tierList::add);

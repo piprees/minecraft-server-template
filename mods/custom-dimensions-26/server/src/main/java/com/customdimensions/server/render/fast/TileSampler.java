@@ -64,6 +64,9 @@ public final class TileSampler implements ColumnModel {
     private final int minQuartY;
     private final int maxQuartY;
     private final int[] cell;
+    private final boolean aquifers;
+    private final RunScanner.Density exactVolume;
+    private float[] row = new float[0];
 
     /**
      * @param lo the lowest block the noise fills
@@ -95,6 +98,8 @@ public final class TileSampler implements ColumnModel {
         this.rule = settings.materialRule().value().compile(rules);
         this.picker = picker;
         this.defaultBlock = settings.defaultBlock();
+        this.aquifers = settings.aquifers().isPresent();
+        this.exactVolume = volume(exact);
     }
 
     private static RunScanner.Density volume(DensitySampler.Bound sampler) {
@@ -163,6 +168,30 @@ public final class TileSampler implements ColumnModel {
     @Override
     public int align() {
         return corners == null ? 0 : corners.align();
+    }
+
+    @Override
+    public boolean[] solidRow(int x0, int z0, int step, int nx, int nz, int y) {
+        int n = nx * nz;
+        if (row.length < n) row = new float[n];
+        if (corners != null) {
+            corners.densityRow(x0, z0, step, nx, nz, y, row);
+        } else {
+            exactVolume.volume(x0, y, z0, nx, 1, nz, step, 1, row);
+        }
+        boolean[] out = new boolean[n];
+        for (int i = 0; i < n; i++) out[i] = row[i] > 0;
+        return out;
+    }
+
+    @Override
+    public boolean aquifers() {
+        return aquifers;
+    }
+
+    /** Corner evaluations {@link #solidRow} made, over every term, so far; 0 off the lattice path. */
+    public long rowCorners() {
+        return corners == null ? 0 : corners.rowCorners();
     }
 
     public RunScanner scanner() {

@@ -25,6 +25,21 @@ public interface ColumnModel extends AutoCloseable {
 
     Holder<Biome> biome(int x, int y, int z);
 
+    /**
+     * Whether the final density is solid at block {@code y} of the
+     * {@code nx × nz} columns at {@code (x0 + i * step, z0 + j * step)}, as
+     * {@code solid[i + nx * j]}; null when only whole columns are read, so a
+     * scan's runs already hold every height.
+     */
+    default boolean[] solidRow(int x0, int z0, int step, int nx, int nz, int y) {
+        return null;
+    }
+
+    /** Whether the level fills open space under ground from aquifers, which {@link #fluids()} does not sample. */
+    default boolean aquifers() {
+        return false;
+    }
+
     RunDress.Materials<BlockState> materials();
 
     RunDress.Fluids<BlockState> fluids();

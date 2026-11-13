@@ -64,9 +64,14 @@ public final class RenderFiles {
     }
 
     public static void png(Path out, int side, int[] rgb) throws IOException {
-        if (rgb.length != side * side) throw new IllegalArgumentException(rgb.length + " pixels for side " + side);
-        BufferedImage image = new BufferedImage(side, side, BufferedImage.TYPE_INT_RGB);
-        image.setRGB(0, 0, side, side, rgb, 0, side);
+        png(out, side, side, rgb);
+    }
+
+    /** A {@code width × height} RGB image, row-major, written atomically. */
+    public static void png(Path out, int width, int height, int[] rgb) throws IOException {
+        if (rgb.length != width * height) throw new IllegalArgumentException(rgb.length + " pixels for " + width + "x" + height);
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        image.setRGB(0, 0, width, height, rgb, 0, width);
         Path tmp = out.resolveSibling(out.getFileName() + ".tmp");
         if (!ImageIO.write(image, "png", tmp.toFile())) throw new IOException("no PNG writer");
         Files.move(tmp, out, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
