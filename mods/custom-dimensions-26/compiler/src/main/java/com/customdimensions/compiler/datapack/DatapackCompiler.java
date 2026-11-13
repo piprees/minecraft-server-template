@@ -169,6 +169,7 @@ public final class DatapackCompiler {
         library.files(namespace).forEach((path, json) -> compiler.putShared(path, json));
         compiler.definitions.putAll(definitions);
         compiler.definitions.keySet().forEach(compiler::compile);
+        compiler.vanillaForms();
         return new Output(compiler.files, compiler.report, compiler.report.markdown(compiler.files), compiler.compiled);
     }
 
@@ -1181,6 +1182,20 @@ public final class DatapackCompiler {
     // ---- helpers ----------------------------------------------------------------------------
 
     /** A file no one definition owns: the biome library's. */
+    /** Each vanilla-visible file that names a type of ours in its vanilla form, the compiled form beside it ({@link VanillaForms}). */
+    private void vanillaForms() {
+        Map<String, String> moved = new TreeMap<>();
+        SortedMap<String, String> split = VanillaForms.split(files, moved);
+        files.clear();
+        files.putAll(split);
+        for (CompileReport.Entry e : report.entries().values()) {
+            moved.forEach((path, runtime) -> {
+                if (e.emitted().contains(path)) e.emitted(runtime);
+            });
+        }
+        VanillaForms.check(files);
+    }
+
     private void putShared(String path, JsonObject json) {
         files.put(path, JsonWriter.write(json));
     }

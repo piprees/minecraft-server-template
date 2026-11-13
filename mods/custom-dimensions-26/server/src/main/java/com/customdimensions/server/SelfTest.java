@@ -116,6 +116,7 @@ final class SelfTest {
         lines.addAll(com.customdimensions.server.firewall.FirewallSelfTest.run(server));
         lines.addAll(MixinSelfTest.run(server));
         lines.addAll(com.customdimensions.server.level.LevelSeedSelfTest.run(server));
+        lines.addAll(com.customdimensions.server.level.RuntimeRegistry.selfTest(server));
         lines.addAll(com.customdimensions.server.level.DayLengthSelfTest.run(server));
         String only = System.getProperty(ONLY, "");
         boolean materialsOnly = "materials".equals(only);

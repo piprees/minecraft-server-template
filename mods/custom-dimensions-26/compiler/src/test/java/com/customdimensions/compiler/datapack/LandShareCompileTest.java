@@ -8,13 +8,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** {@code terrain.landShare}: continentalness wrapped in {@code customdimensions:land_share} at the terrain's coast, over the player border. */
+/**
+ * {@code terrain.landShare}: continentalness wrapped in {@code customdimensions:land_share} at the terrain's coast, over the player border,
+ * in the form the runtime binds ({@link VanillaForms#runtimePath}); vanilla reads the unshifted continentalness.
+ */
 class LandShareCompileTest {
 
     private static final String CONTINENTS = "data/adventure/worldgen/density_function/terrain/s/continents.json";
 
     private static JsonObject shift(DatapackCompiler.Output out) {
-        JsonObject cached = JsonParser.parseString(out.files().get(CONTINENTS)).getAsJsonObject();
+        assertTrue(!out.files().get(CONTINENTS).contains("land_share"), "vanilla's form is unshifted");
+        JsonObject cached = JsonParser.parseString(out.files().get(VanillaForms.runtimePath(CONTINENTS))).getAsJsonObject();
         assertEquals("minecraft:cache", cached.get("type").getAsString(), cached.toString());
         JsonObject f = cached.getAsJsonObject("input");
         assertEquals("customdimensions:land_share", f.get("type").getAsString());

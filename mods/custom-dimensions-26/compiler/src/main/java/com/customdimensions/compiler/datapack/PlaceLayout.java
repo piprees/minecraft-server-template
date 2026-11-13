@@ -172,17 +172,52 @@ public final class PlaceLayout {
             };
             PlaceField.Arrangement a = PlaceField.solve(sites[0], sites[1], shares, null, false, PlaceField.SOLVE_GRID);
             String where = allAt && "auto".equals(arrangement) ? "the sites biomeLayout.places.at gives" : "the " + arrangement + " arrangement";
+            if ("core".equals(arrangement) && (a == null || PlaceField.unheld(a, centre(n)) >= 0)) {
+                a = PlaceField.heart(shares, 0, 0, 0, direction);
+                if (a == null || !oneRegionEach(a)) {
+                    throw error(slug, "biomeLayout.places: the core arrangement cannot keep " + names.get(0) + " (" + percent(shares[0])
+                            + ") at the centre with " + blocks(radius) + " blocks round it while every place holds its share; give it a bigger share, "
+                            + "or lay the places out another way");
+                }
+            }
+            if (allAt && a != null) {
+                PlaceField.Arrangement held = PlaceField.hold(a, shares, at, PlaceField.SOLVE_GRID);
+                if (held == null) throw unheld(slug, a, PlaceField.unheld(a, at), at, names, shares, radius);
+                a = held;
+            }
             if (a == null) throw error(slug, "biomeLayout.places: " + where + " cannot give every place its share; move the sites apart");
             String broken = PlaceField.broken(PlaceField.adjacency(a.labels(PlaceField.SOLVE_GRID), PlaceField.SOLVE_GRID, n), hints);
             if (broken != null) throw error(slug, "biomeLayout.places: in " + where + " " + named(broken, names));
             arrangements.add(a);
         } else {
             PlaceField.Search search = PlaceField.search(shares, at, hints, seed(slug, names));
+            int unheld = search.refusal() != null && search.refusal().startsWith(PlaceField.PIN_REFUSAL)
+                    ? Integer.parseInt(search.refusal().substring(PlaceField.PIN_REFUSAL.length())) : -1;
             for (PlaceField.Arrangement found : search.arrangements()) {
-                PlaceField.Arrangement a = PlaceField.refine(found, shares, PlaceField.SOLVE_GRID);
+                PlaceField.Arrangement refined = PlaceField.refine(found, shares, PlaceField.SOLVE_GRID);
+                PlaceField.Arrangement a = PlaceField.hold(refined, shares, at, PlaceField.SOLVE_GRID);
+                if (a == null && refined != null) unheld = PlaceField.unheld(refined, at);
                 if (a != null && PlaceField.broken(PlaceField.adjacency(a.labels(PlaceField.SOLVE_GRID), PlaceField.SOLVE_GRID, n), hints) == null) {
                     arrangements.add(a);
                 }
+            }
+            int pins = 0, pin = -1;
+            for (int p = 0; p < n; p++) if (at[p] != null) {
+                pins++;
+                pin = p;
+            }
+            if (arrangements.isEmpty() && unheld >= 0 && pins == 1) {
+                PlaceField.Arrangement heart = PlaceField.heart(shares, pin, at[pin][0], at[pin][1], direction);
+                if (heart != null && oneRegionEach(heart)
+                        && PlaceField.broken(PlaceField.adjacency(heart.labels(PlaceField.SOLVE_GRID), PlaceField.SOLVE_GRID, n), hints) == null) {
+                    arrangements.add(heart);
+                }
+            }
+            if (arrangements.isEmpty() && unheld >= 0) {
+                int p = unheld;
+                throw error(slug, "biomeLayout.places: no automatic arrangement keeps " + names.get(p) + " (" + percent(shares[p]) + ") round its site in "
+                        + "biomeLayout.places.at with " + blocks(radius) + " blocks to spare while every place holds its share; give it a bigger share, "
+                        + "or move its site away from the border and the other sites; a place at the centre can be the heart of a core");
             }
             if (arrangements.isEmpty()) {
                 throw error(slug, "biomeLayout.places: no automatic arrangement holds the hints: " + named(search.refusal() == null
@@ -191,6 +226,36 @@ public final class PlaceLayout {
         }
         return new Places(List.copyOf(names), List.copyOf(members), shares, List.copyOf(arrangements), "auto".equals(arrangement) && !anyAt,
                 warp(slug, spec), axis, allAt && "auto".equals(arrangement) ? "at" : arrangement);
+    }
+
+    /** Only the centre anchored, for place 0 of {@code n}. */
+    private static double[][] centre(int n) {
+        double[][] out = new double[n][];
+        out[0] = new double[]{0, 0};
+        return out;
+    }
+
+    private static boolean oneRegionEach(PlaceField.Arrangement a) {
+        for (int count : PlaceField.regions(a.labels(PlaceField.SOLVE_GRID), PlaceField.SOLVE_GRID, a.size())) if (count != 1) return false;
+        return true;
+    }
+
+    /** The refusal for place {@code p} of {@code a}, whose {@code at} site another place reaches over. */
+    private static IllegalArgumentException unheld(String slug, PlaceField.Arrangement a, int p, double[][] at, List<String> names, double[] shares,
+                                                   int radius) {
+        int over = PlaceField.reach(a, p, at[p][0], at[p][1], PlaceField.PIN_MARGIN);
+        return error(slug, "biomeLayout.places: " + names.get(p) + " (" + percent(shares[p]) + ") does not hold " + blocks(radius)
+                + " blocks round its site in biomeLayout.places.at: " + names.get(over) + " (" + percent(shares[over]) + ") reaches over it; give "
+                + names.get(p) + " a bigger share, move the other sites further from it, or pin fewer sites; a place at the centre can be the heart of a core");
+    }
+
+    private static String percent(double share) {
+        return Math.round(share * 1000) / 10.0 + "%";
+    }
+
+    /** {@link PlaceField#PIN_MARGIN} in blocks over a {@code radius}-block border. */
+    static long blocks(int radius) {
+        return Math.round(PlaceField.PIN_MARGIN * radius);
     }
 
     /** A deterministic seed for {@code slug}'s automatic search. */
