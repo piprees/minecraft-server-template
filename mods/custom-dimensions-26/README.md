@@ -566,6 +566,113 @@ one-job slot and writes `renders/<dimension>/fast-<seed>-r<radius>*`.
 
 Each worker builds a `TileSampler` from the random state, noise settings,
 biome source and global fluid picker the level generates with, and samples
+tiles of 16 by 16 columns. When the final density holds an `interpolated`
+term, `LatticeScanner` reads every block of a tile in one batch: each
+`interpolated` term becomes a `LatticeInterpolation`, which samples its input
+once on the cell corners under the tile's columns and fills the blocks as
+vanilla interpolates a cell (the same lerps and the same running sum up each
+cell), and the terms outside it (squeeze, min, range choices, the beardifier)
+are vanilla's own, per block. A block's density is the one a noise column of
+the same column gives it, bit for bit, and a layer thinner than a cell is
+kept. Inside the terms each `lerp` and `old_blended_noise` is a `LazyLerp`,
+which samples each side only on the runs of blocks up a column that use it
+(vanilla's batch path samples both sides everywhere); the values are
+vanilla's. A density with no `interpolated` term goes to `RunScanner`, which
+scouts rows 8 blocks apart and samples block by block only the cells whose
+rows differ in sign, so a layer thinner than a row's spacing between two rows
+is missed there; `-Dcustomdimensions.fastrender.scan=refine` picks it for a
+measurement, and `-Dcustomdimensions.fastrender.lazy=off` turns `LazyLerp`
+off.
+
+The pre-scan (whole columns every 64 blocks, which also picks the cut) sets
+each tile's window of heights (`ScanWindow`): a world with roofs in 2 % of
+its columns is scanned whole; a world with floating runs in 2 % (sky tiers,
+islands over a void) from 16 blocks under the lowest run found to 16 over the
+highest near the tile; any other from 32 blocks under the lowest surface near
+the tile to 16 over the highest, its run list holding the runs in that window,
+the lowest cut off at its floor. A tile whose window has ground at its top is
+widened to the noise top, and one with a column without ground (or, with
+tiers, ground at the floor) to the noise floor. Windows start on cell rows, so
+the blocks keep their whole-column values. `-Dcustomdimensions.fastrender.window=off`
+scans every tile whole.
+
+A column is a list of solid runs, topmost first, at most 24 (`ColumnRuns`);
+its surface is read from the runs as the `Sampler` reads a noise column.
+`RunDress` puts the level's compiled material rule at each run's top and at a
+roof's underside, and the fluid picker's fluid at the lowest open block over
+each run; an aquifer's local water tables need a noise chunk and are not
+sampled. Which layers and windows are used follows from the runs, never from
+the dimension's name. A generator that is not noise based is read through its
+own noise columns.
+
+`./gradlew :server:runFastBench -PfastBench=<slug>:<seed>:<radius>:<step>:<threads>[,...]`
+runs the same render headless (`FastBench`): it compiles the pack, loads the
+world and dimension registries from it, vanilla's data and the mods' data as
+a start does, binds the runtime registry, renders each case twice (the first
+warms the JIT) into `-PfastBenchOut=<dir>` (default `server/run-bench/out`)
+and exits, writing a `summary.txt` line per case with `Sampler.sample`'s rate
+over 256 × 256 of the grid's columns beside the sidecar's. No level, world or
+network; structure footprints need a server's templates and the worldgen
+runtime (lava levels, basins, dry zones) is not applied, so both sides use the
+noise settings' own fluid picker. `-PfastBenchJvm='<flags>'` passes JVM flags
+(a flight recording, the properties above).
+
+| File in `renders/<dimension>/` | What it holds |
+| --- | --- |
+| `<seed>-r<radius>-biome.png` | Each pixel in its surface biome's colour: a fixed colour per vanilla 26.3 biome (`BiomePalette`), any other id a colour from its hash |
+| `<seed>-r<radius>-height.png` | Surface height in grey (dark to light across the dry surface's 1st to 99th percentile, a darker line where a 16-block band changes, lit from the north-west); water blue, darker with depth; lava orange; a column with no solid block black |
+| `<seed>-r<radius>-zones.png` | Drawn for a dimension with zones, from the compiled masks: the height layer tinted by each zone's colour as far as its mask reaches, a white line where a mask crosses one half (where its biomes take over) and a black line at the outer edge of its blend |
+| `<seed>-r<radius>.json` | Seed and its source, radius, step, side, centre, the surface and biome-y rules, sea level, timings (prepare, sample, images, columns per second, threads), the biome legend with colours and pixel counts, and the height range |
+
+Pixel `(px, py)` is the column at the north-west corner of its step-by-step
+cell; north is up. Each image is a `RenderLayer` (core); structure starts join
+as a layer.
+
+### The Sampler
+
+`Sampler` is the generator of one dimension under one seed, without a level:
+
+| Call | What it gives |
+| --- | --- |
+| `Sampler.forDimension(server, manager, slug, seed)` | The sampler for a base or lazy dimension; a null seed takes the dimension's own (`defaultSeed`) |
+| `Sampler.of(dimension, generator, minY, height, seed, seedSource, registries)` | The sampler for any `ChunkGenerator` |
+| `sample(x, z)` | `Column`: `height`, `roofed`, `fluid` (over the surface), `waterAtSeaLevel`, `biome` |
+| `biome(x, y, z)` | The generator's noise biome there, `y` clamped into the dimension |
+| `noiseColumn(x, z)` | Every block the noise stage fills in the column |
+| `surface(blockAt, top, minY)` | The surface rule, applied to any column (the self-test applies it to real chunks) |
+
+It builds its `RandomState` as the level does (`RandomState.create` with the
+generator's noise settings, or the flat-world form for a generator without
+them) and reads the generator's own `getBaseColumn`. The surface is the
+`OCEAN_FLOOR_WG` heightmap's: one above the top block that blocks motion, so
+water and lava lie over it. A column whose noise is solid at the noise's top
+has a roof (the Nether, caves); its surface is the first floor under the
+roof's underside, the ground a player walks on; a column solid from the roof down takes the roof's height. The biome is read at the
+surface height. Every call is thread-safe; each thread keeps its own biome
+resolver.
+
+The sampler sees the noise stage: what surface rules, carvers, features and
+structures change afterwards is not in it. The self-test's accuracy gate
+(`RenderSelfTest`) samples 50 columns within 256 blocks in the overworld, the
+Nether, the End, The Aviary and `the_underdark`, generates those chunks and
+compares; every mismatch is classed by diffing the chunk's column against the
+noise column (`removed`, `flooded`, `added`, `filled`, `structure`), and a
+column no class explains fails; each dimension's columns and classes are written
+to `renders/<dimension>/accuracy.tsv`. It also checks that the sampler's noise
+columns equal the live level generator's, renders the overworld at radius
+1024, step 8 while counting the server's ticks, and checks the refusals.
+
+### The fast renderer
+
+`/customdim fastrender <dimension> [stride] [threads]` (`render/fast/`) covers the
+dimension's world border (its generation border, or 1024 blocks, when it has
+none). The stride defaults to the one that keeps the image near 2048 pixels a
+side (4 for a 4096-block border, 8 for 8192) and runs 1 to 16 with the image
+at most 4096 pixels; threads default to the render's. It shares the render's
+one-job slot and writes `renders/<dimension>/fast-<seed>-r<radius>*`.
+
+Each worker builds a `TileSampler` from the random state, noise settings,
+biome source and global fluid picker the level generates with, and samples
 tiles of 16 by 16 columns. `RunScanner` scouts the full final density on rows
 one interpolation cell apart (8 blocks when it is not interpolated), on the
 columns themselves when they sit on the cell lattice and on the lattice round
@@ -589,7 +696,7 @@ own noise columns.
 | `…-tier1.png` to `…-tier3.png` | Each drawn when 2 % of columns have that many runs below the topmost: the second, third and fourth run from the top |
 | `…-structures.png` | The map (the floor, when roofed) at half brightness with each start's bounding box outlined: starts from `Sampler.starts`, with the dimension's structure control, at most 64 of each structure |
 | `…-runs.bin.gz` | Every column's runs with their top, underside and fluid blocks; the format is in the sidecar's `fast.runs.format`, the blocks in `fast.palette` |
-| `fast-<seed>-r<radius>.json` | The render's sidecar (`kind` `fastrender`) with `fast`: stride, threads, columns per second, scout points and crossings per column, run counts, the roofed share, the cut and its rule, the tiers drawn, the footprints, and `comparison`: on a grid every 64 blocks, the share of heights within one block of `Sampler.sample`, exact heights, equal biomes and fluids, and the sampler's own columns per second on the same pool (`speedup` is the ratio) |
+| `fast-<seed>-r<radius>.json` | The render's sidecar (`kind` `fastrender`) with `fast`: stride, threads, columns per second, the scan mode and density evaluations per column (`scout`), run counts and the window (`runs.window`: mode, rule, tiles widened, mean blocks scanned), the roofed share, the cut and its rule, the tiers drawn, the footprints, and `comparison`: on a grid every 64 blocks, the share of heights within one block of `Sampler.sample`, exact heights, equal biomes and fluids, and the sampler's own columns per second on the same pool (`speedup` is the ratio); `timings` splits the sampling's thread time into finding runs and dressing them |
 
 ## Rolling
 

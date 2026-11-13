@@ -166,7 +166,7 @@ public final class PackInstaller {
     }
 
     /** {@code level-name} from {@code server.properties}; {@code world} when the file or key is absent. */
-    static String levelName(Path serverProperties) {
+    public static String levelName(Path serverProperties) {
         if (!Files.isRegularFile(serverProperties)) return "world";
         Properties properties = new Properties();
         try (Reader reader = Files.newBufferedReader(serverProperties)) {

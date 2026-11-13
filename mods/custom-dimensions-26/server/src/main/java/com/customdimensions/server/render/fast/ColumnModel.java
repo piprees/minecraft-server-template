@@ -13,6 +13,16 @@ import net.minecraft.world.level.block.state.BlockState;
 public interface ColumnModel extends AutoCloseable {
     ColumnRuns[] scan(int x0, int z0, int step, int nx, int nz);
 
+    /** As {@link #scan(int, int, int, int, int)} over blocks {@code from} to {@code to}, when {@link #align()} is above 0. */
+    default ColumnRuns[] scan(int x0, int z0, int step, int nx, int nz, int from, int to) {
+        return scan(x0, z0, step, nx, nz);
+    }
+
+    /** The cell height a window passed to {@link #scan(int, int, int, int, int, int, int)} snaps to; 0 when only whole columns scan. */
+    default int align() {
+        return 0;
+    }
+
     Holder<Biome> biome(int x, int y, int z);
 
     RunDress.Materials<BlockState> materials();
@@ -24,8 +34,13 @@ public interface ColumnModel extends AutoCloseable {
     /** The density's interpolation cell {xz, y}, {0, 0} when the scout reads it directly or there is no density. */
     int[] cell();
 
-    /** Scout points, cells refined block by block, and columns, so far. */
+    /** Density evaluations (scout points or interpolation corners, summed over terms), cells refined block by block, and columns, so far. */
     long[] counts();
+
+    /** How runs are found: {@link TileSampler#LATTICE}, {@link TileSampler#REFINE}, or {@code noise-column}. */
+    default String mode() {
+        return "noise-column";
+    }
 
     @Override
     void close();

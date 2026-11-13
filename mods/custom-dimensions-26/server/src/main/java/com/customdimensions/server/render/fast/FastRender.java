@@ -131,24 +131,32 @@ public final class FastRender {
             byte[][] runData = new byte[bands.size()][];
             t = System.nanoTime();
             List<CompletableFuture<Void>> work = new ArrayList<>();
+            java.util.concurrent.atomic.LongAdder scanNanos = new java.util.concurrent.atomic.LongAdder();
             for (int b = 0; b < bands.size(); b++) {
                 int index = b;
                 RenderGrid.Band band = bands.get(b);
                 work.add(CompletableFuture.runAsync(() -> {
-                    runData[index] = band(sampler, grid, band, models.get(), samples, pixels, palette, pre.cutY(), lo, hi, minY);
-                    job.advance((long) band.rows() * side, progress);
+                    runData[index] = band(sampler, grid, band, models.get(), samples, pixels, palette, pre, lo, hi, minY,
+                            scanNanos);
+                    if (job != null) job.advance((long) band.rows() * side, progress);
                 }, pool));
             }
             CompletableFuture.allOf(work.toArray(CompletableFuture[]::new)).join();
             long sampleMs = Math.max(1, (System.nanoTime() - t) / 1_000_000);
             timings.put("sample", sampleMs);
+            // Thread time summed over workers: finding runs, and everything else a band does (faces, fluids, biomes, zones, run list).
+            long scanMs = scanNanos.sum() / 1_000_000;
+            timings.put("sampleScanThreadMillis", scanMs);
+            timings.put("sampleDressThreadMillis", Math.max(0, sampleMs * threads - scanMs));
 
             long[] counts = new long[3];
             int[] cell = null;
+            String mode = null;
             for (ColumnModel m : made) {
                 long[] c = m.counts();
                 for (int i = 0; i < 3; i++) counts[i] += c[i];
                 if (cell == null) cell = m.cell();
+                if (mode == null) mode = m.mode();
             }
 
             t = System.nanoTime();
@@ -211,7 +219,7 @@ public final class FastRender {
             root.addProperty("kind", KIND);
             long rate = columns * 1000 / sampleMs;
             double speedup = comparison.referenceRate() <= 0 ? 0 : (double) rate / comparison.referenceRate();
-            root.add("fast", fastBlock(grid, threads, lo, hi, cell, counts, pixels, roofLayers, roofed, tiers, pre, palette,
+            root.add("fast", fastBlock(grid, threads, lo, hi, cell, mode, counts, pixels, roofLayers, roofed, tiers, pre, palette,
                     footprints, structureError, comparison, rate, speedup, runsFile));
             Path sidecar = dir.resolve(base + ".json");
             Path tmp = sidecar.resolveSibling(sidecar.getFileName() + ".tmp");
@@ -232,7 +240,9 @@ public final class FastRender {
 
     /** One band of rows: its pixels filled, its run list returned as one gzip member. */
     static byte[] band(Sampler sampler, RenderGrid grid, RenderGrid.Band band, ColumnModel model, ColumnSamples samples,
-                       FastPixels px, Palette palette, int cutY, int lo, int hi, int minY) {
+                       FastPixels px, Palette palette, Prescan pre, int lo, int hi, int minY,
+                       java.util.concurrent.atomic.LongAdder scanNanos) {
+        int cutY = pre.cutY();
         int side = grid.side();
         int step = grid.step();
         int rows = band.rows();
@@ -246,7 +256,14 @@ public final class FastRender {
             int nx = Math.min(TILE, side - tx);
             int x0 = grid.x(tx);
             int z0 = grid.z(band.firstRow());
-            ColumnRuns[] runs = model.scan(x0, z0, step, nx, rows);
+            long t = System.nanoTime();
+            int[] window = pre.window().window(tx, band.firstRow(), nx, rows);
+            ColumnRuns[] runs = model.scan(x0, z0, step, nx, rows, window[0], window[1]);
+            for (int[] wider = pre.window().widen(runs, window[0], window[1]); wider != null;
+                 wider = pre.window().widen(runs, wider[0], wider[1])) {
+                runs = model.scan(x0, z0, step, nx, rows, wider[0], wider[1]);
+            }
+            scanNanos.add(System.nanoTime() - t);
             int[] surfaceTop = new int[runs.length];
             for (int i = 0; i < runs.length; i++) {
                 int r = runs[i].surfaceRun(hi, minY);
@@ -324,7 +341,11 @@ public final class FastRender {
 
     private static byte[] serialise(ColumnRuns[] runs, RunDress<BlockState>[] dress, Palette palette) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream(runs.length * 16);
-        try (DataOutputStream out = new DataOutputStream(new GZIPOutputStream(bytes, 1 << 16))) {
+        try (DataOutputStream out = new DataOutputStream(new GZIPOutputStream(bytes, 1 << 16) {
+            {
+                def.setLevel(java.util.zip.Deflater.BEST_SPEED);
+            }
+        })) {
             for (int c = 0; c < runs.length; c++) {
                 ColumnRuns r = runs[c];
                 RunDress<BlockState> d = dress[c];
@@ -364,7 +385,10 @@ public final class FastRender {
     }
 
     /** The cut height and the coarse grid's roof share. */
-    record Prescan(int cutY, String rule, int columns, int roofed) {}
+    record Prescan(int cutY, String rule, int columns, int roofed, int floating, ScanWindow window) {}
+
+    /** {@value #WINDOW_PROPERTY}={@code off} scans whole columns, for a measurement against windows. */
+    public static final String WINDOW_PROPERTY = "customdimensions.fastrender.window";
 
     /**
      * A coarse pass every {@link #COMPARE_SPACING} blocks that picks the cut:
@@ -377,16 +401,30 @@ public final class FastRender {
         int coarse = grid.step() * k;
         AtomicLongArray open = new AtomicLongArray(hi - lo + 2);
         long[] roofed = new long[1];
+        int[] tops = new int[n * n];
+        java.util.Arrays.fill(tops, Integer.MIN_VALUE);
+        java.util.concurrent.atomic.AtomicInteger lowest = new java.util.concurrent.atomic.AtomicInteger(Integer.MAX_VALUE);
+        java.util.concurrent.atomic.AtomicInteger floating = new java.util.concurrent.atomic.AtomicInteger();
+        int[] align = {0};
         List<CompletableFuture<Integer>> work = new ArrayList<>();
         for (int tz = 0; tz < n; tz += TILE) {
             int z0 = tz;
             work.add(CompletableFuture.supplyAsync(() -> {
                 int count = 0;
                 ColumnModel model = models.get();
+                align[0] = model.align();
                 for (int tx = 0; tx < n; tx += TILE) {
                     int nx = Math.min(TILE, n - tx);
                     int nz = Math.min(TILE, n - z0);
-                    for (ColumnRuns r : model.scan(grid.x(tx * k), grid.z(z0 * k), coarse, nx, nz)) {
+                    ColumnRuns[] scanned = model.scan(grid.x(tx * k), grid.z(z0 * k), coarse, nx, nz);
+                    for (int c = 0; c < scanned.length; c++) {
+                        ColumnRuns r = scanned[c];
+                        if (r.count() > 0) {
+                            tops[(z0 + c / nx) * n + tx + c % nx] = r.top(0);
+                            int bottom = r.bottom(r.count() - 1);
+                            lowest.accumulateAndGet(bottom, Math::min);
+                            if (bottom > lo) floating.incrementAndGet();
+                        }
                         if (!r.roofed(hi)) continue;
                         count++;
                         for (int i = 0; i + 1 < r.count(); i++) {
@@ -402,7 +440,13 @@ public final class FastRender {
             }, pool));
         }
         for (CompletableFuture<Integer> f : work) roofed[0] += f.join();
-        if (roofed[0] == 0) return new Prescan((lo + hi) / 2, "the middle of the noise: no roofed column on the coarse grid", n * n, 0);
+        String mode = "off".equals(System.getProperty(WINDOW_PROPERTY)) ? ScanWindow.FULL
+                : ScanWindow.mode((long) n * n, roofed[0], floating.get());
+        ScanWindow window = new ScanWindow(mode, lo, hi, align[0], k, n, tops, lowest.get());
+        if (roofed[0] == 0) {
+            return new Prescan((lo + hi) / 2, "the middle of the noise: no roofed column on the coarse grid", n * n, 0, floating.get(),
+                    window);
+        }
         long run = 0;
         long best = -1;
         int bestY = (lo + hi) / 2;
@@ -414,7 +458,7 @@ public final class FastRender {
             }
         }
         return new Prescan(bestY, "the height open in the most roofed columns of a grid every " + COMPARE_SPACING + " blocks",
-                n * n, (int) roofed[0]);
+                n * n, (int) roofed[0], floating.get(), window);
     }
 
     /** Agreement with {@link Sampler#sample} on the comparison grid. */
@@ -467,7 +511,8 @@ public final class FastRender {
         return n == 0 ? 0 : Math.round(k * 10000.0 / n) / 10000.0;
     }
 
-    private static JsonObject fastBlock(RenderGrid grid, int threads, int lo, int hi, int[] cell, long[] counts, FastPixels pixels,
+    private static JsonObject fastBlock(RenderGrid grid, int threads, int lo, int hi, int[] cell, String mode, long[] counts,
+                                        FastPixels pixels,
                                         boolean roofLayers, int roofed, List<Integer> tiers, Prescan pre, Palette palette,
                                         List<FastLayers.Footprint> footprints, String structureError, Comparison c, long rate,
                                         double speedup, Path runsFile) {
@@ -485,11 +530,21 @@ public final class FastRender {
         JsonObject scout = new JsonObject();
         scout.addProperty("cellXz", cell == null ? 0 : cell[0]);
         scout.addProperty("cellY", cell == null ? 0 : cell[1]);
-        scout.addProperty("rule", "the final density on rows one interpolation cell apart (8 blocks when it is not interpolated); "
-                + "each cell whose rows differ in sign sampled block by block; a layer thinner than a cell between two rows is missed");
+        scout.addProperty("mode", mode);
         long columns = Math.max(1, counts[2]);
-        scout.addProperty("scoutPointsPerColumn", Math.round(counts[0] * 100.0 / columns) / 100.0);
-        scout.addProperty("crossingsPerColumn", Math.round(counts[1] * 100.0 / columns) / 100.0);
+        if (TileSampler.LATTICE.equals(mode)) {
+            scout.addProperty("rule", "every block of a tile in one batch: each interpolated term's input sampled on the cell corners "
+                    + "under the tile's columns and filled as vanilla interpolates it, the terms outside it applied per block; "
+                    + "the density each block of a noise column gets");
+        } else {
+            scout.addProperty("rule", "the final density on rows one interpolation cell apart (8 blocks when it is not interpolated); "
+                    + "each cell whose rows differ in sign sampled block by block; a layer thinner than a cell between two rows is missed");
+            scout.addProperty("scoutPointsPerColumn", Math.round(counts[0] * 100.0 / columns) / 100.0);
+            scout.addProperty("crossingsPerColumn", Math.round(counts[1] * 100.0 / columns) / 100.0);
+        }
+        scout.addProperty("evaluationsPerColumn", Math.round(counts[0] * 100.0 / columns) / 100.0);
+        scout.addProperty("evaluationsRule", "density evaluations below the outermost interpolation per column: scout points, or corners "
+                + "summed over the interpolated terms; a block refined in refine mode costs its cell's two corner rows more");
         fast.add("scout", scout);
         JsonObject runs = new JsonObject();
         int max = 0;
@@ -506,6 +561,13 @@ public final class FastRender {
         runs.addProperty("mean", Math.round(total * 100.0 / pixels.runs.length) / 100.0);
         runs.addProperty("atCap", truncatedAtCap);
         runs.addProperty("file", runsFile.getFileName().toString());
+        JsonObject window = new JsonObject();
+        window.addProperty("mode", pre.window().mode());
+        window.addProperty("rule", pre.window().rule());
+        window.addProperty("tiles", pre.window().tiles());
+        window.addProperty("tilesScannedAgain", pre.window().rescanned());
+        window.addProperty("meanBlocks", Math.round(pre.window().meanRows() * 10) / 10.0);
+        runs.add("window", window);
         runs.addProperty("format", RUNS_FORMAT);
         fast.add("runs", runs);
         fast.addProperty("roofedShare", Math.round(roofed * 10000.0 / pixels.runs.length) / 10000.0);
@@ -515,6 +577,7 @@ public final class FastRender {
         cut.addProperty("rule", pre.rule());
         cut.addProperty("prescanColumns", pre.columns());
         cut.addProperty("prescanRoofed", pre.roofed());
+        cut.addProperty("prescanFloating", pre.floating());
         fast.add("cut", cut);
         JsonArray tierList = new JsonArray();
         tiers.forEach(tierList::add);

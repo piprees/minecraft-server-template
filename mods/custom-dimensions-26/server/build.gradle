@@ -143,6 +143,32 @@ loom {
 	}
 }
 
+// runFastBench -PfastBench=<slug>:<seed>:<radius>:<step>:<threads>[,...] [-PfastBenchOut=<dir>] [-PfastBenchJvm='<flags>']:
+// the headless fast render benchmark (FastBench): loads the registries and the compiled pack, renders, exits. No world or network.
+loom {
+	runs {
+		fastBench {
+			server()
+			name 'Fast render benchmark'
+			runDir 'run-bench'
+			programArg '--initSettings'
+			vmArg '-Xmx3G'
+			vmArg "-Dcustomdimensions.fastbench=${project.findProperty('fastBench') ?: ''}"
+			vmArg "-Dcustomdimensions.fastbench.out=${project.findProperty('fastBenchOut') ?: file('run-bench/out').absolutePath}"
+			vmArg "-Dcustomdimensions.fastbench.repeat=${project.findProperty('fastBenchRepeat') ?: '2'}"
+			vmArg "-Dcustomdimensions.definitions=${project.findProperty('definitions') ?: file('../definitions').canonicalPath}"
+			vmArg "-Dcustomdimensions.bridges=${project.findProperty('bridges') ?: file('../bridges').canonicalPath}"
+			if (project.hasProperty('fastBenchJvm')) {
+				project.property('fastBenchJvm').toString().split(' ').each { vmArg it }
+			}
+		}
+	}
+}
+
+tasks.matching { it.name == 'runFastBench' }.configureEach {
+	dependsOn ':compiler:vanillaData'
+}
+
 tasks.matching { it.name == 'runServer' }.configureEach {
 	dependsOn ':compiler:vanillaData'
 	if (selfTestRun) {
