@@ -38,6 +38,7 @@ import net.minecraft.world.level.levelgen.densityfunction.DensityFunction;
 import net.minecraft.world.level.levelgen.densityfunction.DensitySampler;
 import net.minecraft.world.level.levelgen.densityfunction.SamplerContext;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
@@ -78,6 +79,7 @@ public final class Sampler {
     private final long seed;
     private final String seedSource;
     private final int noiseTop;
+    private final int noiseBottom;
     private final ThreadLocal<BiomeResolver> resolvers;
     private final ThreadLocal<net.minecraft.world.level.biome.Climate.Sampler> climate;
     private final List<DensitySampler> zoneMasks;
@@ -104,9 +106,11 @@ public final class Sampler {
             this.random = RandomState.create(noises, seed, noise.generatorSettings().value());
             var clamped = noise.generatorSettings().value().noiseSettings().clampToHeightAccessor(heights);
             this.noiseTop = clamped.minY() + clamped.height() - 1;
+            this.noiseBottom = clamped.minY();
         } else {
             this.random = RandomState.create(noises, seed, false, Blocks.STONE.defaultBlockState(), 63, NoiseRouterData.none());
             this.noiseTop = minY + height - 1;
+            this.noiseBottom = minY;
         }
         this.resolvers = ThreadLocal.withInitial(() -> generator.getBiomeSource().createUncachedResolver(random));
         this.climate = ThreadLocal.withInitial(() -> random.createClimateSampler(SamplerContext.EMPTY_UNCACHED));
@@ -225,11 +229,16 @@ public final class Sampler {
      * dimension's zone shuns.
      */
     public boolean starts(Holder<Structure> structure, ChunkPos chunk) {
+        return footprint(structure, chunk) != null;
+    }
+
+    /** As {@link #starts}, giving the start's bounding box when it starts, else null. */
+    public BoundingBox footprint(Holder<Structure> structure, ChunkPos chunk) {
         // A structure template's palette fills its block cache without synchronisation, as it does on vanilla's worldgen
         // threads; a start that trips over it is generated again under a lock, a few times, since other threads may
         // still be filling the cache (T147).
         if (templates == null) throw new IllegalStateException(dimension + ": a sampler made without a server cannot generate starts");
-        if (StructureRuntime.zoneShunned(levelKey, structure, chunk)) return false;
+        if (StructureRuntime.zoneShunned(levelKey, structure, chunk)) return null;
         StructureRuntime.Controlled c = control();
         Predicate<Holder<Biome>> valid = c.bypasses(structure.value(), chunk) ? b -> true : structure.value().biomes()::contains;
         try {
@@ -247,11 +256,12 @@ public final class Sampler {
         }
     }
 
-    private boolean generate(Holder<Structure> structure, ChunkPos chunk, StructureRuntime.Controlled c, Predicate<Holder<Biome>> valid) {
+    private BoundingBox generate(Holder<Structure> structure, ChunkPos chunk, StructureRuntime.Controlled c,
+                                 Predicate<Holder<Biome>> valid) {
         StructureStart start = structure.value().generate(structure, levelKey, access, generator, generator.getBiomeSource(),
                 random.createClimateSampler(SamplerContext.builder().enableCaches().build()), random, templates,
                 c.state().getLevelSeed(), chunk, 0, heights, valid);
-        return start.isValid();
+        return start.isValid() ? start.getBoundingBox() : null;
     }
 
     public RegistryAccess registryAccess() {
@@ -329,5 +339,24 @@ public final class Sampler {
     /** The highest y the generator's noise fills; a solid block there is a roof. */
     public int noiseTop() {
         return noiseTop;
+    }
+
+    /** The lowest y the generator's noise fills. */
+    public int noiseBottom() {
+        return noiseBottom;
+    }
+
+    /** The random state this sampler generates with, built for its seed as the level builds its own. */
+    public RandomState random() {
+        return random;
+    }
+
+    public ChunkGenerator generator() {
+        return generator;
+    }
+
+    /** The dimension's height range. */
+    public LevelHeightAccessor heights() {
+        return heights;
     }
 }

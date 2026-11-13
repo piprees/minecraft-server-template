@@ -50,6 +50,8 @@ final class MixinSelfTest {
                 () -> com.customdimensions.server.level.RuntimeRegistry.byKey(server)));
         lines.add(check("MappedRegistryAccessor", "each runtime-registry entry's compiled form reads back its key",
                 () -> com.customdimensions.server.level.RuntimeRegistry.byValue(server)));
+        lines.add(check("MaterialRuleContextAccessor", "the overworld's material rule dresses the fast renderer's run tops outside a chunk",
+                () -> materialContext(server)));
         return lines;
     }
 
@@ -115,6 +117,39 @@ final class MixinSelfTest {
         BlockState at = picker.computeFluid(0, y, 0).at(y);
         return "rule " + picker.getClass().getSimpleName() + " (" + at.getBlock().getName().getString() + " at y " + y
                 + "); a rule set through the accessor read back, the original once restored";
+    }
+
+    private static String materialContext(MinecraftServer server) {
+        var level = server.overworld();
+        if (!(level.getChunkSource().getGenerator() instanceof NoiseBasedChunkGenerator noise)) {
+            throw new AssertionError("the overworld's generator is " + level.getChunkSource().getGenerator().getClass().getName());
+        }
+        var settings = noise.generatorSettings().value();
+        var clamped = settings.noiseSettings().clampToHeightAccessor(level);
+        Aquifer.FluidPicker picker = ((NoiseBasedChunkGeneratorAccessor) (Object) noise).customdimensions$globalFluidPicker().get();
+        java.util.Map<String, Integer> tops = new java.util.TreeMap<>();
+        try (var tiles = new com.customdimensions.server.render.fast.TileSampler(level.getChunkSource().randomState(), settings, noise,
+                level, picker, clamped.minY(), clamped.minY() + clamped.height() - 1)) {
+            var materials = tiles.materials();
+            int columns = 0;
+            var tile = tiles.scan(0, 0, 4, 16, 16);
+            for (int c = 0; c < tile.length; c++) {
+                var runs = tile[c];
+                if (runs.count() == 0) continue;
+                columns++;
+                int x = c % 16 * 4;
+                int z = c / 16 * 4;
+                materials.column(x, z, 0, 0);
+                BlockState top = com.customdimensions.server.render.fast.RunDress.of(runs, x, z, tiles.lo(), tiles.hi(), materials,
+                        tiles.fluids(), tiles.defaultBlock(), false).top(0);
+                tops.merge(top.getBlock().getName().getString(), 1, Integer::sum);
+            }
+            if (columns == 0) throw new AssertionError("no column of the 16x16 tile at 0, 0 has a run");
+            if (tops.size() == 1 && tops.containsKey(settings.defaultBlock().getBlock().getName().getString())) {
+                throw new AssertionError("every run top is the default block " + tops);
+            }
+            return columns + " columns, tops " + tops;
+        }
     }
 
     private static String structureControl() {

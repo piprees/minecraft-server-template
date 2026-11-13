@@ -64,6 +64,7 @@ public final class CustomDimCommands {
         AuditCommand.attach(root);
         CatalogueCommand.attach(root);
         RenderCommand.attach(root);
+        FastRenderCommand.attach(root);
         RollCommand.attach(root);
         SurveyCommand.attach(root);
         E2eStateCommand.attach(root);

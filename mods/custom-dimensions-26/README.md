@@ -555,6 +555,42 @@ to `renders/<dimension>/accuracy.tsv`. It also checks that the sampler's noise
 columns equal the live level generator's, renders the overworld at radius
 1024, step 8 while counting the server's ticks, and checks the refusals.
 
+### The fast renderer
+
+`/customdim fastrender <dimension> [stride] [threads]` (`render/fast/`) covers the
+dimension's world border (its generation border, or 1024 blocks, when it has
+none). The stride defaults to the one that keeps the image near 2048 pixels a
+side (4 for a 4096-block border, 8 for 8192) and runs 1 to 16 with the image
+at most 4096 pixels; threads default to the render's. It shares the render's
+one-job slot and writes `renders/<dimension>/fast-<seed>-r<radius>*`.
+
+Each worker builds a `TileSampler` from the random state, noise settings,
+biome source and global fluid picker the level generates with, and samples
+tiles of 16 by 16 columns. `RunScanner` scouts the full final density on rows
+one interpolation cell apart (8 blocks when it is not interpolated), on the
+columns themselves when they sit on the cell lattice and on the lattice round
+them otherwise, then samples block by block only the cells whose rows differ
+in sign. A column is a list of solid runs, topmost first, at most 24
+(`ColumnRuns`); its surface is read from the runs as the `Sampler` reads a
+noise column. A solid or open layer thinner than a cell that falls between two
+rows is missed. `RunDress` puts the level's compiled material rule at each
+run's top and at a roof's underside, and the fluid picker's fluid at the lowest
+open block over each run; an aquifer's local water tables need a noise chunk
+and are not sampled. Which layers are drawn follows from the runs, never from
+the dimension's name. A generator that is not noise based is read through its
+own noise columns.
+
+| File in `renders/<dimension>/` | What it holds |
+| --- | --- |
+| `fast-<seed>-r<radius>-biome.png`, `-height.png`, `-zones.png` | The render's layers, from the runs' surface |
+| `…-hillshade.png` | The surface in grey, lit from the north-west |
+| `…-map.png` | The map colour of what is seen from above: the topmost run's top block, or the fluid over it, darker with depth |
+| `…-roofoff.png`, `…-cut.png` | When 2 % of columns are roofed: the floor under the first ceiling, and a horizontal cut at the height open in the most roofed columns of a pre-scan every 64 blocks (the cut face dark grey, the run below darker with depth) |
+| `…-tier1.png` to `…-tier3.png` | Each drawn when 2 % of columns have that many runs below the topmost: the second, third and fourth run from the top |
+| `…-structures.png` | The map (the floor, when roofed) at half brightness with each start's bounding box outlined: starts from `Sampler.starts`, with the dimension's structure control, at most 64 of each structure |
+| `…-runs.bin.gz` | Every column's runs with their top, underside and fluid blocks; the format is in the sidecar's `fast.runs.format`, the blocks in `fast.palette` |
+| `fast-<seed>-r<radius>.json` | The render's sidecar (`kind` `fastrender`) with `fast`: stride, threads, columns per second, scout points and crossings per column, run counts, the roofed share, the cut and its rule, the tiers drawn, the footprints, and `comparison`: on a grid every 64 blocks, the share of heights within one block of `Sampler.sample`, exact heights, equal biomes and fluids, and the sampler's own columns per second on the same pool (`speedup` is the ratio) |
+
 ## Rolling
 
 `/customdim roll <dimension> [count]` picks the seed for everything zones do

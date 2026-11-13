@@ -15,13 +15,18 @@ public record RenderGrid(int centreX, int centreZ, int radius, int step) {
     public static final int MIN_RADIUS = 16;
     /** The largest radius; at {@link #MAX_SIDE} pixels its smallest step is 8 blocks. */
     public static final int MAX_RADIUS = 4096;
+    /** The largest image side of a {@link #wide} grid, in pixels. */
+    public static final int WIDE_MAX_SIDE = 4096;
+    /** The largest radius of a {@link #wide} grid. */
+    public static final int WIDE_MAX_RADIUS = 16384;
 
     public RenderGrid {
-        if (radius < MIN_RADIUS || radius > MAX_RADIUS) {
-            throw new IllegalArgumentException("radius " + radius + " is outside " + MIN_RADIUS + " to " + MAX_RADIUS);
+        if (radius < MIN_RADIUS || radius > WIDE_MAX_RADIUS) {
+            throw new IllegalArgumentException("radius " + radius + " is outside " + MIN_RADIUS + " to " + WIDE_MAX_RADIUS);
         }
-        if (step < minimumStep(radius)) {
-            throw new IllegalArgumentException("step " + step + " is below " + minimumStep(radius) + " for radius " + radius);
+        if (step < 1 || Math.ceilDiv(2 * radius, step) > WIDE_MAX_SIDE) {
+            throw new IllegalArgumentException("step " + step + " is below " + Math.max(1, Math.ceilDiv(2 * radius, WIDE_MAX_SIDE))
+                    + " for radius " + radius);
         }
     }
 
@@ -30,9 +35,25 @@ public record RenderGrid(int centreX, int centreZ, int radius, int step) {
         return Math.max(1, Math.ceilDiv(2 * radius, MAX_SIDE));
     }
 
-    /** A grid round {@code (centreX, centreZ)}; a null step takes {@link #minimumStep}. */
+    /**
+     * A grid round {@code (centreX, centreZ)} of radius {@link #MIN_RADIUS} to
+     * {@link #MAX_RADIUS} and at most {@link #MAX_SIDE} pixels a side; a null
+     * step takes {@link #minimumStep}.
+     */
     public static RenderGrid of(int centreX, int centreZ, int radius, Integer step) {
-        return new RenderGrid(centreX, centreZ, radius, step == null ? minimumStep(radius) : step);
+        if (radius < MIN_RADIUS || radius > MAX_RADIUS) {
+            throw new IllegalArgumentException("radius " + radius + " is outside " + MIN_RADIUS + " to " + MAX_RADIUS);
+        }
+        int s = step == null ? minimumStep(radius) : step;
+        if (s < minimumStep(radius)) {
+            throw new IllegalArgumentException("step " + s + " is below " + minimumStep(radius) + " for radius " + radius);
+        }
+        return new RenderGrid(centreX, centreZ, radius, s);
+    }
+
+    /** A grid up to {@link #WIDE_MAX_RADIUS} and {@link #WIDE_MAX_SIDE} pixels a side, for the fast renderer. */
+    public static RenderGrid wide(int centreX, int centreZ, int radius, int step) {
+        return new RenderGrid(centreX, centreZ, radius, step);
     }
 
     public int side() {

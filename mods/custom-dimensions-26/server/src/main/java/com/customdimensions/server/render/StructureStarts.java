@@ -16,6 +16,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.structure.placement.ConcentricRingsStructurePlacement;
@@ -127,6 +128,15 @@ public final class StructureStarts {
                                              int cx, int cz, int radius, ExecutorService pool,
                                              java.util.function.ToIntFunction<String> capOf,
                                              java.util.function.ToIntFunction<String> radiusOf, Tally tally) {
+        return find(sampler, state, wanted, cx, cz, radius, pool, capOf, radiusOf, tally, null);
+    }
+
+    /** As above, handing each start kept and its bounding box to {@code footprints} when given. */
+    public static List<RollFacts.Start> find(Sampler sampler, ChunkGeneratorStructureState state, Predicate<String> wanted,
+                                             int cx, int cz, int radius, ExecutorService pool,
+                                             java.util.function.ToIntFunction<String> capOf,
+                                             java.util.function.ToIntFunction<String> radiusOf, Tally tally,
+                                             java.util.function.BiConsumer<RollFacts.Start, BoundingBox> footprints) {
         Predicate<StructureSet.StructureSelectionEntry> sought = e -> wanted.test(id(e.structure()));
         long seed = state.getLevelSeed();
         record Site(List<StructureSet.StructureSelectionEntry> entries, ChunkPos chunk, double distance) {}
@@ -158,25 +168,32 @@ public final class StructureStarts {
                 }
             }
             java.util.concurrent.atomic.AtomicReferenceArray<Holder<Structure>> chosen = new java.util.concurrent.atomic.AtomicReferenceArray<>(batch.size());
-            run(batch.size(), pool, i -> chosen.set(i, choose(batch.get(i).entries(), seed, batch.get(i).chunk(),
-                    structure -> confirm(sampler, structure, batch.get(i).chunk(), tally))));
+            java.util.concurrent.atomic.AtomicReferenceArray<BoundingBox> boxes = new java.util.concurrent.atomic.AtomicReferenceArray<>(batch.size());
+            run(batch.size(), pool, i -> chosen.set(i, choose(batch.get(i).entries(), seed, batch.get(i).chunk(), structure -> {
+                BoundingBox box = confirm(sampler, structure, batch.get(i).chunk(), tally);
+                boxes.set(i, box);
+                return box != null;
+            })));
             for (int i = 0; i < batch.size(); i++) {
                 Site site = batch.get(i);
                 Holder<Structure> picked = chosen.get(i);
                 if (picked == null || !wanted.test(id(picked)) || site.distance() > radiusOf.applyAsInt(id(picked))) continue;
                 int n = kept.merge(id(picked), 1, Integer::sum);
-                if (n <= capOf.applyAsInt(id(picked))) out.add(new RollFacts.Start(id(picked), site.chunk().getMiddleBlockX(), site.chunk().getMiddleBlockZ(), site.distance()));
+                if (n > capOf.applyAsInt(id(picked))) continue;
+                RollFacts.Start start = new RollFacts.Start(id(picked), site.chunk().getMiddleBlockX(), site.chunk().getMiddleBlockZ(), site.distance());
+                out.add(start);
+                if (footprints != null) footprints.accept(start, boxes.get(i));
             }
         }
         return out;
     }
 
-    private static boolean confirm(Sampler sampler, Holder<Structure> structure, ChunkPos chunk, Tally tally) {
-        if (tally == null) return sampler.starts(structure, chunk);
+    private static BoundingBox confirm(Sampler sampler, Holder<Structure> structure, ChunkPos chunk, Tally tally) {
+        if (tally == null) return sampler.footprint(structure, chunk);
         long t0 = System.nanoTime();
-        boolean starts = sampler.starts(structure, chunk);
+        BoundingBox box = sampler.footprint(structure, chunk);
         tally.add(id(structure), System.nanoTime() - t0);
-        return starts;
+        return box;
     }
 
     private static void run(int n, ExecutorService pool, java.util.function.IntConsumer task) {
