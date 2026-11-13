@@ -55,15 +55,22 @@ import net.minecraft.world.level.validation.DirectoryValidator;
  * {@code -Dcustomdimensions.fastbench.out}, and exits. No server, level,
  * world or network. The structure footprints need a server's templates and
  * are left out; the worldgen runtime (lava levels, basins, dry zones) is not
- * applied, so both sides see the noise settings' own fluid picker.
+ * applied, so both sides see the noise settings' own fluid picker. A case
+ * whose step is {@code wave} runs {@link FastWave} instead: a warm-up of pass
+ * 1, pass 1 without slices, the wave with its slices, and on a roofed world
+ * pass 1 scanned from the floor ({@link ScanWindow#FLOOR}) against whole
+ * columns; {@value #FINAL_SIDE_PROPERTY} sets the last pass's side.
  */
 public final class FastBench {
     public static final String PROPERTY = "customdimensions.fastbench";
     public static final String OUT_PROPERTY = "customdimensions.fastbench.out";
     /** Times each case is rendered; the last is reported, the first warms the JIT. */
     public static final String REPEAT_PROPERTY = "customdimensions.fastbench.repeat";
+    public static final String FINAL_SIDE_PROPERTY = "customdimensions.fastbench.finalside";
+    /** The step a case gives to ask for a wave. */
+    public static final String WAVE = "wave";
 
-    /** One dimension to render. */
+    /** One dimension to render; a step of 0 is a wave. */
     public record Case(String slug, long seed, int radius, int step, int threads) {}
 
     private FastBench() {}
@@ -110,7 +117,8 @@ public final class FastBench {
         for (String one : spec.split(",")) {
             String[] p = one.trim().split(":");
             if (p.length != 5) throw new IllegalArgumentException("a case is slug:seed:radius:step:threads, not " + one);
-            out.add(new Case(p[0], Long.parseLong(p[1]), Integer.parseInt(p[2]), Integer.parseInt(p[3]), Integer.parseInt(p[4])));
+            int step = WAVE.equals(p[3]) ? 0 : Integer.parseInt(p[3]);
+            out.add(new Case(p[0], Long.parseLong(p[1]), Integer.parseInt(p[2]), step, Integer.parseInt(p[4])));
         }
         return out;
     }
@@ -133,6 +141,13 @@ public final class FastBench {
                 var type = stem.type().value();
                 ExecutorService pool = Executors.newFixedThreadPool(c.threads());
                 try {
+                    if (c.step() == 0) {
+                        Sampler sampler = Sampler.of(c.slug(), stem.generator(), type.minY(), type.height(), c.seed(), "argument", access);
+                        List<String> lines = wave(c, sampler, pool, out);
+                        lines.forEach(l -> CustomDimensions.LOG.info("fast bench: {}", l));
+                        summary.addAll(lines);
+                        continue;
+                    }
                     for (int i = 1; i <= repeat; i++) {
                         Sampler sampler = Sampler.of(c.slug(), stem.generator(), type.minY(), type.height(), c.seed(), "argument", access);
                         RenderGrid grid = RenderGrid.wide(0, 0, c.radius(), c.step());
@@ -165,6 +180,126 @@ public final class FastBench {
             }
         }
         Files.write(out.resolve("summary.txt"), summary);
+    }
+
+    /** The wave bench of one case: lines for the summary. */
+    static List<String> wave(Case c, Sampler sampler, ExecutorService pool, Path out) throws java.io.IOException {
+        List<String> lines = new ArrayList<>();
+        var plan = com.customdimensions.core.render.WavePlan.of(c.radius(),
+                Integer.getInteger(FINAL_SIDE_PROPERTY, com.customdimensions.core.render.WavePlan.FINAL_SIDE));
+        Path scratch = out.resolve(c.slug()).resolve("scratch");
+        Path dir = out.resolve(c.slug()).resolve("wave");
+        var first = plan.passes().getFirst();
+        RenderGrid g1 = RenderGrid.wide(0, 0, plan.radius(), first.stride());
+        long t = System.nanoTime();
+        FastRender.render(sampler, g1, pool, c.threads(), scratch, null, p -> {}, t,
+                new FastRender.Options("warm", false, false, false, List.of(), null, false));
+        lines.add(String.format(Locale.ROOT, "%s wave warm-up pass 1 (s%d, %d px): %d ms", c.slug(), first.stride(), first.side(),
+                (System.nanoTime() - t) / 1_000_000));
+        FastRender.Prescan pre1 = FastWave.prescan(sampler, g1, pool, FastWave.prescanSpacing(first));
+        t = System.nanoTime();
+        FastRender.Rendered bare = FastRender.render(sampler, g1, pool, c.threads(), scratch, null, p -> {}, t,
+                new FastRender.Options("bare", false, false, false, List.of(), pre1, false));
+        for (int batch : new int[] {8, 16, 32}) {
+            System.setProperty(FastRender.BATCH_PROPERTY, String.valueOf(batch));
+            try {
+                long tb = System.nanoTime();
+                FastRender.Rendered b = FastRender.render(sampler, g1, pool, c.threads(), scratch, null, p -> {}, tb,
+                        new FastRender.Options("batch" + batch, false, false, false, List.of(), pre1, false));
+                lines.add(String.format(Locale.ROOT, "%s pass 1 without slices in batches of %d: terrain %d ms against %d ms in the "
+                                + "default %d; mean window %.1f blocks", c.slug(), batch, b.result().sampleMillis(), bare.result().sampleMillis(),
+                        FastRender.batch(first.stride()), floorMeanRows(b)));
+            } finally {
+                System.clearProperty(FastRender.BATCH_PROPERTY);
+            }
+        }
+        lines.add(String.format(Locale.ROOT, "%s pass 1 without slices: terrain %d ms, %d ms in all, %d col/s, window %s, mean %.1f "
+                        + "blocks; pre-scan every %d blocks", c.slug(), bare.result().sampleMillis(), (System.nanoTime() - t) / 1_000_000,
+                bare.result().columnsPerSecond(), bare.windowMode(), floorMeanRows(bare), FastWave.prescanSpacing(first)));
+        FastWave.Result w = FastWave.run(sampler, plan, pool, c.threads(), dir, null, p -> {}, null, FastWave.floorFirstDefault());
+        StringBuilder slices = new StringBuilder();
+        for (var s : w.slices()) slices.append(s.name()).append('@').append(s.y()).append(' ');
+        lines.add(c.slug() + " wave slices: " + slices.toString().trim() + " -> " + w.json());
+        for (FastWave.Pass p : w.passes()) {
+            var side = JsonParser.parseString(Files.readString(p.sidecar())).getAsJsonObject();
+            var timings = side.getAsJsonObject("timings");
+            lines.add(String.format(Locale.ROOT, "%s wave pass %d s%d %d px: %d ms (terrain %d ms, slice rows %s ms, slice columns %s ms "
+                            + "thread, images %s ms), %d ms from the start, %d col/s; sheet %s", c.slug(), p.pass().index(),
+                    p.pass().stride(), p.pass().side(), p.millis(), p.sampleMillis(), timings.get("slicesRowThreadMillis").getAsString(),
+                    timings.get("slicesColumnThreadMillis").getAsString(), timings.get("images").getAsString(), p.cumulativeMillis(),
+                    p.columnsPerSecond(), p.sheet()));
+        }
+        lines.add(String.format(Locale.ROOT, "%s wave total %d ms over %d columns", c.slug(), w.totalMillis(), plan.columns()));
+        if (bare.prescan().roofedWorld()) {
+            FastRender.Prescan pre = bare.prescan();
+            int start = pre.window().start();
+            for (int at : new int[] {start, start - 16, start - 32, start + 16}) {
+                FastRender.Prescan moved = new FastRender.Prescan(pre.cutY(), pre.rule(), pre.columns(), pre.roofed(), pre.floating(),
+                        pre.window().withStart(at), pre.floors(), pre.profile(), pre.roofThickness(), 1);
+                t = System.nanoTime();
+                FastRender.Rendered floor = FastRender.render(sampler, g1, pool, c.threads(), scratch, null, p -> {}, t,
+                        new FastRender.Options("floor", false, false, false, List.of(), moved, true));
+                lines.add(String.format(Locale.ROOT, "%s pass 1 floor first from %d%s: terrain %d ms against %d ms whole columns (%.2fx); "
+                                + "mean window %.1f blocks, %d of %d tiles widened; %s", c.slug(), at,
+                        at == start ? " (the default: roof thickness " + pre.roofThickness() + " at q" + FastRender.ROOF_QUANTILE
+                                + ", margin " + FastRender.ROOF_MARGIN + ", floors' q" + FastRender.FLOOR_QUANTILE + "; pre-scan agreement "
+                                + pre.floorAgreement() + ")" : "", floor.result().sampleMillis(),
+                        bare.result().sampleMillis(), (double) bare.result().sampleMillis() / Math.max(1, floor.result().sampleMillis()),
+                        floorMeanRows(floor), floorRescanned(floor)[0], floorRescanned(floor)[1], agreement(bare, floor)));
+            }
+        } else {
+            lines.add(c.slug() + " pass 1 floor first: not a roofed world (pre-scan roofed " + bare.prescan().roofed() + " of "
+                    + bare.prescan().columns() + "), window " + bare.windowMode());
+        }
+        return lines;
+    }
+
+    private static double floorMeanRows(FastRender.Rendered r) throws java.io.IOException {
+        return window(r).get("meanBlocks").getAsDouble();
+    }
+
+    private static long[] floorRescanned(FastRender.Rendered r) throws java.io.IOException {
+        var w = window(r);
+        return new long[] {w.get("tilesScannedAgain").getAsLong(), w.get("tiles").getAsLong()};
+    }
+
+    private static com.google.gson.JsonObject window(FastRender.Rendered r) throws java.io.IOException {
+        return JsonParser.parseString(Files.readString(r.result().sidecar())).getAsJsonObject().getAsJsonObject("fast")
+                .getAsJsonObject("runs").getAsJsonObject("window");
+    }
+
+    /** Floor heights of a floor-first render against whole columns, pixel by pixel, with where they part. */
+    static String agreement(FastRender.Rendered whole, FastRender.Rendered floor) {
+        var a = whole.samples();
+        var b = floor.samples();
+        int side = a.grid().side();
+        long n = 0;
+        long within = 0;
+        long exact = 0;
+        long lower = 0;
+        long higher = 0;
+        long lost = 0;
+        long biomes = 0;
+        List<String> examples = new ArrayList<>();
+        for (int py = 0; py < side; py++) {
+            for (int px = 0; px < side; px++) {
+                n++;
+                int ha = a.height(px, py);
+                int hb = b.height(px, py);
+                int d = hb - ha;
+                if (Math.abs(d) <= 1) within++;
+                if (d == 0) exact++;
+                if (a.biome(px, py).equals(b.biome(px, py))) biomes++;
+                if (Math.abs(d) <= 1) continue;
+                if (b.empty(px, py) && !a.empty(px, py)) lost++;
+                else if (d < 0) lower++;
+                else higher++;
+                if (examples.size() < 6) examples.add(a.grid().x(px) + "," + a.grid().z(py) + " " + hb + " vs " + ha);
+            }
+        }
+        return String.format(Locale.ROOT, "floor heights within 1 %.4f, exact %.4f, biomes %.4f; off by more: %d lower, %d higher, %d "
+                + "no floor found (of %d); e.g. %s", within / (double) n, exact / (double) n, biomes / (double) n, lower, higher, lost, n,
+                examples);
     }
 
     /** Columns per side of the dense reference grid. */

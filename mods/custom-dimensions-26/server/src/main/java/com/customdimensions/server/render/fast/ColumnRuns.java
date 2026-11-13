@@ -105,4 +105,21 @@ public final class ColumnRuns {
         }
         return false;
     }
+
+    /** The runs from run {@code first} down: the column with its top {@code first} runs taken away. */
+    public ColumnRuns from(int first) {
+        if (first <= 0) return this;
+        if (first >= count()) return EMPTY;
+        return new ColumnRuns(java.util.Arrays.copyOfRange(bottom, first, count()), java.util.Arrays.copyOfRange(top, first, count()),
+                truncated);
+    }
+
+    /** The run holding block {@code y}, or -1 when it is open. */
+    public int runAt(int y) {
+        for (int i = 0; i < count(); i++) {
+            if (y > top[i]) return -1;
+            if (y >= bottom[i]) return i;
+        }
+        return -1;
+    }
 }

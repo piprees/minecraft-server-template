@@ -28,6 +28,7 @@ public final class LatticeScanner {
     private boolean[] solid;
     private long columns;
     private long corners;
+    private long rowCorners;
 
     /**
      * @param density the final density with its {@code interpolated} terms rewritten ({@link LatticeInterpolation#rewrite})
@@ -87,6 +88,28 @@ public final class LatticeScanner {
         for (int[] c : cells) corners += LatticeInterpolation.corners(v, c[0], c[1]);
         columns += (long) nx * nz;
         return out;
+    }
+
+    /**
+     * The final density at block {@code y} of the {@code nx × nz} columns at
+     * {@code (x0 + i * step, z0 + j * step)} into {@code out[i + nx * j]}: one
+     * row, from the corners of the cell rows round it. A row that is not the
+     * whole column may differ from it in the last float bit (T265).
+     */
+    public void densityRow(int x0, int z0, int step, int nx, int nz, int y, float[] out) {
+        if (y < lo || y > hi) throw new IllegalArgumentException("row " + y + " outside " + lo + ".." + hi);
+        DensityVolume v = new DensityVolume(nx, 1, nz, x0, y, z0, step, 1, step);
+        try (ScopedDensityBuffer buffer = density.sampleVolume(v)) {
+            for (int j = 0; j < nz; j++) {
+                for (int i = 0; i < nx; i++) out[i + nx * j] = buffer.get(v.indexUnchecked(i, 0, j));
+            }
+        }
+        for (int[] c : cells) rowCorners += LatticeInterpolation.corners(v, c[0], c[1]);
+    }
+
+    /** Corner evaluations {@link #densityRow} made, over every term, so far. */
+    public long rowCorners() {
+        return rowCorners;
     }
 
     /** Corner evaluations of the interpolated terms' inputs, over every term, so far. */
