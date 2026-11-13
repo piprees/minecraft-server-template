@@ -62,6 +62,10 @@
       },
       "at": {
         "highlands": [0, 0]
+      },
+      "warp": {
+        "blocks": 400,
+        "wavelength": 2700
       }
     }
   },

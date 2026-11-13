@@ -15,7 +15,11 @@
       "centre": [0, 0],
       "radius": 360,
       "falloff": 140,
-      "strength": 0.9
+      "strength": 0.9,
+      "warp": {
+        "blocks": 72,
+        "wavelength": 512
+      }
     },
     "params": {
       "hollowDepth": 40,
