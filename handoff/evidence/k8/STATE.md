@@ -1,4 +1,6 @@
-# K8 state: pinned place sites (small heart) — unfinished
+# K8 state: pinned place sites (small heart) — merged
+
+Merged into claude/minecraft-dependency-automation-n1w79q; the heart constants past 1e6 are written by `Df.k` (TROUBLESHOOTING T261); the_sunken_temple's heart is applied (7e4ef5c5). The worktree is removed. The rest of this file is the state as K8 left it.
 
 Worktree: /home/user/minecraft-server-template/.claude/worktrees/agent-a71605a46a7f6758a, branch worktree-agent-a71605a46a7f6758a (forked from claude/minecraft-dependency-automation-n1w79q at 8719275e; that branch has since moved, to b66da114 or later: rebase before the final build). Brief: /tmp/claude-0/-home-user/5eb91d81-f3fb-5a91-9f20-35496482f7d0/scratchpad/k8-brief.md (common rules beside it). Log: progress.log beside this file.
 
