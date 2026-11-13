@@ -39,6 +39,7 @@ public final class CustomDimensions implements ModInitializer {
         ExitHooks.register();
         DimensionDifficulty.register();
         SelfTest.register();
+        com.customdimensions.server.lod.DistantHorizonsLods.register();
         if (com.customdimensions.server.render.fast.FastBench.requested()) com.customdimensions.server.render.fast.FastBench.startAfterMain();
     }
 }

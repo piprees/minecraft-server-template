@@ -44,6 +44,52 @@ public final class ColumnRuns {
         return new ColumnRuns(java.util.Arrays.copyOf(b, count), java.util.Arrays.copyOf(t, count), truncated);
     }
 
+    /**
+     * These runs with the lowest carried down to {@code floor} when it was cut
+     * off at a window's floor {@code from}: ground known to continue below the
+     * window. Itself when no run reaches {@code from}.
+     */
+    public ColumnRuns withFloor(int from, int floor) {
+        int last = count() - 1;
+        if (last < 0 || bottom[last] > from || bottom[last] <= floor) return this;
+        int[] b = bottom.clone();
+        b[last] = floor;
+        return new ColumnRuns(b, top, truncated);
+    }
+
+    /** These runs as far up as block {@code to}: runs above it dropped, the one through it cut off there. */
+    public ColumnRuns clip(int to) {
+        if (count() == 0 || top[0] <= to) return this;
+        int k = 0;
+        while (k < count() && bottom[k] > to) k++;
+        int[] t = java.util.Arrays.copyOfRange(top, k, count());
+        int[] b = java.util.Arrays.copyOfRange(bottom, k, count());
+        if (t.length > 0) t[0] = Math.min(t[0], to);
+        return new ColumnRuns(b, t, truncated);
+    }
+
+    /** These runs within blocks {@code from} to {@code to}: cut off at both. */
+    public ColumnRuns within(int from, int to) {
+        ColumnRuns c = clip(to);
+        int n = 0;
+        while (n < c.count() && c.top[n] >= from) n++;
+        int[] t = java.util.Arrays.copyOf(c.top, n);
+        int[] b = java.util.Arrays.copyOf(c.bottom, n);
+        if (n > 0) b[n - 1] = Math.max(b[n - 1], from);
+        return new ColumnRuns(b, t, c.truncated);
+    }
+
+    /** These runs without the topmost: a roof left out. */
+    public ColumnRuns dropTop() {
+        if (count() == 0) return this;
+        return new ColumnRuns(java.util.Arrays.copyOfRange(bottom, 1, count()), java.util.Arrays.copyOfRange(top, 1, count()), truncated);
+    }
+
+    /** Whether both hold the same runs. */
+    public boolean sameAs(ColumnRuns o) {
+        return java.util.Arrays.equals(top, o.top) && java.util.Arrays.equals(bottom, o.bottom);
+    }
+
     public int count() {
         return top.length;
     }

@@ -59,7 +59,11 @@ import net.minecraft.world.level.validation.DirectoryValidator;
  * whose step is {@code wave} runs {@link FastWave} instead: a warm-up of pass
  * 1, pass 1 without slices, the wave with its slices, and on a roofed world
  * pass 1 scanned from the floor ({@link ScanWindow#FLOOR}) against whole
- * columns; {@value #FINAL_SIDE_PROPERTY} sets the last pass's side.
+ * columns; {@value #FINAL_SIDE_PROPERTY} sets the last pass's side. With
+ * applied, so both sides see the noise settings' own fluid picker. With
+ * {@code -Dcustomdimensions.fastbench.lod=<detail>[,...]} it measures each
+ * case's LOD source instead ({@link LodBench}); the case's radius is its reach
+ * and its step and threads are unused.
  */
 public final class FastBench {
     public static final String PROPERTY = "customdimensions.fastbench";
@@ -139,6 +143,14 @@ public final class FastBench {
             for (Case c : cases) {
                 LevelStem stem = stem(access, resources, c.slug());
                 var type = stem.type().value();
+                String lod = System.getProperty(LodBench.PROPERTY, "");
+                if (!lod.isEmpty()) {
+                    Sampler sampler = Sampler.of(c.slug(), stem.generator(), type.minY(), type.height(), c.seed(), "argument", access);
+                    List<String> lines = LodBench.run(c.slug(), sampler, c.radius(), type.hasSkyLight(), lod);
+                    lines.forEach(l -> CustomDimensions.LOG.info("fast bench: {}", l));
+                    summary.addAll(lines);
+                    continue;
+                }
                 ExecutorService pool = Executors.newFixedThreadPool(c.threads());
                 try {
                     if (c.step() == 0) {

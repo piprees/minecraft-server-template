@@ -68,7 +68,8 @@ import net.minecraft.world.timeline.Timeline;
  * fails the build. The pack-install and pack-equivalence lines come first,
  * then the compiled-pack checks; the runtime-level checks ({@link LevelSelfTest}),
  * the generator checks ({@link GeneratorSelfTest}), the materials, liquids and ores scans
- * ({@link MaterialsSelfTest}), the biome library checks ({@link BiomeLibrarySelfTest}), the render checks ({@link RenderSelfTest}), the portal and exit checks,
+ * ({@link MaterialsSelfTest}), the biome library checks ({@link BiomeLibrarySelfTest}), the render checks ({@link RenderSelfTest}),
+ * the LOD checks when Distant Horizons is installed ({@code lod.DhLodSelfTest}), the portal and exit checks,
  * {@link DifficultySelfTest} and {@link CommandSelfTest} run across ticks, so
  * the report is written when they finish. The compiled-pack checks read the
  * definitions from {@code -Dcustomdimensions.definitions} and vanilla's files
@@ -134,8 +135,9 @@ final class SelfTest {
         boolean surveyOnly = "survey".equals(only);
         boolean seedsOnly = "seeds".equals(only);
         boolean gameRulesOnly = "gamerules".equals(only);
+        boolean lodOnly = "lod".equals(only);
         boolean exitsOnly = "exits".equals(only) || seedsOnly || gameRulesOnly || mixinsOnly || surveyOnly || commandsOnly || materialsOnly || biomesOnly || renderOnly || firewallOnly || terrainOnly || zonesOnly || structuresOnly || rollOnly
-                || generatorsOnly || difficultyOnly;
+                || generatorsOnly || difficultyOnly || lodOnly;
         CompletableFuture<List<String>> levels;
         try {
             levels = exitsOnly ? CompletableFuture.completedFuture(List.of()) : LevelSelfTest.run(server);
@@ -208,6 +210,16 @@ final class SelfTest {
             }
         }).handle((more, error) -> {
             lines.addAll(error == null ? more : List.of("FAIL render: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
+                return exitsOnly && !lodOnly ? CompletableFuture.completedFuture(List.<String>of())
+                        : com.customdimensions.server.lod.DistantHorizonsLods.selfTest(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL lod: " + t));
+            }
+        }).handle((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL lod: " + error));
             return null;
         }).thenCompose(v -> {
             try {

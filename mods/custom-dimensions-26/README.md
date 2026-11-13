@@ -31,7 +31,7 @@ With `-PselfTest`, `runServer` reads a copy of `definitions/` with the fixture
 dimensions in `server/src/selftest/definitions/` added (a void death, a kept
 inventory, every win trigger, dry and flooded aquifers, a palette, an ore set, structure control and five structure densities), and each library terrain's `*_default.json` from
 `server/src/selftest/gallery/`. The fixtures are never in the release jar.
-`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections; `-PselfTestOnly=biomes` the compiled-pack and biome library sections; `-PselfTestOnly=render` the compiled-pack and render sections; `-PselfTestOnly=firewall` the compiled-pack and firewall sections; `-PselfTestOnly=terrain` the compiled-pack and terrain sections; `-PselfTestOnly=zones` the compiled-pack and zone sections; `-PselfTestOnly=structures` the compiled-pack and structure sections; `-PselfTestOnly=roll` the compiled-pack and roll sections; `-PselfTestOnly=rollperf` those and the 100-seed roll timing, which no other run includes; `generators`, `difficulty`, `survey`, `seeds` and `gamerules` likewise run the compiled-pack section and that one. `-PselfTestOnly=mixins` runs the compiled-pack and firewall sections and the mixin lines: one per entry in `customdimensions.mixins.json` whose effect shows without generating terrain, each naming its mixin. Every run carries them and the seed lines (`LevelSeedSelfTest`), which check the six seed, game-rule and weather mixins are merged, and the runtime-registry line (`RuntimeRegistry`); the structures and zones sections name the other four (`StructureBiomeBypassMixin`, `BeardifierAdaptationMixin`, `NoiseBasedAquiferMixin`, `DryFluidFeatureMixin`).
+`-PselfTestOnly=exits` runs only the compiled-pack and exit sections; `-PselfTestOnly=commands` the compiled-pack and command sections; `-PselfTestOnly=materials` the compiled-pack and materials sections; `-PselfTestOnly=biomes` the compiled-pack and biome library sections; `-PselfTestOnly=render` the compiled-pack and render sections; `-PselfTestOnly=firewall` the compiled-pack and firewall sections; `-PselfTestOnly=terrain` the compiled-pack and terrain sections; `-PselfTestOnly=zones` the compiled-pack and zone sections; `-PselfTestOnly=structures` the compiled-pack and structure sections; `-PselfTestOnly=roll` the compiled-pack and roll sections; `-PselfTestOnly=rollperf` those and the 100-seed roll timing, which no other run includes; `generators`, `difficulty`, `survey`, `seeds` and `gamerules` likewise run the compiled-pack section and that one. `-PselfTestOnly=lod` runs the compiled-pack section and the LOD section, which needs Distant Horizons on the server (`-Pdh`; [Distant Horizons LODs](#distant-horizons-lods)); a run without DH writes no LOD lines. `-PselfTestOnly=mixins` runs the compiled-pack and firewall sections and the mixin lines: one per entry in `customdimensions.mixins.json` whose effect shows without generating terrain, each naming its mixin. Every run carries them and the seed lines (`LevelSeedSelfTest`), which check the six seed, game-rule and weather mixins are merged, and the runtime-registry line (`RuntimeRegistry`); the structures and zones sections name the other four (`StructureBiomeBypassMixin`, `BeardifierAdaptationMixin`, `NoiseBasedAquiferMixin`, `DryFluidFeatureMixin`).
 
 `runServer` also loads Open Parties and Claims and its Forge Config API Port
 dependency from the Modrinth maven (`localRuntime`, versions in
@@ -691,6 +691,85 @@ keep their floor within one block (`fast.cut.floorAgreement`);
 | `pass<N>-s<stride>-sheet.png` | The contact sheet: the map (the floor, roof off, for a roofed world), biome, hillshade, tiers, slices and structures at 384 pixels each, and a legend of slice colours and the 24 biomes with most pixels |
 | `pass<N>-s<stride>.json` | The pass's sidecar, as a fast render's, with `fast.slices` (rows sampled and read from runs, solid share and biome-differs share per height) and `fast.floorFirst` |
 | `wave.json` | Rewritten after each pass: radius and its rule, noise range, sea level, the pre-scan (spacing, roofed and floating shares, median surface, roof underside and thickness, floor window top and agreement, bands, solid columns and run middles per height), the slices and why, each pass's stride, side, times (`timings` splits terrain, slice rows and slice columns) and files, and the biome legend |
+
+### Distant Horizons LODs
+
+With Distant Horizons on the server, the mod answers DH's world generation
+from the fast renderer's core instead of generated chunks, so `/dh pregen` and
+DH's generation for players far away both take terrain from it (`lod/`). DH is
+a compile-only dependency: `DistantHorizonsLods` touches no DH class, and the
+mod runs the same without DH. When DH loads a server level (every base world
+and lazy dimension alike), `DhLodGenerators` binds a `DhLodGenerator` to it
+through DH's API (`IDhApiWorldGenerator`, return type `API_DATA_SOURCES`), and
+lets it go when DH unloads the level.
+
+DH asks for a data source of 64 × 64 columns at a detail level `d` (a column
+every `2^d` blocks, 0 to 12) on its own world generator threads. `LodSource`
+samples the 64 × 64 columns at that spacing, in tiles of 16, each thread with
+its own `TileSampler` built from the level's random state, noise settings,
+biome source and global fluid picker; it never samples every block and
+shrinks. `LodColumn` turns each column's runs (`ColumnRuns`, dressed by
+`RunDress`) into contiguous segments from the level's top to its floor,
+topmost first: the open space over each run (air, and the run's fluid up to
+its level), the run's top block from the material rule, its body in the
+default block, and its underside block. A segment carries the light of the
+block above it, as DH's chunk import records it: sky light 15 over the topmost
+run and in an open band at least 16 blocks tall under a run of an unroofed
+column (sky tiers, islands over a void), 0 in a shorter band (a cave), under a
+roof and in a level without sky light, less one per block of fluid; block
+light is the emission of the block above (lava's 15). Each run's biome is the
+noise biome at its top; its open space and fluid take it too. The segments go
+to DH as block-sized data points marked `LIGHT`, so DH takes them as
+finished and does not ask again; DH merges equal neighbours itself.
+
+Detail levels 0 and 1 (`LodSource.FINE_DETAIL`) keep every run of the whole
+noise column, roof included. Coarser levels take a shortcut chosen from a
+pre-scan of whole columns over the level's reach (every 64 blocks or more, at
+most 128 a side, on the first coarse request); the reach is the larger of the
+player and generation borders (`LevelMaths.lodReach`), 1,024 blocks without
+either. A level roofed in 2 % of the pre-scan's columns has its roof left out:
+it is searched down from the highest block open between the ceiling and the
+floor under it in the most columns when that block is open in 90 % of them
+(`ROOF_START_SHARE`), whole columns otherwise. A level with floating runs in
+2 % of its columns is searched from 16 blocks over its topmost tier band to
+16 under its lowest run; any other from 32 blocks under its lowest surface to
+16 over its highest, ground cut off at the window's floor carried down to the
+noise floor. A tile whose ground reaches its window's top, or that loses
+ground at its floor, is scanned again to the noise top or floor, so each
+column keeps the runs a whole column has in the window. The shortcut follows
+from the pre-scan's runs, never from the level's name. Measured headless
+(`-PfastBenchLod`, seed 20261022, 16,384 columns per level and detail 2 to 8):
+surface heights equal to whole columns' (the floor under the roof for a roofed
+level) in 100 % of columns on the overworld, the Nether, the End and
+`the_underdark` and 99.87 % or more on The Aviary, and every run inside the
+window kept. In the Nether no height is open in more than 55 % of floored
+columns, so it scans whole columns and drops the roof.
+
+Not drawn: structures, trees and other features, and carvers' caves, which
+come after the noise stage; an aquifer's local water tables (the global fluid
+picker's sea and lava levels are drawn). Where a player or Chunky has made
+chunks, DH builds those LODs from the chunks as they load.
+
+`./gradlew :server:runFastBench -PfastBench=<slug>:<seed>:<reach>:<step>:<threads>[,...] -PfastBenchLod=<detail>[,...]`
+measures each case's `LodSource` headless instead of rendering (`LodBench`):
+the pre-scan's shape and rule, each coarse level's shortcut against whole
+columns (heights within one block and exact, runs kept, runs per column), and
+one request per level answered end to end with every column checked as DH
+checks one (no gap, no empty segment, down to the floor). `runServer -Pdh`
+also has DH check every column the generator gives it
+(`-Dcustomdimensions.dh.validate=true`).
+
+The self-test's LOD section (`-Pdh -PselfTestOnly=lod`;
+`-PselfTestLod=<slug>,...`, default `overworld,the_nether,the_aviary`)
+checks in each dimension that the generator is bound, compares the shortcut at
+detail 2, 4 and 6 with whole columns (heights within one block in 95 %, runs
+kept in 90 %), runs `/dh pregen start <id> 0 0 32` and waits for it (15
+minutes at most), passing when the generator served full-detail requests and
+none failed, then reads DH's stored columns on a 6 × 6 grid within 440 blocks
+of 0,0 and generates the real chunks there: surface heights (trees left out)
+within one block in 90 % of columns, the block under the surface in 60 % and
+the biome in 90 %, every column written to `lod-check-<slug>.tsv` in the run
+directory.
 
 ## Rolling
 

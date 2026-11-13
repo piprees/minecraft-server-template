@@ -58,6 +58,24 @@ public final class LevelMaths {
     }
 
     /**
+     * How far a level's terrain is pre-generated at full detail: the larger of
+     * its player and generation borders, each falling back to
+     * {@code settings.json}'s default; null when neither is set anywhere.
+     */
+    public static Integer lodReach(Borders borders, JsonObject defaults) {
+        Integer player = borders != null && borders.player() != null ? borders.player() : defaultBorder(defaults, "player");
+        Integer generation = borders != null && borders.generation() != null ? borders.generation() : defaultBorder(defaults, "generation");
+        if (player == null) return generation;
+        return generation == null ? player : Math.max(player, generation);
+    }
+
+    private static Integer defaultBorder(JsonObject defaults, String name) {
+        if (defaults == null || !defaults.has("borders") || !defaults.get("borders").isJsonObject()) return null;
+        JsonElement value = defaults.getAsJsonObject("borders").get(name);
+        return value == null || value.isJsonNull() ? null : value.getAsInt();
+    }
+
+    /**
      * The player border radius: the definition's {@code borders.player}, else
      * {@code settings.json}'s {@code defaults.borders.player}, else null (no border set).
      */
