@@ -3,11 +3,19 @@ package com.customdimensions.core.definition;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-/** Schema v2 {@code atmosphere}: sky, fog and ambient light, a fixed time of day or a day length, and a vanilla sky to borrow. */
-public record Atmosphere(String skyColor, String fogColor, Double ambientLight, Long fixedTime, String effects, DayLength dayLength) {
+/**
+ * Schema v2 {@code atmosphere}: sky, fog and ambient light, a fixed time of day or a day length, a vanilla sky to
+ * borrow, and whether the dimension's sky and fog colours win over its biomes' own ({@code overBiomes}).
+ */
+public record Atmosphere(String skyColor, String fogColor, Double ambientLight, Long fixedTime, String effects, DayLength dayLength,
+                         Boolean overBiomes) {
 
     public Atmosphere(String skyColor, String fogColor, Double ambientLight, Long fixedTime, String effects) {
-        this(skyColor, fogColor, ambientLight, fixedTime, effects, null);
+        this(skyColor, fogColor, ambientLight, fixedTime, effects, null, null);
+    }
+
+    public Atmosphere(String skyColor, String fogColor, Double ambientLight, Long fixedTime, String effects, DayLength dayLength) {
+        this(skyColor, fogColor, ambientLight, fixedTime, effects, dayLength, null);
     }
 
     /** {@code dayLength}: real minutes from sunrise to sunset ({@code dayMinutes}) and from sunset to sunrise ({@code nightMinutes}). */

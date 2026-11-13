@@ -7,10 +7,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * What a render sampled, one entry per pixel of its {@link RenderGrid}:
- * surface height, the fluid over the surface and the surface biome. Workers
- * write disjoint pixels from any thread; biome ids are interned once each.
+ * surface height, the fluid over the surface and the surface biome, and under
+ * a roof the roof's lowest block. Workers write disjoint pixels from any
+ * thread; biome ids are interned once each.
  */
 public final class ColumnSamples {
+    /** The roof of a column with none over it. */
+    public static final int NO_ROOF = Integer.MIN_VALUE;
     /** The fluid directly above a column's surface. */
     public enum Fluid { NONE, WATER, LAVA, OTHER }
 
@@ -23,6 +26,7 @@ public final class ColumnSamples {
     private final int[] biome;
     private byte[] zone;
     private byte[] zoneWeight;
+    private int[] roof;
     private final Map<String, Integer> biomeIndex = new ConcurrentHashMap<>();
     private final List<String> biomeIds = new ArrayList<>();
 
@@ -60,6 +64,27 @@ public final class ColumnSamples {
         int i = py * grid.side() + px;
         zone[i] = (byte) index;
         zoneWeight[i] = (byte) Math.round(Math.max(0, Math.min(1, weight)) * 255);
+    }
+
+    /** The lowest block of the roof over a pixel's surface, its surface for a column solid from the roof down. */
+    public void setRoof(int px, int py, int y) {
+        synchronized (this) {
+            if (roof == null) {
+                roof = new int[height.length];
+                java.util.Arrays.fill(roof, NO_ROOF);
+            }
+        }
+        roof[py * grid.side() + px] = y;
+    }
+
+    /** Whether any pixel has a roof. */
+    public synchronized boolean hasRoofs() {
+        return roof != null;
+    }
+
+    /** The lowest block of the roof over a pixel's surface, or {@link #NO_ROOF}. */
+    public int roof(int px, int py) {
+        return roof == null ? NO_ROOF : roof[py * grid.side() + px];
     }
 
     /** Whether any zone was sampled. */

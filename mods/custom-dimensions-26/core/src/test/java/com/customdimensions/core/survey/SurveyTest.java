@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.customdimensions.core.survey.PatchAnalysis.ColumnClass;
@@ -147,6 +148,50 @@ class SurveyTest {
         assertFalse(SurveyPlan.addAdaptive(plan, picks, 512, 3, 4).isEmpty());
         int[] v = hilly.vista();
         assertEquals(264, v[1]);
+    }
+
+    @Test
+    void aRoofedVistaLiesUnderItsRoof() {
+        int side = 64;
+        int[] h = new int[side * side], roof = new int[side * side];
+        byte[] kind = new byte[side * side];
+        java.util.Arrays.fill(h, 71);
+        java.util.Arrays.fill(roof, 110);
+        for (int z = 4; z < 10; z++) for (int x = 4; x < 10; x++) {
+            h[z * side + x] = 128;
+            roof[z * side + x] = 128;
+        }
+        for (int z = 40; z < 44; z++) for (int x = 40; x < 44; x++) h[z * side + x] = 100;
+        for (int z = 20; z < 24; z++) for (int x = 50; x < 54; x++) h[z * side + x] = 90 - Math.abs(x - 52) - Math.abs(z - 22);
+        Landforms open = new Landforms(side, 16, 0, 0, h, kind).withRoofs(roof);
+        int[] v = open.vista();
+        assertEquals(90, v[1], "the highest floor with 16 or more blocks open under the roof");
+        assertEquals(52 * 16, v[0]);
+        assertEquals(22 * 16, v[2]);
+        assertTrue(v[1] + 12 + 1.62 < 110, "the far camera 12 over it stands under the roof");
+        assertTrue(v[4] < 110, "and looks at a floor under the roof: " + v[4]);
+        assertEquals(128, new Landforms(side, 16, 0, 0, h, kind).vista()[1], "without the roofs the solid column's top would win");
+        int[] closed = roof.clone();
+        java.util.Arrays.fill(closed, 80);
+        assertNull(new Landforms(side, 16, 0, 0, h, kind).withRoofs(closed).vista(), "no open column, no vista");
+    }
+
+    @Test
+    void underACeilingASurfaceCameraStandsUnderTheRoofNotOnIt() {
+        int height = 160;
+        PatchGrid g = new PatchGrid(new SurveyPlan.Patch(0, 0, 0, 1, "stratified"), 0, height, true);
+        int plains = g.biome("minecraft:plains");
+        for (int qy = 0; qy < height / 4; qy++) for (int qz = 0; qz < 4; qz++) for (int qx = 0; qx < 4; qx++) g.setBiome(qx, qy, qz, plains);
+        for (int y = 0; y < 128; y++) for (int z = 0; z < 16; z++) for (int x = 0; x < 16; x++) {
+            boolean open = x >= 12 && y > 30 && y < 120;
+            if (!open) g.set(x, y, z, g.block(STONE));
+        }
+        PatchAnalysis a = analyse(g);
+        PatchAnalysis.Cell surface = a.cells.stream().filter(c -> c.layer() == Layer.SURFACE).findFirst().orElseThrow();
+        double[] k = surface.camera();
+        assertTrue(k != null, "a camera on the open floor");
+        assertTrue(k[0] >= 12, "on an open column, not the solid ones nearer the cell's centre: x " + k[0]);
+        assertEquals(31, k[1], 1e-9, "on the floor, under the roof at 120");
     }
 
     @Test

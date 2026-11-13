@@ -431,15 +431,22 @@
           "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
         },
         "roles": {
-          "description": "A listed biome's role, over the one its tags or library entry give. On a terrain with a coastline, regional land, peak and wetland biomes take regions on land only, ocean biomes in the sea only, cave biomes at depth only; shore and river biomes listed without a climate take the terrain's shore and river bands, divided among them by weight. Over a void: underside takes the islands more than 8 blocks below their tops (hanging gardens), basin the open water of basin_islands' lake masses; the other biomes take the island tops, each group ranked over its own ground.",
+          "description": "A listed biome's role, over the one its tags or library entry give. On a terrain with a coastline, regional land, peak and wetland biomes take regions on land only, ocean biomes in the sea only, cave biomes at depth only; shore and river biomes listed without a climate take the terrain's shore and river bands, divided among them by weight. On a roofed terrain with a liquids.seaLevel over part of its floor, an ocean or shore role makes the floor against the sea its coastline: ocean biomes take the floor under the sea, shore biomes 3 blocks either side of it, land biomes the dry floor; a roofed floor has no river band. Over a void: underside takes the islands more than 8 blocks below their tops (hanging gardens), basin the open water of basin_islands' lake masses; the other biomes take the island tops, each group ranked over its own ground.",
           "type": "object",
           "propertyNames": { "$ref": "#/$defs/id" },
           "additionalProperties": { "enum": ["land", "ocean", "shore", "river", "peak", "cave", "wetland", "basin", "underside"] }
         },
         "over": {
-          "description": "Which cells the region axes are ranked over: all (default) or land, the cells that hold land, so each regional biome takes its weight's share of the islands and not of the void between. For the end preset (its own islands or an end terrain), whose erosion is the island density, and for a terrain over a void, whose router continentalness becomes its place cue (void, basin water, land); under land an ocean biome on basin_islands takes the basin role.",
+          "description": "Which cells the region axes are ranked over: all (default) or land, the cells that hold land, so each regional biome takes its weight's share of the islands and not of the void between. For the end preset (its own islands or an end terrain), whose erosion is the island density, and for a terrain over a void, whose router continentalness becomes its place cue (void, basin water, land); under land an ocean biome on basin_islands takes the basin role. On a roofed terrain with a liquids.seaLevel over part of its floor, land is the floor above that sea.",
           "enum": ["all", "land"],
           "default": "all"
+        },
+        "belowFloor": {
+          "description": "On terrain.base roofed: a listed biome without a climate to the blocks under the floor from which it holds every point, under every place and none of the open floor; several biomes stack in bands, each from its own start to the next deeper one's.",
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "type": "integer", "minimum": 4, "maximum": 256 }
         },
         "sea": {
           "description": "The biome of the sea when no ocean biome is listed, on a terrain with a coastline; absent: the vanilla ocean that suits the land biomes' mean temperature.",
@@ -658,6 +665,10 @@
         "ambientLight": { "type": "number", "minimum": 0, "maximum": 1 },
         "fixedTime": { "type": "integer", "minimum": 0 },
         "effects": { "$ref": "#/$defs/id" },
+        "overBiomes": {
+          "description": "true: the dimension's sky and fog colours (skyColor, fogColor, or those effects brings) win over every biome's own, as the first of its timelines, whose override the day and night still darken; false (default): a biome's own colours win where it has them.",
+          "type": "boolean"
+        },
         "dayLength": {
           "description": "Real minutes of day (sunrise to sunset) and night; the day's timelines are warped to it. settings.json's defaults.atmosphere.dayLength applies to every dimension with vanilla's day and no fixedTime.",
           "type": "object",

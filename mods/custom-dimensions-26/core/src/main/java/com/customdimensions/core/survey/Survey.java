@@ -556,7 +556,9 @@ public final class Survey {
             JsonObject vista = new JsonObject();
             vista.add("summit", arr(v[0], v[1], v[2]));
             vista.add("lookAt", arr(v[3], v[4], v[5]));
-            vista.addProperty("note", "the coarse map's highest land cell and the point 160 blocks off in the direction of its largest drop");
+            vista.addProperty("note", (landforms.roofed() ? "the coarse map's highest land cell with " + Landforms.OPEN_UNDER_ROOF
+                    + " or more blocks open under the roof" : "the coarse map's highest land cell")
+                    + " and the point 160 blocks off in the direction of its largest drop");
             o.add("vista", vista);
         }
         return o;

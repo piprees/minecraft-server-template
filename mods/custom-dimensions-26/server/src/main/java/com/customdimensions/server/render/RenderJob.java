@@ -250,6 +250,7 @@ public final class RenderJob {
                         if (!mask.wanted(px, py)) continue;
                         Sampler.Column c = sampler.sample(grid.x(px), grid.z(py));
                         samples.set(px, py, c.height(), c.fluid(), c.biomeId());
+                        if (c.roofed()) samples.setRoof(px, py, c.roof());
                         if (sampler.hasZones()) {
                             Sampler.ZoneHit zone = sampler.topZone(grid.x(px), grid.z(py));
                             samples.setZone(px, py, zone.index(), zone.weight());

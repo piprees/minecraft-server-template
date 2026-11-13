@@ -225,7 +225,11 @@ writes `check` entries at the same cameras, the old caption kept beside each.
 `pick-shots.py` reads the dossier of `/customdim survey <slug>` and writes a
 far view from the coarse map's summit, one shot for every place type of each
 layer (surface, sky islands, underground, roof) at its representative camera,
-every landmark, and one shot per notable cluster type, rarest first.
+every landmark, and one shot per notable cluster type, rarest first. Under a
+dimension ceiling the summit is the highest floor with 16 or more blocks open
+under the roof and the far view stands 12 over it, under the roof; a surface
+camera stands on a floor under the roof, an open one first, never on a column
+solid to the roof's top.
 `review-packet.py` sets the 1.21.1 definition (read only), the v2
 definition, optional owner notes, the dossier's summary, a facts table and
 every shot with its census caption side by side in `review.md`, ending with

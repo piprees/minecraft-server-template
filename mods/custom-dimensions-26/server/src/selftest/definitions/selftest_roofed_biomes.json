@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: a smooth roofed Nether floor at 70 ± 18 under a lava sea at 74, basalt deltas taking the drowned floor as its sea, deep dark bound 8 blocks below the floor, and a fog held over the biomes, for the terrain section's roofed biomes line.",
+  "seed": 20261026,
+  "spawn": [
+    0,
+    80,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 70,
+      "floorRelief": 18,
+      "ceilingGap": 40,
+      "roughness": 0
+    }
+  },
+  "liquids": {
+    "seaLevel": 74,
+    "defaultFluid": "minecraft:lava"
+  },
+  "biomes": ["minecraft:basalt_deltas", "minecraft:soul_sand_valley", "minecraft:nether_wastes", "minecraft:deep_dark"],
+  "biomeLayout": {
+    "mode": "regions",
+    "roles": { "minecraft:basalt_deltas": "ocean" },
+    "belowFloor": { "minecraft:deep_dark": 8 }
+  },
+  "atmosphere": {
+    "fogColor": "#1B0B2B",
+    "overBiomes": true
+  },
+  "borders": {
+    "player": 1024
+  }
+}

@@ -87,9 +87,19 @@ public final class TerrainLibrary {
      * continentalness from the terrain's place cue (void, basin water, land; {@link TerrainFamily.Shape#place}),
      * and {@code underside}, the router's depth measured down from the islands' tops, so a biome bound below
      * the top takes their undersides. Each is for an airborne terrain; the End's own islands need neither.
+     * On a roofed terrain {@code place} is the floor against the sea ({@link RoofedTerrain#COAST_BLOCKS}) and
+     * {@code belowFloor} the blocks under the floor from which each of its below-floor bands starts, ascending.
      */
-    public record Biomes(boolean place, boolean underside) {
+    public record Biomes(boolean place, boolean underside, java.util.List<Integer> belowFloor) {
         public static final Biomes NONE = new Biomes(false, false);
+
+        public Biomes {
+            belowFloor = java.util.List.copyOf(belowFloor);
+        }
+
+        public Biomes(boolean place, boolean underside) {
+            this(place, underside, java.util.List.of());
+        }
     }
 
     /** Router depth per block below the islands' tops: as vanilla's, 1 per 128 blocks. */
@@ -99,7 +109,11 @@ public final class TerrainLibrary {
     public static Compiled compile(String slug, String namespace, String name, TerrainSpec spec, String preset,
                                    JsonObject settings, Integer seaLevel, VanillaData vanilla, Biomes biomes) {
         if (spec.family().roofed()) {
-            return RoofedTerrain.compile(slug, namespace, name, spec, preset, settings, seaLevel);
+            return RoofedTerrain.compile(slug, namespace, name, spec, preset, settings, seaLevel, biomes);
+        }
+        if (!biomes.belowFloor().isEmpty()) {
+            throw new IllegalArgumentException(slug + ": biomeLayout.belowFloor binds a biome under the floor of a roofed terrain, not "
+                    + spec.family().id());
         }
         if (spec.family() == TerrainFamily.END) {
             return EndTerrain.compile(slug, namespace, name, spec, preset, settings, true);
@@ -258,6 +272,14 @@ public final class TerrainLibrary {
     public static Compiled compileEnd(String slug, String namespace, String name, TerrainSpec spec, String preset, JsonObject settings,
                                       boolean centralIsland) {
         return EndTerrain.compile(slug, namespace, name, spec, preset, settings, centralIsland);
+    }
+
+    /**
+     * Router continentalness on a roofed terrain whose biomes follow its sea: at the sea line and at the ends of
+     * the shore band, or null when {@code sea} lies over no part of the floor.
+     */
+    public static double[] roofedCoast(TerrainSpec spec, double sea) {
+        return RoofedTerrain.coast(spec, sea);
     }
 
     /** A roofed terrain's floor, ceiling and what of it lies under the preset's sea, for the compile report. */

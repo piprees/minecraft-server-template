@@ -167,6 +167,7 @@ public final class TerrainSelfTest {
         chain = chain.thenCompose(v -> skyTiers());
         chain = chain.thenCompose(v -> islandSpires());
         chain = chain.thenCompose(v -> hollowLake());
+        chain = chain.thenCompose(v -> roofedBiomes());
         chain = chain.thenCompose(v -> climateShift());
         chain = chain.thenCompose(v -> places());
         chain = chain.thenRun(this::performance);
@@ -938,6 +939,72 @@ public final class TerrainSelfTest {
                     + columns + " columns round the centre are water at the water line y " + HOLLOW_WATER_LINE + " (needs " + pct(HOLLOW_WET)
                     + "); median depth " + median + " blocks over the floor (needs " + (HOLLOW_DEPTH - 6) + "+ of hollowDepth " + HOLLOW_DEPTH + ")");
         });
+    }
+
+    /** Roofed biomes: {@code selftest_roofed_biomes}'s sea, its roof's highest noise block, and the bars on each claim. */
+    static final int ROOFED_SEA = 74, ROOFED_NOISE_TOP = 127, ROOFED_MARGIN = 4, ROOFED_BELOW = 16, ROOFED_MIN_COLUMNS = 40;
+    static final double ROOFED_SEA_SHARE = 0.9, ROOFED_DRY_SHARE = 0.05, ROOFED_BAND_SHARE = 0.95, ROOFED_FLOOR_BAND = 0.01;
+    static final int ROOFED_FOG = 0x1B0B2B;
+
+    /**
+     * {@code selftest_roofed_biomes} in the spaced area, every fourth column: the noise biome over floors more than
+     * {@link #ROOFED_MARGIN} under the lava sea is its ocean (basalt deltas), and over floors as far above it is not; the
+     * biome {@link #ROOFED_BELOW} blocks under the floor is the below-floor deep dark, and on the floor never; and the fog a
+     * player reads on the floor is the dimension's, whatever biome it stands in.
+     */
+    private CompletableFuture<Void> roofedBiomes() {
+        String slug = "selftest_roofed_biomes";
+        return fixtureLine(slug, "terrain roofed biomes (" + slug + ")", level -> spaced(null).chunks(), (level, chunks) -> {
+            int sea = 0, seaHeld = 0, dry = 0, dryOcean = 0, under = 0, underHeld = 0, floors = 0, floorBand = 0, fogs = 0, fogHeld = 0;
+            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+            for (LevelChunk chunk : chunks) {
+                int bx = chunk.getPos().getMinBlockX(), bz = chunk.getPos().getMinBlockZ();
+                for (int dx = 0; dx < 16; dx += 4) {
+                    for (int dz = 0; dz < 16; dz += 4) {
+                        int x = bx + dx, z = bz + dz;
+                        Sampler.Surface surface = Sampler.surface(y -> chunk.getBlockState(pos.set(x, y, z)), ROOFED_NOISE_TOP, level.getMinY());
+                        int h = surface.height();
+                        if (!surface.roofed() || surface.roof() - h < 2) continue;
+                        String at = Sampler.id(level.getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(h), QuartPos.fromBlock(z)));
+                        if (h <= ROOFED_SEA - ROOFED_MARGIN) {
+                            sea++;
+                            if (at.equals("minecraft:basalt_deltas")) seaHeld++;
+                        } else if (h > ROOFED_SEA + ROOFED_MARGIN) {
+                            dry++;
+                            if (at.equals("minecraft:basalt_deltas")) dryOcean++;
+                        }
+                        floors++;
+                        if (at.equals("minecraft:deep_dark")) floorBand++;
+                        int y = h - 1 - ROOFED_BELOW;
+                        if (y > level.getMinY() + 4) {
+                            under++;
+                            if (Sampler.id(level.getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(y), QuartPos.fromBlock(z))).equals("minecraft:deep_dark")) {
+                                underHeld++;
+                            }
+                        }
+                        org.joml.Vector3fc fog = level.environmentAttributes().getValue(net.minecraft.world.attribute.EnvironmentAttributes.FOG_COLOR,
+                                pos.set(x, h + 1, z));
+                        fogs++;
+                        if (rgb(fog) == ROOFED_FOG) fogHeld++;
+                    }
+                }
+            }
+            double seaShare = (double) seaHeld / Math.max(1, sea), dryShare = (double) dryOcean / Math.max(1, dry);
+            double underShare = (double) underHeld / Math.max(1, under), floorShare = (double) floorBand / Math.max(1, floors);
+            boolean pass = sea >= ROOFED_MIN_COLUMNS && dry >= ROOFED_MIN_COLUMNS && under >= ROOFED_MIN_COLUMNS && seaShare >= ROOFED_SEA_SHARE
+                    && dryShare <= ROOFED_DRY_SHARE && underShare >= ROOFED_BAND_SHARE && floorShare <= ROOFED_FLOOR_BAND && fogHeld == fogs && fogs > 0;
+            return verdict(pass, "terrain roofed biomes (" + slug + "): the sea's biome on " + pct(seaShare) + " of " + sea + " floors "
+                    + ROOFED_MARGIN + "+ under the lava at y " + ROOFED_SEA + " (needs " + pct(ROOFED_SEA_SHARE) + ") and " + pct(dryShare) + " of "
+                    + dry + " as far over it (needs " + pct(ROOFED_DRY_SHARE) + " or less); deep dark on " + pct(underShare) + " of " + under
+                    + " points " + ROOFED_BELOW + " under the floor (needs " + pct(ROOFED_BAND_SHARE) + ") and " + pct(floorShare) + " of " + floors
+                    + " floors (needs " + pct(ROOFED_FLOOR_BAND) + " or less); the dimension's fog #1b0b2b at " + fogHeld + " of " + fogs
+                    + " floors (needs all; " + ROOFED_MIN_COLUMNS + "+ columns in each class)");
+        });
+    }
+
+    /** A colour attribute as 0xRRGGBB. */
+    private static int rgb(org.joml.Vector3fc c) {
+        return Math.round(c.x() * 255) << 16 | Math.round(c.y() * 255) << 8 | Math.round(c.z() * 255);
     }
 
     /** Climate shift: {@code selftest_climate}'s temperature shift, points sampled, and the bars on the mean and on the warp's spread. */

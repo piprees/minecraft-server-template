@@ -254,7 +254,7 @@ public final class DatapackCompiler {
             entry.kind(CompileReport.Kind.LAZY, "`" + typeId + "`" + cloneNote);
         }
 
-        JsonObject type = dimensionType(def, entry);
+        JsonObject type = dimensionType(slug, def, entry);
         boolean noiseBased = !Generator.FLAT.equals(generator.type()) && !Generator.VOID.equals(generator.type());
         if (noiseBased) {
             String seaNote = LiquidsCompiler.validate(slug, def.liquids(), type);
@@ -457,7 +457,7 @@ public final class DatapackCompiler {
         };
     }
 
-    private JsonObject dimensionType(Definition def, CompileReport.Entry entry) {
+    private JsonObject dimensionType(String slug, Definition def, CompileReport.Entry entry) {
         JsonObject type = vanilla.dimensionType(baseDimensionType(def.generator()));
         applyDimensionType(type, def.dimensionType());
         applyAtmosphere(type, def.atmosphere(), entry);
@@ -467,8 +467,54 @@ public final class DatapackCompiler {
             if (d != null) applyDayLength(type, d, entry);
         }
         applyRules(type, def.rules());
+        if (a != null && Boolean.TRUE.equals(a.overBiomes())) applyOverBiomes(slug, type, entry);
         return type;
     }
+
+    /** The environment attributes {@code atmosphere.overBiomes} holds over the biomes. */
+    static final List<String> OVER_BIOMES = List.of("minecraft:visual/sky_color", "minecraft:visual/fog_color");
+
+    /**
+     * {@code atmosphere.overBiomes}: the dimension type's sky and fog colours as the timeline
+     * {@code <ns>:atmosphere/<slug>}, one constant override track each, first in the type's timelines. The game
+     * applies a dimension's attributes, then its biomes', then its timelines in order, so the colours win over every
+     * biome's own and the day's timelines still darken them at night.
+     */
+    private void applyOverBiomes(String slug, JsonObject type, CompileReport.Entry entry) {
+        JsonObject attributes = attributes(type);
+        JsonObject tracks = new JsonObject();
+        for (String key : OVER_BIOMES) {
+            JsonElement v = attributes.get(key);
+            if (v == null) continue;
+            JsonObject keyframe = new JsonObject();
+            keyframe.addProperty("ticks", 0);
+            keyframe.add("value", v.deepCopy());
+            JsonArray keyframes = new JsonArray();
+            keyframes.add(keyframe);
+            JsonObject track = new JsonObject();
+            track.add("keyframes", keyframes);
+            track.addProperty("modifier", "override");
+            tracks.add(key, track);
+        }
+        if (tracks.isEmpty()) {
+            throw new IllegalArgumentException(slug + ": atmosphere.overBiomes holds the dimension's sky and fog colours over its biomes', "
+                    + "and it has neither; give atmosphere.skyColor or fogColor");
+        }
+        JsonObject timeline = new JsonObject();
+        timeline.addProperty("clock", type.has("default_clock") ? type.get("default_clock").getAsString() : OVER_BIOMES_CLOCK);
+        timeline.add("tracks", tracks);
+        String id = namespace + ":atmosphere/" + slug;
+        put(dataPath(id, "timeline"), sorted(timeline), entry);
+        JsonArray timelines = new JsonArray();
+        timelines.add(id);
+        vanilla.expandTimelines(type.get("timelines")).forEach(timelines::add);
+        type.add("timelines", timelines);
+        entry.note("Atmosphere over the biomes: " + String.join(" and ", tracks.keySet()) + " held by the timeline `" + id
+                + "` over every biome's own");
+    }
+
+    /** The clock an over-biomes timeline names when the type has no default clock; its value is the same at every tick. */
+    static final String OVER_BIOMES_CLOCK = "minecraft:overworld";
 
     /**
      * {@code atmosphere.dayLength}, or the settings' default: in a dimension with vanilla's day, each timeline that
@@ -625,11 +671,12 @@ public final class DatapackCompiler {
             throw new IllegalArgumentException(slug + ": biomeLayout lays out the biome list of a noise or void generator; this definition has "
                     + (def.biomes().isEmpty() ? "no biome list" : "a " + g.type() + " generator"));
         }
+        RegionLayout.checkBelowFloor(slug, def);
         return switch (g.type()) {
             case Generator.NOISE -> {
                 RegionLayout.Plan regions = def.biomeLayout() == null ? null : RegionLayout.plan(slug, def.biomes(), def.biomeLayout(),
                         RegionLayout.radius(def.borders()), known, entry,
-                        RegionLayout.coast(slug, def, RegionLayout.axes(slug, def.biomeLayout())), roles(), RegionLayout.ground(slug, def));
+                        RegionLayout.coast(slug, def, RegionLayout.axes(slug, def.biomeLayout()), roles()), roles(), RegionLayout.ground(slug, def));
                 yield noiseGenerator(slug, def, g.preset(), regions == null ? noiseBiomeSource(def, entry) : multiNoise(regions.entries()),
                         regions, entry);
             }
@@ -835,7 +882,17 @@ public final class DatapackCompiler {
         TerrainLibrary.Biomes biomes = RegionLayout.biomes(slug, def, roles());
         TerrainLibrary.Compiled compiled = TerrainLibrary.compile(slug, namespace, slug, terrain, preset, settings,
                 liquids != null ? liquids.seaLevel() : null, vanilla, biomes);
-        if (biomes.place()) entry.note("The router's continentalness is the terrain's place cue (void, basin water, land), which its biome regions follow");
+        if (biomes.place() && terrain.family().roofed()) {
+            entry.note("The router's continentalness is the floor against the sea at y " + liquids.seaLevel() + ", (floor - "
+                    + liquids.seaLevel() + ") / " + (int) com.customdimensions.compiler.terrain.RoofedTerrain.COAST_BLOCKS
+                    + ": below 0 under the sea, which its sea, shore and land biomes follow");
+        } else if (biomes.place()) {
+            entry.note("The router's continentalness is the terrain's place cue (void, basin water, land), which its biome regions follow");
+        }
+        if (!biomes.belowFloor().isEmpty()) {
+            entry.note("The router's depth reads " + com.customdimensions.compiler.terrain.RoofedTerrain.BAND + " and more from "
+                    + biomes.belowFloor().getFirst() + " blocks under the floor, so the below-floor biomes hold the ground under every place");
+        }
         if (biomes.underside()) entry.note("The router's depth is measured down from the islands' tops, so an underside biome takes the islands below them");
         Map<String, JsonObject> files = compiled.files();
         if (terrain.shaping().landShare() != null) {
