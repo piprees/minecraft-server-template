@@ -16,7 +16,7 @@
         "right": -1.0,
         "type": "minecraft:add"
       },
-      "right": -3.36842105,
+      "right": -6.73684211,
       "type": "minecraft:mul"
     },
     "max": 1.0,

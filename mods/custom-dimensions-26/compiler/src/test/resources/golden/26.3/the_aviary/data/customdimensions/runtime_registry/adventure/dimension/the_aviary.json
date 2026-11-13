@@ -246,7 +246,7 @@
             "columns": [-0.6, -0.2, 0.2, 0.6]
           }
         ],
-        "radius": 2048,
+        "radius": 4096,
         "places": true
       }
     },

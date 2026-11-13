@@ -48,8 +48,11 @@ public final class RegionLayout {
     private RegionLayout() {
     }
 
-    /** The radius players see: the player border, else the generation border, else {@link #DEFAULT_RADIUS}. */
-    static int radius(com.customdimensions.core.definition.Borders borders) {
+    /**
+     * The radius players see, which regions and places are laid over and the survey samples: the player border, else
+     * the generation border, else {@link #DEFAULT_RADIUS}. The generation border limits only pre-generation.
+     */
+    public static int radius(com.customdimensions.core.definition.Borders borders) {
         if (borders != null && borders.player() != null) return borders.player();
         if (borders != null && borders.generation() != null) return borders.generation();
         return DEFAULT_RADIUS;
@@ -259,12 +262,6 @@ public final class RegionLayout {
      */
     static Plan plan(String slug, List<BiomeEntry> biomes, JsonObject layout, int radius, BiomeLibrary.Known known,
                      CompileReport.Entry entry, Coast coast, BiomeRoles roles, Ground ground) {
-        return plan(slug, biomes, layout, radius, known, entry, coast, roles, ground, radius);
-    }
-
-    /** As above, laying out {@code places} over a {@code placeRadius}-block border. */
-    static Plan plan(String slug, List<BiomeEntry> biomes, JsonObject layout, int radius, BiomeLibrary.Known known,
-                     CompileReport.Entry entry, Coast coast, BiomeRoles roles, Ground ground, int placeRadius) {
         validate(slug, layout);
         List<String> axes = axes(slug, layout);
         Map<String, Double> weights = weights(slug, layout);
@@ -339,7 +336,7 @@ public final class RegionLayout {
             double[] surface = under.isEmpty() ? null : new double[]{BiomeLayout.LOW, UNDERSIDE_DEPTH};
             JsonArray areas = new JsonArray();
             StringBuilder parts = new StringBuilder();
-            places = places(slug, layout, axes, held, regional, weights, biomes, placeRadius);
+            places = places(slug, layout, axes, held, regional, weights, biomes, radius);
             Object[][] groups = {
                     {BiomeRoles.UNDERSIDE, under, null, new double[]{UNDERSIDE_DEPTH, BiomeLayout.HIGH}},
                     {BiomeRoles.BASIN, basin, new double[]{ground.min(), com.customdimensions.compiler.terrain.TerrainFamily.PLACE_SHORE}, surface},
@@ -362,7 +359,7 @@ public final class RegionLayout {
             note = "Biome regions on " + String.join(" × ", axes) + " over a " + radius + "-block radius, by the islands' ground: " + parts
                     + (overLand ? "; ranked over land" : "") + (overrides.isEmpty() ? "" : "; roles given: " + overrides);
         } else if (coast == null) {
-            places = places(slug, layout, axes, regional, regional, weights, biomes, placeRadius);
+            places = places(slug, layout, axes, regional, regional, weights, biomes, radius);
             Cells cells = cells(places, regional, weights, axes, area(null, null, null));
             cells.entries().forEach(kept::add);
             if (!cells.cuts().isEmpty()) regions.add("columns", cuts(cells.cuts()));
@@ -381,7 +378,7 @@ public final class RegionLayout {
                 sea = seaField != null ? seaField.getAsString() : BiomeRoles.sea(meanTemperature(groups.get(BiomeRoles.LAND), weights, roles));
                 groups.get(BiomeRoles.OCEAN).add(sea);
             }
-            places = places(slug, layout, axes, groups.get(BiomeRoles.LAND), regional, weights, biomes, placeRadius);
+            places = places(slug, layout, axes, groups.get(BiomeRoles.LAND), regional, weights, biomes, radius);
             boolean caves = !groups.get(BiomeRoles.CAVE).isEmpty();
             boolean landless = groups.get(BiomeRoles.LAND).isEmpty();
             boolean sealess = groups.get(BiomeRoles.OCEAN).isEmpty() && !boundOcean;
@@ -435,8 +432,7 @@ public final class RegionLayout {
         regions.addProperty("radius", radius);
         if (places != null) {
             regions.addProperty("places", true);
-            regions.addProperty("radius", placeRadius);
-            note += "; laid out over a " + placeRadius + "-block radius as " + PlaceLayout.describe(places);
+            note += "; laid out over a " + radius + "-block radius as " + PlaceLayout.describe(places);
         }
         entry.note(note + (boundIds.isEmpty() ? "" : "; bound by their climate: " + boundIds));
         List<String> shadowed = new ArrayList<>(regional);

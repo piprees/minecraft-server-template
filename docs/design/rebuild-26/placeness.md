@@ -4,7 +4,7 @@ The area inside a dimension's border reads as one coherent place, or as a delibe
 
 ## Measuring it
 
-`/customdim survey <slug>` writes `placeness` into the dossier, from the coarse map over the sampled area (`core/.../survey/Placeness.java`). `/customdim survey <slug> 1 1` measures it in about 15 seconds. The sampled area, the coarse map and the patches alike, is where the places are laid when the definition has `biomeLayout.places` (the smaller of the player and generation borders, as the compiler lays them), else the player border; the dossier names it in `borders.surveyed` (radius), `borders.surveyedOver` (`places`, `player border`, `generation border` or `default`) and `borders.surveyedHectares`. The structure census keeps the player border. Patches are drawn from the level's seed and the sampled area, so two dimensions of one terrain and seed sample the same ground.
+`/customdim survey <slug>` writes `placeness` into the dossier, from the coarse map over the sampled area (`core/.../survey/Placeness.java`). `/customdim survey <slug> 1 1` measures it in about 15 seconds. The sampled area, the coarse map and the patches alike, is the player border, where the places are laid too (with `biomeLayout.places`, the definition's `borders.player`, else `borders.generation`, else 1024, as the compiler lays them); the dossier names it in `borders.surveyed` (radius), `borders.surveyedOver` (`places`, `player border`, `generation border` or `default`) and `borders.surveyedHectares`. The structure census keeps the player border. Patches are drawn from the level's seed and the sampled area, so two dimensions of one terrain and seed sample the same ground.
 
 | Key | What it says |
 | --- | --- |

@@ -2,7 +2,7 @@ package com.customdimensions.server.survey;
 
 import com.customdimensions.compiler.datapack.BiomeLibrary;
 import com.customdimensions.compiler.datapack.BiomeRoles;
-import com.customdimensions.compiler.datapack.PlaceLayout;
+import com.customdimensions.compiler.datapack.RegionLayout;
 import com.customdimensions.core.definition.BiomeEntry;
 import com.customdimensions.core.definition.Definition;
 import com.customdimensions.core.render.ColumnSamples;
@@ -312,12 +312,12 @@ public final class SurveyJob {
 
     /**
      * The area a survey samples: with {@code places} and a definition that lays out {@code biomeLayout.places}, the
-     * place field's (the smaller of its player and generation borders, the area the compiler lays the places over);
-     * else the player border {@code border}, else the definition's generation border, else 1024 blocks; held to
-     * 64–4096 blocks.
+     * place field's ({@link RegionLayout#radius}: the definition's player border, else its generation border, else
+     * 1024, the area the compiler lays the places over); else the player border {@code border}, else the definition's
+     * generation border, else 1024 blocks; held to 64–4096 blocks.
      */
     static Area area(Definition definition, Integer border, boolean places) {
-        if (places && laysPlaces(definition)) return new Area(held(PlaceLayout.radius(definition.borders())), "places");
+        if (places && laysPlaces(definition)) return new Area(held(RegionLayout.radius(definition.borders())), "places");
         if (border != null) return new Area(held(border), "player border");
         if (definition != null && definition.borders() != null && definition.borders().generation() != null) {
             return new Area(held(definition.borders().generation()), "generation border");

@@ -62,17 +62,6 @@ public final class PlaceLayout {
     private PlaceLayout() {
     }
 
-    /**
-     * The radius places are laid over: the smaller of the player and generation borders, the area that generates
-     * and that the survey measures, else {@link RegionLayout#DEFAULT_RADIUS}.
-     */
-    public static int radius(com.customdimensions.core.definition.Borders borders) {
-        int r = Integer.MAX_VALUE;
-        if (borders != null && borders.player() != null) r = Math.min(r, borders.player());
-        if (borders != null && borders.generation() != null) r = Math.min(r, borders.generation());
-        return r == Integer.MAX_VALUE ? RegionLayout.DEFAULT_RADIUS : r;
-    }
-
     /** Whether {@code layout} lays its biomes out as places. */
     static boolean present(JsonObject layout) {
         return layout != null && layout.has("places");

@@ -183,6 +183,21 @@ class PlaceLayoutTest {
         }
     }
 
+    /** Places are laid over the radius players see, as regions are: a smaller generation border, which only pre-generates, changes nothing. */
+    @Test
+    void placesAreLaidOverThePlayerBorder() {
+        String own = body(null, FOUR, "{\"warp\": {\"blocks\": 0}}", "");
+        String pregenerated = own.replace("\"borders\": {\"player\": " + RADIUS + "}", "\"borders\": {\"player\": " + RADIUS + ", \"generation\": " + RADIUS / 2 + "}");
+        assertNotEquals(own, pregenerated);
+        assertEquals(Fixtures.compile("p", own).files(), Fixtures.compile("p", pregenerated).files());
+        assertTrue(field("p", pregenerated).note().contains("laid out over a " + RADIUS + "-block radius"));
+        String generationOnly = own.replace("\"borders\": {\"player\": " + RADIUS + "}", "\"borders\": {\"generation\": " + RADIUS + "}");
+        java.util.function.Function<String, Map<String, String>> field = body -> new java.util.TreeMap<>(Fixtures.compile("p", body).files().entrySet().stream()
+                .filter(e -> e.getKey().contains("/places/")).collect(java.util.stream.Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        assertFalse(field.apply(own).isEmpty());
+        assertEquals(field.apply(own), field.apply(generationOnly), "without a player border, the generation border");
+    }
+
     @Test
     void theWarpMovesEdgesButSplitsNoPlaceAtItsLimit() {
         Field straight = field("p", body(null, SEVEN, "{\"warp\": {\"blocks\": 0}}", ""));

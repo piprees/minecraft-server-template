@@ -1596,6 +1596,24 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t268"></a>
+### T268 — A heart's warp is held to its room
+- **Symptom:** a definition whose `biomeLayout.places.warp` is larger than a heart allows is refused naming the heart; or a heart's edge wanders less than `terrain.climateWarp` or the default warp would suggest.
+- **Cause:** a heart's disc takes the whole places warp, untapered, so the compiler holds the warp to the heart's room: the blocks between its disc and 0.1 of the radius inside the border, where the places round it reach the border (`PlaceLayout.heartRoom`). An own warp past the room is refused; a taken one is cut to it.
+- **Fix:** keep `places.warp.blocks` within the room the refusal names; read the cut in the compile note's "edges warped N blocks".
+
+<a id="t267"></a>
+### T267 — `placeness.places` measures dry land
+- **Symptom:** a place's `landPercent`, regions or specks differ from a count of every non-void pixel on a render.
+- **Cause:** the survey's land is the coarse map's dry cells outside the sea biomes, as `landBiomeRegions`; a sea biome that only one place's column holds (a basin free in that place) counts as that place's wherever it is surveyed, and a biome every place shares is no place's.
+- **Fix:** compare like with like: dry land against dry land, at the survey's cell size; read held water from `percent`, the place field's share of the sampled area.
+
+<a id="t266"></a>
+### T266 — Places are laid over the player border; `borders.generation` limits only pre-generation
+- **Symptom:** a sky world's places are measured or pictured over its generation border, and the shares, the heart's size or the outer places read wrongly; or Chunky pre-generates only part of the area the places cover.
+- **Cause:** the compiler lays places over the radius players see, as region layouts (`RegionLayout.radius`: `borders.player`, else `borders.generation`, else 1024), and the survey samples that area (`borders.surveyedOver: places`). Nothing stops generation at `borders.generation`; it is the pre-generation extent alone.
+- **Fix:** render and judge a places world over its player border; raise `borders.generation` to the player border where the whole place field should be pre-generated.
+
 <a id="t265"></a>
 ### T265 — 26.3's batch density path is slower than the point path
 - **Symptom:** a render or bench through `sampleVolume` runs slower than one sampling column by column, or two runs of `/customdim fastrender` disagree on the speed-up by 1.5–3×; an exact render differs from the game's in the last float bit.
@@ -1641,7 +1659,7 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
 <a id="t258"></a>
 ### T258 — Under `biomeLayout.places` the first region axis is a place field
 - **Symptom:** a `terrain.climateShift`, or a `climate` box on the place axis, changes nothing; a sky world's survey counts each island as its own land region although the islands are one place.
-- **Cause:** the router's first region axis holds one constant per place (a power diagram over the places' sites), read as it is and never ranked; `scales.climate` stretches only a group's inner mix on the second axis. A place holds its share of the border, not of the land.
+- **Cause:** the router's first region axis holds one constant per place (a power diagram over the places' sites, laid over the player border as regions are: [T266](#t266)), read as it is and never ranked; `scales.climate` stretches only a group's inner mix on the second axis. A place holds its share of the border, not of the land.
 - **Fix:** shape places with `groups`, weights, `arrangement`, `at`, `neighbours`/`apart` and `warp` (at most 0.15 of its wavelength). Judge a world's places by `placeness.places`, which counts a group's members as one place.
 
 <a id="t257"></a>

@@ -43,7 +43,9 @@ class SurveyBordersTest {
     @Test
     void placesAreSurveyedWhereTheyAreLaid() {
         Definition sky = read(", \"borders\": {\"player\": 4096, \"generation\": 2048}" + PLACES);
-        assertEquals(new SurveyJob.Area(2048, "places"), SurveyJob.area(sky, 4096), "the smaller border, which the compiler lays places over");
+        assertEquals(new SurveyJob.Area(4096, "places"), SurveyJob.area(sky, 4096), "the player border, which the compiler lays places over");
+        assertEquals(new SurveyJob.Area(2048, "places"), SurveyJob.area(read(", \"borders\": {\"generation\": 2048}" + PLACES), 4096),
+                "the definition's own border, as the compiler reads it");
         assertEquals(new SurveyJob.Area(4096, "player border"), SurveyJob.area(sky, 4096, false), "the census keeps the player border");
         Definition plain = read(", \"borders\": {\"player\": 4096, \"generation\": 2048}");
         assertEquals(new SurveyJob.Area(4096, "player border"), SurveyJob.area(plain, 4096), "without places, the player border");
