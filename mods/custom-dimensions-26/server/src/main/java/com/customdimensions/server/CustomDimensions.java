@@ -20,6 +20,7 @@ public final class CustomDimensions implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        com.customdimensions.server.level.RuntimeRegistry.register();
         WorldgenFirewall.register();
         ZoneTypes.register();
         PackInstaller.install();

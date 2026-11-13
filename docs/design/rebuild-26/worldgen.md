@@ -100,7 +100,7 @@ A zone replaces layers inside a shape centred on spawn or a point, with a blend 
 
 An error names the slug and the zone (`the_x: zones[2]: outer is required for this shape`).
 
-- **Mask:** `<namespace>:zones/<slug>/<index>/mask` is `clamp(1 − (outside + jitter) / blend, 0, 1)`, where `outside` is the distance beyond the shape's edge. Circles, rings, boxes and `all` are vanilla functions (`gradient`, `square`, `sqrt`, `abs`, `max`); sectors and polygons use `customdimensions:zone_distance`, our one density-function type, which stays on the server. The jitter is the 2D noise `<namespace>:zone_jitter`.
+- **Mask:** `<namespace>:zones/<slug>/<index>/mask` is `clamp(1 − (outside + jitter) / blend, 0, 1)`, where `outside` is the distance beyond the shape's edge. Circles, rings, boxes and `all` are vanilla functions (`gradient`, `square`, `sqrt`, `abs`, `max`); sectors and polygons use `customdimensions:zone_distance`, which only the mod reads ([below](#types-of-ours-and-vanilla-forms)). The jitter is the 2D noise `<namespace>:zone_jitter`.
 - **Terrain:** the zone's terrain compiles under `<namespace>:terrain/<slug>/zone_<index>/`. Across the blend its `sloped_cheese` is lerped to from the layers beneath, inside a copy of their final density, so the ground moves between the two surface heights before the densities are squeezed; over the mask's last quarter, where the surfaces agree, that is lerped to the zone's own final density, which carries its floor and slides. The router's `depth` and `chunk_surface_level` and the aquifers' `surface_level` lerp the same way, so materials and aquifers read the zone's surface.
 - **Aquifers:** `dry` sets the aquifers' `exclusion` to 1 and their `surface_level` 64 blocks above the world wherever the mask is above zero, so no aquifer and no sea fills the zone or its blend. The generator places lava below its lava level (-54, or `lavaLevel`) before it consults any aquifer, and an aquifer cell takes the sea from the cells round it, so the runtime's fluid rule (`server/.../level/DryFluidPicker`) places no sea and no lava wherever a dry zone's compiled mask is above zero and 16 blocks beyond it (one aquifer cell, more than water's spread): the rule reads the compiled mask's still edge and, under the level's seed, the same jitter noise. The aquifer turns any fluid it would still take from a neighbouring cell into air in a covered column, and springs and lakes are not placed there (`NoiseBasedAquiferMixin`, `DryFluidFeatureMixin`). A base sea that meets that line stands at it. A sampler (`/customdim render`, rolls) builds its own copy of a lazy level's generator and applies the same runtime under its seed. Sea level stays one number per dimension.
 - **Biomes:** our biome source, `customdimensions:zoned`, wraps the dimension's own. The router's temperature carries the zone whose biomes hold: where zone *c*'s mask reaches 0.5 it is the base temperature plus 16 *c*. The source reads the channel back, takes that zone's layout at the base temperature (or the base's, for a zone that only swaps), applies the zone's swaps, then the global ones. Materials and ores follow the biomes.
@@ -119,6 +119,19 @@ Normal worldgen everywhere, except a ring of sky islands between 2,000 and 3,000
     "structures": { "wants": ["minecraft:ruined_portal"] } }
 ]
 ```
+
+## Types of ours and vanilla forms
+
+The pack loads on a vanilla server (RB-18): no file vanilla reads names a type of ours. The compiler writes our four types where a definition needs them, then gives each file vanilla reads that names one its vanilla form (`VanillaForms`) and moves the file as compiled to `data/customdimensions/runtime_registry/<namespace>/<registry>/<path>.json`, a folder vanilla ignores:
+
+| Type | Kind | Vanilla form |
+| --- | --- | --- |
+| `customdimensions:land_share` | density function | its `argument`: continentalness unshifted |
+| `customdimensions:zoned` | biome source | its `base`: the multi-noise layout without zones, swaps or region ranking |
+| `customdimensions:checker_cells` | density function | 0: no void cells |
+| `customdimensions:zone_distance` | density function | 1,000,000: beyond every edge, so the zone's mask is 0 |
+
+A cache of a cache that this leaves folds to one, so the vanilla form of a file is what the compile writes without the field. At server start, as the first SERVER_STARTING listener and before any level exists, `RuntimeRegistry` decodes each `runtime_registry/` file with its registry's codec and binds it to the entry's holder in place of the vanilla form, so every reader, by holder or by key, sees the compiled form: the overworld's generator reads its land share and the Nether's and the Aviary's stems their zoned biome sources, exactly as compiled. A file it cannot bind stops the start. Lazy stems (`lazy_dimension/`) only the mod reads, so they keep our types as written. A type of ours with no vanilla form in a file vanilla reads stops the compile with the file and the type; `scripts/vanilla-boot-check.sh` boots the pack on a vanilla server and enters every base world.
 
 ## Biome library
 

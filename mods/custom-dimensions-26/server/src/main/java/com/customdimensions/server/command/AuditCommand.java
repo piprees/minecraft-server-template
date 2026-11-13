@@ -129,7 +129,8 @@ final class AuditCommand {
     }
 
     private static boolean isStem(String path) {
-        return path.contains("/dimension/") || path.contains("/" + DatapackCompiler.LAZY_FOLDER + "/");
+        return !com.customdimensions.compiler.datapack.VanillaForms.isRuntimePath(path)
+                && (path.contains("/dimension/") || path.contains("/" + DatapackCompiler.LAZY_FOLDER + "/"));
     }
 
     /** Level folders outside {@code minecraft} with no definition, and compiled levels whose definition is gone. */

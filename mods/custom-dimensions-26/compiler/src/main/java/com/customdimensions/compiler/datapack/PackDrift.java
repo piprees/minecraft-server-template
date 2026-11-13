@@ -18,7 +18,8 @@ import java.util.stream.Stream;
 /**
  * Which dimensions a recompile gives different terrain: a definition whose
  * noise settings file or level stem {@code generator} (biome source included)
- * differs between the pack on disk and the new compile. Worldgen is fixed when
+ * differs between the pack on disk and the new compile, each read in the form
+ * the runtime binds ({@link VanillaForms#runtimePath} where the pack has one). Worldgen is fixed when
  * a chunk generates (D2), so the caller warns for each of these that already
  * holds chunks.
  */
@@ -31,7 +32,8 @@ public final class PackDrift {
         List<String> out = new ArrayList<>();
         for (CompileReport.Entry entry : new TreeMap<>(after.report().entries()).values()) {
             for (String path : entry.emitted()) {
-                if (differs(path, before.get(path), after.files().get(path))) {
+                if (VanillaForms.isRuntimePath(path)) continue;
+                if (differs(path, bound(before, path), bound(after.files(), path))) {
                     out.add(entry.slug());
                     break;
                 }
@@ -48,6 +50,12 @@ public final class PackDrift {
             return before != null && !Objects.equals(generator(before), generator(after));
         }
         return false;
+    }
+
+    /** The file the runtime generates from: its compiled form under {@code runtime_registry/} if the pack has one. */
+    private static String bound(Map<String, String> files, String path) {
+        String runtime = files.get(VanillaForms.runtimePath(path));
+        return runtime != null ? runtime : files.get(path);
     }
 
     /** The pack's files by pack-relative path; empty when there is no pack. */

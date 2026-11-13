@@ -74,8 +74,10 @@ class VoidWorldsTest {
         DatapackCompiler.Output out = Fixtures.compile("c", "\"generator\": {\"type\": \"checkerboard\", \"cellScale\": 3, "
                 + "\"voidBiomes\": [\"minecraft:the_end\"]}, \"biomes\": [\"minecraft:plains\", \"minecraft:the_end\", \"minecraft:desert\"]");
         assertEquals("adventure:c", generator(out, "c").get("settings").getAsString());
-        JsonObject fd = settings(out, "c").getAsJsonObject("noise_router").getAsJsonObject("final_density");
+        JsonObject fd = JsonParser.parseString(out.files().get(VanillaForms.runtimePath("data/adventure/worldgen/noise_settings/c.json")))
+                .getAsJsonObject().getAsJsonObject("noise_router").getAsJsonObject("final_density");
         assertEquals("minecraft:min", fd.get("type").getAsString());
+        assertFalse(settings(out, "c").toString().contains("customdimensions:"), "vanilla's form has no void cells");
         String cells = fd.toString();
         assertTrue(cells.contains("\"type\":\"customdimensions:checker_cells\"") && cells.contains("\"cells\":[1]")
                 && cells.contains("\"count\":3") && cells.contains("\"scale\":3"), cells);

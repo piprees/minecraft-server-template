@@ -59,6 +59,22 @@ class PackDriftTest {
     }
 
     @Test
+    void aFileMovedToItsVanillaFormIsNotDriftAndAChangeToItsBoundFormIs() {
+        DatapackCompiler.Output output = compile();
+        String stem = "data/minecraft/dimension/the_nether.json";
+        String runtime = VanillaForms.runtimePath(stem);
+        Map<String, String> before = new TreeMap<>(output.files());
+        before.put(stem, before.remove(runtime));
+        assertEquals(List.of(), PackDrift.changed(before, output), "a pack written before the split binds the same generator");
+
+        JsonObject bound = JsonParser.parseString(output.files().get(runtime)).getAsJsonObject();
+        bound.getAsJsonObject("generator").getAsJsonObject("biome_source").remove("regions");
+        Map<String, String> changed = new TreeMap<>(output.files());
+        changed.put(runtime, bound.toString());
+        assertEquals(List.of("the_nether"), PackDrift.changed(changed, output));
+    }
+
+    @Test
     void thePackReadsBackAsWritten(@TempDir Path dir) {
         DatapackCompiler.Output output = compile();
         DatapackCompiler.write(output, dir.resolve("pack"), dir.resolve("report.md"));

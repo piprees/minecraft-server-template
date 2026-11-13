@@ -46,6 +46,10 @@ final class MixinSelfTest {
         lines.add(check("ChunkMapStructuresMixin", "the chunk map builds the overworld's structure state with its control", MixinSelfTest::structureControl));
         lines.add(check("PrepareSpawnTaskMixin", "a login saved in a level that is not open is placed at the world spawn", () -> savedLevel(server)));
         lines.add(check("DisabledAquiferMixin", "a disabled aquifer schedules basin fluid near the rim to flow", () -> basinFlow(server)));
+        lines.add(check("HolderReferenceAccessor", "each runtime-registry entry reads its compiled form by key",
+                () -> com.customdimensions.server.level.RuntimeRegistry.byKey(server)));
+        lines.add(check("MappedRegistryAccessor", "each runtime-registry entry's compiled form reads back its key",
+                () -> com.customdimensions.server.level.RuntimeRegistry.byValue(server)));
         return lines;
     }
 

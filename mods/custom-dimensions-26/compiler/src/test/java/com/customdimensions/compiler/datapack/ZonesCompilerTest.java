@@ -104,8 +104,9 @@ class ZonesCompilerTest {
                 + "{\"shape\": \"polygon\", \"centre\": [0, 0], \"points\": [[0, 0], [100, 0], [0, 100]], \"swap\": {\"minecraft:plains\": \"minecraft:sunflower_plains\"}},"
                 + "{\"shape\": \"circle\", \"radius\": 50, \"terrain\": \"spires\"},"
                 + "{\"shape\": \"all\", \"swap\": {\"minecraft:forest\": \"minecraft:birch_forest\", \"minecraft:river\": \"betterend:nowhere\"}}]");
-        JsonObject sector = file(out, "data/adventure/worldgen/density_function/zones/t/1/mask.json");
+        JsonObject sector = file(out, VanillaForms.runtimePath("data/adventure/worldgen/density_function/zones/t/1/mask.json"));
         assertTrue(sector.toString().contains("customdimensions:zone_distance"));
+        assertFalse(file(out, "data/adventure/worldgen/density_function/zones/t/1/mask.json").toString().contains("customdimensions:"));
         JsonObject box = file(out, "data/adventure/worldgen/density_function/zones/t/0/mask.json");
         assertFalse(box.toString().contains("customdimensions:"));
         assertFalse(out.files().containsKey("data/adventure/worldgen/noise/zone_jitter.json"));
