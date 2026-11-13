@@ -12,7 +12,7 @@
     "params": {
       "altitude": 120,
       "coverage": 0.5,
-      "size": 1.75,
+      "size": 2.25,
       "thickness": 14,
       "underside": 50,
       "spread": 10,
@@ -42,14 +42,23 @@
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:wisteria_grove": 20,
-      "adventure:lavender_fields": 20,
+      "adventure:wisteria_grove": 30,
+      "adventure:lavender_fields": 30,
       "adventure:sky_highlands": 15,
       "minecraft:cherry_grove": 10,
       "adventure:umbrella_jungle": 10,
       "adventure:chorus_forest": 5
     },
-    "over": "land"
+    "over": "land",
+    "places": {
+      "groups": {
+        "wisteria": ["adventure:wisteria_grove", "adventure:lavender_fields"],
+        "skylands": ["adventure:sky_highlands", "minecraft:cherry_grove"],
+        "endward": ["adventure:umbrella_jungle", "adventure:chorus_forest"]
+      },
+      "arrangement": "bands",
+      "direction": 90
+    }
   },
   "materials": {
     "biomes": {
