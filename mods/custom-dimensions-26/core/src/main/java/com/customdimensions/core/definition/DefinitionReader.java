@@ -37,7 +37,7 @@ public final class DefinitionReader {
     public static final List<String> DIMENSION_TYPE_FIELDS = List.of("minY", "height", "logicalHeight",
             "hasSkylight", "hasCeiling", "infiniburn", "monsterSpawnLightLevel", "monsterSpawnBlockLightLimit");
     public static final List<String> ATMOSPHERE_FIELDS =
-            List.of("skyColor", "fogColor", "ambientLight", "fixedTime", "effects", "dayLength");
+            List.of("skyColor", "fogColor", "ambientLight", "fixedTime", "effects", "dayLength", "overBiomes");
     public static final List<String> RULES_FIELDS =
             List.of("bedsWork", "respawnAnchorsWork", "piglinsZombify", "ultraWarm", "natural", "raids");
     public static final List<String> BORDERS_FIELDS = List.of("player", "generation");
@@ -89,7 +89,7 @@ public final class DefinitionReader {
                         o.get("monsterSpawnLightLevel"), c.integer(o, "monsterSpawnBlockLightLimit"))),
                 ctx.closed(root, "atmosphere", ATMOSPHERE_FIELDS, (c, o) -> new Atmosphere(
                         c.string(o, "skyColor"), c.string(o, "fogColor"), c.number(o, "ambientLight"),
-                        c.longValue(o, "fixedTime"), c.string(o, "effects"), dayLength(c, o))),
+                        c.longValue(o, "fixedTime"), c.string(o, "effects"), dayLength(c, o), c.bool(o, "overBiomes"))),
                 ctx.closed(root, "rules", RULES_FIELDS, (c, o) -> new Rules(
                         c.bool(o, "bedsWork"), c.bool(o, "respawnAnchorsWork"), c.bool(o, "piglinsZombify"),
                         c.bool(o, "ultraWarm"), c.bool(o, "natural"), c.bool(o, "raids"))),

@@ -338,6 +338,84 @@ class RoofedTerrainTest {
                 + "chasm floors from y -2", RoofedTerrain.describe(cut, 32, "lava"));
     }
 
+    // ---- biomes that follow the floor ---------------------------------------------------------
+
+    private static TerrainLibrary.Compiled nether(String params, Integer sea, TerrainLibrary.Biomes biomes) {
+        return TerrainLibrary.compile("t", "adventure", "t", TerrainLibraryTest.spec("{\"base\": \"roofed\", \"params\": {" + params + "}}"),
+                "nether", TerrainLibraryTest.vanilla().noiseSettings("nether"), sea, TerrainLibraryTest.vanilla(), biomes);
+    }
+
+    @Test
+    void theCoastIsTheFloorAgainstTheSeaWhereTheBiomesFollowIt() {
+        TerrainLibrary.Compiled c = nether("\"floorHeight\": 70, \"floorRelief\": 18, \"ceilingGap\": 40", 74,
+                new TerrainLibrary.Biomes(true, false));
+        assertEquals("adventure:terrain/t/coast", c.settings().getAsJsonObject("noise_router").get("continents").getAsString());
+        assertEquals(-4 / 64.0, eval(c, file(c, "coast"), FLAT, 0), 1e-9, "the flat floor at 70 lies 4 under the sea at 74");
+        Column high = new Column(noises("altitude", 2 * Noises.sigma("altitude") / 0.75, "detail", 0.0));
+        assertEquals(88, floor(c, high), 1e-6, "the relief's crest");
+        assertEquals(14 / 64.0, eval(c, file(c, "coast"), high, 0), 1e-9, "14 blocks over the sea");
+        Column low = new Column(noises("altitude", -2 * Noises.sigma("altitude") / 0.75, "detail", 0.0));
+        assertEquals(-22 / 64.0, eval(c, file(c, "coast"), low, 0), 1e-9, "a hollow 22 under the sea");
+        assertEquals(eval(c, file(c, "coast"), high, 0), eval(c, file(c, "coast"), high, 100), 1e-12, "the same at every height");
+    }
+
+    @Test
+    void withoutBiomesThatFollowTheFloorTheRouterKeepsThePresetsContinentalness() {
+        TerrainLibrary.Compiled c = nether("\"floorHeight\": 70", 74, TerrainLibrary.Biomes.NONE);
+        assertEquals(TerrainLibraryTest.vanilla().noiseSettings("nether").getAsJsonObject("noise_router").get("continents"),
+                c.settings().getAsJsonObject("noise_router").get("continents"));
+        assertFalse(c.files().containsKey(P + "coast.json"));
+    }
+
+    @Test
+    void theCoastIsNullWhereTheSeaLiesUnderTheWholeFloor() {
+        TerrainSpec dry = TerrainLibraryTest.spec("{\"base\": \"roofed\", \"params\": {\"floorHeight\": 60, \"floorRelief\": 10}}");
+        assertEquals(null, RoofedTerrain.coast(dry, 50));
+        TerrainSpec chasms = TerrainLibraryTest.spec("{\"base\": \"roofed\", \"params\": {\"floorHeight\": 60, \"floorRelief\": 10, "
+                + "\"chasms\": 0.05, \"chasmDepth\": 30}}");
+        double[] coast = RoofedTerrain.coast(chasms, 50);
+        assertEquals(0, coast[0]);
+        assertEquals(-3 / 64.0, coast[1], 1e-12);
+        assertEquals(3 / 64.0, coast[2], 1e-12);
+    }
+
+    @Test
+    void belowTheFloorTheDepthReadsTheBandsAndAboveItKeepsItsOwn() {
+        TerrainLibrary.Compiled c = nether("\"floorHeight\": 48, \"ceilingGap\": 40, \"chasms\": 0.05, \"chasmDepth\": 30", null,
+                new TerrainLibrary.Biomes(false, false, List.of(8, 40)));
+        JsonObject depth = file(c, "depth");
+        Column plain = new Column(noises("gorge", 1.0));
+        assertEquals(48, floor(c, plain), 1e-6, "away from the chasms the floor lies at its height");
+        assertEquals(0, eval(c, depth, plain, 48), 1e-9, "the floor's surface keeps the floor-height depth");
+        assertEquals(-0.25, eval(c, depth, plain, 80), 1e-9, "the open cavern too");
+        assertEquals(7 / 128.0, eval(c, depth, plain, 41), 1e-9, "7 blocks under the floor is still above the first band");
+        assertEquals(RoofedTerrain.BAND + RoofedTerrain.BAND_EDGE, eval(c, depth, plain, 40), 1e-9, "8 under starts the first band");
+        assertEquals(RoofedTerrain.BAND + RoofedTerrain.BAND_EDGE + 32 * RoofedTerrain.BAND_PER_BLOCK, eval(c, depth, plain, 8), 1e-9,
+                "40 under starts the second");
+        Column chasm = new Column(noises("gorge", 0.0));
+        assertEquals(48 - 12 * 0 - 30, floor(c, chasm), 1e-6, "a chasm floor 30 under the floor");
+        double chasmFloor = floor(c, chasm);
+        assertTrue(eval(c, depth, chasm, chasmFloor) < RoofedTerrain.BAND, "a chasm's own floor is open floor, not underground");
+        assertEquals(30 / 128.0, eval(c, depth, chasm, chasmFloor), 1e-9, "and keeps the floor-height depth its climate boxes read");
+        assertEquals(RoofedTerrain.BAND + RoofedTerrain.BAND_EDGE, eval(c, depth, chasm, chasmFloor - 8), 1e-9, "the band follows the chasm down");
+    }
+
+    @Test
+    void theDepthAboveTheBandsStaysUnderThemOnBothPresets() {
+        for (String preset : RoofedTerrain.PRESETS) {
+            JsonObject noise = TerrainLibraryTest.vanilla().noiseSettings(preset).getAsJsonObject("noise");
+            int minY = noise.get("min_y").getAsInt(), maxY = minY + noise.get("height").getAsInt();
+            double highestFloor = maxY - RoofedTerrain.MARGIN - 16;
+            assertTrue((highestFloor - minY) / RoofedTerrain.DEPTH_BLOCKS < RoofedTerrain.BAND - RoofedTerrain.BAND_EDGE, preset);
+        }
+    }
+
+    @Test
+    void theUndersideRoleHasNoGroundOnARoofedFloor() {
+        String m = assertThrows(IllegalArgumentException.class, () -> nether("", null, new TerrainLibrary.Biomes(false, true))).getMessage();
+        assertTrue(m.contains("a roofed floor has none"), m);
+    }
+
     @Test
     void settingsKeepTheCeilingClearOfTheFloor() {
         for (String setting : TerrainFamily.SETTINGS) {

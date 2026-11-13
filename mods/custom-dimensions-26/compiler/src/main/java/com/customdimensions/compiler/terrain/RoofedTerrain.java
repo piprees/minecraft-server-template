@@ -41,8 +41,15 @@ import static com.customdimensions.compiler.terrain.Df.spline;
  * are solid from the world's floor to its roof. The router's {@code depth}
  * is {@code (floorHeight - y) / 128}, so a listed biome with a
  * {@code climate.depth} box takes the low floors of pits and chasms.
+ *
+ * <p>Where the biomes follow the sea ({@link TerrainLibrary.Biomes#place}), the router's continentalness is
+ * {@code (floor - seaLevel) / }{@link #COAST_BLOCKS}: below 0 where the floor lies under the sea. Where biomes are
+ * bound below the floor ({@link TerrainLibrary.Biomes#belowFloor}), every point at least the first band's blocks
+ * under the floor reads depth from {@link #BAND} up, {@link #BAND_PER_BLOCK} per block deeper, and every other
+ * point the depth above, which stays under {@link #BAND} on both presets (their highest floor lies at most 172
+ * blocks over the bottom of the world).
  */
-final class RoofedTerrain {
+public final class RoofedTerrain {
 
     /** Presets a roofed terrain is built on: their final density is slides round the Nether's 3D noise. */
     static final Set<String> PRESETS = Set.of("nether", "caves");
@@ -61,13 +68,24 @@ final class RoofedTerrain {
     static final double DEPTH_BLOCKS = 128;
     /** Blocks a floor must keep from the preset's floor and roof. */
     static final int MARGIN = 4;
+    /** Blocks of floor height over or under the sea that read as one unit of the router's continentalness. */
+    public static final double COAST_BLOCKS = 64;
+    /** Router depth from which the below-floor bands start. */
+    public static final double BAND = 1.5;
+    /** Router depth per block deeper under the floor, inside the bands: 256 blocks span them up to 2. */
+    public static final double BAND_PER_BLOCK = 0.5 / 256;
+    /** Router depth a point keeps from a band's edge, past quantisation, so no point ties two boxes. */
+    public static final double BAND_EDGE = 0.0005;
 
     private RoofedTerrain() {
     }
 
     /** {@code settings} (a copy of the preset's) with the cavern in its final density and the floor-relative depth in its router. */
     static TerrainLibrary.Compiled compile(String slug, String namespace, String name, TerrainSpec spec, String preset,
-                                           JsonObject settings, Integer seaLevel) {
+                                           JsonObject settings, Integer seaLevel, TerrainLibrary.Biomes biomes) {
+        if (biomes.underside()) {
+            throw new IllegalArgumentException(slug + ": the underside role is the underside of islands over a void; a roofed floor has none");
+        }
         if (!PRESETS.contains(preset)) {
             throw new IllegalArgumentException(slug + ": terrain.base roofed shapes the caves and nether presets, a floor under a ceiling, not "
                     + preset);
@@ -96,9 +114,21 @@ final class RoofedTerrain {
             throw new IllegalStateException(preset + "'s final density no longer reads " + BASE_3D_NOISE + ": " + vanillaDensity);
         }
         functions.put("final_density", TerrainLibrary.replace(vanillaDensity.getAsJsonObject(), Map.of(BASE_3D_NOISE, prefix + "/cavern")));
-        functions.put("depth", cache(add(mul(y, 1 / DEPTH_BLOCKS), ctx.p("floorHeight") / DEPTH_BLOCKS)));
+        JsonElement depth = add(mul(y, 1 / DEPTH_BLOCKS), ctx.p("floorHeight") / DEPTH_BLOCKS);
+        if (!biomes.belowFloor().isEmpty()) {
+            int first = biomes.belowFloor().getFirst();
+            JsonElement under = add(floor, y);
+            JsonElement deep = clamp(add(mul(add(under, -first), 64), 1), 0, 1);
+            JsonElement band = add(clamp(mul(add(under, -first), BAND_PER_BLOCK), 0, 2 - BAND - BAND_EDGE), BAND + BAND_EDGE);
+            depth = lerp(deep, depth, band);
+        }
+        functions.put("depth", cache(depth));
         router.addProperty("final_density", prefix + "/final_density");
         router.addProperty("depth", prefix + "/depth");
+        if (biomes.place()) {
+            functions.put("coast", cache(clamp(mul(add(floor, -sea), 1 / COAST_BLOCKS), -1, 1)));
+            router.addProperty("continents", prefix + "/coast");
+        }
         out.remove("debug_functions");
         Map<String, JsonObject> files = new TreeMap<>();
         functions.forEach((key, json) -> files.put(TerrainLibrary.dataPath(prefix + "/" + key, "worldgen/density_function"), json));
@@ -191,6 +221,25 @@ final class RoofedTerrain {
         double t = Noises.threshold(ctx.p("pillars"), sigma);
         JsonElement column = ramp(ctx.noise("spires", 1 / ctx.p("pillarSize"), 0), t, t + 0.3 * sigma);
         return mul(add(column, -0.5), 4);
+    }
+
+    /** The lowest the floor reaches: the relief's hollows, pit floors, corridor beds and chasm floors. */
+    static double lowestFloor(TerrainSpec spec) {
+        double h = spec.param("floorHeight");
+        double low = h - spec.param("floorRelief");
+        if (spec.param("pit") > 0) low = Math.min(low, h - spec.param("pitDepth"));
+        if (spec.param("corridors") > 0) low = Math.min(low, h - spec.param("corridorDepth"));
+        if (spec.param("chasms") > 0) low = Math.min(low, h - spec.param("floorRelief") - spec.param("chasmDepth"));
+        return low;
+    }
+
+    /**
+     * Router continentalness at the sea line (0) and at the ends of the shore band, {@link TerrainFamily#SHORE_BELOW}
+     * under the sea to {@link TerrainFamily#SHORE_ABOVE} over it; null when the sea lies over no part of the floor.
+     */
+    static double[] coast(TerrainSpec spec, double sea) {
+        if (lowestFloor(spec) >= sea) return null;
+        return new double[]{0, -TerrainFamily.SHORE_BELOW / COAST_BLOCKS, TerrainFamily.SHORE_ABOVE / COAST_BLOCKS};
     }
 
     /** The lowest and highest floor and the ceiling, in blocks, and what lies under the sea, for the compile report. */

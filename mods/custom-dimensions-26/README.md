@@ -76,6 +76,7 @@ scripts/vanilla-boot-check.sh                 # boot that pack on vanilla, no mo
 | Structure control, every dimension ([below](#structure-control)) | `data/customdimensions/structure_control/<slug>.json` |
 | The End's terrain without its central island | `data/adventure/worldgen/density_function/end_without_central_island/{islands,sloped_cheese}.json` |
 | Fixed time of day | `data/adventure/timeline/fixed_time/<timeline>_<tick>.json` |
+| The dimension's sky and fog over its biomes' (`atmosphere.overBiomes`): one constant `override` track per colour, first in the dimension type's `timelines`, so it lands after every biome's own and before the day's darkening | `data/adventure/timeline/atmosphere/<slug>.json` |
 | Day length (`atmosphere.dayLength` or the settings' default), shared by every dimension on one length: its clock, made the dimension type's `default_clock`, and each whole-day timeline warped to it | `data/adventure/world_clock/day_length/<day>_<night>.json`, `data/adventure/timeline/day_length/<timeline>_<day>_<night>.json` (ticks) |
 | Base worlds, loaded at start | `data/minecraft/dimension/{overworld,the_nether,the_end}.json`, `data/adventure/dimension/the_aviary.json` |
 | Every other dimension, opened lazily by the runtime | `data/customdimensions/lazy_dimension/<slug>.json` |
@@ -228,7 +229,18 @@ lake mass `hollowDepth` deep (`ringLakes` 0 makes it the only one). A terrain ov
 void whose biome layout ranks over land or gives a biome the `basin` role writes
 its place cue (`<prefix>/place`: -1 void, -0.4 basin water, 0.5 land) as the router's
 continentalness; one with an `underside` biome writes `<prefix>/island_depth`, the
-depth below the islands' tops, as the router's depth. `terrain.landShare` (0–1)
+depth below the islands' tops, as the router's depth. A `roofed` floor with a
+`liquids.seaLevel` over part of it writes `<prefix>/coast`, (floor − sea level) / 64,
+as the router's continentalness when a listed biome takes the `ocean` or `shore`
+role or regions rank `over: land`: the ocean biomes take the floor under the sea, a
+shore biome 3 blocks either side of it, the land biomes the dry floor, each ranked
+over its own ground (no river band: a roofed floor refuses the `river` role).
+`biomeLayout.belowFloor` (biome to blocks, 4–256) binds a listed biome to every
+point that many blocks or more under a `roofed` floor: the router's depth there
+reads from 1.5 up, 0.5 per 256 blocks deeper, so each such biome takes its band
+(the deepest to the axis's end) under every place and none of the open floor,
+while the depth above keeps `(floorHeight − y) / 128` for `climate.depth` boxes.
+`terrain.landShare` (0–1)
 holds that share of the player border to land for any seed: the terrain's
 continentalness (`<prefix>/continents`, after its layout) is wrapped in
 `customdimensions:land_share`, which samples the seed's own continentalness on a

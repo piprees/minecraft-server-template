@@ -32,7 +32,9 @@ import java.util.Map;
  */
 public final class RegionLayout {
     public static final String MODE = "regions";
-    public static final List<String> FIELDS = List.of("mode", "axes", "weights", "roles", "sea", "over", "places");
+    public static final List<String> FIELDS = List.of("mode", "axes", "weights", "roles", "sea", "over", "places", "belowFloor");
+    /** The blocks under the floor a below-floor band may start at. */
+    public static final int BELOW_MIN = 4, BELOW_MAX = 256;
     /** Axes a region may be cut on; depth varies down a column, so it stays with bound biomes. */
     public static final List<String> REGION_AXES = List.of("temperature", "humidity", "continentalness", "erosion", "weirdness");
     public static final List<String> DEFAULT_AXES = List.of("temperature", "humidity");
@@ -140,18 +142,26 @@ public final class RegionLayout {
     static final double END_LAND = -0.0625;
 
     /**
-     * What the biomes of a dimension over a void stand on: the router {@code axis} that reads land, and the
-     * value from which it is land; whether the terrain shapes basins and has island undersides.
+     * What the biomes of a dimension over a void, or of a roofed floor under a sea, stand on: the router
+     * {@code axis} that reads land, and the value from which it is land; whether the terrain shapes basins and
+     * has island undersides; whether it is a roofed floor, whose land is the floor above the sea.
      */
-    record Ground(String axis, double min, boolean basins, boolean undersides) {}
+    record Ground(String axis, double min, boolean basins, boolean undersides, boolean floor) {
+        Ground(String axis, double min, boolean basins, boolean undersides) {
+            this(axis, min, basins, undersides, false);
+        }
+    }
 
     /**
      * The ground of {@code def}: a terrain over a void reads land on its place cue
      * ({@link com.customdimensions.compiler.terrain.TerrainFamily.Shape#place}), the End's own islands on its
-     * erosion, which is their density; null for a dimension on the ground.
+     * erosion, which is their density, and a roofed floor with {@code liquids.seaLevel} over part of it on its
+     * floor against the sea ({@link com.customdimensions.compiler.terrain.TerrainLibrary#roofedCoast}); null for a
+     * dimension on the ground.
      */
     static Ground ground(String slug, com.customdimensions.core.definition.Definition def) {
         var spec = com.customdimensions.compiler.terrain.TerrainSpec.parse(slug, def.terrain());
+        if (roofedCoast(spec, def) != null) return new Ground("continentalness", 0, false, false, true);
         if (spec != null && spec.airborne()) {
             return new Ground("continentalness", com.customdimensions.compiler.terrain.TerrainFamily.PLACE_HELD,
                     spec.family().shapesBasins(), true);
@@ -179,7 +189,14 @@ public final class RegionLayout {
                                                                               BiomeRoles roles) {
         JsonObject layout = def.biomeLayout();
         Ground ground = layout == null ? null : ground(slug, def);
-        if (ground == null || !"continentalness".equals(ground.axis())) return com.customdimensions.compiler.terrain.TerrainLibrary.Biomes.NONE;
+        java.util.List<Integer> below = layout == null ? List.of() : List.copyOf(new java.util.TreeSet<>(belowFloor(slug, layout, def.biomes()).values()));
+        if (ground != null && ground.floor()) {
+            boolean follows = overLand(slug, layout) || seaRoles(slug, def, roles);
+            return new com.customdimensions.compiler.terrain.TerrainLibrary.Biomes(follows, false, below);
+        }
+        if (ground == null || !"continentalness".equals(ground.axis())) {
+            return new com.customdimensions.compiler.terrain.TerrainLibrary.Biomes(false, false, below);
+        }
         boolean land = overLand(slug, layout);
         Map<String, String> overrides = roles(slug, layout, def.biomes());
         boolean basin = false, underside = false;
@@ -189,7 +206,29 @@ public final class RegionLayout {
             basin |= BiomeRoles.BASIN.equals(r);
             underside |= BiomeRoles.UNDERSIDE.equals(r);
         }
-        return new com.customdimensions.compiler.terrain.TerrainLibrary.Biomes(land || basin, underside);
+        return new com.customdimensions.compiler.terrain.TerrainLibrary.Biomes(land || basin, underside, below);
+    }
+
+    /**
+     * The roofed coast of {@code def}: its terrain is roofed and its {@code liquids.seaLevel} lies over part of
+     * the floor; null otherwise.
+     */
+    static double[] roofedCoast(com.customdimensions.compiler.terrain.TerrainSpec spec, com.customdimensions.core.definition.Definition def) {
+        if (spec == null || !spec.family().roofed() || def.liquids() == null || def.liquids().seaLevel() == null) return null;
+        return com.customdimensions.compiler.terrain.TerrainLibrary.roofedCoast(spec, def.liquids().seaLevel());
+    }
+
+    /** Whether a listed biome without a climate takes the sea or the shore: its role, given or its own, is ocean or shore. */
+    static boolean seaRoles(String slug, com.customdimensions.core.definition.Definition def, BiomeRoles roles) {
+        if (def.biomeLayout() == null) return false;
+        Map<String, String> overrides = roles(slug, def.biomeLayout(), def.biomes());
+        Map<String, Integer> below = belowFloor(slug, def.biomeLayout(), def.biomes());
+        for (BiomeEntry b : def.biomes()) {
+            if (b.climate() != null || below.containsKey(b.id())) continue;
+            String r = roles == null ? overrides.getOrDefault(b.id(), BiomeRoles.LAND) : roles.role(b.id(), overrides);
+            if (BiomeRoles.OCEAN.equals(r) || BiomeRoles.SHORE.equals(r)) return true;
+        }
+        return false;
     }
 
     /** {@code id}'s role over a void: its own, but an ocean takes the basins of a terrain that shapes them when regions are over land. */
@@ -210,10 +249,22 @@ public final class RegionLayout {
      * com.customdimensions.compiler.terrain.TerrainFamily#coastline()}, else vanilla's for the overworld presets.
      */
     static Coast coast(String slug, com.customdimensions.core.definition.Definition def, List<String> axes) {
+        return coast(slug, def, axes, null);
+    }
+
+    /**
+     * As {@link #coast(String, com.customdimensions.core.definition.Definition, List)}; a roofed floor under its
+     * {@code liquids.seaLevel} has a coast where a listed biome takes the sea or the shore ({@link #seaRoles}):
+     * the floor against the sea, with no river band.
+     */
+    static Coast coast(String slug, com.customdimensions.core.definition.Definition def, List<String> axes, BiomeRoles roles) {
         if (axes.contains("continentalness") || axes.contains("weirdness")) return null;
         var spec = com.customdimensions.compiler.terrain.TerrainSpec.parse(slug, def.terrain());
         Coast coast;
-        if (spec != null) {
+        double[] roofed = roofedCoast(spec, def);
+        if (roofed != null) {
+            coast = seaRoles(slug, def, roles) ? new Coast(roofed[0], roofed[1], roofed[2], roofed[0], roofed[0], true) : null;
+        } else if (spec != null) {
             double[] shore = spec.family().shore(spec);
             coast = shore == null ? null : Coast.terrain(shore);
         } else {
@@ -267,9 +318,17 @@ public final class RegionLayout {
         Map<String, Double> weights = weights(slug, layout);
         Map<String, String> overrides = roles(slug, layout, biomes);
         boolean overLand = overLand(slug, layout);
+        Map<String, Integer> below = belowFloor(slug, layout, biomes);
         if (overLand && ground == null) {
-            throw error(slug, "biomeLayout.over land ranks regions over the islands of the end preset or of a terrain over a void; "
-                    + "on the ground, role areas already rank each biome over its own ground");
+            throw error(slug, "biomeLayout.over land ranks regions over the islands of the end preset or of a terrain over a void, or over "
+                    + "the floor of a roofed terrain above its liquids.seaLevel; on the ground, role areas already rank each biome over its own ground");
+        }
+        boolean floor = ground != null && ground.floor();
+        for (BiomeEntry b : biomes) {
+            if (floor && b.climate() == null && !below.containsKey(b.id()) && roles != null
+                    && BiomeRoles.RIVER.equals(roles.role(b.id(), overrides))) {
+                throw error(slug, "biomeLayout: " + b.id() + " is a river, and a roofed floor has no rivers; give it another role");
+            }
         }
         for (Map.Entry<String, String> o : overrides.entrySet()) {
             if (BiomeRoles.BASIN.equals(o.getValue()) && (ground == null || !ground.basins())) {
@@ -288,11 +347,13 @@ public final class RegionLayout {
         JsonArray bound = new JsonArray();
         List<String> regional = new ArrayList<>();
         List<String> boundIds = new ArrayList<>();
+        bands(below).forEach(bound::add);
         for (BiomeEntry b : biomes) {
             if (!known.contains(b.id())) {
                 entry.skippedBiome(b.id(), DatapackCompiler.UNKNOWN_BIOME);
                 continue;
             }
+            if (below.containsKey(b.id())) continue;
             if (b.climate() != null) {
                 bound.add(BiomeLayout.entry(b.id(), BiomeLayout.climate(b.id(), b.climate())));
                 if (!boundIds.contains(b.id())) boundIds.add(b.id());
@@ -326,7 +387,7 @@ public final class RegionLayout {
                 (BiomeRoles.UNDERSIDE.equals(r) ? under : BiomeRoles.BASIN.equals(r) ? basin : held).add(id);
             }
         }
-        if (overLand) {
+        if (overLand && !(floor && coast != null)) {
             JsonObject land = new JsonObject();
             land.addProperty("axis", ground.axis());
             land.addProperty("min", ground.min());
@@ -434,13 +495,78 @@ public final class RegionLayout {
             regions.addProperty("places", true);
             note += "; laid out over a " + radius + "-block radius as " + PlaceLayout.describe(places);
         }
-        entry.note(note + (boundIds.isEmpty() ? "" : "; bound by their climate: " + boundIds));
+        entry.note(note + (boundIds.isEmpty() ? "" : "; bound by their climate: " + boundIds)
+                + (below.isEmpty() ? "" : "; bound below the floor (blocks): " + below));
         List<String> shadowed = new ArrayList<>(regional);
         carved.forEach(e -> shadowed.remove(e.getAsJsonObject().get("biome").getAsString()));
         if (!shadowed.isEmpty()) {
             entry.note("Regional biome(s) " + shadowed + " are never placed: bound climate boxes cover their whole area; narrow those boxes");
         }
         return new Plan(carved, regions, places);
+    }
+
+    /**
+     * {@code biomeLayout.belowFloor}: a listed biome without a climate to the blocks under a roofed terrain's
+     * floor from which it holds every point, each a different number from {@link #BELOW_MIN} to {@link #BELOW_MAX}.
+     */
+    static Map<String, Integer> belowFloor(String slug, JsonObject layout, List<BiomeEntry> biomes) {
+        Map<String, Integer> out = new LinkedHashMap<>();
+        JsonElement e = layout.get("belowFloor");
+        if (e == null) return out;
+        if (!e.isJsonObject() || e.getAsJsonObject().isEmpty()) {
+            throw error(slug, "biomeLayout.belowFloor must be an object of biome id to the blocks under the floor its band starts at");
+        }
+        for (Map.Entry<String, JsonElement> kv : e.getAsJsonObject().entrySet()) {
+            JsonElement v = kv.getValue();
+            if (!v.isJsonPrimitive() || !v.getAsJsonPrimitive().isNumber() || v.getAsDouble() != Math.rint(v.getAsDouble())
+                    || v.getAsInt() < BELOW_MIN || v.getAsInt() > BELOW_MAX) {
+                throw error(slug, "biomeLayout.belowFloor." + kv.getKey() + " must be a whole number of blocks from " + BELOW_MIN + " to " + BELOW_MAX);
+            }
+            BiomeEntry b = biomes.stream().filter(x -> x.id().equals(kv.getKey())).findFirst().orElse(null);
+            if (b == null) throw error(slug, "biomeLayout.belowFloor." + kv.getKey() + " names no listed biome");
+            if (b.climate() != null) {
+                throw error(slug, "biomeLayout.belowFloor." + kv.getKey() + " binds a biome by the floor, which its climate box already binds; give one or the other");
+            }
+            if (out.containsValue(v.getAsInt())) {
+                throw error(slug, "biomeLayout.belowFloor gives two biomes the band from " + v.getAsInt() + " blocks; give each its own depth");
+            }
+            out.put(kv.getKey(), v.getAsInt());
+        }
+        return out;
+    }
+
+    /** Refuses {@code biomeLayout.belowFloor} on a dimension whose terrain is not roofed. */
+    static void checkBelowFloor(String slug, com.customdimensions.core.definition.Definition def) {
+        if (def.biomeLayout() == null || !def.biomeLayout().has("belowFloor")) return;
+        var spec = com.customdimensions.compiler.terrain.TerrainSpec.parse(slug, def.terrain());
+        if (spec == null || !spec.family().roofed()) {
+            throw error(slug, "biomeLayout.belowFloor binds a biome under the floor of terrain.base roofed, which this definition does not have");
+        }
+    }
+
+    /**
+     * The below-floor bands as bound entries, shallowest first: each biome takes router depth from its own start to
+     * the next band's ({@link com.customdimensions.compiler.terrain.RoofedTerrain#BAND} at the shallowest), the
+     * deepest to the axis's end, on every other axis.
+     */
+    static List<JsonObject> bands(Map<String, Integer> below) {
+        List<Map.Entry<String, Integer>> sorted = new ArrayList<>(below.entrySet());
+        sorted.sort(Map.Entry.comparingByValue());
+        List<JsonObject> out = new ArrayList<>();
+        for (int i = 0; i < sorted.size(); i++) {
+            double lo = band(sorted.get(i).getValue(), sorted.get(0).getValue());
+            double hi = i + 1 < sorted.size() ? band(sorted.get(i + 1).getValue(), sorted.get(0).getValue()) : BiomeLayout.HIGH;
+            JsonObject climate = new JsonObject();
+            climate.add("depth", BiomeLayout.range(lo, hi));
+            out.add(BiomeLayout.entry(sorted.get(i).getKey(), BiomeLayout.climate(sorted.get(i).getKey(), climate)));
+        }
+        return out;
+    }
+
+    /** The router depth at which the band starting {@code blocks} under the floor begins, the shallowest starting at {@code first}. */
+    static double band(int blocks, int first) {
+        return Math.round((com.customdimensions.compiler.terrain.RoofedTerrain.BAND
+                + (blocks - first) * com.customdimensions.compiler.terrain.RoofedTerrain.BAND_PER_BLOCK) * 10000) / 10000.0;
     }
 
     /** The layout group a role's regional biomes share: peaks and wetlands are land. */

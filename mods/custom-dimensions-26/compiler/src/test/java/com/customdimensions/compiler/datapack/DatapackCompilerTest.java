@@ -104,6 +104,81 @@ class DatapackCompilerTest {
         assertEquals(0.3, type.get("ambient_light").getAsDouble());
     }
 
+    /** The colour {@code attribute} reads in the compiled {@code out}, dimension type first, then {@code biome}'s own, then the type's timelines in order. */
+    private static String layered(DatapackCompiler.Output out, String slug, String biome, String attribute) {
+        JsonObject type = type(out, slug);
+        JsonElement value = attributes(type).get(attribute);
+        String biomeFile = biome.startsWith("adventure:") ? out.files().get("data/adventure/worldgen/biome/" + biome.substring(10) + ".json")
+                : null;
+        JsonObject biomeJson = biomeFile != null ? JsonParser.parseString(biomeFile).getAsJsonObject()
+                : Fixtures.vanilla().biome(biome);
+        JsonObject own = biomeJson.getAsJsonObject("attributes");
+        if (own != null && own.has(attribute)) value = own.get(attribute);
+        for (String id : Fixtures.vanilla().expandTimelines(type.get("timelines"))) {
+            String text = out.files().get("data/" + id.substring(0, id.indexOf(':')) + "/timeline/" + id.substring(id.indexOf(':') + 1) + ".json");
+            JsonObject timeline = text != null ? JsonParser.parseString(text).getAsJsonObject() : Fixtures.vanilla().timeline(id);
+            JsonObject track = timeline.has("tracks") ? timeline.getAsJsonObject("tracks").getAsJsonObject(attribute) : null;
+            if (track == null) continue;
+            String modifier = track.has("modifier") ? track.get("modifier").getAsString() : "override";
+            if ("override".equals(modifier)) value = track.getAsJsonArray("keyframes").get(0).getAsJsonObject().get("value");
+        }
+        return value == null ? null : value.getAsString();
+    }
+
+    @Test
+    void overBiomesHoldsTheDimensionsFogAndSkyOverAListedBiomesOwn() {
+        DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"nether\"}, "
+                + "\"biomes\": [\"adventure:withered_forest\", \"minecraft:soul_sand_valley\"], "
+                + "\"atmosphere\": {\"skyColor\": \"#1B0B2B\", \"fogColor\": \"#1B0B2B\", \"overBiomes\": true}");
+        JsonObject withered = file(out, "data/adventure/worldgen/biome/withered_forest.json").getAsJsonObject("attributes");
+        assertEquals("#55606c", withered.get("minecraft:visual/fog_color").getAsString(), "the library biome keeps its own fog in its file");
+        JsonArray timelines = type(out, "t").getAsJsonArray("timelines");
+        assertEquals("adventure:atmosphere/t", timelines.get(0).getAsString());
+        assertEquals(Fixtures.vanilla().expandTimelines(new com.google.gson.JsonPrimitive("#minecraft:in_nether")),
+                Fixtures.vanilla().expandTimelines(timelines).subList(1, timelines.size()));
+        JsonObject timeline = file(out, "data/adventure/timeline/atmosphere/t.json");
+        assertEquals("minecraft:overworld", timeline.get("clock").getAsString());
+        assertEquals("{\"keyframes\":[{\"ticks\":0,\"value\":\"#1b0b2b\"}],\"modifier\":\"override\"}",
+                timeline.getAsJsonObject("tracks").get("minecraft:visual/fog_color").toString());
+        for (String biome : List.of("adventure:withered_forest", "minecraft:soul_sand_valley")) {
+            assertEquals("#1b0b2b", layered(out, "t", biome, "minecraft:visual/fog_color"), biome);
+            assertEquals("#1b0b2b", layered(out, "t", biome, "minecraft:visual/sky_color"), biome);
+        }
+    }
+
+    @Test
+    void withoutOverBiomesAListedBiomesOwnFogWins() {
+        DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"nether\"}, "
+                + "\"biomes\": [\"adventure:withered_forest\"], \"atmosphere\": {\"fogColor\": \"#1B0B2B\"}");
+        assertEquals("#55606c", layered(out, "t", "adventure:withered_forest", "minecraft:visual/fog_color"));
+        assertFalse(out.files().containsKey("data/adventure/timeline/atmosphere/t.json"));
+        assertEquals("#minecraft:in_nether", type(out, "t").get("timelines").getAsString());
+    }
+
+    @Test
+    void overBiomesLeadsTheWarpedDayAndKeepsItsDarkening() {
+        DatapackCompiler.Output out = Fixtures.compile("t", OVERWORLD + ", \"biomes\": [\"adventure:withered_forest\", \"minecraft:plains\"], "
+                + "\"atmosphere\": {\"fogColor\": \"#E8A05A\", \"overBiomes\": true, \"dayLength\": {\"dayMinutes\": 30, \"nightMinutes\": 10}}");
+        JsonObject type = type(out, "t");
+        JsonArray timelines = type.getAsJsonArray("timelines");
+        assertEquals("adventure:atmosphere/t", timelines.get(0).getAsString());
+        assertTrue(timelines.toString().contains("adventure:day_length/"), timelines.toString());
+        JsonObject timeline = file(out, "data/adventure/timeline/atmosphere/t.json");
+        assertEquals(type.get("default_clock").getAsString(), timeline.get("clock").getAsString());
+        assertEquals(List.of("minecraft:visual/fog_color", "minecraft:visual/sky_color"),
+                new java.util.ArrayList<>(timeline.getAsJsonObject("tracks").keySet()), "the overworld type's own sky goes over the biomes too");
+        assertEquals("#e8a05a", layered(out, "t", "adventure:withered_forest", "minecraft:visual/fog_color"));
+        assertEquals(attributes(type).get("minecraft:visual/sky_color").getAsString(),
+                layered(out, "t", "minecraft:plains", "minecraft:visual/sky_color"));
+    }
+
+    @Test
+    void overBiomesNeedsAColourToHold() {
+        String m = assertThrows(IllegalArgumentException.class, () -> Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", "
+                + "\"preset\": \"nether\"}, \"atmosphere\": {\"overBiomes\": true}")).getMessage();
+        assertTrue(m.contains("atmosphere.overBiomes holds the dimension's sky and fog colours"), m);
+    }
+
     @Test
     void endEffectsBringTheEndSkyAndNoClouds() {
         JsonObject type = type(Fixtures.compile("t", OVERWORLD + ", \"atmosphere\": {\"effects\": \"minecraft:the_end\"}"), "t");
