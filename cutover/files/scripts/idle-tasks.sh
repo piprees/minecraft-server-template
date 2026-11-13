@@ -10,19 +10,20 @@
 #   1. Chunky, out to the dimension's borders.generation — real chunks, so no
 #      generation stutter where players actually go, and region files for
 #      unmined-render to draw the map from.
-#   2. Distant Horizons `/dh pregen`, out to the dimension's full border —
-#      LOD only, far cheaper per block than chunks, and what a player sees
-#      past the Chunky radius. DH's distantGeneratorMode is FEATURES, which
-#      generates everything except structures: distant terrain renders, a
-#      distant village does not until someone gets close enough for real
-#      generation. INTERNAL_SERVER is the only mode that draws structures and
-#      it writes region files, so it costs the same as Chunky.
+#   2. Distant Horizons `/dh pregen`, out to the larger of the dimension's
+#      player and generation borders — LOD only, and what a player sees past
+#      the Chunky radius. The mod answers DH's generation requests from the
+#      dimension's noise (lod/DhLodGenerator): terrain, surface blocks,
+#      fluids and biomes, without structures, trees or carvers, and DH's
+#      distantGeneratorMode does not change that answer. Where Chunky already
+#      made chunks, DH builds its LODs from those chunks as they load.
 #
-# Pre-generation extent is `borders.generation` in the dimension's own
-# definition (falling back to `borders.player`, then settings.json's
-# defaults). Storage is quadratic in radius, so that one number is the whole
-# cost control — there is no separate cap. A lazy dimension is opened with
-# `customdim activate` before each stage starts in it.
+# Chunky's extent is `borders.generation` in the dimension's own definition
+# (falling back to `borders.player`, then settings.json's defaults); DH's is
+# the larger of `borders.player` and `borders.generation`, each falling back
+# to settings.json's default. Storage is quadratic in radius, so those
+# borders are the whole cost control — there is no separate cap. A lazy
+# dimension is opened with `customdim activate` before each stage starts in it.
 #
 # Only visited dimensions are pre-generated, detected the same way
 # unmined-render detects them: a region directory holding an .mca over 8k.
@@ -46,7 +47,8 @@
 #
 # Usage: no arguments. Configured entirely by environment:
 #   PREGEN_BORDER_RADIUS blocks, default 8192. Last-resort border, used only
-#                        when settings.json carries no defaults.borders.player.
+#                        when neither the definition nor settings.json's
+#                        defaults.borders gives one.
 #   DH_PREGEN            "true"/"false", default true. The stage-2 switch.
 #   IDLE_GRACE           minutes of empty server before maintenance starts.
 #   POLL_INTERVAL        seconds between polls.
@@ -226,6 +228,7 @@ dh_marker() {
 # the same default the mod merges under a dimension naming no border of its
 # own. Read once at startup.
 DEFAULT_BORDER=""
+DEFAULT_BORDERS='{}'
 resolve_default_border() {
   local value=""
   if [[ -f "$SETTINGS_FILE" ]]; then
@@ -236,6 +239,9 @@ resolve_default_border() {
     echo "  No defaults.borders in settings.json — falling back to PREGEN_BORDER_RADIUS ${value}"
   fi
   DEFAULT_BORDER="$value"
+  if [[ -f "$SETTINGS_FILE" ]]; then
+    DEFAULT_BORDERS=$(jq -c '.defaults.borders // {}' "$SETTINGS_FILE" 2> /dev/null || echo '{}')
+  fi
 }
 
 # How far to pre-generate this dimension: its own `borders.generation`, else
@@ -251,6 +257,23 @@ border_for() {
   echo "$value"
 }
 
+# How far DH pre-generates this dimension: the larger of its player and
+# generation borders, each falling back to settings.json's default — the
+# reach the mod's LOD generator answers at full detail (LevelMaths.lodReach).
+lod_reach_for() {
+  local slug="$1" value=""
+  local larger='[(.borders.player // $d.player), (.borders.generation // $d.generation)] | map(select(. != null)) | max // empty'
+  if [[ -f "$DIM_DIR/$slug.json" ]]; then
+    value=$(jq -r --argjson d "$DEFAULT_BORDERS" "$larger" "$DIM_DIR/$slug.json" 2> /dev/null || echo "")
+  else
+    value=$(echo '{}' | jq -r --argjson d "$DEFAULT_BORDERS" "$larger" 2> /dev/null || echo "")
+  fi
+  if [[ -z "$value" || "$value" == "null" ]]; then
+    value="$DEFAULT_BORDER"
+  fi
+  echo "$value"
+}
+
 # True when a player has been here: the same test unmined-render uses to
 # decide a dimension is worth drawing.
 visited() {
@@ -258,10 +281,10 @@ visited() {
   [[ -n "$(find "$1" -maxdepth 1 -name '*.mca' -size +8k -print -quit 2> /dev/null)" ]]
 }
 
-# Every visited dimension, one "<id>|<region dir>|<border>" per line.
+# Every visited dimension, one "<id>|<region dir>|<border>|<LOD reach>" per line.
 # Emitted in a stable order so the queue is deterministic across restarts.
 dimension_queue() {
-  local slug border
+  local slug border reach
   for slug in overworld the_nether the_end; do
     local region
     case "$slug" in
@@ -271,10 +294,11 @@ dimension_queue() {
     esac
     if [[ -d "$region" ]] && visited "$region"; then
       border=$(border_for "$slug")
+      reach=$(lod_reach_for "$slug")
       case "$slug" in
-        overworld) echo "minecraft:overworld|$region|$border" ;;
-        the_nether) echo "minecraft:the_nether|$region|$border" ;;
-        the_end) echo "minecraft:the_end|$region|$border" ;;
+        overworld) echo "minecraft:overworld|$region|$border|$reach" ;;
+        the_nether) echo "minecraft:the_nether|$region|$border|$reach" ;;
+        the_end) echo "minecraft:the_end|$region|$border|$reach" ;;
       esac
     fi
   done
@@ -288,7 +312,8 @@ dimension_queue() {
       slug=$(basename "$dimdir")
       visited "$dimdir/region" || continue
       border=$(border_for "$slug")
-      echo "$ns:$slug|$dimdir/region|$border"
+      reach=$(lod_reach_for "$slug")
+      echo "$ns:$slug|$dimdir/region|$border|$reach"
     done
   done
 }
@@ -305,10 +330,10 @@ open_level() {
 # --- Pre-generation -----------------------------------------------------------
 
 start_pregen() {
-  local id region border radius chunk_radius
+  local id region border reach radius chunk_radius
 
   # Stage 1: the first visited dimension with no Chunky marker.
-  while IFS='|' read -r id region border; do
+  while IFS='|' read -r id region border reach; do
     [[ -n "$id" ]] || continue
     [[ -f "$(chunky_marker "$id")" ]] && continue
     radius="$border"
@@ -335,15 +360,15 @@ start_pregen() {
     return 0
   done <<< "$(dimension_queue)"
 
-  # Stage 2: LOD out to the full border, once a dimension's chunks are done.
+  # Stage 2: LOD out to the LOD reach, once a dimension's chunks are done.
   if [[ "$DH_PREGEN" == "true" ]]; then
-    while IFS='|' read -r id region border; do
+    while IFS='|' read -r id region border reach; do
       [[ -n "$id" ]] || continue
       [[ -f "$(chunky_marker "$id")" ]] || continue
       [[ -f "$(dh_marker "$id")" ]] && continue
-      chunk_radius=$((border / 16))
+      chunk_radius=$(((reach + 15) / 16))
       [[ "$chunk_radius" -lt 32 ]] && chunk_radius=32
-      echo "[$(date '+%H:%M:%S')] DH LOD pre-generation: ${id} (${chunk_radius} chunks, border ${border})"
+      echo "[$(date '+%H:%M:%S')] DH LOD pre-generation: ${id} (${chunk_radius} chunks, reach ${reach}, Chunky border ${border})"
       enable_skip_pause
       enter_pregen_mode
       rcon "dh pregen stop"
@@ -424,7 +449,7 @@ echo "Idle task monitor started (grace: ${IDLE_GRACE}min, poll: ${POLL_INTERVAL}
 resolve_default_border
 echo "  Default generation border from settings.json: ${DEFAULT_BORDER}"
 echo "  Chunky radius: each dimension's borders.generation"
-echo "  DH LOD pre-generation: ${DH_PREGEN} (to each dimension's own border)"
+echo "  DH LOD pre-generation: ${DH_PREGEN} (to the larger of each dimension's player and generation borders)"
 echo "  Dimensions are pre-generated once a player has visited them."
 
 empty_since=""
