@@ -239,6 +239,26 @@ class PlaceLayoutTest {
     }
 
     @Test
+    void aHeartWritesNoConstantPastVanillasRange() {
+        DatapackCompiler.Output out = Fixtures.compile("p", body(null, FOUR, "{\"arrangement\": \"core\"}", weights(FOUR, 20, 50, 15, 15)));
+        int functions = 0;
+        for (Map.Entry<String, String> file : out.files().entrySet()) {
+            if (!file.getKey().contains("/worldgen/density_function/")) continue;
+            functions++;
+            List<Double> numbers = new ArrayList<>();
+            numbers(JsonParser.parseString(file.getValue()), numbers);
+            for (double n : numbers) assertTrue(Math.abs(n) <= 1_000_000, file.getKey() + " writes " + n);
+        }
+        assertTrue(functions > 0, "the heart compiles density functions");
+    }
+
+    private static void numbers(JsonElement e, List<Double> out) {
+        if (e.isJsonObject()) for (Map.Entry<String, JsonElement> m : e.getAsJsonObject().entrySet()) numbers(m.getValue(), out);
+        else if (e.isJsonArray()) for (JsonElement x : e.getAsJsonArray()) numbers(x, out);
+        else if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber()) out.add(e.getAsDouble());
+    }
+
+    @Test
     void aSmallCoreIsAHeartRingedByTheOthers() {
         String body = body(null, FOUR, "{\"arrangement\": \"core\", \"warp\": {\"blocks\": 0}}", weights(FOUR, 20, 50, 15, 15));
         Field f = field("p", body);

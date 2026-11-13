@@ -22,6 +22,22 @@ final class Df {
         return new JsonPrimitive(new BigDecimal(value).round(new MathContext(9)).doubleValue());
     }
 
+    /** The largest magnitude vanilla's constant density function holds. */
+    static final double CONSTANT_RANGE = 1_000_000;
+
+    /**
+     * A constant as a density-function argument. Vanilla's constant holds {@link #CONSTANT_RANGE} at most, so a larger
+     * value is written as an exact product of a constant and a power of two.
+     */
+    static JsonElement k(double value) {
+        JsonElement r = c(value);
+        double v = r.getAsDouble();
+        if (Math.abs(v) <= CONSTANT_RANGE) return r;
+        double p = 2;
+        while (Math.abs(v / p) > CONSTANT_RANGE) p *= 2;
+        return binary("mul", new JsonPrimitive(v / p), new JsonPrimitive(p));
+    }
+
     static JsonElement ref(String id) {
         return new JsonPrimitive(id);
     }
@@ -50,7 +66,7 @@ final class Df {
     }
 
     static JsonObject add(JsonElement a, double b) {
-        return binary("add", a, c(b));
+        return binary("add", a, k(b));
     }
 
     static JsonObject sub(JsonElement a, JsonElement b) {
@@ -62,7 +78,7 @@ final class Df {
     }
 
     static JsonObject mul(JsonElement a, double b) {
-        return binary("mul", a, c(b));
+        return binary("mul", a, k(b));
     }
 
     static JsonObject min(JsonElement a, JsonElement b) {
