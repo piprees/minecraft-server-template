@@ -456,7 +456,7 @@
               }
             },
             "arrangement": {
-              "description": "Where the places' sites go: auto (default; deterministic sites relaxed to round places, chosen by the seed), ring (round a ring in list order, meeting near the centre), sectors (wedges round the centre as wide as their shares), bands (parallel bands across the border along direction, in list order, as wide as their shares), core (the first place at the centre, the rest round it).",
+              "description": "Where the places' sites go: auto (default; deterministic sites relaxed to round places, chosen by the seed), ring (round a ring in list order, meeting near the centre), sectors (wedges round the centre as wide as their shares), bands (parallel bands across the border along direction, in list order, as wide as their shares), core (the first place at the centre, the rest round it; a first place smaller than one of the others is a heart, a disc of its share round the centre with the rest in wedges round it, each meeting it).",
               "enum": [
                 "auto",
                 "ring",
@@ -473,7 +473,7 @@
               "maximum": 360
             },
             "at": {
-              "description": "A place's site in blocks, [x, z], inside 95% of the border: place name (a group's or a biome id) to its site. Given for every place, the places hold those sites for every seed; given for some, the rest are automatic. Not with a named arrangement.",
+              "description": "A place's site in blocks, [x, z], inside 95% of the border: place name (a group's or a biome id) to its site. The place holds the whole circle a tenth of the border's radius round its site, so a spawn or an arrival there stands inside it; a lone site no power cell can hold becomes a heart, a disc of its share round the site with the rest in wedges round it; otherwise the compiler refuses the definition naming the place. Given for every place, the places hold those sites for every seed; given for some, the rest are automatic. Not with a named arrangement.",
               "type": "object",
               "additionalProperties": {
                 "type": "array",

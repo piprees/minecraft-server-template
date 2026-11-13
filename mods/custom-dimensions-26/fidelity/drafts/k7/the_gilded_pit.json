@@ -40,12 +40,7 @@
           "minecraft:crimson_forest"
         ]
       },
-      "at": {
-        "minecraft:nether_wastes": [
-          0,
-          0
-        ]
-      }
+      "arrangement": "core"
     }
   },
   "borders": {

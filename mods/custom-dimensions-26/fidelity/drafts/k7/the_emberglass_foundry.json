@@ -39,6 +39,12 @@
           "adventure:magmatic_caves",
           "minecraft:sulfur_caves"
         ]
+      },
+      "at": {
+        "columns": [
+          -128,
+          128
+        ]
       }
     }
   },
