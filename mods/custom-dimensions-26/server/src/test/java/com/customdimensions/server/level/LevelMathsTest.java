@@ -95,6 +95,17 @@ class LevelMathsTest {
         assertEquals(new LevelMaths.SeedChoice(9, true, null), LevelMaths.chooseSeed("adventure:x", 9, null, true, 9));
     }
 
+    @Test
+    void lodReachIsTheLargerBorderEachFallingBackToTheDefaults() {
+        JsonObject defaults = JsonParser.parseString("{\"borders\":{\"player\":8192,\"generation\":2048}}").getAsJsonObject();
+        assertEquals(8192, LevelMaths.lodReach(null, defaults));
+        assertEquals(2048, LevelMaths.lodReach(new Borders(512, null), defaults), "the default generation border is larger");
+        assertEquals(4096, LevelMaths.lodReach(new Borders(4096, 1024), defaults));
+        assertEquals(3000, LevelMaths.lodReach(new Borders(1000, 3000), null));
+        assertEquals(600, LevelMaths.lodReach(new Borders(null, 600), null));
+        assertNull(LevelMaths.lodReach(null, null));
+    }
+
     private static void assertChunk(int x, int z, ChunkPos chunk) {
         assertEquals(x, chunk.x(), "x");
         assertEquals(z, chunk.z(), "z");

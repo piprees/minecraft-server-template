@@ -55,7 +55,10 @@ import net.minecraft.world.level.validation.DirectoryValidator;
  * {@code -Dcustomdimensions.fastbench.out}, and exits. No server, level,
  * world or network. The structure footprints need a server's templates and
  * are left out; the worldgen runtime (lava levels, basins, dry zones) is not
- * applied, so both sides see the noise settings' own fluid picker.
+ * applied, so both sides see the noise settings' own fluid picker. With
+ * {@code -Dcustomdimensions.fastbench.lod=<detail>[,...]} it measures each
+ * case's LOD source instead ({@link LodBench}); the case's radius is its reach
+ * and its step and threads are unused.
  */
 public final class FastBench {
     public static final String PROPERTY = "customdimensions.fastbench";
@@ -131,6 +134,14 @@ public final class FastBench {
             for (Case c : cases) {
                 LevelStem stem = stem(access, resources, c.slug());
                 var type = stem.type().value();
+                String lod = System.getProperty(LodBench.PROPERTY, "");
+                if (!lod.isEmpty()) {
+                    Sampler sampler = Sampler.of(c.slug(), stem.generator(), type.minY(), type.height(), c.seed(), "argument", access);
+                    List<String> lines = LodBench.run(c.slug(), sampler, c.radius(), type.hasSkyLight(), lod);
+                    lines.forEach(l -> CustomDimensions.LOG.info("fast bench: {}", l));
+                    summary.addAll(lines);
+                    continue;
+                }
                 ExecutorService pool = Executors.newFixedThreadPool(c.threads());
                 try {
                     for (int i = 1; i <= repeat; i++) {

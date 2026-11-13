@@ -44,6 +44,8 @@ dependencies {
 	if (project.hasProperty('firewallProbe')) {
 		localRuntime "maven.modrinth:the-lost-cities:${project.lostcities_version}"
 	}
+	// Distant Horizons' API for the LOD generator (lod/), used only when DH is installed; never nested.
+	compileOnly "maven.modrinth:distanthorizons:${project.distant_horizons_version}"
 	// -Pdh: Distant Horizons on the server, so a rig client with it is sent LODs the server generates (the rig's --dh).
 	if (project.hasProperty('dh')) {
 		localRuntime "maven.modrinth:distanthorizons:${project.distant_horizons_version}"
@@ -125,7 +127,7 @@ loom {
 			programArg '--nogui'
 			// -PselfTest=<file> runs the start-up self-test, writes its report and stops the server.
 			vmArg "-Dcustomdimensions.selftest=${project.findProperty('selfTest') ?: ''}"
-			// -PselfTestOnly=exits|commands|materials|biomes|render|firewall|terrain|zones|structures|roll|rollperf|generators|difficulty|survey|seeds|gamerules|mixins: the compiled-pack section and that one only.
+			// -PselfTestOnly=exits|commands|materials|biomes|render|firewall|terrain|zones|structures|roll|rollperf|generators|difficulty|survey|seeds|gamerules|mixins|lod: the compiled-pack section and that one only.
 			vmArg "-Dcustomdimensions.selftest.only=${project.findProperty('selfTestOnly') ?: ''}"
 			vmArg "-Dcustomdimensions.selftest.gallery=${project.findProperty('terrainGallery') ?: ''}"
 			// -PselfTestPersist=write|verify: the two-boot persistence check, run with the self-test.
@@ -138,6 +140,8 @@ loom {
 			// The firewall's bridges, as config/custom-dimensions/bridges/ holds them in production. -Pbridges=<dir> reads another folder.
 			vmArg "-Dcustomdimensions.bridges=${project.findProperty('bridges') ?: file('../bridges').canonicalPath}"
 			// The extracted vanilla files, only for the self-test's equivalence line against the running game.
+			// With -Pdh, Distant Horizons checks every column the LOD generator gives it (DhLodGenerator.VALIDATE_PROPERTY).
+			if (project.hasProperty('dh')) vmArg '-Dcustomdimensions.dh.validate=true'
 			vmArg "-Dcustomdimensions.vanilla.reference=${project(':compiler').layout.buildDirectory.dir("vanilla/${project.minecraft_version}").get().asFile.absolutePath}"
 		}
 	}
@@ -156,6 +160,9 @@ loom {
 			vmArg "-Dcustomdimensions.fastbench=${project.findProperty('fastBench') ?: ''}"
 			vmArg "-Dcustomdimensions.fastbench.out=${project.findProperty('fastBenchOut') ?: file('run-bench/out').absolutePath}"
 			vmArg "-Dcustomdimensions.fastbench.repeat=${project.findProperty('fastBenchRepeat') ?: '2'}"
+			// -PfastBenchLod=<detail>[,<detail>...]: instead of rendering, compares the LOD generator's coarse shortcut at each
+			// detail level with whole columns (LodBench), one line per case and level in summary.txt.
+			vmArg "-Dcustomdimensions.fastbench.lod=${project.findProperty('fastBenchLod') ?: ''}"
 			vmArg "-Dcustomdimensions.definitions=${project.findProperty('definitions') ?: file('../definitions').canonicalPath}"
 			vmArg "-Dcustomdimensions.bridges=${project.findProperty('bridges') ?: file('../bridges').canonicalPath}"
 			if (project.hasProperty('fastBenchJvm')) {
