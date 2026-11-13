@@ -67,11 +67,15 @@ public final class LodSource implements AutoCloseable {
     /** The pre-scan's answer: the shortcut and its window {@code from..to}. */
     public record Shape(Mode mode, int from, int to, int columns, int roofed, int floating, int spacing, String rule) {}
 
-    /** One column: its runs, their dress, each run's biome (one entry, the column's, when it has none), and whether it is roofed. */
+    /**
+     * One column: its runs, their dress, each run's biome (one entry, the
+     * column's, when it has none), and whether it is roofed (also when the
+     * shortcut left its roof out: no sky light reaches its floor).
+     */
     public record Column(ColumnRuns runs, RunDress<BlockState> dress, List<Holder<Biome>> biomes, boolean roofed) {}
 
-    /** The coarse runs of a tile and the window they were scanned over. */
-    record Scan(ColumnRuns[] runs, int from, int to) {}
+    /** The coarse runs of a tile, the window they were scanned over, and which columns had their roof left out. */
+    record Scan(ColumnRuns[] runs, int from, int to, boolean[] unroofed) {}
 
     private final String level;
     private final ThreadLocal<ColumnModel> models;
@@ -162,7 +166,8 @@ public final class LodSource implements AutoCloseable {
                 int x = x0 + tx * step;
                 int z = z0 + tz * step;
                 int n = FastRender.TILE;
-                ColumnRuns[] runs = coarse ? coarse(model, s, x, z, step).runs() : model.scan(x, z, step, n, n);
+                Scan scan = coarse ? coarse(model, s, x, z, step) : null;
+                ColumnRuns[] runs = scan != null ? scan.runs() : model.scan(x, z, step, n, n);
                 int[] surfaceTop = new int[runs.length];
                 for (int c = 0; c < runs.length; c++) {
                     int r = runs[c].surfaceRun(hi, minY);
@@ -181,7 +186,8 @@ public final class LodSource implements AutoCloseable {
                         List<Holder<Biome>> biomes = new ArrayList<>(Math.max(1, r.count()));
                         for (int k = 0; k < r.count(); k++) biomes.add(model.biome(bx, r.top(k) + 1, bz));
                         if (r.count() == 0) biomes.add(model.biome(bx, seaLevel, bz));
-                        out[(tx + i) + WIDTH * (tz + j)] = new Column(r, d, biomes, r.roofed(hi));
+                        boolean roofed = r.roofed(hi) || scan != null && scan.unroofed()[c];
+                        out[(tx + i) + WIDTH * (tz + j)] = new Column(r, d, biomes, roofed);
                     }
                 }
             }
@@ -218,13 +224,19 @@ public final class LodSource implements AutoCloseable {
             to = up ? hi : to;
             runs = model.scan(x, z, step, n, n, from, to);
         }
+        boolean[] unroofed = new boolean[runs.length];
         for (int c = 0; c < runs.length; c++) {
             ColumnRuns r = runs[c].clip(to);
             if (from > lo) r = r.withFloor(from, lo);
-            if (s.mode() == Mode.ROOFED && r.roofed(hi) && r.count() > 1) r = r.dropTop();
+            if (s.mode() == Mode.ROOFED && r.roofed(hi) && r.count() > 1) {
+                r = r.dropTop();
+                unroofed[c] = true;
+            } else if (s.mode() == Mode.ROOFED && to < hi) {
+                unroofed[c] = true;
+            }
             runs[c] = r;
         }
-        return new Scan(runs, from, to);
+        return new Scan(runs, from, to, unroofed);
     }
 
     /** The pre-scan's shape, computed once, on the first coarse request. */
