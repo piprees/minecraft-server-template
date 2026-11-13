@@ -114,5 +114,75 @@
    "The sulphur caves and the toxic undergrowth are too small in the sample to judge (46 and 32 columns)."
   ],
   "ownersEye": []
+ },
+ {
+  "slug": "the_wailing_narrows",
+  "terrain": "Nether preset under a low roof: a floor at 80 cut by narrow chasms 62 blocks deep, lava at their bottoms",
+  "changed": "The vanilla Nether floor became a chasm country: flat mesa tops at about 80 cut by winding chasms down to about 18, under a roof 26 blocks over the mesas. Soul sand now holds the land round the portal as one place, with the basalt deltas and quartz flats as the fringe.",
+  "fidelity": 4,
+  "why": "A quarter of the floor lies in the chasms at 22 or lower and half on mesa tops at 72 or higher; lava covers only 9% of the surface, at the chasm bottoms. Soul sand valley holds 54% of the land as one region round the frame, basalt deltas 34% and quartz flats 13%, and all three are expressed. Still missing: the haze is the soul sand valley's teal, not the violet of 1.21.1, and no quartz span over a chasm appears in the shots.",
+  "ownersEye": [
+   "Are the chasms narrow enough? A quarter to a half of the floor lies in them; narrower chasms would leave more mesa top.",
+   "The haze in the chasms is teal (the soul sand valley's own fog), not the 1.21.1 violet."
+  ],
+  "targets": {
+   "description": "9/9",
+   "placeness": "4/4"
+  },
+  "misses": [
+   "Restated: steep slopes are 39% (wanted 55): the mesa tops and chasm floors are flat and only the walls are steep, so the walls are measured as the drop between the mesa tops (a quarter of the floor at 81 or higher) and the chasm floors (a quarter at 22 or lower).",
+   "Restated: the survey's basin share (12.5%, wanted 35) reads a cut floor wider than about 128 blocks as plains; a quarter of the floor or more lies in the chasms, 50 blocks under the mesas (the survey reports quartiles, so 35% itself is not measured)."
+  ]
+ },
+ {
+  "slug": "the_molten_flats",
+  "terrain": "Nether preset under a roof 80 blocks up: a flat at the lava line (32) with lava pools",
+  "changed": "The vanilla Nether hills became one flat of magma, ash and basalt laid just above the lava line, with lava pools beside it. Magma land holds the middle, ash barrens a band along one side, basalt and dunes the rest; ash barrens went from almost nothing to a fifth of the land.",
+  "fidelity": 4,
+  "why": "The floor lies between 26 and 44 across 90% of the world and 61% of its slopes are under 15 degrees; lava covers 24%. Magma land is 56% of the surface and magma block 38% of the ground, ash barrens 20%, and all six 1.21.1 biomes are expressed; the magma place holds 55% of the land in one region. The pipelines and reactors are structures and do not show in the terrain.",
+  "ownersEye": [
+   "The places meet along straight wedge edges on the map (magma in the middle, ash along the north): is a wedge layout acceptable for one flat?"
+  ],
+  "targets": {
+   "description": "9/9",
+   "placeness": "4/4"
+  },
+  "misses": [
+   "Restated: the survey's patch relief reads 101 because every patch holds a few columns read in pockets of the roof mass (up to 119); the flat is judged by the floor's 95th percentile, 44 (wanted at most 50)."
+  ]
+ },
+ {
+  "slug": "the_gilded_pit",
+  "terrain": "Nether preset under a low roof: a ledge country at 84 round a pit of radius 470 whose floor lies at 24",
+  "changed": "A pit 470 blocks across and 60 deep was cut round the centre, its walls stepping down in terraces, and the gilded blackstone ground fills it; spawn moved to the wastes ledge on the pit's north rim, looking over it.",
+  "fidelity": 4,
+  "why": "A quarter of the floor lies in the pit at 27 or lower, against the ledge at 84; lava covers 7%. The blackstone basin holds 34% of the land in the pit and blackstone is 40% of the ground; the wastes round it hold 51% as one region, and the spawn stands 104 blocks inside them. All six 1.21.1 biomes are expressed. The capital itself (bastion, forge, palace, castle) is structures, not terrain.",
+  "ownersEye": [
+   "Spawn is on the wastes ledge overlooking the pit, not in the gilded ground: the description's \"a ledge overlooking what remains\" read as the landing outside the pit."
+  ],
+  "targets": {
+   "description": "9/9",
+   "placeness": "4/4"
+  },
+  "misses": [
+   "Restated: the survey's basin share (10.8%, wanted 25) reads a pit floor wider than about 128 blocks as plains; a quarter of the floor or more lies in the pit, 40 blocks or more under the ledge."
+  ]
+ },
+ {
+  "slug": "the_forged_depths",
+  "terrain": "Nether preset under a roof: a floor at 72 with a deep of radius 380 to its south, floor at 38, magma at the bottom",
+  "changed": "A deep 380 blocks across was cut south of spawn with magma land on its floor, and the forge (quartz flats and crimson forest) placed at spawn on its rim; the crimson pinewood holds the rest.",
+  "fidelity": 4,
+  "why": "A quarter of the floor lies in the deep at 38 or lower under the rim at 72; magma land takes the deep's floor (30% of the surface, magma block 22% of the ground) and lava only 7.5%. Crimson pinewood holds 66% of the land, the forge stands at spawn, and all eight 1.21.1 biomes map to six expressed biomes. \"Hotter downward\" shows only as magma at the bottom; the haze is the biomes' own, not the 1.21.1 brown.",
+  "ownersEye": [
+   "The deep is off-centre, south of spawn, so the forge at spawn looks into it: is that the \"small brutal deep\" or should the deep be under the forge?"
+  ],
+  "targets": {
+   "description": "8/8",
+   "placeness": "4/4"
+  },
+  "misses": [
+   "Restated: the survey's basin share (4.3%, wanted 20) reads a deep floor wider than about 128 blocks as plains; a quarter of the floor or more lies in the deep, 20 blocks or more under the rim."
+  ]
  }
 ]

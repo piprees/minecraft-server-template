@@ -1,1 +1,1 @@
-done: low five + boneyard + ember applied/reviewed/committed; revisit applied (f05a16dc); self-test 278/0/1 at 2b5f8540; wailing, molten, gilded, forged applied (r11 finals all w10t and w10c pass); next: shots, reviews, page.json; then K10 gap users
+done: all eleven applied, reviewed, committed; self-test 278/0/1 at 2b5f8540; next: K10 merge (lead) then gap users re-measured (buried, obsidian, boneyard, ember, blackstone, far views), build, final self-test
