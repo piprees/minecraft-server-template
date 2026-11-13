@@ -2,26 +2,45 @@
   "schemaVersion": 2,
   "description": "The piglin capital. Every portal drops you at the same ledge overlooking what remains: a bastion, a forge, a palace, a forbidden castle — gold in every wall, treasure in every ruin. Nothing within arm's reach of the landing. Greed pays and costs.",
   "seed": -7161067373243224201,
-  "spawn": [0, 24, -128],
+  "spawn": [0, 86, -560],
   "generator": {
     "type": "noise",
     "preset": "nether"
   },
   "biomes": [
-    "adventure:gravel_desert",
+    "adventure:blackstone_basin",
     "minecraft:nether_wastes",
+    "minecraft:basalt_deltas",
+    "adventure:gravel_desert",
     "minecraft:crimson_forest",
-    "adventure:magma_land",
-    "minecraft:basalt_deltas"
+    "adventure:magma_land"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:gravel_desert": 6.4,
-      "minecraft:nether_wastes": 27.1,
-      "minecraft:crimson_forest": 18.9,
-      "adventure:magma_land": 13.2,
-      "minecraft:basalt_deltas": 34.3
+      "adventure:blackstone_basin": 30,
+      "minecraft:nether_wastes": 54,
+      "minecraft:basalt_deltas": 4,
+      "adventure:gravel_desert": 5,
+      "minecraft:crimson_forest": 4,
+      "adventure:magma_land": 3
+    },
+    "places": {
+      "groups": {
+        "basalt": [
+          "minecraft:basalt_deltas",
+          "adventure:magma_land"
+        ],
+        "ruins": [
+          "adventure:gravel_desert",
+          "minecraft:crimson_forest"
+        ]
+      },
+      "arrangement": "core",
+      "warp": {
+        "blocks": 76,
+        "wavelength": 512
+      }
     }
   },
   "borders": {
@@ -140,5 +159,35 @@
       "blackstone_walls": "near_border",
       "mns:nether_tower": "near_border"
     }
+  },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 84,
+      "floorRelief": 6,
+      "ceilingGap": 22,
+      "roughness": 0.2,
+      "pit": 0.02,
+      "pitDepth": 60,
+      "ledges": 0.7,
+      "ledgeStep": 10
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 0],
+      "radius": 470,
+      "falloff": 48,
+      "strength": 1,
+      "warp": {
+        "blocks": 38,
+        "wavelength": 256
+      }
+    },
+    "scales": {
+      "climate": 1.5
+    }
+  },
+  "liquids": {
+    "seaLevel": 20
   }
 }

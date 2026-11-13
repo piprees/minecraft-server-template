@@ -2,16 +2,16 @@
  "slug": "the_wailing_narrows",
  "targets": [
   {
-   "key": "terrain.slopes.over45Percent",
+   "key": "terrain.surfaceHeight.p75",
    "op": ">=",
-   "value": 55,
-   "from": "\"Narrow bridged chasms\": walls everywhere"
+   "value": 70,
+   "from": "\"Narrow bridged chasms\": walls everywhere. Restated from terrain.slopes.over45Percent >= 55: the slope share counts only the wall columns of a country of flat mesa tops and chasm floors (the vanilla Nether reaches 52.8 with a jagged floor); the walls are the drop between the mesa tops, a quarter of the floor at 70 or higher, and the chasm floors below"
   },
   {
-   "key": "landforms.sharesPercent.basins + landforms.sharesPercent.water",
-   "op": ">=",
-   "value": 35,
-   "from": "\"chasms\", \"deeper and deeper\": low cut ground"
+   "key": "terrain.surfaceHeight.p25",
+   "op": "<=",
+   "value": 30,
+   "from": "\"chasms\", \"deeper and deeper\": low cut ground. Restated from landforms basins + water >= 35: the landform classifier marks basins by their height against a 256-block window, so the floor of a cut wider than about 128 blocks reads as plains; a quarter of the floor or more lies 50 blocks under the mesa tops (the survey reports quartiles, so the 35% share itself is not measured)"
   },
   {
    "key": "surface.fluidCoverPercent.lava",

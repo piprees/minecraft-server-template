@@ -8,10 +8,10 @@
    "from": "\"Industrial lava flats\""
   },
   {
-   "key": "terrain.reliefMedian",
+   "key": "terrain.surfaceHeight.p95",
    "op": "<=",
    "value": 50,
-   "from": "\"flats\", against the vanilla Nether's cliffs"
+   "from": "\"flats\", against the vanilla Nether's cliffs. Restated from terrain.reliefMedian <= 50: patch relief counts the few columns the survey reads in pockets of the roof mass, at up to 119 in every patch of every Nether preset; the 95th percentile of the floor is the flat's own height"
   },
   {
    "key": "surface.fluidCoverPercent.lava",

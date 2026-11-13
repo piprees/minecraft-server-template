@@ -8,10 +8,10 @@
    "from": "\"gold in every wall\""
   },
   {
-   "key": "landforms.sharesPercent.basins",
-   "op": ">=",
-   "value": 25,
-   "from": "\"a ledge overlooking what remains\": the capital lies in a pit"
+   "key": "terrain.surfaceHeight.p25",
+   "op": "<=",
+   "value": 44,
+   "from": "\"a ledge overlooking what remains\": the capital lies in a pit. Restated from landforms basins >= 25: the landform classifier marks basins by their height against a 256-block window, so the floor of a cut wider than about 128 blocks reads as plains; a quarter of the floor or more lies in the pit, 40 blocks or more under the ledge at 84"
   },
   {
    "key": "placeness.at.spawn.biomeEdgeBlocks",

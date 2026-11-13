@@ -2,28 +2,49 @@
   "schemaVersion": 2,
   "description": "The last piglin forge still burning. Crimson forges and reactors in a small brutal deep — the fires here never went out because nobody survived to bank them. The deeper you go, the hotter and harder it gets. The heat comes back through the frame, and anything built beside the portal is fuel.",
   "seed": -295827713663215989,
-  "spawn": [64, 31, 0],
+  "spawn": [0, 73, -110],
   "generator": {
     "type": "noise",
     "preset": "nether"
   },
   "biomes": [
     "adventure:quartz_flats",
-    "minecraft:nether_wastes",
     "adventure:crimson_pinewood",
-    "adventure:magma_land",
     "minecraft:basalt_deltas",
-    "minecraft:crimson_forest"
+    "minecraft:crimson_forest",
+    "minecraft:nether_wastes",
+    {
+      "id": "adventure:magma_land",
+      "climate": {
+        "depth": [0.2, 1]
+      }
+    }
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:quartz_flats": 27.3,
-      "minecraft:nether_wastes": 12.6,
-      "adventure:crimson_pinewood": 8.2,
-      "adventure:magma_land": 26,
-      "minecraft:basalt_deltas": 16.7,
-      "minecraft:crimson_forest": 9.2
+      "adventure:crimson_pinewood": 52,
+      "adventure:quartz_flats": 15,
+      "minecraft:basalt_deltas": 18,
+      "minecraft:crimson_forest": 8,
+      "minecraft:nether_wastes": 7
+    },
+    "places": {
+      "groups": {
+        "forge": [
+          "adventure:quartz_flats",
+          "minecraft:crimson_forest"
+        ],
+        "basalt": [
+          "minecraft:basalt_deltas",
+          "minecraft:nether_wastes"
+        ]
+      },
+      "arrangement": "core",
+      "warp": {
+        "blocks": 76,
+        "wavelength": 512
+      }
     }
   },
   "atmosphere": {
@@ -96,5 +117,32 @@
       "crimson_fungus",
       "mvs:large_warped_tower"
     ]
+  },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 72,
+      "floorRelief": 10,
+      "ceilingGap": 32,
+      "roughness": 0.3,
+      "pit": 0.04,
+      "pitDepth": 34,
+      "ledges": 0.5,
+      "ledgeStep": 8
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 300],
+      "radius": 380,
+      "falloff": 64,
+      "strength": 1,
+      "warp": {
+        "blocks": 76,
+        "wavelength": 512
+      }
+    },
+    "scales": {
+      "climate": 1.5
+    }
   }
 }

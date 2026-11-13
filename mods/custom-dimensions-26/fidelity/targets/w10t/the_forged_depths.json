@@ -2,10 +2,10 @@
  "slug": "the_forged_depths",
  "targets": [
   {
-   "key": "landforms.sharesPercent.basins",
-   "op": ">=",
-   "value": 20,
-   "from": "\"a small brutal deep\""
+   "key": "terrain.surfaceHeight.p25",
+   "op": "<=",
+   "value": 52,
+   "from": "\"a small brutal deep\". Restated from landforms basins >= 20: the landform classifier marks basins by their height against a 256-block window, so the floor of a cut wider than about 128 blocks reads as plains; a quarter of the floor or more lies in the deep, 20 blocks or more under the rim at 72"
   },
   {
    "key": "surface.groundBlocksPercent.minecraft:magma_block + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:obsidian + surface.groundBlocksPercent.minecraft:quartz_block",

@@ -1,1 +1,1 @@
-done: low five + boneyard + ember applied/reviewed/committed; revisit applied (f05a16dc). untouched: wailing, molten, gilded, forged (r4 baseline+k7 measured). next: build, full self-test, report
+done: low five + boneyard + ember applied/reviewed/committed; revisit applied (f05a16dc); self-test 278/0/1 at 2b5f8540; wailing, molten, gilded, forged applied (r11 finals all w10t and w10c pass); next: shots, reviews, page.json; then K10 gap users

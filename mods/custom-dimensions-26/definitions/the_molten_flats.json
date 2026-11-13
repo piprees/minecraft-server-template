@@ -8,20 +8,33 @@
     "preset": "nether"
   },
   "biomes": [
+    "adventure:magma_land",
     "adventure:ash_barrens",
-    "minecraft:nether_wastes",
     "minecraft:basalt_deltas",
     "adventure:gravel_desert",
-    "adventure:magma_land"
+    "minecraft:nether_wastes"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:ash_barrens": 1.8,
-      "minecraft:nether_wastes": 7.7,
-      "minecraft:basalt_deltas": 15.2,
-      "adventure:gravel_desert": 19.5,
-      "adventure:magma_land": 55.9
+      "adventure:magma_land": 55,
+      "adventure:ash_barrens": 20,
+      "minecraft:basalt_deltas": 15,
+      "adventure:gravel_desert": 7,
+      "minecraft:nether_wastes": 3
+    },
+    "places": {
+      "groups": {
+        "dunes": [
+          "adventure:gravel_desert",
+          "minecraft:nether_wastes"
+        ]
+      },
+      "arrangement": "core",
+      "warp": {
+        "blocks": 76,
+        "wavelength": 512
+      }
     }
   },
   "borders": {
@@ -73,5 +86,18 @@
       "towns_and_towers:exclusives/village_piglin",
       "mvs:large_warped_tower"
     ]
+  },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 33,
+      "floorRelief": 8,
+      "ceilingGap": 80,
+      "roughness": 0.05,
+      "flats": 0.5
+    },
+    "scales": {
+      "climate": 1.5
+    }
   }
 }

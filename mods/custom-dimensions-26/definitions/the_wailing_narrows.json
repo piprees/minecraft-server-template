@@ -15,9 +15,18 @@
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:quartz_flats": 12.5,
-      "minecraft:soul_sand_valley": 45.2,
-      "minecraft:basalt_deltas": 42.3
+      "adventure:quartz_flats": 12,
+      "minecraft:soul_sand_valley": 52,
+      "minecraft:basalt_deltas": 36
+    },
+    "places": {
+      "at": {
+        "minecraft:soul_sand_valley": [128, -128]
+      },
+      "warp": {
+        "blocks": 76,
+        "wavelength": 512
+      }
     }
   },
   "atmosphere": {
@@ -97,5 +106,19 @@
       "crimson_fungus",
       "bastion"
     ]
+  },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 80,
+      "floorRelief": 8,
+      "ceilingGap": 26,
+      "roughness": 0.25,
+      "chasms": 0.16,
+      "chasmDepth": 62
+    }
+  },
+  "liquids": {
+    "seaLevel": 10
   }
 }
