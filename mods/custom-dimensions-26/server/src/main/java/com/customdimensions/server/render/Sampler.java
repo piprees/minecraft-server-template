@@ -195,6 +195,11 @@ public final class Sampler {
                 climate.get().sample(QuartPos.fromBlock(x), QuartPos.fromBlock(seaLevel()), QuartPos.fromBlock(z)).continentalness());
     }
 
+    /** The router's climate at {@code (x, z)} at sea level, as the biome source reads it. */
+    public net.minecraft.world.level.biome.Climate.TargetPoint climate(int x, int z) {
+        return climate.get().sample(QuartPos.fromBlock(x), QuartPos.fromBlock(seaLevel()), QuartPos.fromBlock(z));
+    }
+
     public Column sample(int x, int z) {
         NoiseColumn column = noiseColumn(x, z);
         Surface surface = surface(column::getBlock, noiseTop, heights.getMinY());

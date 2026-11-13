@@ -203,6 +203,34 @@ class PlacenessTest {
     }
 
     @Test
+    void placesAreMeasuredAsPlacesOverTheLand() {
+        // the field halves the grid; land is an island of place 0 with a strip of place 1, an island of place 1 and a one-cell speck
+        int[] field = fill((x, z) -> x < SIDE / 2 ? 0 : 1);
+        int[] lands = fill((x, z) -> x < 20 && z < 20 ? (x < 15 ? 0 : 1) : x >= 40 && x < 50 && z >= 40 && z < 50 ? 1 : x == 60 && z == 60 ? 1 : -1);
+        boolean[] land = new boolean[lands.length];
+        for (int i = 0; i < land.length; i++) land[i] = lands[i] >= 0;
+        JsonObject o = p.placesJson(java.util.List.of("coast", "highlands"), "temperature", field, lands, land, lands);
+        assertEquals(2, o.get("count").getAsInt());
+        JsonObject coast = o.getAsJsonObject("byPlace").getAsJsonObject("coast");
+        JsonObject high = o.getAsJsonObject("byPlace").getAsJsonObject("highlands");
+        assertEquals(50.0, coast.get("percent").getAsDouble(), "a place's share of the sampled area is the field's");
+        assertEquals(59.9, coast.get("landPercent").getAsDouble());
+        assertEquals(1, coast.get("landRegions").getAsInt());
+        assertEquals(59.9, coast.get("largestPercent").getAsDouble());
+        assertEquals(40.1, high.get("landPercent").getAsDouble());
+        assertEquals(2, high.get("landRegions").getAsInt(), "the strip and the island; the speck is no region of 1%");
+        assertEquals(20.0, high.get("largestPercent").getAsDouble());
+        assertEquals(0.2, high.get("specksPercent").getAsDouble());
+        JsonObject r = o.getAsJsonObject("landRegions");
+        assertEquals(4, r.get("count").getAsInt());
+        assertEquals(3, r.get("major").getAsInt());
+        assertEquals(99.8, r.get("top3Percent").getAsDouble());
+        assertEquals(0.2, r.get("specksPercent").getAsDouble());
+        assertEquals(80.0, o.getAsJsonObject("islands").get("dominantPlacePercent").getAsDouble(),
+                "the first island is three quarters one place, the others wholly theirs");
+    }
+
+    @Test
     void noLandMeasuresNothing() {
         int[] sea = fill((x, z) -> 0);
         int[] land = fill((x, z) -> -1);

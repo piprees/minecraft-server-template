@@ -2,6 +2,7 @@ package com.customdimensions.server.survey;
 
 import com.customdimensions.compiler.datapack.BiomeLibrary;
 import com.customdimensions.compiler.datapack.BiomeRoles;
+import com.customdimensions.compiler.datapack.PlaceLayout;
 import com.customdimensions.core.definition.BiomeEntry;
 import com.customdimensions.core.definition.Definition;
 import com.customdimensions.core.render.ColumnSamples;
@@ -9,6 +10,7 @@ import com.customdimensions.core.render.RenderGrid;
 import com.customdimensions.core.survey.Landforms;
 import com.customdimensions.core.survey.PatchAnalysis;
 import com.customdimensions.core.survey.PatchGrid;
+import com.customdimensions.core.survey.PlaceMap;
 import com.customdimensions.core.survey.Placeness;
 import com.customdimensions.core.survey.SurfaceGround;
 import com.customdimensions.core.survey.Survey;
@@ -52,6 +54,8 @@ import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -68,7 +72,8 @@ import net.minecraft.world.level.material.FluidState;
 
 /**
  * {@code /customdim survey}'s work, as the one running {@link RenderJob}: the
- * noise render's coarse map over the generation border (landforms and the
+ * noise render's coarse map over the sampled area ({@link #area}: the places' area
+ * where the definition lays out places, else the player border; landforms and the
  * adaptive picks), then every planned chunk generated one at a time on the
  * server thread (a forced ticket, polled each tick, never two at once: K6),
  * its sections copied there, scanned and analysed on the job's thread, and the
@@ -159,8 +164,8 @@ public final class SurveyJob {
         long start = System.nanoTime();
         Map<String, Long> timings = new LinkedHashMap<>();
         Sampler sampler = Sampler.forDimension(server, manager, slug, null);
-        int radius = Math.max(64, Math.min(4096, border != null ? border : definition != null && definition.borders() != null
-                && definition.borders().generation() != null ? definition.borders().generation() : 1024));
+        Area area = area(definition, border);
+        int radius = area.radius();
         int step = Math.max(8, (int) Math.ceil(2.0 * radius / COARSE_SIDE));
         RenderGrid grid = RenderGrid.of(0, 0, radius, step);
         java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(RenderJob.defaultThreads(), r -> {
@@ -204,7 +209,7 @@ public final class SurveyJob {
         int[] slices = java.util.stream.IntStream.of(p50 - 40, p50 - 12, p50 + 6, p95 + 24)
                 .map(y -> Math.max(minY + 1, Math.min(minY + height - 2, y))).distinct().toArray();
 
-        long seed = Sampler.defaultSeed(server, manager, slug) ^ slug.hashCode();
+        long seed = SurveyPlan.seed(Sampler.defaultSeed(server, manager, slug), radius);
         List<SurveyPlan.Patch> plan = new ArrayList<>(SurveyPlan.stratified(seed, radius, request.patches(), request.size()));
         SurveyPlan.addAdaptive(plan, landforms.picks(), radius, request.size(), Math.max(2, request.patches() / 3));
 
@@ -266,11 +271,12 @@ public final class SurveyJob {
         long t3 = System.nanoTime();
         JsonObject dossier = Survey.dossier(meta, landforms, analysed, checks);
         dossier.addProperty("dimension", level.dimension().identifier().toString());
-        dossier.add("borders", borders(definition, radius));
-        JsonObject placeness = placeness(sampler, coarse, landforms, grid, kind, definition, roleBiomes(server, definition, false));
+        dossier.add("borders", borders(definition, area));
+        JsonObject placeness = placeness(sampler, coarse, landforms, grid, kind, definition, roleBiomes(server, definition, false),
+                placeMap(server, level, definition));
         dossier.add("placeness", placeness);
         long tc = System.nanoTime();
-        dossier.add("structures", withCensus(dossier.getAsJsonObject("structures"), level, definition, radius));
+        dossier.add("structures", withCensus(dossier.getAsJsonObject("structures"), level, definition, area(definition, border, false).radius()));
         timings.put("census", (System.nanoTime() - tc) / 1_000_000);
         if (dossier.has("landforms")) {
             dossier.getAsJsonObject("landforms").add("highGroundFine", highGroundFine != null ? highGroundFine
@@ -292,22 +298,98 @@ public final class SurveyJob {
         return new Result(slug, path, analysed.size(), columns, total, types, landmarks);
     }
 
+    /** The square a survey samples round the origin: its half-side in blocks and what it is. */
+    record Area(int radius, String over) {
+        double hectares() {
+            return 4.0 * radius * radius / 10_000.0;
+        }
+    }
+
+    /** As {@link #area(Definition, Integer, boolean)} with the places' area where the definition lays places out. */
+    static Area area(Definition definition, Integer border) {
+        return area(definition, border, true);
+    }
+
     /**
-     * {@link Placeness} over the coarse map: its biomes, landform classes, surface heights and the router's continentalness;
-     * land biome regions over the dry cells outside {@code seaBiomes}.
+     * The area a survey samples: with {@code places} and a definition that lays out {@code biomeLayout.places}, the
+     * place field's (the smaller of its player and generation borders, the area the compiler lays the places over);
+     * else the player border {@code border}, else the definition's generation border, else 1024 blocks; held to
+     * 64–4096 blocks.
      */
+    static Area area(Definition definition, Integer border, boolean places) {
+        if (places && laysPlaces(definition)) return new Area(held(PlaceLayout.radius(definition.borders())), "places");
+        if (border != null) return new Area(held(border), "player border");
+        if (definition != null && definition.borders() != null && definition.borders().generation() != null) {
+            return new Area(held(definition.borders().generation()), "generation border");
+        }
+        return new Area(1024, "default");
+    }
+
+    private static int held(int radius) {
+        return Math.max(64, Math.min(4096, radius));
+    }
+
+    static boolean laysPlaces(Definition definition) {
+        return definition != null && definition.biomeLayout() != null && definition.biomeLayout().has("places");
+    }
+
     /**
      * {@code borders}: the definition's player and generation borders (half-sizes round the origin, each absent when the
-     * definition sets none) and {@code surveyed}, the radius this survey measured over. A rig camera sees the player border.
+     * definition sets none), {@code surveyed}, the radius this survey measured over, {@code surveyedOver}, what that
+     * area is ({@code places}, {@code player border}, {@code generation border} or {@code default}), and
+     * {@code surveyedHectares}, its size. A rig camera sees the player border.
      */
-    static JsonObject borders(Definition definition, int surveyed) {
+    static JsonObject borders(Definition definition, Area surveyed) {
         JsonObject o = new JsonObject();
         if (definition != null && definition.borders() != null) {
             if (definition.borders().player() != null) o.addProperty("player", definition.borders().player());
             if (definition.borders().generation() != null) o.addProperty("generation", definition.borders().generation());
         }
-        o.addProperty("surveyed", surveyed);
+        o.addProperty("surveyed", surveyed.radius());
+        o.addProperty("surveyedOver", surveyed.over());
+        o.addProperty("surveyedHectares", Math.round(surveyed.hectares()));
         return o;
+    }
+
+    /**
+     * The places {@code level}'s biome source lays out ({@link PlaceMap}), named by the definition's groups; null where the
+     * definition lays out no places or the source carries none.
+     */
+    static PlaceMap placeMap(MinecraftServer server, ServerLevel level, Definition definition) {
+        if (!laysPlaces(definition)) return null;
+        JsonElement source = BiomeSource.CODEC.encodeStart(RegistryOps.create(JsonOps.INSTANCE, server.registryAccess()),
+                level.getChunkSource().getGenerator().getBiomeSource()).result().orElse(null);
+        Set<String> roles = new HashSet<>(roleBiomes(server, definition, true));
+        server.registryAccess().lookupOrThrow(Registries.BIOME).listElements().forEach(h -> {
+            if (h.is(BiomeTags.IS_BEACH)) roles.add(h.key().identifier().toString());
+        });
+        BiomeLibrary.shipped().entries().values().forEach(e -> {
+            if (e.role() != null && !BiomeRoles.LAND.equals(e.role())) roles.add("adventure:" + e.id());
+        });
+        JsonObject layout = definition.biomeLayout();
+        if (layout.has("roles") && layout.get("roles").isJsonObject()) roles.addAll(layout.getAsJsonObject("roles").keySet());
+        return PlaceMap.of(source, groups(layout), roles::contains);
+    }
+
+    /** {@code biomeLayout.places.groups}: group name to its biomes. */
+    static Map<String, List<String>> groups(JsonObject layout) {
+        Map<String, List<String>> out = new LinkedHashMap<>();
+        JsonElement places = layout.get("places");
+        if (places == null || !places.isJsonObject() || !places.getAsJsonObject().has("groups")) return out;
+        JsonElement groups = places.getAsJsonObject().get("groups");
+        if (!groups.isJsonObject()) return out;
+        groups.getAsJsonObject().entrySet().forEach(kv -> {
+            List<String> ids = new ArrayList<>();
+            if (kv.getValue().isJsonArray()) kv.getValue().getAsJsonArray().forEach(id -> ids.add(id.getAsString()));
+            out.put(kv.getKey(), ids);
+        });
+        return out;
+    }
+
+    /** {@code value}, the router's climate at a cell, on the place axis {@code axis}, a zone's channel taken off. */
+    static double placeAxis(Climate.TargetPoint value, String axis) {
+        return Climate.unquantizeCoord("humidity".equals(axis) ? value.humidity()
+                : com.customdimensions.server.zone.ZonedBiomeSource.baseTemperature(value.temperature()));
     }
 
     /**
@@ -364,8 +446,12 @@ public final class SurveyJob {
         return highGround;
     }
 
+    /**
+     * {@link Placeness} over the coarse map: its biomes, landform classes, surface heights and the router's continentalness;
+     * land biome regions over the dry cells outside {@code seaBiomes}; with {@code places}, {@code places} measured as places.
+     */
     static JsonObject placeness(Sampler sampler, ColumnSamples coarse, Landforms landforms, RenderGrid grid, byte[] kind, Definition definition,
-                                Set<String> seaBiomes) {
+                                Set<String> seaBiomes, PlaceMap places) {
         int side = grid.side();
         int[] biomes = new int[side * side], forms = new int[side * side], landBiomes = new int[side * side], voidBiomes = new int[side * side];
         boolean[] land = new boolean[side * side];
@@ -403,6 +489,19 @@ public final class SurveyJob {
         placeness.addRelief(out, heights);
         out.add("islands", placeness.islandsJson(land, biomes));
         out.add("voidBiomesPercent", placeness.voidBiomesJson(voidBiomes, names::get));
+        if (places != null) {
+            int[] field = new int[side * side], landPlaces = new int[side * side], surface = new int[side * side];
+            for (int pz = 0; pz < side; pz++) {
+                for (int px = 0; px < side; px++) {
+                    int i = pz * side + px;
+                    field[i] = places.index(placeAxis(sampler.climate(grid.x(px), grid.z(pz)), places.axis()));
+                    String b = biomes[i] < 0 ? null : names.get(biomes[i]);
+                    surface[i] = b == null ? -1 : places.of(b);
+                    landPlaces[i] = landBiomes[i] < 0 ? -1 : surface[i];
+                }
+            }
+            out.add("places", placeness.placesJson(places.names(), places.axis(), field, landPlaces, land, surface));
+        }
         return out;
     }
 

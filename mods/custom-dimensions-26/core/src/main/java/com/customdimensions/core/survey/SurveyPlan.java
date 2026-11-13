@@ -6,7 +6,7 @@ import java.util.Random;
 
 /**
  * Where a survey samples: square patches of whole chunks, stratified over the
- * generation border (one patch in each of a shuffled grid of strata, at a
+ * sampled area (one patch in each of a shuffled grid of strata, at a
  * seeded position within it), then adaptive patches centred on what the coarse
  * map found rare or rough.
  */
@@ -36,6 +36,17 @@ public final class SurveyPlan {
     }
 
     private SurveyPlan() {}
+
+    /**
+     * The seed patches are drawn from: the level's seed and the sampled area's radius, never the dimension's name,
+     * so two dimensions of one terrain and seed sample the same ground.
+     */
+    public static long seed(long levelSeed, int radius) {
+        long h = levelSeed * 0x9E3779B97F4A7C15L + radius;
+        h = (h ^ (h >>> 30)) * 0xBF58476D1CE4E5B9L;
+        h = (h ^ (h >>> 27)) * 0x94D049BB133111EBL;
+        return h ^ (h >>> 31);
+    }
 
     /** {@code count} stratified patches of {@code size} chunks inside the square of half-side {@code radius} blocks. */
     public static List<Patch> stratified(long seed, int radius, int count, int size) {

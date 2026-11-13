@@ -153,6 +153,62 @@ public final class Placeness {
         return o;
     }
 
+    /**
+     * {@code placeness.places}: the places of {@code names} measured as places, not as their biomes. {@code field} is each
+     * cell's place from the place field (its share of the sampled area); {@code landPlaces} each land cell's place from
+     * its biome (negative off land, or where the biome is no place's), over which a place's share of the land, its
+     * regions and the regions over all places are measured, with the land region code ({@code landBiomeRegions}'s);
+     * {@code surface} each non-void cell's place from its biome, whose islands ({@code land}) give
+     * {@code dominantPlacePercent}.
+     */
+    public JsonObject placesJson(List<String> names, String axis, int[] field, int[] landPlaces, boolean[] land, int[] surface) {
+        int n = names.size();
+        IntFunction<String> name = names::get;
+        int landCells = 0;
+        for (int l : landPlaces) if (l >= 0) landCells++;
+        JsonObject o = new JsonObject();
+        o.addProperty("note", "places of biomeLayout.places over the coarse map (" + step + "-block cells): percent is each place's share of the "
+                + "sampled area from the place field (the router's " + axis + "); landPercent and the regions are over land cells whose biome is a "
+                + "place's (a group's member, or the place's own biome), a region of 1% of that land or more is major and one under "
+                + SPECK_HA + " ha a speck; islands.dominantPlacePercent is the area-weighted mean share of each island's land in its commonest place");
+        o.addProperty("count", n);
+        o.addProperty("landPercent", Stats.percent(landCells, side * side));
+        Regions r = regions(landPlaces);
+        int speck = speckCells();
+        JsonObject byPlace = new JsonObject();
+        int[] fieldCells = new int[n];
+        for (int f : field) if (f >= 0 && f < n) fieldCells[f]++;
+        for (int p = 0; p < n; p++) {
+            JsonObject e = new JsonObject();
+            e.addProperty("percent", Stats.percent(fieldCells[p], side * side));
+            int cells = 0, major = 0, specks = 0, largest = 0;
+            for (int k = 0; k < r.count(); k++) {
+                if (r.labels()[k] != p) continue;
+                int a = r.areas()[k];
+                cells += a;
+                if (Stats.percent(a, Math.max(1, landCells)) >= MAJOR_PERCENT) major++;
+                if (a < speck) specks += a;
+                largest = Math.max(largest, a);
+            }
+            e.addProperty("landPercent", Stats.percent(cells, Math.max(1, landCells)));
+            e.addProperty("landRegions", major);
+            e.addProperty("largestPercent", Stats.percent(largest, Math.max(1, landCells)));
+            e.addProperty("specksPercent", Stats.percent(specks, Math.max(1, landCells)));
+            byPlace.add(name.apply(p), e);
+        }
+        o.add("byPlace", byPlace);
+        JsonObject regions = landRegionJson(landPlaces, name);
+        regions.remove("note");
+        regions.remove("landPercent");
+        regions.remove("biomesPercent");
+        o.add("landRegions", regions);
+        JsonObject islands = islandsJson(land, surface);
+        JsonObject dominance = new JsonObject();
+        dominance.addProperty("dominantPlacePercent", islands.get("dominantBiomePercent").getAsDouble());
+        o.add("islands", dominance);
+        return o;
+    }
+
     /** Each biome's share of the void cells, sampled at a fixed height ({@code biomes}: a label per void cell, negative elsewhere). */
     public JsonObject voidBiomesJson(int[] biomes, IntFunction<String> name) {
         int cells = 0;

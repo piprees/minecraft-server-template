@@ -28,6 +28,10 @@ DOSSIER = {
     'notable': {'surface': {'minecraft:glow_lichen': 69}},
     'landforms': {'zones': [{'index': 0, 'depthBelowRing': 24.0}]},
     'kind': 'survey',
+    'placeness': {'places': {'byPlace': {'highlands': {'percent': 49.1, 'landPercent': 61.0, 'landRegions': 1},
+                                         'minecraft:jungle': {'percent': 50.9, 'landPercent': 39.0, 'landRegions': 3}},
+                             'landRegions': {'top3Percent': 89.0, 'major': 4, 'specksPercent': 2.1},
+                             'islands': {'dominantPlacePercent': 80.5}}},
 }
 
 
@@ -84,6 +88,16 @@ class CheckTargetsTest(unittest.TestCase):
             ct.check(DOSSIER, [t('landforms.zones.1.depthBelowRing', '>=', 20)])
         with self.assertRaises(ct.TargetError):
             ct.check(DOSSIER, [dict(t('terrain.reliefMedian', '>=', 1), per='structures.minecraft:x')])
+
+    def test_places_are_named_by_group_or_biome_and_a_missing_place_is_an_error(self):
+        r = ct.check(DOSSIER, [t('placeness.places.byPlace.highlands.landPercent', '>=', 45),
+                               t('placeness.places.byPlace.minecraft:jungle.landRegions', '<=', 2),
+                               t('placeness.places.landRegions.top3Percent', '>=', 85),
+                               t('placeness.places.islands.dominantPlacePercent', '>=', 75)])
+        self.assertEqual([x['pass'] for x in r], [True, False, True, True])
+        self.assertEqual(r[1]['measured'], 3)
+        with self.assertRaises(ct.TargetError):
+            ct.check(DOSSIER, [t('placeness.places.byPlace.minecraft:forest.landPercent', '>=', 1)])
 
     def test_unknown_key_is_an_error(self):
         for key in ('surface.snowOrIce', 'trees.perHa', 'clusters.types.minecraft:farmland.bogus',
