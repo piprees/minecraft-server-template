@@ -194,6 +194,11 @@ public final class SurveyJob {
         }
         Landforms landforms = new Landforms(side, step, grid.x(0), grid.z(0), heights, kind);
         if (definition != null) landforms.withZones(com.customdimensions.core.zone.ZoneQuery.of(slug, definition).zones());
+        if (level.dimensionType().hasCeiling()) {
+            int[] roofs = new int[side * side];
+            for (int pz = 0; pz < side; pz++) for (int px = 0; px < side; px++) roofs[pz * side + px] = coarse.roof(px, pz);
+            landforms.withRoofs(roofs);
+        }
         timings.put("coarse", (System.nanoTime() - start) / 1_000_000);
         int fineStep = Math.max(FINE_STEP, (int) Math.ceil(2.0 * radius / FINE_SIDE));
         JsonObject highGroundFine = null;

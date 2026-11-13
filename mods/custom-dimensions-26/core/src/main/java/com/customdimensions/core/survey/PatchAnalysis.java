@@ -767,7 +767,10 @@ public final class PatchAnalysis {
      * on the surface or a sky island, the column nearest the cell centre whose eye
      * (1.6 over the ground, or over a liquid's top) is clear, looking along the
      * flattest of 8 directions; underground, the clear cave cell with the longest
-     * sightline; under a roof, a clear cell 3–8 below it looking up.
+     * sightline; under a roof, a clear cell 3–8 below it looking up. Under a
+     * dimension ceiling a surface camera stands on a floor with a roof over it,
+     * one with {@link Landforms#OPEN_UNDER_ROOF} or more blocks open under the
+     * roof first, never on a column solid to the roof's top.
      */
     private double[] camera(Layer layer, int x0, int z0) {
         List<int[]> order = new ArrayList<>();
@@ -775,14 +778,18 @@ public final class PatchAnalysis {
         int mid = CELL / 2;
         order.sort((a, b) -> Integer.compare(Math.abs(a[0] - x0 - mid) + Math.abs(a[1] - z0 - mid), Math.abs(b[0] - x0 - mid) + Math.abs(b[1] - z0 - mid)));
         if (layer == Layer.SURFACE || layer == Layer.SKY) {
-            for (int[] p : order) {
-                int c = p[1] * side + p[0];
-                int h = layer == Layer.SURFACE ? surface[c] : skyTop[c];
-                if (h == NONE) continue;
-                int feet = h - minY + 1;
-                while (feet < height - 2 && kind(p[0], feet, p[1]) == Kind.FLUID.ordinal()) feet++;
-                if (!clearEye(p[0], feet + 1, p[1])) continue;
-                return new double[] {patch.blockX() + p[0] + 0.5, minY + feet, patch.blockZ() + p[1] + 0.5, flattestYaw(layer, p[0], p[1]), 5};
+            boolean underRoof = g.ceiling && layer == Layer.SURFACE;
+            for (int pass = underRoof ? 0 : 1; pass < 2; pass++) {
+                for (int[] p : order) {
+                    int c = p[1] * side + p[0];
+                    int h = layer == Layer.SURFACE ? surface[c] : skyTop[c];
+                    if (h == NONE) continue;
+                    if (underRoof && (roofUnderside[c] == NONE || pass == 0 && roofUnderside[c] - h - 1 < Landforms.OPEN_UNDER_ROOF)) continue;
+                    int feet = h - minY + 1;
+                    while (feet < height - 2 && kind(p[0], feet, p[1]) == Kind.FLUID.ordinal()) feet++;
+                    if (!clearEye(p[0], feet + 1, p[1])) continue;
+                    return new double[] {patch.blockX() + p[0] + 0.5, minY + feet, patch.blockZ() + p[1] + 0.5, flattestYaw(layer, p[0], p[1]), 5};
+                }
             }
             return null;
         }

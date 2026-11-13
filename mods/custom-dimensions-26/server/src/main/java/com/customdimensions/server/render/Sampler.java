@@ -58,8 +58,11 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 public final class Sampler {
     private static final Predicate<BlockState> SOLID = Heightmap.Types.OCEAN_FLOOR_WG.isOpaque();
 
-    /** One column: its surface height, whether a roof is over it, the fluid on the surface and its surface biome. */
-    public record Column(int x, int z, int height, boolean roofed, ColumnSamples.Fluid fluid, boolean waterAtSeaLevel,
+    /**
+     * One column: its surface height, whether a roof is over it and the lowest block of that roof
+     * ({@link ColumnSamples#NO_ROOF} for none), the fluid on the surface and its surface biome.
+     */
+    public record Column(int x, int z, int height, boolean roofed, int roof, ColumnSamples.Fluid fluid, boolean waterAtSeaLevel,
                          Holder<Biome> biome) {
         public String biomeId() {
             return id(biome);
@@ -69,8 +72,11 @@ public final class Sampler {
     /** The last zone in order whose compiled mask is above zero at a column, or index -1. */
     public record ZoneHit(int index, double weight) {}
 
-    /** A surface found by {@link #surface}. */
-    public record Surface(int height, boolean roofed) {}
+    /**
+     * A surface found by {@link #surface}, and the lowest block of the roof over it: {@code height} for a column
+     * solid from the roof down, {@link ColumnSamples#NO_ROOF} for a column with no roof.
+     */
+    public record Surface(int height, boolean roofed, int roof) {}
 
     private final String dimension;
     private final ChunkGenerator generator;
@@ -206,7 +212,7 @@ public final class Sampler {
         int h = surface.height();
         ColumnSamples.Fluid fluid = h <= heights.getMinY() ? ColumnSamples.Fluid.NONE : fluid(column.getBlock(h));
         boolean water = column.getBlock(seaLevel() - 1).getFluidState().is(FluidTags.WATER);
-        return new Column(x, z, h, surface.roofed(), fluid, water, biome(x, h, z));
+        return new Column(x, z, h, surface.roofed(), surface.roof(), fluid, water, biome(x, h, z));
     }
 
     /** The noise biome at {@code (x, y, z)}, {@code y} clamped into the dimension. */
@@ -290,12 +296,14 @@ public final class Sampler {
     public static Surface surface(IntFunction<BlockState> block, int top, int minY) {
         int y = top;
         boolean roofed = SOLID.test(block.apply(top));
+        int roof = ColumnSamples.NO_ROOF;
         if (roofed) {
             while (y >= minY && SOLID.test(block.apply(y))) y--;
-            if (y < minY) return new Surface(top + 1, true);
+            if (y < minY) return new Surface(top + 1, true, top + 1);
+            roof = y + 1;
         }
         while (y >= minY && !SOLID.test(block.apply(y))) y--;
-        return new Surface(y < minY ? minY : y + 1, roofed);
+        return new Surface(y < minY ? minY : y + 1, roofed, roof);
     }
 
     /** Whether {@code state} counts as solid for the surface: it blocks motion. */

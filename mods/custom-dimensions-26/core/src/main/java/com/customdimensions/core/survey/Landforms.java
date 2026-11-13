@@ -40,6 +40,10 @@ public final class Landforms {
     private final List<Integer> voidHoles = new ArrayList<>();
     private final byte[] kind;
     private List<com.customdimensions.core.zone.ZoneSpec> zones = List.of();
+    private int[] roofs;
+
+    /** Blocks a column under a roof must hold open over its floor to take the vista: room for a camera 12 over it. */
+    public static final int OPEN_UNDER_ROOF = 16;
 
     /**
      * {@code heights} and {@code kind} are {@code side × side} (index {@code z * side + x});
@@ -216,6 +220,25 @@ public final class Landforms {
     public Landforms withZones(List<com.customdimensions.core.zone.ZoneSpec> zones) {
         this.zones = List.copyOf(zones);
         return this;
+    }
+
+    /**
+     * Under a dimension ceiling, each cell's lowest roof block ({@link com.customdimensions.core.render.ColumnSamples#NO_ROOF}
+     * for none; its height where the column is solid from the roof down), so the vista keeps to open columns.
+     */
+    public Landforms withRoofs(int[] roofs) {
+        this.roofs = roofs.clone();
+        return this;
+    }
+
+    /** Whether a cell is open over its floor: no roof data, no roof over it, or {@link #OPEN_UNDER_ROOF} or more blocks under it. */
+    boolean open(int i) {
+        return roofs == null || roofs[i] == com.customdimensions.core.render.ColumnSamples.NO_ROOF || roofs[i] - heights[i] >= OPEN_UNDER_ROOF;
+    }
+
+    /** Whether the vista is measured under a ceiling. */
+    public boolean roofed() {
+        return roofs != null;
     }
 
     /** Whether a land cell's ground falls more than one block per block to a land neighbour: steeper than 45 degrees. */
@@ -457,17 +480,22 @@ public final class Landforms {
         return out;
     }
 
-    /** The highest land cell with the largest drop within 256 blocks: [x, height, z, targetX, targetHeight, targetZ]. */
+    /**
+     * The highest land cell with the largest drop within 256 blocks: [x, height, z, targetX, targetHeight, targetZ].
+     * Under a ceiling ({@link #withRoofs}) the highest open cell ({@link #open}), and a target in a closed column
+     * is looked at at the lowest floor on its way.
+     */
     public int[] vista() {
         int best = -1;
         for (int i = 0; i < forms.length; i++) {
-            if (forms[i] == Form.WATER || forms[i] == Form.VOID) continue;
+            if (forms[i] == Form.WATER || forms[i] == Form.VOID || !open(i)) continue;
             if (best < 0 || heights[i] > heights[best]) best = i;
         }
         if (best < 0) return null;
         int bx = best % side, bz = best / side;
         int r = Math.max(2, Math.round(256f / step));
         int target = best;
+        int targetHeight = heights[best];
         double drop = -1;
         for (int a = 0; a < 16; a++) {
             double ang = a * Math.PI / 8;
@@ -484,9 +512,10 @@ public final class Landforms {
             if (d > drop) {
                 drop = d;
                 target = tz * side + tx;
+                targetHeight = open(target) ? heights[target] : lowest;
             }
         }
-        return new int[] {originX + bx * step, heights[best], originZ + bz * step, originX + (target % side) * step, heights[target],
+        return new int[] {originX + bx * step, heights[best], originZ + bz * step, originX + (target % side) * step, targetHeight,
                 originZ + (target / side) * step};
     }
 
