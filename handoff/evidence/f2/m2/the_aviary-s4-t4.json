@@ -1,0 +1,256 @@
+{
+  "kind": "fastrender",
+  "dimension": "the_aviary",
+  "seed": 7826077224469180302,
+  "seedSource": "level",
+  "radius": 4096,
+  "step": 4,
+  "side": 2048,
+  "centre": [
+    0,
+    0
+  ],
+  "pixel": "the column at the north-west corner of each step x step cell; north is up",
+  "surface": "OCEAN_FLOOR_WG: one above the top motion-blocking block; under a roof, one above the first motion-blocking block below the roof's underside",
+  "biomeY": "the surface height, clamped into the dimension (the generator's noise biome there)",
+  "seaLevel": 0,
+  "files": {
+    "biome": "fast-7826077224469180302-r4096-biome.png",
+    "height": "fast-7826077224469180302-r4096-height.png",
+    "hillshade": "fast-7826077224469180302-r4096-hillshade.png",
+    "map": "fast-7826077224469180302-r4096-map.png",
+    "tier1": "fast-7826077224469180302-r4096-tier1.png",
+    "tier2": "fast-7826077224469180302-r4096-tier2.png",
+    "structures": "fast-7826077224469180302-r4096-structures.png"
+  },
+  "timings": {
+    "prepare": 1,
+    "prescan": 691,
+    "sample": 98269,
+    "sampleScanThreadMillis": 348045,
+    "sampleDressThreadMillis": 45031,
+    "structures": 1967,
+    "compare": 677,
+    "images": 2080,
+    "runs": 15,
+    "total": 103732,
+    "columns": 4194304,
+    "threads": 4,
+    "columnsPerSecond": 42682
+  },
+  "legend": {
+    "biomes": [
+      {
+        "id": "adventure:hanging_gardens",
+        "colour": "#d54cad",
+        "fixed": false,
+        "pixels": 2065482
+      },
+      {
+        "id": "minecraft:cherry_grove",
+        "colour": "#f2a9c9",
+        "fixed": true,
+        "pixels": 428284
+      },
+      {
+        "id": "minecraft:meadow",
+        "colour": "#9ad06a",
+        "fixed": true,
+        "pixels": 325987
+      },
+      {
+        "id": "minecraft:snowy_slopes",
+        "colour": "#dce6f0",
+        "fixed": true,
+        "pixels": 308392
+      },
+      {
+        "id": "adventure:golden_skygrove",
+        "colour": "#4336e2",
+        "fixed": false,
+        "pixels": 223266
+      },
+      {
+        "id": "minecraft:dark_forest",
+        "colour": "#2f5a1e",
+        "fixed": true,
+        "pixels": 220135
+      },
+      {
+        "id": "adventure:wisteria_grove",
+        "colour": "#1fb644",
+        "fixed": false,
+        "pixels": 129561
+      },
+      {
+        "id": "adventure:windswept_isles",
+        "colour": "#88cb35",
+        "fixed": false,
+        "pixels": 110170
+      },
+      {
+        "id": "adventure:sky_highlands",
+        "colour": "#2dde59",
+        "fixed": false,
+        "pixels": 107554
+      },
+      {
+        "id": "minecraft:flower_forest",
+        "colour": "#7cb342",
+        "fixed": true,
+        "pixels": 94207
+      },
+      {
+        "id": "adventure:cloud_reef",
+        "colour": "#9c3349",
+        "fixed": false,
+        "pixels": 86292
+      },
+      {
+        "id": "minecraft:plains",
+        "colour": "#8db360",
+        "fixed": true,
+        "pixels": 45173
+      },
+      {
+        "id": "minecraft:birch_forest",
+        "colour": "#5fa85a",
+        "fixed": true,
+        "pixels": 34436
+      },
+      {
+        "id": "minecraft:forest",
+        "colour": "#3e8e2e",
+        "fixed": true,
+        "pixels": 15365
+      }
+    ],
+    "height": {
+      "lowest": 41,
+      "highest": 255,
+      "greyFrom": 120,
+      "greyTo": 254,
+      "grey": "60 at greyFrom to 230 at greyTo (the dry surface's 1st and 99th percentile), lit from the north-west",
+      "contourEvery": 16,
+      "water": "blue, darker by depth below sea level",
+      "lava": "#d8581c",
+      "empty": "#000000"
+    }
+  },
+  "fast": {
+    "stride": 4,
+    "threads": 4,
+    "tile": 16,
+    "columnsPerSecond": 42681,
+    "referenceColumnsPerSecond": 24272,
+    "speedup": 1.76,
+    "noiseRange": [
+      0,
+      255
+    ],
+    "scout": {
+      "cellXz": 4,
+      "cellY": 8,
+      "mode": "lattice",
+      "rule": "every block of a tile in one batch: each interpolated term's input sampled on the cell corners under the tile's columns and filled as vanilla interpolates it, the terms outside it applied per block; the density each block of a noise column gets",
+      "evaluationsPerColumn": 156.02,
+      "evaluationsRule": "density evaluations below the outermost interpolation per column: scout points, or corners summed over the interpolated terms; a block refined in refine mode costs its cell's two corner rows more"
+    },
+    "runs": {
+      "cap": 24,
+      "max": 7,
+      "mean": 0.74,
+      "atCap": 0,
+      "file": "fast-7826077224469180302-r4096-runs.bin.gz",
+      "window": {
+        "mode": "tiers",
+        "rule": "from 16 blocks under the lowest run of the pre-scan to 16 over the highest run near the tile, on cell rows; floating runs in at least 0.02 of its columns; a tile with ground at either edge of its window widened to the noise top or floor",
+        "tiles": 16384,
+        "tilesScannedAgain": 123,
+        "meanBlocks": 241.6
+      },
+      "format": "gzip members, big-endian: int magic 0x43445231, int side, int step, int x0, int z0, int minY, int noiseTop; then per pixel, rows north to south, west to east: u8 count, and per run topmost first i16 top, i16 bottom, u16 topBlock, u16 undersideBlock, u16 fluidBlock, i16 fluidLevel (block indices into palette, 65535 for none; fluidLevel is the block above the fluid's surface)"
+    },
+    "roofedShare": 0.0013,
+    "roofLayers": false,
+    "cut": {
+      "y": 203,
+      "rule": "the height open in the most roofed columns of a grid every 64 blocks",
+      "prescanColumns": 16384,
+      "prescanRoofed": 18,
+      "prescanFloating": 8567
+    },
+    "tiers": [
+      1,
+      2
+    ],
+    "tierRule": "tierN shows run N+1 from the top, drawn when 0.02 of columns have it",
+    "fluids": "the level's global fluid picker (sea level, lava level, dry zones) at the lowest open block over each run; an aquifer's local water tables need a noise chunk and are not sampled",
+    "surfaceBlocks": "the level's compiled material rule at each run's top, and at a roof's underside",
+    "structures": {
+      "footprints": 19,
+      "rule": "starts from the level's placement state with its structure control (Sampler.starts), at most 64 of each structure, outlined by the start's bounding box",
+      "legend": {
+        "minecraft:abandoned_camp_birch_forest": "#26ff2f",
+        "minecraft:ruined_portal": "#6aff26",
+        "minecraft:abandoned_camp_cherry_grove": "#c0ff26",
+        "minecraft:igloo": "#ff26f9",
+        "minecraft:abandoned_camp_meadow": "#59ff26",
+        "minecraft:ruined_portal_mountain": "#ff2667",
+        "minecraft:pillager_outpost": "#7aff26",
+        "minecraft:village_plains": "#3bff26",
+        "minecraft:mansion": "#26ffde",
+        "minecraft:abandoned_camp_flower_forest": "#ff26f7"
+      }
+    },
+    "comparison": {
+      "spacing": 64,
+      "columns": 16384,
+      "heightsWithinOne": 1.0,
+      "heightsExact": 1.0,
+      "biomesEqual": 0.9999,
+      "fluidsEqual": 1.0,
+      "referenceMillis": 675,
+      "examples": [
+        "-320,-3456: height 159 against 159, biome adventure:golden_skygrove against adventure:hanging_gardens"
+      ]
+    },
+    "palette": [
+      {
+        "block": "minecraft:grass_block",
+        "state": "Block{minecraft:grass_block}[snowy=false]",
+        "mapColour": "#7fb238"
+      },
+      {
+        "block": "minecraft:stone",
+        "state": "Block{minecraft:stone}",
+        "mapColour": "#707070"
+      },
+      {
+        "block": "minecraft:snow_block",
+        "state": "Block{minecraft:snow_block}",
+        "mapColour": "#ffffff"
+      },
+      {
+        "block": "minecraft:powder_snow",
+        "state": "Block{minecraft:powder_snow}",
+        "mapColour": "#ffffff"
+      },
+      {
+        "block": "minecraft:calcite",
+        "state": "Block{minecraft:calcite}",
+        "mapColour": "#d1b1a1"
+      },
+      {
+        "block": "minecraft:dirt",
+        "state": "Block{minecraft:dirt}",
+        "mapColour": "#976d4d"
+      },
+      {
+        "block": "minecraft:granite",
+        "state": "Block{minecraft:granite}",
+        "mapColour": "#976d4d"
+      }
+    ]
+  }
+}
