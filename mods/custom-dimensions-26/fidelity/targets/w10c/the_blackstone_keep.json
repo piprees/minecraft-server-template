@@ -1,0 +1,9 @@
+{
+ "slug": "the_blackstone_keep",
+ "targets": [
+  {"key": "placeness.landBiomeRegions.largestPercent", "op": ">=", "value": 50, "from": "place kind one place with a fringe: the blackstone frontier is one region holding half the land"},
+  {"key": "placeness.landBiomeRegions.specksPercent", "op": "<=", "value": 5, "from": "place kind one place: no scatter of biome specks"},
+  {"key": "placeness.biomesPercent.adventure:blackstone_basin", "op": ">=", "value": 45, "from": "\"Bastions and blackstone walls from spawn\": the blackstone basin is the place"},
+  {"key": "biomeExpression.biomes.adventure:blackstone_basin.placementPercent.land", "op": ">=", "value": 50, "from": "\"from spawn\": the frontier is ground to stand on (restates the description set's nether_wastes land share: the wastes are no longer listed, the basin is the ground)"}
+ ]
+}

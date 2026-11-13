@@ -8,24 +8,20 @@
     "preset": "nether"
   },
   "biomes": [
-    "minecraft:soul_sand_valley",
     "minecraft:basalt_deltas",
-    "adventure:upside_down_forest",
-    "minecraft:crimson_forest",
-    "adventure:ash_barrens",
+    "adventure:quartz_flats",
+    "minecraft:soul_sand_valley",
     "minecraft:nether_wastes",
-    "adventure:quartz_flats"
+    "adventure:upside_down_forest"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "minecraft:soul_sand_valley": 13.6,
-      "minecraft:basalt_deltas": 32.3,
-      "adventure:upside_down_forest": 3.4,
-      "minecraft:crimson_forest": 2.9,
-      "adventure:ash_barrens": 6.5,
-      "minecraft:nether_wastes": 24.7,
-      "adventure:quartz_flats": 16.7
+      "minecraft:basalt_deltas": 30,
+      "adventure:quartz_flats": 20,
+      "minecraft:soul_sand_valley": 15,
+      "minecraft:nether_wastes": 15,
+      "adventure:upside_down_forest": 10
     }
   },
   "liquids": {
@@ -106,5 +102,19 @@
     ],
     "water": "sea",
     "heightRange": [74, 124]
+  },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 70,
+      "floorRelief": 18,
+      "ceilingGap": 40,
+      "roughness": 0.3,
+      "ledges": 0.4,
+      "ledgeStep": 6
+    },
+    "scales": {
+      "climate": 1.6
+    }
   }
 }

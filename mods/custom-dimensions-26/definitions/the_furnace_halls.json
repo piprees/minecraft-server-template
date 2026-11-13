@@ -22,7 +22,8 @@
       "minecraft:crimson_forest": 14.7,
       "adventure:magma_land": 13.1,
       "minecraft:basalt_deltas": 27.9
-    }
+    },
+    "places": {}
   },
   "borders": {
     "player": 1024,
@@ -83,5 +84,8 @@
       "towns_and_towers:exclusives/village_piglin",
       "mvs:large_warped_tower"
     ]
+  },
+  "liquids": {
+    "seaLevel": 24
   }
 }

@@ -8,18 +8,27 @@
     "preset": "nether"
   },
   "biomes": [
+    "adventure:withered_forest",
     "minecraft:soul_sand_valley",
     "minecraft:nether_wastes",
-    "adventure:withered_forest",
     "minecraft:basalt_deltas"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "minecraft:soul_sand_valley": 15.2,
-      "minecraft:nether_wastes": 37.4,
-      "adventure:withered_forest": 38.3,
-      "minecraft:basalt_deltas": 9.2
+      "adventure:withered_forest": 52,
+      "minecraft:soul_sand_valley": 28,
+      "minecraft:nether_wastes": 12,
+      "minecraft:basalt_deltas": 8
+    },
+    "places": {
+      "groups": {
+        "border_wastes": [
+          "minecraft:nether_wastes",
+          "minecraft:basalt_deltas"
+        ]
+      },
+      "arrangement": "core"
     }
   },
   "atmosphere": {
@@ -73,5 +82,18 @@
       "mvs:large_warped_tower",
       "bastion"
     ]
+  },
+  "liquids": {
+    "seaLevel": 20
+  },
+  "materials": {
+    "cliffs": "minecraft:obsidian",
+    "biomes": {
+      "minecraft:nether_wastes": {
+        "cliffs": "minecraft:crying_obsidian",
+        "top": "minecraft:obsidian"
+      }
+    },
+    "beaches": "minecraft:obsidian"
   }
 }

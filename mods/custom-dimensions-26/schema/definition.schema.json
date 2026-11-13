@@ -509,7 +509,7 @@
               }
             },
             "warp": {
-              "description": "How far place edges wander: the sampling point moves by up to blocks (two standard deviations) over features wavelength blocks across, tapered to nothing at the border. blocks at most a quarter of wavelength, which keeps every place one region. Absent: terrain.climateWarp when it warps, else blocks 0.15 of a wavelength of half the border's radius.",
+              "description": "How far place edges wander: the sampling point moves by up to blocks (two standard deviations) over features wavelength blocks across, tapered to nothing at the border. blocks at most 0.15 of wavelength (the compiler refuses more), which keeps every place one region. Absent: terrain.climateWarp when it warps, else blocks 0.15 of a wavelength of half the border's radius.",
               "type": "object",
               "additionalProperties": false,
               "properties": {

@@ -1,0 +1,23 @@
+{
+ "slug": "the_buried_age",
+ "targets": [
+  {
+   "key": "placeness.landformRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind broken, deliberately drowned: \"one lava sea is the place\", one connected sea"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 10,
+   "from": "place kind broken: the islands are what the sea leaves, a noise sample, not confetti"
+  },
+  {
+   "key": "terrain.surfaceHeight.p95",
+   "op": "<=",
+   "value": 100,
+   "from": "\"a corridor between the lava surface and the bedrock roof\": the land stays low under the roof"
+  }
+ ]
+}

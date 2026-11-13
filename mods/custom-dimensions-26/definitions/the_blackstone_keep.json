@@ -8,26 +8,39 @@
     "preset": "nether"
   },
   "biomes": [
-    "adventure:ash_barrens",
     "adventure:blackstone_basin",
-    "adventure:upside_down_forest",
-    "minecraft:soul_sand_valley",
-    "minecraft:nether_wastes",
-    "adventure:crimson_pinewood",
     "minecraft:basalt_deltas",
+    "minecraft:soul_sand_valley",
+    "adventure:ash_barrens",
+    "adventure:crimson_pinewood",
     "minecraft:crimson_forest"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:ash_barrens": 6.2,
-      "adventure:blackstone_basin": 6.1,
-      "adventure:upside_down_forest": 14.4,
-      "minecraft:soul_sand_valley": 11.3,
-      "minecraft:nether_wastes": 15.7,
-      "adventure:crimson_pinewood": 16.5,
-      "minecraft:basalt_deltas": 16.8,
-      "minecraft:crimson_forest": 12.9
+      "adventure:blackstone_basin": 55,
+      "minecraft:basalt_deltas": 12,
+      "minecraft:soul_sand_valley": 10,
+      "adventure:ash_barrens": 8,
+      "adventure:crimson_pinewood": 8,
+      "minecraft:crimson_forest": 7
+    },
+    "places": {
+      "groups": {
+        "ash_and_basalt": [
+          "minecraft:basalt_deltas",
+          "adventure:ash_barrens"
+        ],
+        "wart_woods": [
+          "adventure:crimson_pinewood",
+          "minecraft:crimson_forest"
+        ]
+      },
+      "arrangement": "core",
+      "warp": {
+        "blocks": 38,
+        "wavelength": 256
+      }
     }
   },
   "atmosphere": {
@@ -81,8 +94,8 @@
   "roll": {
     "mood": "hard",
     "spawnFilter": [
-      "minecraft:basalt_deltas",
-      "minecraft:nether_wastes"
+      "adventure:blackstone_basin",
+      "minecraft:basalt_deltas"
     ],
     "wants": {
       "bastion": "near_spawn",
@@ -97,5 +110,16 @@
       "crimson_fungus",
       "mvs:large_warped_tower"
     ]
+  },
+  "terrain": {
+    "scales": {
+      "climate": 2
+    }
+  },
+  "liquids": {
+    "seaLevel": 24
+  },
+  "materials": {
+    "cliffs": "minecraft:blackstone"
   }
 }
