@@ -67,6 +67,21 @@ class SurfaceGroundTest {
     }
 
     @Test
+    void aGradientIsTrueBelowItsBandSoARoofsNotGradientLaysNothingOnTheFloor() {
+        String roof = "{\"type\": \"minecraft:vertical_gradient\", \"random_name\": \"minecraft:bedrock_roof\", \"true_at_and_below\": {\"below_top\": 5}, \"false_at_and_above\": {\"below_top\": 0}}";
+        JsonElement nether = JsonParser.parseString(seq(
+                when("{\"type\": \"minecraft:vertical_gradient\", \"random_name\": \"minecraft:bedrock_floor\", \"true_at_and_below\": {\"above_bottom\": 0}, \"false_at_and_above\": {\"above_bottom\": 5}}", block("minecraft:bedrock")),
+                when("{\"type\": \"minecraft:not\", \"invert\": " + roof + "}", block("minecraft:bedrock")),
+                when(biome("minecraft:basalt_deltas"), when(FLOOR, block("minecraft:blackstone")))));
+        Set<String> bare = Set.of("minecraft:netherrack", "minecraft:blackstone");
+        assertEquals(Set.of("minecraft:nether_wastes", "minecraft:basalt_deltas"), SurfaceGround.rockBiomesAt(nether, SurfaceGround.Named.NONE,
+                List.of("minecraft:nether_wastes", "minecraft:basalt_deltas"), "minecraft:netherrack", 40, 0, 128, bare::contains));
+        assertEquals("minecraft:bedrock", SurfaceGround.top(nether, "minecraft:nether_wastes", "minecraft:netherrack", 125, 0, 128), "over the roof's band");
+        assertEquals("minecraft:netherrack", SurfaceGround.top(nether, "minecraft:nether_wastes", "minecraft:netherrack", 120, 0, 128), "under the roof's band");
+        assertEquals("minecraft:bedrock", SurfaceGround.top(nether, "minecraft:nether_wastes", "minecraft:netherrack", 0, 0, 128), "the floor's bedrock");
+    }
+
+    @Test
     void anEndBiomesGroundIsTheEndStoneItsRuleLaysOnItsIslands() {
         JsonElement end = JsonParser.parseString(seq(
                 when(biome("adventure:umbral_wastes"), when("\"minecraft:on_floor\"", block("minecraft:sculk"))),

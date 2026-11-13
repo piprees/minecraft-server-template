@@ -18,10 +18,12 @@ import java.util.function.Predicate;
  * {@code rules} and {@code conditions} given) is walked with each test read for that column:
  * {@code biome} by membership, the top of the floor ({@code stone_depth} floor
  * at offset 0), {@code water} and {@code above_preliminary_surface} true,
- * {@code y_above} against the column's height, and every patch-like test
- * ({@code noise_threshold}, {@code steep}, {@code hole}, {@code temperature},
- * {@code vertical_gradient}, a deeper or ceiling {@code stone_depth}, any other
- * type) false. With no block placed, the column keeps the default block.
+ * {@code y_above} against the column's height, {@code vertical_gradient} true
+ * at and below its {@code true_at_and_below} anchor and false elsewhere (its
+ * dithered band included), and every patch-like test ({@code noise_threshold},
+ * {@code steep}, {@code hole}, {@code temperature}, a deeper or ceiling
+ * {@code stone_depth}, any other type) false. With no block placed, the column
+ * keeps the default block.
  */
 public final class SurfaceGround {
     /** Blocks above sea level the column's top sits. */
@@ -124,6 +126,7 @@ public final class SurfaceGround {
                     && !"ceiling".equals(o.has("surface_type") ? o.get("surface_type").getAsString() : "floor");
             case "water", "above_preliminary_surface" -> true;
             case "y_above" -> c.y() >= anchor(o.get("anchor"), c);
+            case "vertical_gradient" -> o.has("true_at_and_below") && c.y() <= anchor(o.get("true_at_and_below"), c);
             default -> false;
         };
     }
