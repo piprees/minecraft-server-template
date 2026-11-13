@@ -60,7 +60,6 @@ import net.minecraft.world.level.validation.DirectoryValidator;
  * 1, pass 1 without slices, the wave with its slices, and on a roofed world
  * pass 1 scanned from the floor ({@link ScanWindow#FLOOR}) against whole
  * columns; {@value #FINAL_SIDE_PROPERTY} sets the last pass's side. With
- * applied, so both sides see the noise settings' own fluid picker. With
  * {@code -Dcustomdimensions.fastbench.lod=<detail>[,...]} it measures each
  * case's LOD source instead ({@link LodBench}); the case's radius is its reach
  * and its step and threads are unused.
