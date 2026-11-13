@@ -200,6 +200,7 @@ public final class FastBench {
         t = System.nanoTime();
         FastRender.Rendered bare = FastRender.render(sampler, g1, pool, c.threads(), scratch, null, p -> {}, t,
                 new FastRender.Options("bare", false, false, false, List.of(), pre1, false));
+        int defaultBatch = FastRender.batch(first.stride());
         for (int batch : new int[] {8, 16, 32}) {
             System.setProperty(FastRender.BATCH_PROPERTY, String.valueOf(batch));
             try {
@@ -208,7 +209,7 @@ public final class FastBench {
                         new FastRender.Options("batch" + batch, false, false, false, List.of(), pre1, false));
                 lines.add(String.format(Locale.ROOT, "%s pass 1 without slices in batches of %d: terrain %d ms against %d ms in the "
                                 + "default %d; mean window %.1f blocks", c.slug(), batch, b.result().sampleMillis(), bare.result().sampleMillis(),
-                        FastRender.batch(first.stride()), floorMeanRows(b)));
+                        defaultBatch, floorMeanRows(b)));
             } finally {
                 System.clearProperty(FastRender.BATCH_PROPERTY);
             }
