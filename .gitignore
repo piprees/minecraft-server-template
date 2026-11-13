@@ -60,6 +60,7 @@ mods/*/run/
 mods/*/.fabric/
 mods/*/*/build/
 mods/*/*/run/
+mods/*/*/run-bench/
 
 # === Built mod JARs (produced by CI, never committed) ===
 dist/local-mods/

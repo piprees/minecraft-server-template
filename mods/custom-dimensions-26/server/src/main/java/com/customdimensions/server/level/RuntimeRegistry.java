@@ -86,13 +86,17 @@ public final class RuntimeRegistry {
     }
 
     private static void bind(MinecraftServer server) {
+        bound = bind(server.registryAccess(), server.getResourceManager());
+    }
+
+    /** Binds every runtime file {@code resources} holds into {@code access}, as a start does; what was bound. */
+    public static List<Bound> bind(RegistryAccess access, net.minecraft.server.packs.resources.ResourceManager resources) {
         Map<String, RegistryDataLoader.RegistryData<?>> byDirectory = new TreeMap<>();
         List<RegistryDataLoader.RegistryData<?>> registries = new ArrayList<>(RegistryDataLoader.WORLD_REGISTRIES);
         registries.addAll(RegistryDataLoader.DIMENSION_REGISTRIES);
         registries.forEach(r -> byDirectory.put(Registries.elementsDirPath(r.key()), r));
-        RegistryAccess access = server.registryAccess();
         RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, access);
-        Map<Identifier, Resource> files = new TreeMap<>(server.getResourceManager().listResources(VanillaForms.FOLDER,
+        Map<Identifier, Resource> files = new TreeMap<>(resources.listResources(VanillaForms.FOLDER,
                 id -> id.getNamespace().equals(DatapackCompiler.RUNTIME_NAMESPACE) && id.getPath().endsWith(".json")));
         List<Bound> out = new ArrayList<>();
         for (Map.Entry<Identifier, Resource> file : files.entrySet()) {
@@ -108,9 +112,9 @@ public final class RuntimeRegistry {
             }
             out.add(bind(access, ops, byDirectory.get(target.directory()), target.id(), json, file.getKey()));
         }
-        bound = List.copyOf(out);
         CustomDimensions.LOG.info("runtime registry: {} compiled form(s) bound in place of their vanilla forms: {}", out.size(),
                 out.stream().map(b -> b.id().toString()).toList());
+        return List.copyOf(out);
     }
 
     private static <T> Bound bind(RegistryAccess access, RegistryOps<JsonElement> ops, RegistryDataLoader.RegistryData<T> data,

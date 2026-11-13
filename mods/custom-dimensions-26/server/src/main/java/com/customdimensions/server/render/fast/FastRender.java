@@ -136,7 +136,7 @@ public final class FastRender {
                 RenderGrid.Band band = bands.get(b);
                 work.add(CompletableFuture.runAsync(() -> {
                     runData[index] = band(sampler, grid, band, models.get(), samples, pixels, palette, pre.cutY(), lo, hi, minY);
-                    job.advance((long) band.rows() * side, progress);
+                    if (job != null) job.advance((long) band.rows() * side, progress);
                 }, pool));
             }
             CompletableFuture.allOf(work.toArray(CompletableFuture[]::new)).join();
