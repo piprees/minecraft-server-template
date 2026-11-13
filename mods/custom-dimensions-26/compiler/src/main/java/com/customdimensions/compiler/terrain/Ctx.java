@@ -63,7 +63,22 @@ final class Ctx {
     JsonElement layoutShift(double sigma, double sigmas) {
         TerrainShaping.Layout l = spec.shaping().layout();
         if (l == null) return null;
-        return mul(TerrainShaping.shape(l), sigma * sigmas * l.strength());
+        return mul(layoutShape(), sigma * sigmas * l.strength());
+    }
+
+    /** The layout's shape ({@link TerrainShaping#shape}), its warp noises written with the terrain's. */
+    JsonElement layoutShape() {
+        return TerrainShaping.shape(warped(spec.shaping().layout()), namespace);
+    }
+
+    /** Blocks from the layout's centre to its warped point ({@link TerrainShaping#distance}). */
+    JsonElement layoutDistance() {
+        return TerrainShaping.distance(warped(spec.shaping().layout()), namespace);
+    }
+
+    private TerrainShaping.Layout warped(TerrainShaping.Layout l) {
+        if (l.warped()) noises.addAll(TerrainLibrary.WARP_NOISES);
+        return l;
     }
 
     /** The spec's layout, or null for none. */

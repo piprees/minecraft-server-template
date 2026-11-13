@@ -137,7 +137,16 @@
             "minimum": 0,
             "maximum": 1,
             "default": 0.5
-          }
+          },
+            "warp": {
+              "description": "How far the shape's edges wander: the point the shape (and a ring's hollow) is read at moves along the warp noises terrain.climateWarp uses, by up to blocks (two standard deviations) over features wavelength blocks across, so a ring's rim and a continent's coast are no drawn circle. blocks at most 0.15 of wavelength, which keeps the map from folding, so a ring stays one ring. Absent: the shape stands still.",
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "blocks": { "type": "number", "minimum": 0, "maximum": 1024, "default": 0 },
+                "wavelength": { "type": "number", "minimum": 64, "maximum": 4096, "default": 512 }
+              }
+            }
           }
         }
       },
@@ -437,7 +446,7 @@
           "$ref": "#/$defs/id"
         },
         "places": {
-          "description": "Lay the regional land biomes (all regional biomes on a terrain with no coastline) out as places: each biome, or each named group, takes ONE contiguous region of the border whose share is its weight over the sum, by a power (weighted Voronoi) diagram instead of a climate noise. The router's first region axis (temperature or humidity) becomes the place field, one value per place, read as it is; a group's biomes are mixed inside their place by the second axis's ranked noise. Ocean, shore, river, cave, underside and basin biomes keep their role areas, a place's own members in its column and the rest in every column; bound biomes, zones and over: land work as with regions. Without at or a named arrangement the sites are automatic: four layouts solved at compile time, and the level's seed picks one of them and one of the square's eight symmetries, so rolling seeds gives different arrangements with the same shares.",
+          "description": "Lay the regional land biomes (all regional biomes on a terrain with no coastline) out as places: each biome, or each named group, takes ONE contiguous region of the world border (borders.player, else borders.generation, as the regions) whose share is its weight over the sum, by a power (weighted Voronoi) diagram instead of a climate noise. The router's first region axis (temperature or humidity) becomes the place field, one value per place, read as it is; a group's biomes are mixed inside their place by the second axis's ranked noise. Ocean, shore, river, cave, underside and basin biomes keep their role areas, a place's own members in its column and the rest in every column; bound biomes, zones and over: land work as with regions. Without at or a named arrangement the sites are automatic: four layouts solved at compile time, and the level's seed picks one of them and one of the square's eight symmetries, so rolling seeds gives different arrangements with the same shares.",
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -509,7 +518,7 @@
               }
             },
             "warp": {
-              "description": "How far place edges wander: the sampling point moves by up to blocks (two standard deviations) over features wavelength blocks across, tapered to nothing at the border. blocks at most 0.15 of wavelength (the compiler refuses more), which keeps every place one region. Absent: terrain.climateWarp when it warps, else blocks 0.15 of a wavelength of half the border's radius.",
+              "description": "How far place edges wander: the sampling point moves by up to blocks (two standard deviations) over features wavelength blocks across, tapered to nothing at the border; a heart's disc takes the whole warp all round, held to the room between the heart and a tenth of the radius inside the border. blocks at most 0.15 of wavelength, which keeps every place one region. Absent: terrain.climateWarp when it warps (capped at 0.15 of its wavelength), else blocks 0.1 of a wavelength of half the border's radius; either is cut to a heart's room.",
               "type": "object",
               "additionalProperties": false,
               "properties": {

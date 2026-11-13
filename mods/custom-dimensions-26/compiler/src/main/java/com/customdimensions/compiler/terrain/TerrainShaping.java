@@ -45,10 +45,21 @@ public final class TerrainShaping {
      * {@code ring} is 1 at {@code radius}, -1 {@code falloff} inside and
      * outside it; {@code linear} rises from -1 to 1 across a band
      * {@code falloff} wide through the centre, towards {@code direction}
-     * (degrees, 0 east, 90 south).
+     * (degrees, 0 east, 90 south). With {@code warp}, the point the shape is read at moves along the warp noises
+     * {@code climateWarp} uses, two standard deviations of {@code warp.blocks} over features {@code warp.wavelength}
+     * across, so its edges wander; at most {@link PlaceField#MAX_WARP_RATIO} of the wavelength, the map does not fold
+     * and a ring stays one ring.
      */
     public record Layout(String type, double centreX, double centreZ, double radius, double direction, double falloff,
-                         double strength) {
+                         double strength, PlaceField.Warp warp) {
+        public Layout(String type, double centreX, double centreZ, double radius, double direction, double falloff, double strength) {
+            this(type, centreX, centreZ, radius, direction, falloff, strength, PlaceField.Warp.NONE);
+        }
+
+        /** Whether the shape's sampling point moves. */
+        public boolean warped() {
+            return warp.blocks() > 0;
+        }
     }
 
     /**
@@ -77,7 +88,7 @@ public final class TerrainShaping {
 
     public static final List<String> SCALE_KEYS = List.of("continents", "erosion", "ridges", "climate");
     public static final List<String> LAYOUT_TYPES = List.of("radial", "ring", "linear", "none");
-    static final Set<String> LAYOUT_KEYS = Set.of("type", "centre", "radius", "direction", "falloff", "strength");
+    static final Set<String> LAYOUT_KEYS = Set.of("type", "centre", "radius", "direction", "falloff", "strength", "warp");
     public static final TerrainParam SCALE_RANGE = new TerrainParam("scales", 0.25, 4, 1,
             "Horizontal stretch of one router noise, multiplied with scale; 2 is twice as broad");
     public static final TerrainParam STRENGTH = new TerrainParam("strength", 0, 1, 0.5,
@@ -186,14 +197,20 @@ public final class TerrainShaping {
     /** The numbers of {@code terrain.<field>}, an object of {@code keys} each in its range; {@code defaults} for absent ones. */
     private static double[] object(String slug, JsonObject terrain, String field, List<String> keys, double[] defaults,
                                    TerrainParam[] ranges) {
+        return object(slug, terrain, field, "terrain." + field, keys, defaults, ranges);
+    }
+
+    /** As above for {@code parent.<field>}, named {@code name} in refusals. */
+    private static double[] object(String slug, JsonObject parent, String field, String name, List<String> keys, double[] defaults,
+                                   TerrainParam[] ranges) {
         double[] v = defaults.clone();
-        if (!terrain.has(field)) return v;
-        JsonElement e = terrain.get(field);
-        if (!e.isJsonObject()) throw error(slug, "terrain." + field + " must be an object");
+        if (!parent.has(field)) return v;
+        JsonElement e = parent.get(field);
+        if (!e.isJsonObject()) throw error(slug, name + " must be an object");
         for (var kv : e.getAsJsonObject().entrySet()) {
             int i = keys.indexOf(kv.getKey());
-            if (i < 0) throw error(slug, "terrain." + field + "." + kv.getKey() + " is not a field; fields: " + String.join(", ", keys));
-            v[i] = number(slug, "terrain." + field + "." + kv.getKey(), kv.getValue(), ranges[i]);
+            if (i < 0) throw error(slug, name + "." + kv.getKey() + " is not a field; fields: " + String.join(", ", keys));
+            v[i] = number(slug, name + "." + kv.getKey(), kv.getValue(), ranges[i]);
         }
         return v;
     }
@@ -235,28 +252,57 @@ public final class TerrainShaping {
         }
         double falloff = o.has("falloff") ? number(slug, "terrain.layout.falloff", o.get("falloff"), FALLOFF) : FALLOFF.defaultValue();
         double strength = o.has("strength") ? number(slug, "terrain.layout.strength", o.get("strength"), STRENGTH) : STRENGTH.defaultValue();
-        return new Layout(type, cx, cz, radius, direction, falloff, strength);
+        PlaceField.Warp warp = PlaceField.Warp.NONE;
+        if (o.has("warp")) {
+            double[] w = object(slug, o, "warp", "terrain.layout.warp", WARP_KEYS, new double[]{0, WAVELENGTH.defaultValue()},
+                    new TerrainParam[]{WARP, WAVELENGTH});
+            if (w[0] > PlaceField.MAX_WARP_RATIO * w[1]) {
+                throw error(slug, "terrain.layout.warp moves " + TerrainSpec.fmt(w[0]) + " blocks over a " + TerrainSpec.fmt(w[1])
+                        + "-block wavelength; above " + PlaceField.MAX_WARP_RATIO + " of the wavelength the warp can fold the map and split the "
+                        + type + "'s shape");
+            }
+            warp = new PlaceField.Warp(w[0], w[1]);
+        }
+        return new Layout(type, cx, cz, radius, direction, falloff, strength, warp);
     }
 
-    /** {@code continents} plus the layout's shape times its strength; unchanged without a layout. */
-    JsonElement withLayout(JsonElement continents) {
+    /** {@code continents} plus the layout's shape times its strength; unchanged without a layout. Warp noises are {@code namespace}'s. */
+    JsonElement withLayout(JsonElement continents, String namespace) {
         if (layout == null) return continents;
-        return add(continents, mul(shape(layout), layout.strength()));
+        return add(continents, mul(shape(layout, namespace), layout.strength()));
     }
 
-    /** The layout's shape: -1 to 1 over the plane. */
-    static JsonElement shape(Layout l) {
-        long cx = Math.round(l.centreX()), cz = Math.round(l.centreZ());
+    /** Whether the layout or the climate moves a sampling point along the warp noises. */
+    public boolean warps() {
+        return climate.warp() > 0 || layout != null && layout.warped();
+    }
+
+    /** The layout's shape: -1 to 1 over the plane, read at its warped point; the warp noises are {@code namespace}'s. */
+    static JsonElement shape(Layout l, String namespace) {
         return switch (l.type()) {
-            case "radial" -> spline(ZoneDensity.distance(cx, cz), l.radius(), 1, l.radius() + l.falloff(), -1);
-            case "ring" -> spline(ZoneDensity.distance(cx, cz), l.radius() - l.falloff(), -1, l.radius(), 1, l.radius() + l.falloff(), -1);
+            case "radial" -> spline(distance(l, namespace), l.radius(), 1, l.radius() + l.falloff(), -1);
+            case "ring" -> spline(distance(l, namespace), l.radius() - l.falloff(), -1, l.radius(), 1, l.radius() + l.falloff(), -1);
             case "linear" -> {
                 double a = Math.toRadians(l.direction());
-                JsonElement along = add(mul(ZoneDensity.gradient("x", cx), c(Math.cos(a))), mul(ZoneDensity.gradient("z", cz), c(Math.sin(a))));
+                JsonElement along = add(mul(offset(l, "x", namespace), c(Math.cos(a))), mul(offset(l, "z", namespace), c(Math.sin(a))));
                 yield spline(along, -l.falloff() / 2, -1, l.falloff() / 2, 1);
             }
             default -> throw new IllegalArgumentException("layout " + l.type());
         };
+    }
+
+    /** Blocks from the layout's centre to its warped point. */
+    static JsonElement distance(Layout l, String namespace) {
+        if (!l.warped()) return ZoneDensity.distance(Math.round(l.centreX()), Math.round(l.centreZ()));
+        return ZoneDensity.distance(offset(l, "x", namespace), offset(l, "z", namespace));
+    }
+
+    /** The warped point's offset from the layout's centre along {@code axis}, in blocks. */
+    private static JsonElement offset(Layout l, String axis, String namespace) {
+        JsonElement g = ZoneDensity.gradient(axis, Math.round("x".equals(axis) ? l.centreX() : l.centreZ()));
+        if (!l.warped()) return g;
+        double k = l.warp().blocks() / (2 * Noises.sigma("warp_" + axis));
+        return add(g, mul(Df.noise(namespace + ":terrain/warp_" + axis, TerrainLibrary.WARP_FEATURE / l.warp().wavelength(), 0, false), k));
     }
 
     static double number(String slug, String field, JsonElement e, TerrainParam range) {

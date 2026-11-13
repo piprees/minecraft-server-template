@@ -15,6 +15,12 @@ Usage: check-targets.py <dossier.json> <targets.json> [--json OUT]
 Gotchas: an unknown key path is an error (exit 2), never a pass or a fail. The one exception is a missing registry id
 (it has a colon) in a map keyed by ids (shares, counts, cluster or species records): the dossier lists only the largest
 entries, so a missing one measures 0 and the line says "not listed". A whole missing section (`clusters.types.minecraft:x` with no `clusters` key) is still an error.
+Places: with `biomeLayout.places` the dossier's `placeness.places` names each place by its group, or by its own biome id
+when ungrouped: `placeness.places.byPlace.<place>.percent` (share of the sampled area), `.landPercent`, `.landRegions`
+(regions of 1% of the land or more), `.largestPercent`, `.specksPercent`; over all places
+`placeness.places.landRegions.top3Percent`, `.major`, `.specksPercent`; `placeness.places.islands.dominantPlacePercent`.
+`byPlace` lists every place, so a missing place is an error, never "not listed". `borders.surveyedOver` says which
+area the survey sampled (`places` where the definition lays out places) and `borders.surveyedHectares` its size.
 """
 import json
 import sys
@@ -48,7 +54,7 @@ def resolve(dossier, path):
         if isinstance(node, list) and part.isdigit() and int(part) < len(node):
             node = node[int(part)]
             continue
-        listed_id = ':' in part and i > 0 and isinstance(node, dict)
+        listed_id = ':' in part and i > 0 and isinstance(node, dict) and parts[i - 1] != 'byPlace'
         if listed_id and i == len(parts) - 1 and (numeric_map(node) or node == {}):
             return 0.0, 'not listed'
         if listed_id and i == len(parts) - 2 and all(isinstance(x, dict) for x in node.values()):

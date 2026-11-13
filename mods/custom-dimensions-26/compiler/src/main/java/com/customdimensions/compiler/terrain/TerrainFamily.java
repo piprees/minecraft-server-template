@@ -938,7 +938,7 @@ public enum TerrainFamily {
         if (ctx.p("hollowDepth") <= 0) return null;
         TerrainShaping.Layout l = ctx.layout();
         double r = hollowEdge(l);
-        JsonElement d = com.customdimensions.compiler.zone.ZoneDensity.distance(Math.round(l.centreX()), Math.round(l.centreZ()));
+        JsonElement d = ctx.layoutDistance();
         return spline(d, r - HOLLOW_HEART, heart, r - HOLLOW_SHORE, shore, r - HOLLOW_CREST, crestEnd, r, edge,
                 r + HOLLOW_OUTSIDE, edge - 0.2 * sl);
     }

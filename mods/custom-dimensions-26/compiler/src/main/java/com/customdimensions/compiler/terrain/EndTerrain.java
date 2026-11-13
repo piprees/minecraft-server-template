@@ -124,7 +124,7 @@ final class EndTerrain {
      * {@link #LAYOUT} times strength is taken off, clearing vanilla's islands.
      */
     private static JsonElement laidOut(Ctx ctx, JsonElement islands, TerrainShaping.Layout layout) {
-        JsonElement shape = Df.cache(TerrainShaping.shape(layout));
+        JsonElement shape = Df.cache(ctx.layoutShape());
         JsonElement own = add(mul(ctx.noise("islands", OWN_ISLAND_FREQUENCY, 0), OWN_ISLAND_DENSITY / Noises.sigma("islands")),
                 OWN_ISLAND_OFFSET + ctx.p("coverage"));
         JsonElement pull = mul(Df.clamp(shape, 0, 1), layout.strength());

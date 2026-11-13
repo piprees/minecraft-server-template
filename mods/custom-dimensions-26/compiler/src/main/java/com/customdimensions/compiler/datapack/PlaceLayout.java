@@ -62,17 +62,6 @@ public final class PlaceLayout {
     private PlaceLayout() {
     }
 
-    /**
-     * The radius places are laid over: the smaller of the player and generation borders, the area that generates
-     * and that the survey measures, else {@link RegionLayout#DEFAULT_RADIUS}.
-     */
-    static int radius(com.customdimensions.core.definition.Borders borders) {
-        int r = Integer.MAX_VALUE;
-        if (borders != null && borders.player() != null) r = Math.min(r, borders.player());
-        if (borders != null && borders.generation() != null) r = Math.min(r, borders.generation());
-        return r == Integer.MAX_VALUE ? RegionLayout.DEFAULT_RADIUS : r;
-    }
-
     /** Whether {@code layout} lays its biomes out as places. */
     static boolean present(JsonObject layout) {
         return layout != null && layout.has("places");
@@ -365,15 +354,45 @@ public final class PlaceLayout {
         return warp;
     }
 
-    /** The warp {@code places} takes in {@code def}: its own, else the terrain's climate warp, else the default for {@code radius}. */
+    /**
+     * The warp {@code places} takes in {@code def}: its own, else the terrain's climate warp, else the default for {@code radius}.
+     * A heart's edge takes the whole warp, so the warp is held to the room between the heart and {@link PlaceField#PIN_MARGIN}
+     * inside the border, where the places round it reach the border ({@link #heartRoom}): its own is refused past it, a
+     * taken one is cut to it.
+     */
     static PlaceField.Warp warp(String slug, Definition def, Places places, int radius) {
-        if (places.warp() != null) return places.warp();
-        PlaceField.Warp terrain = terrainWarp(slug, def);
-        if (terrain != null) {
-            return new PlaceField.Warp(Math.min(terrain.blocks(), Math.floor(PlaceField.MAX_WARP_RATIO * terrain.wavelength())), terrain.wavelength());
+        double room = heartRoom(places, radius);
+        if (places.warp() != null) {
+            if (places.warp().blocks() > room) {
+                throw error(slug, "biomeLayout.places.warp moves " + fmt(places.warp().blocks()) + " blocks, but the edge of the heart, "
+                        + places.names().get(places.arrangements().get(0).hub()) + ", has " + fmt(Math.floor(room)) + " blocks before it comes within "
+                        + blocks(radius) + " blocks of the border, where the places round it reach the border; warp it at most " + fmt(Math.floor(room)));
+            }
+            return places.warp();
         }
-        double wavelength = Math.max(64, Math.min(4096, Math.round(DEFAULT_WAVELENGTH * radius)));
-        return new PlaceField.Warp(Math.round(DEFAULT_WARP * wavelength), wavelength);
+        PlaceField.Warp terrain = terrainWarp(slug, def);
+        PlaceField.Warp taken;
+        if (terrain != null) {
+            taken = new PlaceField.Warp(Math.min(terrain.blocks(), Math.floor(PlaceField.MAX_WARP_RATIO * terrain.wavelength())), terrain.wavelength());
+        } else {
+            double wavelength = Math.max(64, Math.min(4096, Math.round(DEFAULT_WAVELENGTH * radius)));
+            taken = new PlaceField.Warp(Math.round(DEFAULT_WARP * wavelength), wavelength);
+        }
+        return taken.blocks() > room ? new PlaceField.Warp(Math.floor(room), taken.wavelength()) : taken;
+    }
+
+    /**
+     * Blocks a heart's edge may move before it comes within {@link PlaceField#PIN_MARGIN} of the border over a
+     * {@code radius}-block border: infinite without a heart.
+     */
+    static double heartRoom(Places places, int radius) {
+        double room = Double.POSITIVE_INFINITY;
+        for (PlaceField.Arrangement a : places.arrangements()) {
+            if (a.heart() <= 0) continue;
+            int h = a.hub();
+            room = Math.min(room, (1 - Math.max(Math.abs(a.x()[h]), Math.abs(a.z()[h])) - a.heart() - PlaceField.PIN_MARGIN) * radius);
+        }
+        return Math.max(0, room);
     }
 
     /** {@code def}'s {@code terrain.climateWarp}, or null when it does not warp. */

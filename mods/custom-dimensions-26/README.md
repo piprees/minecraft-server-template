@@ -250,8 +250,8 @@ wander. The terrains and their parameters are in
 
 `biomeLayout.places` (with `mode: regions`) lays the regional land biomes out
 as places: each biome, or each named `groups` entry, takes one contiguous
-region of the border (the smaller of `borders.player` and
-`borders.generation`) whose share is its weight. The compiler solves a power
+region of the border (`borders.player`, else `borders.generation`, the
+radius players see) whose share is its weight. The compiler solves a power
 diagram over one site per place (`compiler/.../terrain/PlaceField.java`,
 `compiler/.../datapack/PlaceLayout.java`) and writes it as vanilla density
 functions under `<namespace>:places/<slug>/`, which become the router's first

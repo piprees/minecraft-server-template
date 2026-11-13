@@ -22,7 +22,9 @@ import java.util.TreeMap;
  * takes the least, and reads {@code i} back as the remainder by 16: every term is an integer below 2^24, so the
  * game's float arithmetic is exact and the place at a point is the diagram's to within {@code 1 / scale} border
  * units squared. The sampling point is moved by the warp noises inside the border, tapered to nothing at its edge,
- * so place edges wander while the map stays one-to-one and each place one region (see {@link #MAX_WARP_RATIO}).
+ * so place edges wander while the map stays one-to-one and each place one region (see {@link #MAX_WARP_RATIO}). A
+ * heart's disc is read at the point the whole warp moves, untapered, so its edge wanders as far as the warp all round;
+ * the compiler holds that warp clear of the border.
  */
 public final class PlaceField {
     /** Places one field can hold: the remainder by 16 carries the place. */
@@ -595,6 +597,18 @@ public final class PlaceField {
         files.put(TerrainLibrary.dataPath(prefix + "z", "worldgen/density_function"), Df.cache(coordinate("z", radius)));
         nodes[0] += 4;
         JsonElement u = Df.ref(prefix + "x"), v = Df.ref(prefix + "z");
+        JsonElement hu = null, hv = null;
+        if (warp.blocks() > 0 && !symmetries && arrangements.stream().anyMatch(a -> a.heart() > 0)) {
+            double k = warp.blocks() / (2 * Noises.sigma("warp_x")) / radius;
+            double frequency = TerrainLibrary.WARP_FEATURE / warp.wavelength();
+            files.put(TerrainLibrary.dataPath(prefix + "heart_u", "worldgen/density_function"),
+                    Df.cache(Df.add(u, Df.mul(Df.noise(namespace + ":terrain/warp_x", frequency, 0, false), k))));
+            files.put(TerrainLibrary.dataPath(prefix + "heart_v", "worldgen/density_function"),
+                    Df.cache(Df.add(v, Df.mul(Df.noise(namespace + ":terrain/warp_z", frequency, 0, false), k))));
+            nodes[0] += 2 * 4;
+            hu = Df.ref(prefix + "heart_u");
+            hv = Df.ref(prefix + "heart_v");
+        }
         if (warp.blocks() > 0) {
             double taper = Math.min(radius / 2.0, 8 * warp.blocks());
             JsonObject window = Df.cache(Df.clamp(Df.mul(Df.add(Df.max(Df.abs(u), Df.abs(v)), -1), -radius / taper), 0, 1));
@@ -627,7 +641,7 @@ public final class PlaceField {
             v = Df.ref(prefix + "q");
         }
         List<JsonElement> least = new ArrayList<>();
-        for (Arrangement a : arrangements) least.add(least(a, u, v, nodes));
+        for (Arrangement a : arrangements) least.add(least(a, u, v, hu != null ? hu : u, hv != null ? hv : v, nodes));
         JsonElement m;
         if (arrangements.size() == 1) {
             m = least.get(0);
@@ -664,8 +678,8 @@ public final class PlaceField {
         return s;
     }
 
-    /** The least of the places' encoded power distances in {@code a}. */
-    private static JsonElement least(Arrangement a, JsonElement u, JsonElement v, int[] nodes) {
+    /** The least of the places' encoded power distances in {@code a}; a heart is read at {@code (hu, hv)}. */
+    private static JsonElement least(Arrangement a, JsonElement u, JsonElement v, JsonElement hu, JsonElement hv, int[] nodes) {
         int n = a.size();
         double top = Double.NEGATIVE_INFINITY, bottom = Double.POSITIVE_INFINITY;
         for (double w : a.weight()) {
@@ -678,7 +692,8 @@ public final class PlaceField {
         if (a.heart() > 0) {
             int h = a.hub();
             JsonElement du = Df.add(u, -a.x()[h]), dv = Df.add(v, -a.z()[h]);
-            out = Df.add(Df.mul(Df.floor(Df.clamp(Df.mul(Df.add(Df.square(du), Df.square(dv)), 1 / (a.heart() * a.heart())), 0, 1)),
+            JsonElement hdu = Df.add(hu, -a.x()[h]), hdv = Df.add(hv, -a.z()[h]);
+            out = Df.add(Df.mul(Df.floor(Df.clamp(Df.mul(Df.add(Df.square(hdu), Df.square(hdv)), 1 / (a.heart() * a.heart())), 0, 1)),
                     OUTSIDE_HEART + MAX_PLACES), h - MAX_PLACES);
             nodes[0] += 11;
             for (int j = 0; j < n - 1; j++) {

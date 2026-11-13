@@ -78,6 +78,11 @@ public final class ZonedBiomeSource extends BiomeSource {
         return Stream.concat(Stream.concat(base.possibleBiomes().stream(), layouts), swapped).distinct();
     }
 
+    /** A quantised temperature with its zone's channel taken off: the base layout's own. */
+    public static long baseTemperature(long temperature) {
+        return temperature - channel(temperature) * STEP;
+    }
+
     /** The channel a quantised temperature carries: 0 for the base. */
     static int channel(long temperature) {
         return (int) Math.floorDiv(temperature + STEP / 2, STEP);

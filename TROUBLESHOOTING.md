@@ -1596,11 +1596,71 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t268"></a>
+### T268 — A heart's warp is held to its room
+- **Symptom:** a definition whose `biomeLayout.places.warp` is larger than a heart allows is refused naming the heart; or a heart's edge wanders less than `terrain.climateWarp` or the default warp would suggest.
+- **Cause:** a heart's disc takes the whole places warp, untapered, so the compiler holds the warp to the heart's room: the blocks between its disc and 0.1 of the radius inside the border, where the places round it reach the border (`PlaceLayout.heartRoom`). An own warp past the room is refused; a taken one is cut to it.
+- **Fix:** keep `places.warp.blocks` within the room the refusal names; read the cut in the compile note's "edges warped N blocks".
+
+<a id="t267"></a>
+### T267 — `placeness.places` measures dry land
+- **Symptom:** a place's `landPercent`, regions or specks differ from a count of every non-void pixel on a render.
+- **Cause:** the survey's land is the coarse map's dry cells outside the sea biomes, as `landBiomeRegions`; a sea biome that only one place's column holds (a basin free in that place) counts as that place's wherever it is surveyed, and a biome every place shares is no place's.
+- **Fix:** compare like with like: dry land against dry land, at the survey's cell size; read held water from `percent`, the place field's share of the sampled area.
+
+<a id="t266"></a>
+### T266 — Places are laid over the player border; `borders.generation` limits only pre-generation
+- **Symptom:** a sky world's places are measured or pictured over its generation border, and the shares, the heart's size or the outer places read wrongly; or Chunky pre-generates only part of the area the places cover.
+- **Cause:** the compiler lays places over the radius players see, as region layouts (`RegionLayout.radius`: `borders.player`, else `borders.generation`, else 1024), and the survey samples that area (`borders.surveyedOver: places`). Nothing stops generation at `borders.generation`; it is the pre-generation extent alone.
+- **Fix:** render and judge a places world over its player border; raise `borders.generation` to the player border where the whole place field should be pre-generated.
+
+<a id="t265"></a>
+### T265 — 26.3's batch density path is slower than the point path
+- **Symptom:** a render or bench through `sampleVolume` runs slower than one sampling column by column, or two runs of `/customdim fastrender` disagree on the speed-up by 1.5–3×; an exact render differs from the game's in the last float bit.
+- **Cause:** an `InterpolatedFunction` given a volume whose step is not its cell samples every block, and `LerpFunction` samples both its sides at every point (old_blended_noise's two 16-octave limit noises included). Vanilla fills a cell's blocks with its lerps and a running sum that starts at the volume's lowest block, so a window that does not start on a cell row rounds differently. The sidecar reference rate swings between runs on a shared thread pool.
+- **Fix:** where a render needs exact values, sample the cell corners and fill the blocks with vanilla's lerps and running sum from a window that starts on a cell row. Compare speeds within one run, or against `runFastBench`'s dense reference.
+
+<a id="t264"></a>
+### T264 — A power cell need not contain its own site
+- **Symptom:** a pinned place (`biomeLayout.places.at`, or `core`'s centre) is not at its site: a larger neighbour covers it, and a spawn or a portal arrival there stands in the wrong place.
+- **Cause:** in a power diagram a heavy neighbour's cell can reach over a light site. A convex cell clear of a centred disc of radius m holds at most (1 − m) / 2 of the square, so no power diagram keeps a small place at the centre beside one of 45% or more.
+- **Fix:** such a place is laid as a heart: a disc of its share round its site, the others wedges round it. The compiler holds every pinned site 0.1 border units inside its place, or refuses naming the place and the one that reaches over it.
+
+<a id="t263"></a>
+### T263 — The compiled pack must load on a vanilla server
+- **Symptom:** a vanilla server stops with "Unknown registry key" on the pack, and no base world loads; the mod's self-test passes.
+- **Cause:** a file vanilla reads uses a `customdimensions:` type. The self-test runs with the mod, so it cannot see this; vanilla loads every registered density function and dimension file, lazy dimensions' included.
+- **Fix:** a type of ours goes in a vanilla-visible file only through its vanilla form; the compiled form goes under `runtime_registry/`, which `RuntimeRegistry` puts in place at start. A new type needs an entry in `VanillaForms.FORMS`, or the compile refuses it. Prove it with `scripts/vanilla-boot-check.sh`.
+
+<a id="t262"></a>
+### T262 — A self-test that samples a shipped dimension at the origin breaks with its definition
+- **Symptom:** a generator self-test line on a shipped dimension fails after an edit to that dimension's definition, reading void where it expected land.
+- **Cause:** the test sampled the origin, and a definition edit can empty it (a sky world's coverage or layout).
+- **Fix:** sample round the definition's spawn (`GeneratorSelfTest.squareAround`).
+
+<a id="t261"></a>
+### T261 — Vanilla's constant density function refuses magnitudes past 1e6
+- **Symptom:** a dimension whose compiled functions hold a constant past ±1,000,000 fails to load at boot.
+- **Cause:** vanilla's `constant` density function accepts only values from -1e6 to 1e6.
+- **Fix:** the compiler writes a larger constant as an exact constant × 2^k (`Df.k`); build every large constant through it.
+
+<a id="t260"></a>
+### T260 — The sea and shore roles cut places
+- **Symptom:** a world laid out with `biomeLayout.places` reads more `placeness.biomeRegions.major` than it has places.
+- **Cause:** the sea, shore and river roles keep their own areas across the places and cut each place they cross into several biome regions.
+- **Fix:** `biomeRegions.major` equals the number of places only on land without sea; judge places with `placeness.places`.
+
+<a id="t259"></a>
+### T259 — A library showcase's 96 × 96 is under a hectare
+- **Symptom:** a biome library self-test line reads a feature the biome grows at 0, or at 1 that comes and goes with the view distance.
+- **Cause:** the 96 × 96 round spawn is 0.9 ha; a feature rarer than about one per hectare can be absent from it, and one counted block can be a neighbouring chunk's spill.
+- **Fix:** judge rare features on the 192 × 192 sample (`BiomeLibrarySelfTest.FAIR_SIDE`, `FAIR_COUNT`).
+
 <a id="t258"></a>
 ### T258 — Under `biomeLayout.places` the first region axis is a place field
 - **Symptom:** a `terrain.climateShift`, or a `climate` box on the place axis, changes nothing; a sky world's survey counts each island as its own land region although the islands are one place.
-- **Cause:** the router's first region axis holds one constant per place (a power diagram over the places' sites), read as it is and never ranked; `scales.climate` stretches only a group's inner mix on the second axis. A place holds its share of the border, not of the land.
-- **Fix:** shape places with `groups`, weights, `arrangement`, `at`, `neighbours`/`apart` and `warp` (at most 0.15 of its wavelength). Judge a sky world by each group's share and `islands.dominantBiomePercent`.
+- **Cause:** the router's first region axis holds one constant per place (a power diagram over the places' sites, laid over the player border as regions are: [T266](#t266)), read as it is and never ranked; `scales.climate` stretches only a group's inner mix on the second axis. A place holds its share of the border, not of the land.
+- **Fix:** shape places with `groups`, weights, `arrangement`, `at`, `neighbours`/`apart` and `warp` (at most 0.15 of its wavelength). Judge a world's places by `placeness.places`, which counts a group's members as one place.
 
 <a id="t257"></a>
 ### T257 — `scales.climate` stops at 4, and `terrain.scale` stretches everything with it
@@ -1609,10 +1669,10 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
 - **Fix:** for larger regions use `biomeLayout.places`, not scale; where `terrain.scale` is raised, compensate `size` and `spireThickness`.
 
 <a id="t256"></a>
-### T256 — A survey's patch shares change with the slug
-- **Symptom:** the same terrain surveyed under two slugs gives one biome 3.9% and 8.2%.
-- **Cause:** the survey's patches are placed from the slug, and a patch sample of a regional biome swings with where the patches fall.
-- **Fix:** judge a biome's share on the coarse border map (`placeness.biomesPercent`), and patches for what the biome looks like.
+### T256 — A survey's patch shares swing with where its patches fall
+- **Symptom:** the same terrain surveyed with another seed or over another area gives one biome 3.9% and 8.2% of its patches.
+- **Cause:** the patches are a few hectares drawn from the level's seed and the sampled area, and a patch sample of a regional biome swings with where they fall. Two dimensions of one terrain and seed sample the same ground.
+- **Fix:** judge a biome's share on the coarse map (`placeness.biomesPercent`, and `placeness.places` for places), and patches for what the biome looks like.
 
 <a id="t255"></a>
 ### T255 — A fixture with no biome list freezes its own water

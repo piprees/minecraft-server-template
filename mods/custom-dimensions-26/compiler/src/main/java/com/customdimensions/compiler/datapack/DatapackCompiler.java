@@ -629,7 +629,7 @@ public final class DatapackCompiler {
             case Generator.NOISE -> {
                 RegionLayout.Plan regions = def.biomeLayout() == null ? null : RegionLayout.plan(slug, def.biomes(), def.biomeLayout(),
                         RegionLayout.radius(def.borders()), known, entry,
-                        RegionLayout.coast(slug, def, RegionLayout.axes(slug, def.biomeLayout())), roles(), RegionLayout.ground(slug, def), PlaceLayout.radius(def.borders()));
+                        RegionLayout.coast(slug, def, RegionLayout.axes(slug, def.biomeLayout())), roles(), RegionLayout.ground(slug, def));
                 yield noiseGenerator(slug, def, g.preset(), regions == null ? noiseBiomeSource(def, entry) : multiNoise(regions.entries()),
                         regions, entry);
             }
@@ -812,7 +812,7 @@ public final class DatapackCompiler {
 
     /** {@code settings}' router with its first region axis replaced by the place field of {@code places}; the field goes into the pack. */
     private void placeField(String slug, Definition def, PlaceLayout.Places places, JsonObject settings, CompileReport.Entry entry) {
-        int radius = PlaceLayout.radius(def.borders());
+        int radius = RegionLayout.radius(def.borders());
         com.customdimensions.compiler.terrain.PlaceField.Warp warp = PlaceLayout.warp(slug, def, places, radius);
         com.customdimensions.compiler.terrain.PlaceField.Compiled field = com.customdimensions.compiler.terrain.PlaceField.compile(
                 namespace, slug, radius, places.arrangements(), places.symmetries(), warp);
@@ -1080,7 +1080,7 @@ public final class DatapackCompiler {
         if (def.ores() != null) entry.unsupported("ores", "a void world has no stone for ores");
         if (def.terrain() != null) entry.unsupported("terrain", "a void world has no terrain");
         RegionLayout.Plan regions = def.biomeLayout() == null ? null : RegionLayout.plan(slug, def.biomes(), def.biomeLayout(),
-                RegionLayout.radius(def.borders()), known, entry, null, roles(), null, PlaceLayout.radius(def.borders()));
+                RegionLayout.radius(def.borders()), known, entry, null, roles(), null);
         JsonObject biomeSource = regions == null ? filtered("overworld", def.biomes(), entry) : multiNoise(regions.entries());
         ZonesCompiler.Plan zones = ZonesCompiler.plan(slug, namespace, def, known, entry);
         if (zones != null && zones.changesSettings()) entry.unsupported("zones", "a void world's zones place biomes only, no terrain");

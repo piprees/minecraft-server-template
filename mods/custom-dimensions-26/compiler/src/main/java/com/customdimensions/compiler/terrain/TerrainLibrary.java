@@ -123,7 +123,7 @@ public final class TerrainLibrary {
             }
             functions.put(key, scaled(vanilla.densityFunction(path(source.getAsString())), spec.shaping().stretch(key)));
         }
-        functions.put("continents", layout(functions.get("continents"), spec.shaping()));
+        functions.put("continents", layout(functions.get("continents"), spec.shaping(), namespace));
         climate(functions, spec.shaping().climate(), namespace);
         Map<String, String> ids = ids(prefix);
         functions.put("ridges_folded", replace(vanilla.densityFunction("overworld/ridges_folded"), ids));
@@ -191,7 +191,7 @@ public final class TerrainLibrary {
         for (String noise : ctx.noises()) {
             files.put(dataPath(namespace + ":terrain/" + noise, "worldgen/noise"), Noises.json(noise));
         }
-        warpNoises(files, spec.shaping().climate(), namespace);
+        warpNoises(files, spec.shaping(), namespace);
         return new Compiled(out, files);
     }
 
@@ -222,7 +222,7 @@ public final class TerrainLibrary {
         for (String key : CLIMATE) {
             functions.put(key, scaled(vanilla.densityFunction(path(router.get(key).getAsString())), shaping.stretch(key)));
         }
-        functions.put("continents", layout(functions.get("continents"), shaping));
+        functions.put("continents", layout(functions.get("continents"), shaping, namespace));
         climate(functions, shaping.climate(), namespace);
         functions.put("ridges_folded", replace(vanilla.densityFunction("overworld/ridges_folded"), ids));
         for (String n : PRESET_SHAPE) {
@@ -236,7 +236,7 @@ public final class TerrainLibrary {
         out.remove("debug_functions");
         Map<String, JsonObject> files = new TreeMap<>();
         functions.forEach((key, json) -> files.put(dataPath(prefix + "/" + key, "worldgen/density_function"), json));
-        warpNoises(files, shaping.climate(), namespace);
+        warpNoises(files, shaping, namespace);
         return new Compiled(out, files);
     }
 
@@ -341,9 +341,17 @@ public final class TerrainLibrary {
         o.add("shift_z", add(o.get("shift_z"), mul(Df.noise(namespace + ":terrain/warp_z", frequency, 0, false), k)));
     }
 
+    /** {@code files} with the warp noises' files under {@code namespace} when {@code shaping}'s climate or layout warps. */
+    private static void warpNoises(Map<String, JsonObject> files, TerrainShaping shaping, String namespace) {
+        if (shaping.warps()) warpNoises(files, namespace);
+    }
+
     /** {@code files} with the warp noises' files under {@code namespace} when {@code climate} warps. */
     private static void warpNoises(Map<String, JsonObject> files, TerrainShaping.Climate climate, String namespace) {
-        if (climate.warp() <= 0) return;
+        if (climate.warp() > 0) warpNoises(files, namespace);
+    }
+
+    private static void warpNoises(Map<String, JsonObject> files, String namespace) {
         for (String noise : WARP_NOISES) {
             files.put(dataPath(namespace + ":terrain/" + noise, "worldgen/noise"), Noises.json(noise));
         }
@@ -376,8 +384,8 @@ public final class TerrainLibrary {
     }
 
     /** {@code continents} with the shaping's layout added (cached), or unchanged without one. */
-    static JsonObject layout(JsonObject continents, TerrainShaping shaping) {
-        return shaping.layout() == null ? continents : cache(shaping.withLayout(continents));
+    static JsonObject layout(JsonObject continents, TerrainShaping shaping, String namespace) {
+        return shaping.layout() == null ? continents : cache(shaping.withLayout(continents, namespace));
     }
 
     /** Vanilla's overworld-family function ids to the terrain's. */

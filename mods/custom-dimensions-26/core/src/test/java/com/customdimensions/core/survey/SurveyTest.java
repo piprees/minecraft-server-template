@@ -1,6 +1,7 @@
 package com.customdimensions.core.survey;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -115,6 +116,16 @@ class SurveyTest {
             assertTrue(p.blockZ() >= -1024 && p.blockZ() + p.side() <= 1024, p.toString());
         }
         assertFalse(a.equals(SurveyPlan.stratified(43, 1024, 24, 3)));
+    }
+
+    @Test
+    void patchesFollowTheSeedAndTheAreaNotTheName() {
+        assertEquals(SurveyPlan.seed(20261022L, 2048), SurveyPlan.seed(20261022L, 2048), "one seed and area, one plan, whatever the slug");
+        assertNotEquals(SurveyPlan.seed(20261022L, 2048), SurveyPlan.seed(20261023L, 2048));
+        assertNotEquals(SurveyPlan.seed(20261022L, 2048), SurveyPlan.seed(20261022L, 4096));
+        List<SurveyPlan.Patch> a = SurveyPlan.stratified(SurveyPlan.seed(7, 2048), 2048, 24, 3);
+        assertEquals(a, SurveyPlan.stratified(SurveyPlan.seed(7, 2048), 2048, 24, 3));
+        for (SurveyPlan.Patch p : a) assertTrue(Math.abs(p.blockX()) <= 2048 && Math.abs(p.blockZ()) <= 2048, p.toString());
     }
 
     @Test

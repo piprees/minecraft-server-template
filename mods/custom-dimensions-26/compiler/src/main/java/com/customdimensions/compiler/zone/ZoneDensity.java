@@ -131,7 +131,12 @@ public final class ZoneDensity {
 
     /** Horizontal distance in blocks from {@code (cx, cz)}, exact within {@link #REACH}. */
     public static JsonObject distance(long cx, long cz) {
-        return unary("sqrt", binary("add", unary("square", gradient("x", cx)), unary("square", gradient("z", cz))));
+        return distance(gradient("x", cx), gradient("z", cz));
+    }
+
+    /** The length of the offset {@code (dx, dz)}, two functions in blocks. */
+    public static JsonObject distance(JsonElement dx, JsonElement dz) {
+        return unary("sqrt", binary("add", unary("square", dx), unary("square", dz)));
     }
 
     /** The coordinate along {@code axis} minus {@code centre}, exact within {@link #REACH} and clamped beyond. */
