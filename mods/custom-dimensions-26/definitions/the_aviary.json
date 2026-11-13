@@ -12,7 +12,7 @@
     "setting": "extreme",
     "params": {
       "size": 3,
-      "coverage": 0.45,
+      "coverage": 0.38,
       "thickness": 16,
       "underside": 80,
       "spread": 20,
@@ -66,6 +66,39 @@
     "over": "land",
     "roles": {
       "adventure:hanging_gardens": "underside"
+    },
+    "places": {
+      "groups": {
+        "highlands": [
+          "adventure:sky_highlands",
+          "minecraft:snowy_slopes",
+          "adventure:windswept_isles"
+        ],
+        "wisteria": [
+          "adventure:wisteria_grove",
+          "minecraft:cherry_grove"
+        ],
+        "golden": [
+          "adventure:golden_skygrove",
+          "minecraft:flower_forest"
+        ],
+        "meadows": [
+          "minecraft:meadow",
+          "minecraft:plains",
+          "adventure:cloud_reef"
+        ],
+        "woods": [
+          "minecraft:forest",
+          "minecraft:birch_forest",
+          "minecraft:dark_forest"
+        ]
+      },
+      "neighbours": [
+        [
+          "wisteria",
+          "golden"
+        ]
+      ]
     }
   },
   "borders": {
