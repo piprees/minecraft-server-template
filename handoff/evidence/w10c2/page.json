@@ -1,0 +1,118 @@
+[
+ {
+  "slug": "the_blackstone_keep",
+  "terrain": "the vanilla Nether's roofed caverns, lava sea at 24",
+  "changed": "The blackstone basin now holds the middle of the world as one place round spawn, with ash, basalt and the plain wastes, soul sand and the crimson wart woods as its fringe; the inverted wart forest stays at a small share so its trees hung from the roof stay few.",
+  "fidelity": 4,
+  "why": "The blackstone place holds 51% of the land as one region with almost no stray specks; blackstone is 42% of the ground; all eight biomes show their own ground, and about 15 trees a hectare hang in the sky and roof layers (the most the description allows).",
+  "targets": {
+   "description": "9/9",
+   "placeness": "6/6"
+  },
+  "misses": [],
+  "ownersEye": [
+   "The places meet along long straight edges (a large blackstone triangle round spawn). Should the edges wander more?"
+  ]
+ },
+ {
+  "slug": "the_bloodroot_wastes",
+  "terrain": "the vanilla Nether's roofed caverns, lava sea at 32",
+  "changed": "Crimson forest now holds the middle as one place round spawn, with the weeping-vine jungle, the inverted forest and a thin wastes edge round it. Basalt and plain wastes shrank from 40% of the world to 7%. The lava sea was lowered to 24 so the basalt fringe stands dry.",
+  "fidelity": 4,
+  "why": "Crimson forest is 58% of the surface biomes, the weeping-vine jungle 22% and the inverted forest 9%; crimson nylium is 38% of the ground and there are 83 trees a hectare. The crimson place holds 56% of the land as one region and all six biomes show their own ground.",
+  "targets": {
+   "description": "7/7",
+   "placeness": "6/6"
+  },
+  "misses": [],
+  "ownersEye": [
+   "Netherrack is still 42% of the ground beside the nylium: the forest floor between the fungi. Is that enough red?"
+  ]
+ },
+ {
+  "slug": "the_obsidian_sanctum",
+  "terrain": "the vanilla Nether's roofed caverns, lava sea at 20",
+  "changed": "The withered forest now holds the middle as one place, soul sand valley beside it and the wastes along the far border. Obsidian lines the lava shores and covers the border wastes; the lava sea was lowered.",
+  "fidelity": 3,
+  "why": "The ground is right: withered forest 57% and soul sand valley 28% of the biomes, soul soil and soul sand 67% of the ground, obsidian 8%, lava 6%, one region holding 50% of the land. But the world is not dark: as a player sees it every frame is a pale blue-grey (about three and a half times the brightness of the blackstone keep's frames), because the withered forest's own pale fog wins over the dimension's dark purple one.",
+  "exception": "The description asks for a very dark world. The dimension sets a dark fog and very low light, but a biome's own fog replaces the dimension's, and the withered forest's is pale. The kit needs an atmosphere setting that wins over the listed biomes' fog and sky colours.",
+  "targets": {
+   "description": "7/7",
+   "placeness": "6/6"
+  },
+  "misses": [
+   "Very dark as a player sees it: the frames are pale (a named exception, waiting on the kit)."
+  ],
+  "ownersEye": []
+ },
+ {
+  "slug": "the_furnace_halls",
+  "terrain": "the vanilla Nether's roofed caverns, lava sea at 24",
+  "changed": "The five classic Nether biomes now meet as five large places, one region each, instead of a scatter of small patches; the lava sea was lowered.",
+  "fidelity": 4,
+  "why": "Basalt deltas 32%, wastes 25%, soul sand valley 22%, crimson forest 11% and magma land 10% of the biomes, each one region; the three largest hold 74% of the land with almost no specks, and all five show their own ground. Ten fortresses stand inside the border.",
+  "targets": {
+   "description": "8/8",
+   "placeness": "6/6"
+  },
+  "misses": [
+   "Nether brick on the ground is a fortress's, so the description set's brick share of the sampled ground is restated as fortresses inside the border (10, wants at least 8). The nearest fortress stands 329 blocks from spawn; \"fortress corridors from spawn\" waits on the seed."
+  ],
+  "ownersEye": []
+ },
+ {
+  "slug": "the_buried_age",
+  "terrain": "a roofed cavern floor near 70 drowned by a lava sea at 74, a corridor to the roof",
+  "changed": "The floor was lowered under the lava line, so the lava sea now covers about two thirds of the world and what stands above it is islands and ledges in a corridor under the roof. All seven of its 1.21.1 biomes are listed, the crimson forest and ash barrens among them.",
+  "fidelity": 4,
+  "why": "Across the whole border lava covers 71% of the floor (the survey's sample 58%), the floor's median sits at 69 under the sea at 74, and the sea is one connected region. The biomes are laid without regard to the sea, so most are largely under lava and three of seven show their own ground.",
+  "exception": "Biomes expressed: the description wants the islands to be what the sea leaves, but the kit cannot yet give a roofed world's islands and its sea floor different biomes, so three biomes drown with the land they were given. A sea role for roofed worlds (biomes chosen by whether the floor lies under the sea) would close it.",
+  "targets": {
+   "description": "5/7",
+   "placeness": "1/3"
+  },
+  "misses": [
+   "Lava cover in the survey's sample is 58% (wants 60 to 75); across the whole border it is 71%.",
+   "Biome specks are 14.6% (wants at most 10): seven small biomes laid on noise over islands.",
+   "The highest land reaches 106 (wants at most 100) where the floor meets the roof.",
+   "Four of seven biomes are mostly under lava (a named exception, waiting on the kit)."
+  ],
+  "ownersEye": []
+ },
+ {
+  "slug": "the_boneyard",
+  "terrain": "a roofed cavern floor near 48 cut by narrow chasms, lava sea at 20",
+  "changed": "The vanilla Nether walls became a lower floor cut by chasms; soul sand valley holds the middle as one place, with ash heaps, bone reefs of bone blocks and a withered edge round it.",
+  "fidelity": 3,
+  "why": "Soul sand and soul soil are 55% of the ground and bone blocks 7%, about 2 trees a hectare, lava 6%; the soul sand place holds 54% of the land as one region. But the haze is the soul sand valley's teal, not the bone-pale fog the description names, and the sculk below is almost absent.",
+  "exception": "Two things the kit cannot do yet: let the dimension's pale fog win over the soul sand valley's own, and bind the deep dark under the floor without putting it on the chasm floors. Both are written up as kit gaps.",
+  "targets": {
+   "description": "8/10",
+   "placeness": "3/3"
+  },
+  "misses": [
+   "Deep dark is 1.3% of the surface (wants at most 1) and 0.1% of the caves (wants at least 5).",
+   "Basalt deltas (4% of the border on the render) was not found in the survey's sample, so its ground is not judged.",
+   "The haze is teal, not bone-pale."
+  ],
+  "ownersEye": [
+   "Bones show as bleached pillars and ribs on soul soil, and the reefs as bone-block ground. Is that the battlefield of giants?"
+  ]
+ },
+ {
+  "slug": "the_ember_fields",
+  "terrain": "a low rolling roofed floor near 44, lava sea at 22",
+  "changed": "The Nether walls became a gentle rolling floor; nylium meadows hold the middle as one place round spawn, with geyser fields, crimson woods and a small dune edge round it.",
+  "fidelity": 4,
+  "why": "Meadows are 52% of the surface biomes and the sulphur springs 23%; crimson and warped nylium are 60% of the ground, lava 1%, and 55% of slopes are under 15 degrees. The meadow place holds 53% of the land as one region; all eleven biomes are placed.",
+  "targets": {
+   "description": "9/10",
+   "placeness": "4/4"
+  },
+  "misses": [
+   "Patch relief is 80 blocks (wants at most 60): the measure counts the columns where the floor meets the low roof (the highest 5% at 114); the floor itself has a median of 43 and 5% below 37.",
+   "The sulphur caves and the toxic undergrowth are too small in the sample to judge (46 and 32 columns)."
+  ],
+  "ownersEye": []
+ }
+]
