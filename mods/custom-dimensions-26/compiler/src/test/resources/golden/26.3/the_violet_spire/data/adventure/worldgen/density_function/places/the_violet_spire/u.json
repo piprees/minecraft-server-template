@@ -1,0 +1,21 @@
+{
+  "input": {
+    "left": "adventure:places/the_violet_spire/x",
+    "right": {
+      "left": "adventure:places/the_violet_spire/window",
+      "right": {
+        "left": {
+          "noise": "adventure:terrain/warp_x",
+          "type": "minecraft:noise",
+          "xz_scale": 0.4,
+          "y_scale": 0.0
+        },
+        "right": 0.256489724,
+        "type": "minecraft:mul"
+      },
+      "type": "minecraft:mul"
+    },
+    "type": "minecraft:add"
+  },
+  "type": "minecraft:cache"
+}

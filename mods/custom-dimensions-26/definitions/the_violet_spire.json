@@ -52,9 +52,18 @@
     "over": "land",
     "places": {
       "groups": {
-        "wisteria": ["adventure:wisteria_grove", "adventure:lavender_fields"],
-        "skylands": ["adventure:sky_highlands", "minecraft:cherry_grove"],
-        "endward": ["adventure:umbrella_jungle", "adventure:chorus_forest"]
+        "wisteria": [
+          "adventure:wisteria_grove",
+          "adventure:lavender_fields"
+        ],
+        "skylands": [
+          "adventure:sky_highlands",
+          "minecraft:cherry_grove"
+        ],
+        "endward": [
+          "adventure:umbrella_jungle",
+          "adventure:chorus_forest"
+        ]
       },
       "arrangement": "bands",
       "direction": 90
