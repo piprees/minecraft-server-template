@@ -162,7 +162,14 @@ public final class RenderJob {
     public static <T> Optional<RenderJob> startWork(MinecraftServer server, Request request, long units, Work<T> work,
                                                     java.util.function.Consumer<T> finished,
                                                     java.util.function.Consumer<Throwable> failed) {
-        RenderJob job = new RenderJob(request, defaultThreads());
+        return startWork(server, request, units, defaultThreads(), work, finished, failed);
+    }
+
+    /** As above, on a pool of {@code threads} threads. */
+    public static <T> Optional<RenderJob> startWork(MinecraftServer server, Request request, long units, int threads, Work<T> work,
+                                                    java.util.function.Consumer<T> finished,
+                                                    java.util.function.Consumer<Throwable> failed) {
+        RenderJob job = new RenderJob(request, threads);
         job.units = units;
         if (!RUNNING.compareAndSet(null, job)) return Optional.empty();
         job.execute(server, work, finished, failed);

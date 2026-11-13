@@ -101,6 +101,7 @@ processResources {
 	}
 	dependsOn serverPack
 	from serverPackDir
+	from(rootProject.file('THIRD_PARTY_NOTICES.md'))
 }
 
 // -PselfTest adds the fixture dimensions in src/selftest/definitions to a copy of
