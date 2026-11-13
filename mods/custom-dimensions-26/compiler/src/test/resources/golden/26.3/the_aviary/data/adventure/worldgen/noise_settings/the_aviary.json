@@ -2,7 +2,7 @@
   "base": "minecraft:floating_islands",
   "changed": {
     "material_rule": "adventure:the_aviary",
-    "noise_router": "sha1:d8bdfeee6919ff7697f3228e64fe8b376253bd3f",
+    "noise_router": "sha1:a21a8ff06396f2447fa2a9f61f6197d81588eccc",
     "sea_level": 0
   },
   "removed": [

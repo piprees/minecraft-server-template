@@ -7,59 +7,75 @@
       "biomes": [
         {
           "biome": "adventure:hanging_gardens",
-          "parameters": "sha1:90af8d2341bfd8893a85b459df36285b53b98547"
+          "parameters": "sha1:4e759bb9bbd448d055eeee41345dc58508a8e042"
+        },
+        {
+          "biome": "adventure:hanging_gardens",
+          "parameters": "sha1:49c9e588765588a31084c75353a40f0eea3bf33b"
+        },
+        {
+          "biome": "adventure:hanging_gardens",
+          "parameters": "sha1:0bbf65dc744172d3247bdfa7cc8419f6ffbe3e88"
+        },
+        {
+          "biome": "adventure:hanging_gardens",
+          "parameters": "sha1:b02ac84f932ee8977471e828bf75390f38d039fc"
+        },
+        {
+          "biome": "adventure:hanging_gardens",
+          "parameters": "sha1:121a1974540fd99a17a62a854e5cd3993ee61de1"
         },
         {
           "biome": "adventure:sky_highlands",
-          "parameters": "sha1:2f156b9dd7447eb1dd0d493e5905eba15faf25ad"
-        },
-        {
-          "biome": "adventure:wisteria_grove",
-          "parameters": "sha1:a88c17a0cc513c002018eaf8c289ef65eb3c7d02"
-        },
-        {
-          "biome": "adventure:golden_skygrove",
-          "parameters": "sha1:6555fa33859dd7e2141dba010b78fa5845678871"
-        },
-        {
-          "biome": "minecraft:cherry_grove",
-          "parameters": "sha1:f6d188fd50428f245e50c7350e5b66ee8b1edf3e"
-        },
-        {
-          "biome": "minecraft:meadow",
-          "parameters": "sha1:74b75e3071bc12e95671a1f1fae2f310a857e188"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:af5637681c59ea2a1190a52ea05f439eae371cd9"
-        },
-        {
-          "biome": "minecraft:snowy_slopes",
-          "parameters": "sha1:64bec81fc3172c0f877d46bd686ee3c327752815"
+          "parameters": "sha1:6091436319859b0b981f11fb89ad99ac109a11c0"
         },
         {
           "biome": "adventure:windswept_isles",
-          "parameters": "sha1:c4b881864fa621c5d6b3ac5f287891eb9ddd4aac"
+          "parameters": "sha1:b2764324f9f4c5f33feb15ffcf25c9a43c41a473"
         },
         {
-          "biome": "adventure:cloud_reef",
-          "parameters": "sha1:5679a5452ac229ce9cd9fd50a6d159bce7d9f602"
+          "biome": "minecraft:snowy_slopes",
+          "parameters": "sha1:298bf5deca43a00abad2bc58f8fef00c831ae937"
         },
         {
-          "biome": "minecraft:birch_forest",
-          "parameters": "sha1:3129295de0c50c05a1201f9add484fe024b2588b"
+          "biome": "adventure:wisteria_grove",
+          "parameters": "sha1:b86223f4b17cefdfb5ca5eb6c54bec84266e2b79"
         },
         {
-          "biome": "minecraft:forest",
-          "parameters": "sha1:d2db7cb993507dd69b0504b931647c0c3b6cecad"
+          "biome": "minecraft:cherry_grove",
+          "parameters": "sha1:2392e85fbef13c62ac6eda31e98262bda5a3741e"
         },
         {
-          "biome": "minecraft:plains",
-          "parameters": "sha1:9c0cb247f53d93a67c085a5a16447763ec3cf91e"
+          "biome": "adventure:golden_skygrove",
+          "parameters": "sha1:cdfa8009f9adb48a1ea5757218e81033a7623e15"
         },
         {
           "biome": "minecraft:flower_forest",
-          "parameters": "sha1:32a4ff3decf11de848db6d8e228bc24fbee1a403"
+          "parameters": "sha1:7e9d19cf318d0d40c5911dd2b48e4c8b3f440d29"
+        },
+        {
+          "biome": "minecraft:meadow",
+          "parameters": "sha1:d3ffc60bd7f075aa2ff75c7848df9f0555bc3936"
+        },
+        {
+          "biome": "minecraft:plains",
+          "parameters": "sha1:0caa011924914b7aa8b92bf058544f4bf249853c"
+        },
+        {
+          "biome": "adventure:cloud_reef",
+          "parameters": "sha1:b16057546c3fd87a50b336ec0fe4bc50dc17419e"
+        },
+        {
+          "biome": "minecraft:forest",
+          "parameters": "sha1:033eeccac7c2ba2049f80fecf2512d3aec25ce45"
+        },
+        {
+          "biome": "minecraft:birch_forest",
+          "parameters": "sha1:5a4051684bd0830462970ff5ff541d1acf022c8c"
+        },
+        {
+          "biome": "minecraft:dark_forest",
+          "parameters": "sha1:0f1223cdce1066b6d4f680a4ed43c85a5e10d3d3"
         }
       ]
     },

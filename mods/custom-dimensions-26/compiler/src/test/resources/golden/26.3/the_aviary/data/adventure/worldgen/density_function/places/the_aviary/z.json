@@ -1,0 +1,12 @@
+{
+  "input": {
+    "axis": "z",
+    "from_coordinate": -4096,
+    "from_value": -2.0,
+    "tiling": "clamp_to_edge",
+    "to_coordinate": 4096,
+    "to_value": 2.0,
+    "type": "minecraft:gradient"
+  },
+  "type": "minecraft:cache"
+}
