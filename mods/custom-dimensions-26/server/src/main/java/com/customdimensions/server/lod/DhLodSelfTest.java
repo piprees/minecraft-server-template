@@ -75,7 +75,8 @@ final class DhLodSelfTest {
     private static List<String> body(MinecraftServer server) throws Exception {
         List<String> lines = new ArrayList<>();
         LevelManager manager = LevelManager.get().orElseThrow(() -> new IllegalStateException("no level manager"));
-        for (String slug : System.getProperty(DIMENSIONS_PROPERTY, DEFAULT_DIMENSIONS).split(",")) {
+        String named = System.getProperty(DIMENSIONS_PROPERTY, "");
+        for (String slug : (named.isBlank() ? DEFAULT_DIMENSIONS : named).split(",")) {
             slug = slug.trim();
             if (slug.isEmpty()) continue;
             String s = slug;

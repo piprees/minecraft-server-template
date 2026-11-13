@@ -142,6 +142,8 @@ loom {
 			// The extracted vanilla files, only for the self-test's equivalence line against the running game.
 			// With -Pdh, Distant Horizons checks every column the LOD generator gives it (DhLodGenerator.VALIDATE_PROPERTY).
 			if (project.hasProperty('dh')) vmArg '-Dcustomdimensions.dh.validate=true'
+			// -PselfTestLod=<slug>[,<slug>...]: the dimensions the self-test's LOD section checks (default overworld, the_nether, the_aviary).
+			vmArg "-Dcustomdimensions.selftest.lod=${project.findProperty('selfTestLod') ?: ''}"
 			vmArg "-Dcustomdimensions.vanilla.reference=${project(':compiler').layout.buildDirectory.dir("vanilla/${project.minecraft_version}").get().asFile.absolutePath}"
 		}
 	}
