@@ -218,6 +218,148 @@ class PlaceLayoutTest {
         assertShares(f.shares(1), new double[]{0.4, 0.2, 0.2, 0.2}, 0.01, "core");
     }
 
+    /** Every sample within {@code margin} blocks of {@code (x, z)}, less a sample's width, lies in place {@code p}. */
+    private static void assertHeld(int[] labels, int x, int z, double margin, int p, String what) {
+        for (int r = 0; r < GRID; r++) {
+            for (int c = 0; c < GRID; c++) {
+                double bx = -RADIUS + STEP / 2.0 + c * STEP, bz = -RADIUS + STEP / 2.0 + r * STEP;
+                if (Math.hypot(bx - x, bz - z) <= margin - STEP) {
+                    assertEquals(p, labels[r * GRID + c], what + ": the sample at " + bx + ", " + bz + " lies outside place " + p);
+                }
+            }
+        }
+    }
+
+    private static final double MARGIN = PlaceField.PIN_MARGIN * RADIUS;
+
+    private static String weights(List<String> ids, double... w) {
+        StringBuilder b = new StringBuilder(", \"weights\": {");
+        for (int i = 0; i < w.length; i++) b.append(i == 0 ? "" : ", ").append('"').append(ids.get(i)).append("\": ").append(w[i]);
+        return b.append('}').toString();
+    }
+
+    @Test
+    void aSmallCoreIsAHeartRingedByTheOthers() {
+        String body = body(null, FOUR, "{\"arrangement\": \"core\", \"warp\": {\"blocks\": 0}}", weights(FOUR, 20, 50, 15, 15));
+        Field f = field("p", body);
+        int[] labels = f.labels(1);
+        assertHeld(labels, 0, 0, MARGIN, 0, "heart");
+        boolean[][] adj = PlaceField.adjacency(labels, GRID, 4);
+        for (int i = 1; i < 4; i++) assertTrue(adj[0][i], "the heart touches place " + i);
+        assertOneRegionEach(labels, 4, "heart");
+        assertShares(f.shares(1), new double[]{0.2, 0.5, 0.15, 0.15}, 0.01, "heart");
+        assertEquals(Fixtures.compile("p", body).files(), Fixtures.compile("p", body).files(), "one heart compiles to one field");
+        Field warped = field("p", body(null, FOUR, "{\"arrangement\": \"core\"}", weights(FOUR, 20, 50, 15, 15)));
+        for (long seed = 1; seed <= 4; seed++) {
+            int[] w = warped.labels(seed);
+            assertHeld(w, 0, 0, MARGIN / 2, 0, "warped heart, seed " + seed);
+            assertOneRegionEach(w, 4, "warped heart, seed " + seed);
+            assertShares(warped.shares(seed), new double[]{0.2, 0.5, 0.15, 0.15}, 0.02, "warped heart, seed " + seed);
+        }
+    }
+
+    @Test
+    void aHeartFieldIsItsDiagramAndATwoPlaceHeartIsAnIsland() {
+        Field f = field("p", body(null, FOUR, "{\"arrangement\": \"core\", \"direction\": 90, \"warp\": {\"blocks\": 0}}", weights(FOUR, 20, 50, 15, 15)));
+        PlaceLayout.Places places = PlaceLayout.build("p", JsonParser.parseString("{\"places\": {\"arrangement\": \"core\", \"direction\": 90}}")
+                .getAsJsonObject(), List.of("temperature", "humidity"), FOUR, FOUR, Map.of("minecraft:plains", 20.0, "minecraft:forest", 50.0,
+                "minecraft:desert", 15.0, "minecraft:snowy_plains", 15.0), List.of(), RADIUS);
+        PlaceField.Arrangement a = places.arrangements().get(0);
+        assertTrue(a.heart() > 0, "a heart below its largest neighbour is a disc");
+        int[] labels = f.labels(1);
+        int differ = 0;
+        for (int r = 0; r < GRID; r++) {
+            for (int c = 0; c < GRID; c++) {
+                double u = (-RADIUS + STEP / 2 + c * STEP) / (double) RADIUS, v = (-RADIUS + STEP / 2 + r * STEP) / (double) RADIUS;
+                if (a.place(u, v) != labels[r * GRID + c]) differ++;
+            }
+        }
+        assertEquals(0, differ, "cells that differ from the diagram");
+        assertEquals(1, labels[(GRID / 2) * GRID + GRID - 2], "the first wedge is centred east");
+        Field two = field("p", body(null, FOUR.subList(0, 2), "{\"arrangement\": \"core\", \"warp\": {\"blocks\": 0}}", weights(FOUR, 10, 90)));
+        int[] l2 = two.labels(1);
+        assertHeld(l2, 0, 0, MARGIN, 0, "island");
+        assertShares(two.shares(1), new double[]{0.1, 0.9}, 0.01, "island");
+        assertOneRegionEach(l2, 2, "island");
+    }
+
+    /** Hearts smaller than their largest neighbour: 20/50/15/15, 21/51/13/16, 19/51/20/10, 20/55/25 and five places at 20/50/12/11/6. */
+    @Test
+    void measuredHeartsHoldTheCentre() {
+        double[][] cases = {{20, 50, 15, 15}, {21, 51, 13, 16}, {19, 51, 20, 10}, {20, 55, 25}, {20, 50, 12, 11, 6}};
+        for (double[] w : cases) {
+            List<String> ids = (w.length <= FOUR.size() ? FOUR : SEVEN).subList(0, w.length);
+            Field f = field("p", body(null, ids, "{\"arrangement\": \"core\", \"warp\": {\"blocks\": 0}}", weights(ids, w)));
+            int[] labels = f.labels(1);
+            String what = java.util.Arrays.toString(w);
+            assertHeld(labels, 0, 0, MARGIN, 0, what);
+            assertOneRegionEach(labels, w.length, what);
+            double total = java.util.Arrays.stream(w).sum();
+            assertShares(f.shares(1), java.util.Arrays.stream(w).map(x -> x / total).toArray(), 0.01, what);
+        }
+    }
+
+    @Test
+    void aCoreThatAlreadyHoldsKeepsItsEvenRing() {
+        PlaceLayout.Places places = PlaceLayout.build("p", JsonParser.parseString("{\"places\": {\"arrangement\": \"core\"}}").getAsJsonObject(),
+                List.of("temperature", "humidity"), FOUR, FOUR, Map.of("minecraft:plains", 2.0), List.of(), RADIUS);
+        PlaceField.Arrangement a = places.arrangements().get(0);
+        assertEquals(0, a.x()[0], 0);
+        assertEquals(0.6, Math.hypot(a.x()[1], a.z()[1]), 1e-9, "the even ring at its own radius");
+        PlaceLayout.Places heart = PlaceLayout.build("p", JsonParser.parseString("{\"places\": {\"arrangement\": \"core\"}}").getAsJsonObject(),
+                List.of("temperature", "humidity"), FOUR, FOUR, Map.of("minecraft:plains", 20.0, "minecraft:forest", 50.0, "minecraft:desert", 15.0,
+                        "minecraft:snowy_plains", 15.0), List.of(), RADIUS);
+        assertEquals(-1, PlaceField.unheld(heart.arrangements().get(0), new double[][]{{0, 0}, null, null, null}));
+    }
+
+    @Test
+    void aPinnedSiteHoldsItsPlaceWhereverTheOthersFall() {
+        String centre = "{\"at\": {\"minecraft:plains\": [0, 0]}, \"warp\": {\"blocks\": 0}}";
+        Field f = field("p", body(null, FOUR, centre, weights(FOUR, 15, 40, 25, 20)));
+        String corner = "{\"at\": {\"minecraft:plains\": [380, -380]}, \"warp\": {\"blocks\": 0}}";
+        Field c = field("p", body(null, FOUR, corner, weights(FOUR, 8, 52, 20, 20)));
+        for (long seed = 1; seed <= 6; seed++) {
+            int[] labels = f.labels(seed);
+            assertHeld(labels, 0, 0, MARGIN, 0, "centre pin, seed " + seed);
+            assertOneRegionEach(labels, 4, "centre pin, seed " + seed);
+            assertShares(f.shares(seed), new double[]{0.15, 0.4, 0.25, 0.2}, 0.01, "centre pin, seed " + seed);
+            int[] cl = c.labels(seed);
+            assertHeld(cl, 380, -380, MARGIN, 0, "corner pin, seed " + seed);
+            assertShares(c.shares(seed), new double[]{0.08, 0.52, 0.2, 0.2}, 0.01, "corner pin, seed " + seed);
+        }
+    }
+
+    @Test
+    void aLonePinNoPowerCellCanHoldBecomesAHeartAtItsSite() {
+        Field half = field("p", body(null, FOUR.subList(0, 2), "{\"at\": {\"minecraft:forest\": [0, 0]}, \"warp\": {\"blocks\": 0}}", ""));
+        int[] labels = half.labels(1);
+        assertHeld(labels, 0, 0, MARGIN, 1, "half at the centre");
+        assertShares(half.shares(1), new double[]{0.5, 0.5}, 0.01, "half at the centre");
+        assertOneRegionEach(labels, 2, "half at the centre");
+        Field off = field("p", body(null, FOUR, "{\"at\": {\"minecraft:desert\": [-120, 100]}, \"warp\": {\"blocks\": 0}}",
+                weights(FOUR, 15, 60, 10, 15)));
+        int[] ol = off.labels(1);
+        assertHeld(ol, -120, 100, MARGIN, 2, "off-centre heart");
+        assertShares(off.shares(1), new double[]{0.15, 0.6, 0.1, 0.15}, 0.01, "off-centre heart");
+        assertOneRegionEach(ol, 4, "off-centre heart");
+        boolean[][] adj = PlaceField.adjacency(ol, GRID, 4);
+        for (int i : new int[]{0, 1, 3}) assertTrue(adj[2][i], "the heart touches place " + i);
+    }
+
+    @Test
+    void aPinThatCannotHoldIsRefusedNamingThePlace() {
+        String crowded = "{\"at\": {\"minecraft:plains\": [0, 0], \"minecraft:forest\": [60, 0], \"minecraft:desert\": [-400, 400], "
+                + "\"minecraft:snowy_plains\": [400, 400]}}";
+        IllegalArgumentException at = assertThrows(IllegalArgumentException.class, () -> Fixtures.compile("p", body(null, FOUR, crowded,
+                weights(FOUR, 10, 60, 15, 15))));
+        assertTrue(at.getMessage().startsWith("p: biomeLayout.places: minecraft:plains (10.0%) does not hold 51 blocks round its site"), at.getMessage());
+        assertTrue(at.getMessage().contains("minecraft:forest (60.0%) reaches over it; give minecraft:plains a bigger share"), at.getMessage());
+        IllegalArgumentException core = assertThrows(IllegalArgumentException.class, () -> Fixtures.compile("p", body(null, FOUR,
+                "{\"arrangement\": \"core\"}", weights(FOUR, 0.5, 30, 30, 30))));
+        assertTrue(core.getMessage().startsWith("p: biomeLayout.places: the core arrangement cannot keep minecraft:plains (0.6%) at the centre with 51 blocks"),
+                core.getMessage());
+    }
+
     @Test
     void bandsAndSectorsLayThePlacesInOrder() {
         Field bands = field("p", body(null, FOUR, "{\"arrangement\": \"bands\", \"direction\": 90, \"warp\": {\"blocks\": 0}}", ""));

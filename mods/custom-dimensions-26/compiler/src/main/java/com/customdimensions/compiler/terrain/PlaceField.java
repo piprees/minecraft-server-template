@@ -37,19 +37,50 @@ public final class PlaceField {
     static final int SEARCH_GRID = 64;
     /** Largest share error the solve accepts on {@link #SOLVE_GRID}. */
     public static final double SHARE_TOLERANCE = 0.004;
+    /** Border units a pinned site's cell reaches round it at least, so a spawn or an arrival at the site stands well inside its place. */
+    public static final double PIN_MARGIN = 0.1;
+    /**
+     * A heart or wedge term outside its place: a multiple of 16 below 2^24, so float-exact, above every term inside one.
+     * Inside the heart its term is {@code hub - 16}, below every wedge's, so the heart wins whatever the hub's index.
+     */
+    static final double OUTSIDE_HEART = (1 << 24) - MAX_PLACES;
+    /** The gain that turns a point's border-unit distance outside a wedge into 1 within a millionth of a border unit. */
+    static final double STEEP = 1 << 20;
+    /** Rounds of the anchored Lloyd iteration {@link #hold} runs at most. */
+    static final int HOLD_ROUNDS = 30;
     /** Border units the coordinates are exact to on either side of the origin; beyond, they hold. */
     static final double REACH = 2;
     /** A point's distance to the place's site is measured from a point at most this far outside the border, in border units. */
     private static final double LIFT_REACH = REACH + 0.25;
 
-    /** One layout of the places: site and weight per place, in border units. */
-    public record Arrangement(double[] x, double[] z, double[] weight) {
+    /**
+     * One layout of the places: site and weight per place, in border units. With a {@code heart} radius above 0, place
+     * {@code hub} is instead the disc of that radius round its site, and the {@code j}th other place in list order the
+     * wedge from that site clockwise between compass bearings {@code wedges[j]} and {@code wedges[(j + 1) % (size - 1)]}.
+     */
+    public record Arrangement(double[] x, double[] z, double[] weight, double heart, double[] wedges, int hub) {
+        public Arrangement(double[] x, double[] z, double[] weight) {
+            this(x, z, weight, 0, null, 0);
+        }
+
         public int size() {
             return x.length;
         }
 
+        /** The place of the {@code j}th wedge round the heart. */
+        public int other(int j) {
+            return j < hub ? j : j + 1;
+        }
+
         /** The place at border-unit point {@code (u, v)}. */
         public int place(double u, double v) {
+            if (heart > 0) {
+                double du = u - x[hub], dv = v - z[hub];
+                if (du * du + dv * dv < heart * heart) return hub;
+                int m = x.length - 1;
+                for (int j = 0; j < m; j++) if (inside(wedges[j], wedges[(j + 1) % m], du, dv) >= 0) return other(j);
+                return other(m - 1);
+            }
             int best = 0;
             double bestD = Double.POSITIVE_INFINITY;
             for (int i = 0; i < x.length; i++) {
@@ -134,6 +165,81 @@ public final class PlaceField {
             }
         }
         return error <= SHARE_TOLERANCE ? new Arrangement(x, z, w) : null;
+    }
+
+    /**
+     * The place whose cell comes within {@code margin} of point {@code (u, v)} of place {@code i}'s cell, or -1 when the cell
+     * holds the whole disc of {@code margin} round the point: the power bisector of {@code i} and {@code j} lies
+     * {@code (|s_j|² - |s_i|² + w_i - w_j - 2 p·(s_j - s_i)) / 2|s_j - s_i|} from {@code p}, inside when positive.
+     */
+    public static int reach(Arrangement a, int i, double u, double v, double margin) {
+        if (a.heart() > 0) {
+            int h = a.hub();
+            double d = Math.hypot(u - a.x()[h], v - a.z()[h]);
+            if (i == h) return a.heart() - d < margin ? a.other(0) : -1;
+            if (d - a.heart() < margin) return h;
+        }
+        int nearest = -1;
+        double least = margin;
+        for (int j = 0; j < a.size(); j++) {
+            if (j == i || a.heart() > 0 && j == a.hub()) continue;
+            double dx = a.x()[j] - a.x()[i], dz = a.z()[j] - a.z()[i], d = Math.hypot(dx, dz);
+            double t = d == 0 ? Double.NEGATIVE_INFINITY
+                    : (a.x()[j] * a.x()[j] + a.z()[j] * a.z()[j] - a.x()[i] * a.x()[i] - a.z()[i] * a.z()[i] + a.weight()[i] - a.weight()[j]
+                    - 2 * (u * dx + v * dz)) / (2 * d);
+            if (t < least) {
+                least = t;
+                nearest = j;
+            }
+        }
+        return nearest;
+    }
+
+    /** The first place with an anchor whose cell does not hold {@link #PIN_MARGIN} round it, or -1; {@code anchors[i]} null is no anchor. */
+    public static int unheld(Arrangement a, double[][] anchors) {
+        for (int i = 0; i < a.size(); i++) if (anchors[i] != null && reach(a, i, anchors[i][0], anchors[i][1], PIN_MARGIN) >= 0) return i;
+        return -1;
+    }
+
+    /**
+     * {@code a} with each place's {@code anchors} point held inside its cell by {@link #PIN_MARGIN}, the shares kept.
+     * {@code a} itself when every anchor already holds; otherwise a capacity-constrained Lloyd iteration: each anchored
+     * site moves by the gap from its cell's centroid to its anchor, so the cell centres on the anchor, each free site
+     * half-way to its cell's centroid, and the weights are re-solved. Null when an anchor still does not hold.
+     */
+    public static Arrangement hold(Arrangement a, double[] target, double[][] anchors, int grid) {
+        if (a == null || unheld(a, anchors) < 0) return a;
+        int n = a.size();
+        double[] x = a.x().clone(), z = a.z().clone(), w = a.weight().clone();
+        for (int round = 0; round < HOLD_ROUNDS; round++) {
+            int[] labels = new Arrangement(x, z, w).labels(grid);
+            double[] cx = new double[n], cz = new double[n], count = new double[n];
+            for (int r = 0; r < grid; r++) {
+                for (int c = 0; c < grid; c++) {
+                    int l = labels[r * grid + c];
+                    cx[l] += -1 + (c + 0.5) * 2 / grid;
+                    cz[l] += -1 + (r + 0.5) * 2 / grid;
+                    count[l]++;
+                }
+            }
+            for (int i = 0; i < n; i++) {
+                if (count[i] == 0) continue;
+                cx[i] /= count[i];
+                cz[i] /= count[i];
+                if (anchors[i] != null) {
+                    x[i] = clampSite(x[i] + anchors[i][0] - cx[i]);
+                    z[i] = clampSite(z[i] + anchors[i][1] - cz[i]);
+                } else {
+                    x[i] = clampSite(0.5 * x[i] + 0.5 * cx[i]);
+                    z[i] = clampSite(0.5 * z[i] + 0.5 * cz[i]);
+                }
+            }
+            Arrangement held = solve(x, z, w, target, null, false, grid);
+            if (held == null) continue;
+            if (unheld(held, anchors) < 0) return held;
+            w = held.weight().clone();
+        }
+        return null;
     }
 
     private static double clampSite(double v) {
@@ -228,10 +334,92 @@ public final class PlaceField {
         return s;
     }
 
+    /**
+     * Place {@code hub} as a heart: the disc round {@code (cx, cz)} whose area is its share, the others round it in wedges
+     * from that point clockwise in list order, the first centred on {@code direction}, each holding its share of the
+     * border. Every wedge meets the heart and reaches the border. Null when the heart is narrower than {@link #PIN_MARGIN}
+     * or comes within it of the border.
+     */
+    public static Arrangement heart(double[] share, int hub, double cx, double cz, double direction) {
+        int n = share.length;
+        double r = Math.sqrt(4 * share[hub] / Math.PI);
+        if (n < 2 || r < PIN_MARGIN || r > 1 - Math.max(Math.abs(cx), Math.abs(cz)) - PIN_MARGIN) return null;
+        double[] ring = new double[n - 1];
+        for (int j = 0; j < n - 1; j++) ring[j] = share[j < hub ? j : j + 1];
+        double[] wedges = wedges(ring, r, cx, cz, direction);
+        for (int pass = 0; pass < 8; pass++) {
+            double first = n == 2 ? 360 : ((wedges[1] - wedges[0]) % 360 + 360) % 360;
+            wedges = wedges(ring, r, cx, cz, direction - first / 2);
+        }
+        double[] x = new double[n], z = new double[n];
+        x[hub] = cx;
+        z[hub] = cz;
+        for (int j = 0; j < n - 1; j++) {
+            double a = wedges[j], span = ((wedges[(j + 1) % (n - 1)] - a) % 360 + 360) % 360;
+            double[] h = heading(a + (span == 0 ? 360 : span) / 2);
+            int p = j < hub ? j : j + 1;
+            x[p] = cx + h[0] * (r + PIN_MARGIN);
+            z[p] = cz + h[1] * (r + PIN_MARGIN);
+        }
+        return new Arrangement(x, z, new double[n], r, wedges, hub);
+    }
+
+    /** Steps a turn the wedge areas are integrated in. */
+    private static final int WEDGE_STEPS = 36_000;
+
+    /**
+     * The bearings, clockwise from {@code start}, that cut the square less the disc of {@code r} round {@code (cx, cz)}
+     * into wedges from that point in proportion to {@code share}.
+     */
+    private static double[] wedges(double[] share, double r, double cx, double cz, double start) {
+        int m = share.length;
+        double[] out = new double[m];
+        out[0] = start;
+        double rest = 0;
+        for (double v : share) rest += v;
+        double total = 0;
+        double[] area = new double[WEDGE_STEPS];
+        for (int s = 0; s < WEDGE_STEPS; s++) {
+            double[] h = heading(start + 360.0 * (s + 0.5) / WEDGE_STEPS);
+            double reach = Math.min(edge(cx, h[0]), edge(cz, h[1]));
+            area[s] = (reach * reach - r * r) / 2;
+            total += area[s];
+        }
+        double cum = 0, want = 0;
+        int k = 1;
+        for (int s = 0; s < WEDGE_STEPS && k < m; s++) {
+            cum += area[s];
+            while (k < m && cum >= (want + share[k - 1] / rest) * total) {
+                want += share[k - 1] / rest;
+                out[k] = start + 360.0 * (s + 1) / WEDGE_STEPS;
+                k++;
+            }
+        }
+        for (int i = 0; i < m; i++) out[i] = (out[i] % 360 + 360) % 360;
+        return out;
+    }
+
+    /** The distance from {@code c} along a step of {@code h} per unit to the border's edge at ±1. */
+    private static double edge(double c, double h) {
+        return h > 0 ? (1 - c) / h : h < 0 ? (-1 - c) / h : Double.POSITIVE_INFINITY;
+    }
+
+    /** How far inside the wedge clockwise from bearing {@code a} to {@code b} the point {@code (u, v)} lies: at or above 0 inside. */
+    static double inside(double a, double b, double u, double v) {
+        double span = ((b - a) % 360 + 360) % 360;
+        if (span == 0) return 1;
+        double[] ha = heading(a), hb = heading(b);
+        double from = ha[0] * v - ha[1] * u, to = hb[1] * u - hb[0] * v;
+        return span <= 180 ? Math.min(from, to) : Math.max(from, to);
+    }
+
     /** Hints the automatic search honours: pairs that must share a border and pairs that must not. */
     public record Hints(List<int[]> neighbours, List<int[]> apart) {
         public static final Hints NONE = new Hints(List.of(), List.of());
     }
+
+    /** A search's refusal when a pinned site cannot hold its place, followed by that place's index. */
+    public static final String PIN_REFUSAL = "unheld pin ";
 
     /** What an automatic search found: up to {@link #CANDIDATES} arrangements, or why none holds the hints. */
     public record Search(List<Arrangement> arrangements, String refusal) {}
@@ -239,7 +427,8 @@ public final class PlaceField {
     /**
      * Up to {@link #CANDIDATES} automatic arrangements of places with {@code share}, deterministic from
      * {@code seed}: random sites relaxed to round places, the places assigned to sites so the hints hold and as
-     * many consecutive places as can share a border; {@code at} fixes a place's site where non-null.
+     * many consecutive places as can share a border; {@code at} fixes a place's site where non-null, and the place's cell
+     * holds that point with {@link #PIN_MARGIN} to spare ({@link #hold}).
      */
     public static Search search(double[] share, double[][] at, Hints hints, long seed) {
         int n = share.length;
@@ -269,6 +458,12 @@ public final class PlaceField {
             }
             Arrangement a = solve(px, pz, share, fixed, true, SEARCH_GRID);
             if (a == null) continue;
+            Arrangement held = hold(a, share, at, SEARCH_GRID);
+            if (held == null) {
+                if (refusal == null) refusal = PIN_REFUSAL + unheld(a, at);
+                continue;
+            }
+            a = held;
             int[] labels = a.labels(SEARCH_GRID);
             boolean[][] adj = adjacency(labels, SEARCH_GRID, n);
             String broken = broken(adj, hints);
@@ -480,6 +675,23 @@ public final class PlaceField {
         double max = 2 * Math.pow(LIFT_REACH + 1, 2) + top - bottom;
         double scale = scale(max);
         JsonElement out = null;
+        if (a.heart() > 0) {
+            int h = a.hub();
+            JsonElement du = Df.add(u, -a.x()[h]), dv = Df.add(v, -a.z()[h]);
+            out = Df.add(Df.mul(Df.floor(Df.clamp(Df.mul(Df.add(Df.square(du), Df.square(dv)), 1 / (a.heart() * a.heart())), 0, 1)),
+                    OUTSIDE_HEART + MAX_PLACES), h - MAX_PLACES);
+            nodes[0] += 11;
+            for (int j = 0; j < n - 1; j++) {
+                double wa = a.wedges()[j], wb = a.wedges()[(j + 1) % (n - 1)];
+                double span = ((wb - wa) % 360 + 360) % 360;
+                double[] ha = heading(wa), hb = heading(wb);
+                JsonElement from = Df.add(Df.mul(dv, ha[0]), Df.mul(du, -ha[1])), to = Df.add(Df.mul(du, hb[1]), Df.mul(dv, -hb[0]));
+                JsonElement m = span == 0 ? Df.c(1) : span <= 180 ? Df.min(from, to) : Df.max(from, to);
+                out = Df.min(out, Df.add(Df.mul(Df.floor(Df.clamp(Df.mul(m, -STEEP), 0, 1)), OUTSIDE_HEART), a.other(j)));
+                nodes[0] += 15;
+            }
+            return out;
+        }
         for (int i = 0; i < n; i++) {
             JsonObject d = Df.add(Df.add(Df.square(Df.add(u, -a.x()[i])), Df.square(Df.add(v, -a.z()[i]))), top - a.weight()[i]);
             JsonObject g = Df.mul(Df.floor(Df.mul(Df.clamp(d, 0, max), scale)), MAX_PLACES);

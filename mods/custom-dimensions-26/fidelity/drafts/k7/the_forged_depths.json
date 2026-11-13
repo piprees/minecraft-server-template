@@ -12,8 +12,8 @@
     "preset": "nether"
   },
   "biomes": [
-    "adventure:crimson_pinewood",
     "adventure:quartz_flats",
+    "adventure:crimson_pinewood",
     "minecraft:basalt_deltas",
     "minecraft:crimson_forest",
     "minecraft:nether_wastes",
