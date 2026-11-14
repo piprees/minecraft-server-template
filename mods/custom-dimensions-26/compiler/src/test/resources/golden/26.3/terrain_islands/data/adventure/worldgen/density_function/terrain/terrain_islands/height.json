@@ -1,0 +1,183 @@
+{
+  "input": {
+    "left": {
+      "spline": {
+        "coordinate": {
+          "input": {
+            "input": {
+              "left": {
+                "left": {
+                  "noise": "adventure:terrain/islands",
+                  "shift_x": "minecraft:shift_x",
+                  "shift_z": "minecraft:shift_z",
+                  "type": "minecraft:noise",
+                  "xz_scale": 1.0,
+                  "y_scale": 0.0
+                },
+                "right": 2.04778157,
+                "type": "minecraft:mul"
+              },
+              "right": {
+                "left": {
+                  "noise": "adventure:terrain/detail",
+                  "shift_x": "minecraft:shift_x",
+                  "shift_z": "minecraft:shift_z",
+                  "type": "minecraft:noise",
+                  "xz_scale": 1.0,
+                  "y_scale": 0.0
+                },
+                "right": 1.61290323,
+                "type": "minecraft:mul"
+              },
+              "type": "minecraft:add"
+            },
+            "max": 4.0,
+            "min": -4.0,
+            "type": "minecraft:clamp"
+          },
+          "type": "minecraft:cache"
+        },
+        "points": [
+          {
+            "derivative": 0.0,
+            "location": -4.5,
+            "value": 20.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.17423555,
+            "value": 30.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.5636351,
+            "value": 60.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.6069017,
+            "value": 64.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.8232348,
+            "value": 74.2
+          },
+          {
+            "derivative": 0.0,
+            "location": 1.472234,
+            "value": 91.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 4.5,
+            "value": 93.8
+          }
+        ]
+      },
+      "type": "minecraft:spline"
+    },
+    "right": {
+      "left": {
+        "left": {
+          "input": {
+            "left": {
+              "left": {
+                "input": {
+                  "input": {
+                    "left": {
+                      "left": {
+                        "noise": "adventure:terrain/islands",
+                        "shift_x": "minecraft:shift_x",
+                        "shift_z": "minecraft:shift_z",
+                        "type": "minecraft:noise",
+                        "xz_scale": 1.0,
+                        "y_scale": 0.0
+                      },
+                      "right": 2.04778157,
+                      "type": "minecraft:mul"
+                    },
+                    "right": {
+                      "left": {
+                        "noise": "adventure:terrain/detail",
+                        "shift_x": "minecraft:shift_x",
+                        "shift_z": "minecraft:shift_z",
+                        "type": "minecraft:noise",
+                        "xz_scale": 1.0,
+                        "y_scale": 0.0
+                      },
+                      "right": 1.61290323,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:add"
+                  },
+                  "max": 4.0,
+                  "min": -4.0,
+                  "type": "minecraft:clamp"
+                },
+                "type": "minecraft:cache"
+              },
+              "right": -0.606901702,
+              "type": "minecraft:add"
+            },
+            "right": 2.77350098,
+            "type": "minecraft:mul"
+          },
+          "max": 1.0,
+          "min": 0.0,
+          "type": "minecraft:clamp"
+        },
+        "right": {
+          "left": {
+            "spline": {
+              "coordinate": "adventure:terrain/terrain_islands/erosion",
+              "points": [
+                {
+                  "derivative": 0.0,
+                  "location": -1.0,
+                  "value": 1.0
+                },
+                {
+                  "derivative": 0.0,
+                  "location": -0.4,
+                  "value": 0.7
+                },
+                {
+                  "derivative": 0.0,
+                  "location": 0.0,
+                  "value": 0.35
+                },
+                {
+                  "derivative": 0.0,
+                  "location": 0.5,
+                  "value": 0.1
+                },
+                {
+                  "derivative": 0.0,
+                  "location": 1.0,
+                  "value": 0.0
+                }
+              ]
+            },
+            "type": "minecraft:spline"
+          },
+          "right": {
+            "left": {
+              "left": "adventure:terrain/terrain_islands/ridges_folded",
+              "right": 0.4,
+              "type": "minecraft:mul"
+            },
+            "right": 0.6,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:mul"
+        },
+        "type": "minecraft:mul"
+      },
+      "right": 24.0,
+      "type": "minecraft:mul"
+    },
+    "type": "minecraft:add"
+  },
+  "type": "minecraft:cache"
+}

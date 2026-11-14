@@ -1,0 +1,65 @@
+{
+ "slug": "the_boneyard",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:soul_sand + surface.groundBlocksPercent.minecraft:soul_soil + surface.groundBlocksPercent.minecraft:bone_block + surface.groundBlocksPercent.minecraft:tuff + surface.groundBlocksPercent.minecraft:gravel + surface.groundBlocksPercent.minecraft:smooth_basalt",
+   "op": ">=",
+   "value": 55,
+   "from": "\"Bones of giants lie in soul sand\"; 1.21.1 soul_plain, ash_barrens"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:bone_block + surface.topBlocksPercent.minecraft:bone_block",
+   "op": ">=",
+   "value": 2,
+   "from": "\"Bones of giants\"; 1.21.1 bone_reef, sulfuric_bone_reef"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "<=",
+   "value": 15,
+   "from": "\"The battlefield\": open ground, not a forest"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:soul_sand_valley + surface.biomesPercent.adventure:ash_barrens",
+   "op": ">=",
+   "value": 50,
+   "from": "1.21.1 spawnFilter soul_sand_valley, ash_barrens"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:deep_dark",
+   "op": "<=",
+   "value": 1,
+   "from": "\"the sculk that crept in\": sculk below, not on the surface (1.21.1 deep_dark is a cave biome)"
+  },
+  {
+   "key": "underground.caveBiomesPercent.minecraft:deep_dark",
+   "op": ">=",
+   "value": 5,
+   "from": "\"the sculk that crept in ... fed on the war\": sculk under the battlefield"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 15,
+   "from": "\"The battlefield\": a field to cross, not a lava lake"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 85,
+   "from": "1.21.1 type nether: a roof over the world"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (\"The battlefield\"): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

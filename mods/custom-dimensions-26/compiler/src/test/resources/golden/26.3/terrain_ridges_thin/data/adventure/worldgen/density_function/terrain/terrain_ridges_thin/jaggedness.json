@@ -1,0 +1,83 @@
+{
+  "input": {
+    "left": {
+      "input": {
+        "left": {
+          "left": {
+            "input": {
+              "left": {
+                "left": {
+                  "left": {
+                    "left": {
+                      "input": "adventure:terrain/terrain_ridges_thin/ridges",
+                      "type": "minecraft:abs"
+                    },
+                    "right": -3.0,
+                    "type": "minecraft:mul"
+                  },
+                  "right": 1.0,
+                  "type": "minecraft:add"
+                },
+                "right": -0.8,
+                "type": "minecraft:add"
+              },
+              "right": 5.0,
+              "type": "minecraft:mul"
+            },
+            "max": 1.0,
+            "min": 0.0,
+            "type": "minecraft:clamp"
+          },
+          "right": {
+            "input": {
+              "left": {
+                "left": "adventure:terrain/terrain_ridges_thin/continents",
+                "right": 0.55,
+                "type": "minecraft:add"
+              },
+              "right": 4.0,
+              "type": "minecraft:mul"
+            },
+            "max": 1.0,
+            "min": 0.0,
+            "type": "minecraft:clamp"
+          },
+          "type": "minecraft:mul"
+        },
+        "right": {
+          "spline": {
+            "coordinate": "adventure:terrain/terrain_ridges_thin/erosion",
+            "points": [
+              {
+                "derivative": 0.0,
+                "location": -1.0,
+                "value": 1.0
+              },
+              {
+                "derivative": 0.0,
+                "location": 0.0,
+                "value": 1.0
+              },
+              {
+                "derivative": 0.0,
+                "location": 0.5,
+                "value": 1.0
+              },
+              {
+                "derivative": 0.0,
+                "location": 1.0,
+                "value": 1.0
+              }
+            ]
+          },
+          "type": "minecraft:spline"
+        },
+        "type": "minecraft:mul"
+      },
+      "type": "minecraft:cache"
+    },
+    "right": 0.35,
+    "type": "minecraft:mul"
+  },
+  "type": "minecraft:cache"
+}

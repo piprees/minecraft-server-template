@@ -1,0 +1,71 @@
+{
+ "slug": "the_dustbowl",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:sand + surface.groundBlocksPercent.minecraft:red_sand + surface.groundBlocksPercent.minecraft:coarse_dirt + surface.groundBlocksPercent.minecraft:dirt + surface.groundBlocksPercent.minecraft:gravel + surface.groundBlocksPercent.minecraft:packed_mud + surface.groundBlocksPercent.minecraft:terracotta + surface.groundBlocksPercent.minecraft:sandstone + surface.groundBlocksPercent.minecraft:red_sandstone",
+   "op": ">=",
+   "value": 65,
+   "from": "\"A tiny, exhausted dust plain\""
+  },
+  {
+   "key": "surface.topBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 15,
+   "from": "\"exhausted\", \"Whatever was here dried up and blew away\""
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "<=",
+   "value": 4,
+   "from": "\"The wind owns everything else\": a near-treeless plain"
+  },
+  {
+   "key": "surface.canopyPercent",
+   "op": "<=",
+   "value": 2,
+   "from": "\"dust plain\""
+  },
+  {
+   "key": "terrain.reliefMedian",
+   "op": "<=",
+   "value": 14,
+   "from": "\"plain\""
+  },
+  {
+   "key": "terrain.slopes.flatUnder15Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "\"plain\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 1,
+   "from": "\"dried up\"; 1.21.1 seaLevel -55, seedRoll water none"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:warm_ocean + surface.biomesPercent.minecraft:ocean + surface.biomesPercent.minecraft:lukewarm_ocean + surface.biomesPercent.minecraft:deep_lukewarm_ocean",
+   "op": "<=",
+   "value": 2,
+   "from": "\"dried up\": no ocean biome on the dry bed"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:dry_steppe + surface.biomesPercent.minecraft:savanna + surface.biomesPercent.minecraft:savanna_plateau + surface.biomesPercent.minecraft:badlands + surface.biomesPercent.minecraft:desert",
+   "op": ">=",
+   "value": 40,
+   "from": "1.21.1 biomes steppe (spawn), xeric plains, outback, desert, badlands: the plain's own biomes"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place: one dust plain"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place"
+  }
+ ]
+}

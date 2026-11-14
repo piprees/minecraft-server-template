@@ -29,6 +29,8 @@ PROJECT_DIR="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 # Fall back to /app/ paths if the project-relative paths don't exist.
 if [[ -f "$PROJECT_DIR/config/modrinth-mods.txt" ]]; then
   cd "$PROJECT_DIR"
+  # shellcheck source=lib.sh
+  source "$SCRIPT_DIR/lib.sh"
 elif [[ -f /app/config/modrinth-mods.txt ]]; then
   PROJECT_DIR=/app
   cd /app
@@ -42,9 +44,17 @@ if [[ -f .env ]]; then
   set +a
 fi
 
-MC_VERSION="${MC_VERSION:-1.21.1}"
-MODS_FILE="$PROJECT_DIR/config/modrinth-mods.txt"
-MANIFEST="$PROJECT_DIR/modpack/adventure.mrpack.json"
+# In the mod-checker container the seed has already chosen the mod list and
+# manifest for the version, and compose passes MC_VERSION.
+if declare -F mc_version > /dev/null; then
+  MC_VERSION="$(mc_version)"
+  MODS_FILE="$(mc_mod_list "$PROJECT_DIR" "$MC_VERSION")"
+  MANIFEST="$(mc_manifest "$PROJECT_DIR" "$MC_VERSION")"
+else
+  : "${MC_VERSION:?MC_VERSION is unset and no .minecraft-version is beside the scripts}"
+  MODS_FILE="$PROJECT_DIR/config/modrinth-mods.txt"
+  MANIFEST="$PROJECT_DIR/modpack/adventure.mrpack.json"
+fi
 STATUS_DIR="$PROJECT_DIR/modpack/dist"
 STATE_DIR="${STATE_DIR:-$PROJECT_DIR/state}"
 MUTE_FILE="$PROJECT_DIR/config/update-check-mute.txt"
@@ -374,7 +384,7 @@ import json, sys, os
 with open('$row_tmpfile') as f:
     d = json.load(f)
 
-mc_ver = os.environ.get('MC_VER', '1.21.1')
+mc_ver = os.environ['MC_VER']
 dash = '-'
 
 badge_class = d['status']

@@ -1,0 +1,119 @@
+{
+  "formatVersion": 1,
+  "game": "minecraft",
+  "versionId": "adventure-26.3",
+  "name": "Adventure Modpack",
+  "summary": "The optional client pack for the 26.3 server: shaders, Distant Horizons, maps, animations and sounds. Nothing in it is needed to join.",
+  "files": [],
+  "dependencies": {
+    "minecraft": "26.3",
+    "fabric-loader": "0.20.1"
+  },
+  "_comment": "This manifest is the source for build-modpack.sh when the selected version is 26.3 (mc_manifest in scripts/lib.sh). The 'files' array is populated at build time from the client mod list below. The in-house companion (mods/client-mods-26.3.manifest) rides in overrides/mods/.",
+  "_holds": {},
+  "_clientMods": {
+    "_comment": "Modrinth slugs of the optional 26.3 client pack: the register's kept client and optional rows (docs/design/rebuild-26/mod-register.csv) and the libraries they need. An unmodded client joins without any of them (decisions.md RB-02); each is presentation only (RB-03, RB-25). build-modpack.sh resolves these to download URLs and populates 'files'.",
+    "required": [
+      "fabric-api:EQKgpeKu",
+      "fabric-language-kotlin:SKW1BTL3",
+      "resourceful-lib:P6Jq77km",
+      "architectury-api:1pMaB6So",
+      "forge-config-api-port:JpKvrr9J",
+      "cloth-config:fg2uyxOW",
+      "distanthorizons:TGgEbP9A",
+      "simple-voice-chat:cZm965sW",
+      "appleskin:PHjDtQay",
+      "carry-on:6kJQXHUF",
+      "sound-physics-remastered:gA7nKz5g",
+      "stack-refill:2ApxamAM",
+      "configured-defaults:frAVVzBj",
+      "collective:SLDUG1Rg",
+      "open-parties-and-claims:KBCCg0os",
+      "enchantment-descriptions:uZf2qbql",
+      "prickle:aPdekuq6",
+      "puzzles-lib:vbwu116x",
+      "attributefix:zJLURVLx"
+    ],
+    "optional": [
+      "sodium:g6ju16VJ",
+      "lithium:xS0Q8LSi",
+      "ferrite-core:d5ddUdiB",
+      "entityculling:X1g3VhTx",
+      "iris:vTN4NRGW",
+      "euphoria-patches:YYczPGkW",
+      "xaeros-minimap:eUEhnw8G",
+      "xaeros-world-map:IEtfiHVq",
+      "jade:71CTWqdE",
+      "modmenu:kyy7dbrZ",
+      "yacl:s9SjoFu1",
+      "zoomify:RUBpNu00",
+      "continuity:Jt2sCWTQ",
+      "freecam:lwrkvqym",
+      "3dskinlayers:gjM2TO0L",
+      "ambientsounds:LFUkYKC1",
+      "presence-footsteps:UUNiN7Tm",
+      "visuality:BNe9kpJ7",
+      "controlify:fo76vL20",
+      "creativecore:7YUEsxpw",
+      "gui-effect-timer:g6ANQNXq",
+      "enchantment-level-cap-indicator:cCot9d8J",
+      "areas:Jo9oCm0V",
+      "particle-effects:QC0b0jJo",
+      "wavey-capes:HzJI5xeL",
+      "first-person-model:Z05WZTy2",
+      "weaponmaster:M0qt6sse",
+      "pick-up-notifier:veV20ScD",
+      "entity-model-features:vF6qLXsA",
+      "entitytexturefeatures:OOEycXyN"
+    ],
+    "_stableOnlyComment": "stableOnly: resolver picks the newest RELEASE for these slugs instead of the newest build of any channel. Use for mods whose pre-release channels have burned us. Everything else gets the newest build - mod authors keep their own latest sets coherent (e.g. supplementaries release requires sodium beta).",
+    "stableOnly": [],
+    "_parityExemptComment": "_parityExempt: slugs check-client-parity.py must not fail on, keyed by slug with the reason. A server mod declaring client_side=required that genuinely ships no client registry entries belongs here. Remove an entry only when its stated reason stops being true.",
+    "_parityExempt": {},
+    "_holdsComment": "holds: slugs pin-mod-versions.sh must NOT re-pin, keyed by slug with the reason. Remove an entry only when its blocker clears."
+  },
+  "_waitingComment": "_waiting: register rows (decision waiting) that join the pack when their author ships a 26.3 build (decisions.md RB-09), keyed by slug with the list they join.",
+  "_waiting": {
+    "no-chat-reports": "_clientMods.required",
+    "betterf3": "_clientMods.optional",
+    "particle-rain": "_clientMods.optional",
+    "consumableoptimizer": "_clientMods.optional",
+    "complete-shield-fixes": "_clientMods.optional",
+    "walksylib": "_clientMods.optional",
+    "custom-splash-screen": "_clientMods.optional",
+    "mindful-darkness": "_clientMods.optional",
+    "dark-window-bar": "_clientMods.optional",
+    "cubes-without-borders": "_clientMods.optional",
+    "dark-graph": "_clientMods.optional",
+    "better-advancements": "_clientMods.optional",
+    "satin-free-wakes": "_clientMods.optional",
+    "travelers-titles": "_clientMods.optional",
+    "cave-dust": "_clientMods.optional",
+    "better-leaves": "_resourcePacks",
+    "fancy-crops": "_resourcePacks",
+    "simple-grass-flowers": "_resourcePacks",
+    "bibliophilia": "_resourcePacks"
+  },
+  "_shaderPacks": {
+    "_comment": "Modrinth shader packs, pinned as slug:versionId.",
+    "packs": [
+      "complementary-reimagined:Bqen1mJX"
+    ]
+  },
+  "_resourcePacks": {
+    "_comment": "Modrinth resource packs. Pinned as slug:versionId (like _clientMods) so builds are reproducible and weekly updates don't silently change filenames. An entry may also be an object {slug: 'slug:vid', files: [...]} for named companion files. pin-mod-versions.sh re-pins on --apply. Packs are ENABLED by filename in overrides/configureddefaults/options.txt; the build points each entry at the downloaded file of the same pack with its new version, and fails only when an enabled pack has no such download. A re-pin stays on the pinned style variant (os-colorful-grasses publishes Short, Tall, Mix... as separate versions).",
+    "packs": [
+      "dramatic-skys:4MZQy9nc",
+      "os-colorful-grasses:PQqK5ppM",
+      "low-on-fire:yQdcUfnr",
+      "fresh-animations:tvGVYMD4",
+      {
+        "_comment": "Human villagers/illagers/zombies via EMF+ETF (CC-BY-SA-4.0, by BishopMCNuggets). FreshAni Activator makes it drive Fresh Animations.",
+        "slug": "human-era-villagers-illagers:V8BbkFtF",
+        "files": [
+          "HEVI FreshAni Activator Fix 2.zip"
+        ]
+      }
+    ]
+  }
+}

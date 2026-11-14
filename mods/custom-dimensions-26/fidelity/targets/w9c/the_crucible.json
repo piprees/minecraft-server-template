@@ -1,0 +1,53 @@
+{
+ "slug": "the_crucible",
+ "targets": [
+  {
+   "key": "surface.canopyPercent",
+   "op": ">=",
+   "value": 70,
+   "from": "owner: \"a multi layered dense dark jungle\""
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": ">=",
+   "value": 150,
+   "from": "\"dense dark jungle\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 10,
+   "from": "\"a single continent\""
+  },
+  {
+   "key": "terrain.reliefMedian",
+   "op": ">=",
+   "value": 40,
+   "from": "\"jagged world\", \"much more extreme\""
+  },
+  {
+   "key": "terrain.slopes.over45Percent",
+   "op": ">=",
+   "value": 35,
+   "from": "\"jagged\", \"terrain that fights back\""
+  },
+  {
+   "key": "terrain.surfaceHeight.p95",
+   "op": ">=",
+   "value": 150,
+   "from": "\"much more extreme\""
+  },
+  {
+   "key": "vertical.overhangPercent + vertical.stackedPercent",
+   "op": ">=",
+   "value": 20,
+   "from": "\"multi layered\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:jungle + surface.biomesPercent.minecraft:bamboo_jungle + surface.biomesPercent.minecraft:sparse_jungle + surface.biomesPercent.adventure:cloud_forest + surface.biomesPercent.minecraft:dark_forest",
+   "op": ">=",
+   "value": 65,
+   "from": "\"dense dark jungle\"; 1.21.1: \"a compressed jungle gauntlet\""
+  }
+ ]
+}

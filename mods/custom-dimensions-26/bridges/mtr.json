@@ -1,0 +1,90 @@
+{
+  "mod": "mtr",
+  "reviewed": true,
+  "structureSets": [
+    "mtr:badlands_temple",
+    "mtr:desert_temple",
+    "mtr:jungle_temple",
+    "mtr:nether_temple",
+    "mtr:ocean_temple",
+    "mtr:stronghold"
+  ],
+  "structures": [
+    {
+      "id": "mtr:badlands_temple",
+      "set": "mtr:badlands_temple",
+      "size": {
+        "x": 66,
+        "y": 46,
+        "z": 58
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mtr:desert_temple",
+      "set": "mtr:desert_temple",
+      "size": {
+        "x": 77,
+        "y": 48,
+        "z": 71
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mtr:jungle_temple",
+      "set": "mtr:jungle_temple",
+      "size": {
+        "x": 84,
+        "y": 54,
+        "z": 65
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mtr:nether_temple",
+      "set": "mtr:nether_temple",
+      "size": {
+        "x": 66,
+        "y": 64,
+        "z": 75
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mtr:ocean_temple",
+      "set": "mtr:ocean_temple",
+      "size": {
+        "x": 43,
+        "y": 43,
+        "z": 48
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "mtr:stronghold",
+      "set": "mtr:stronghold",
+      "size": {
+        "x": 173,
+        "y": 60,
+        "z": 172
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    }
+  ],
+  "features": [],
+  "spawns": [],
+  "mixins": [],
+  "registries": []
+}

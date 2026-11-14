@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 2,
+  "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks — wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin.",
+  "seed": 3494254938116585195,
+  "spawn": [192, 141, -448],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "ridges",
+    "setting": "default",
+    "params": {
+      "coast": -0.6,
+      "peakHeight": 110
+    },
+    "scales": {
+      "ridges": 1.3
+    }
+  },
+  "biomes": [
+    "adventure:wisteria_grove",
+    "adventure:lavender_fields",
+    "adventure:glowing_grasslands",
+    "minecraft:jungle",
+    "minecraft:meadow",
+    "minecraft:birch_forest",
+    "adventure:alpine_meadow",
+    "minecraft:windswept_hills",
+    "minecraft:pale_garden",
+    {
+      "id": "adventure:crystal_hollows",
+      "climate": {
+        "weirdness": [-2.0, -0.2301],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-0.2301, 0.0927],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "adventure:mineral_strata",
+      "climate": {
+        "weirdness": [0.0927, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:wisteria_grove": 16.9,
+      "adventure:lavender_fields": 15.8,
+      "adventure:glowing_grasslands": 14,
+      "minecraft:jungle": 12.1,
+      "minecraft:meadow": 8.9,
+      "minecraft:birch_forest": 7.8,
+      "adventure:alpine_meadow": 10.2,
+      "minecraft:windswept_hills": 5.1,
+      "minecraft:pale_garden": 8.7
+    }
+  },
+  "materials": {
+    "cliffs": "minecraft:amethyst_block"
+  },
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [120, -90],
+      "radius": 96,
+      "blend": 24,
+      "biomes": [
+        "minecraft:pale_garden"
+      ]
+    }
+  ],
+  "atmosphere": {
+    "skyColor": "#C9A8E8",
+    "ambientLight": 0.25,
+    "fixedTime": 18000
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.0,
+    "playerLuck": 2.5,
+    "hostileSpawning": false
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "ddd:wizard_tower": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "ddd:wizard_tower",
+        "x": 120,
+        "z": -90,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:amethyst_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "9B6BC8",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "particleType": "minecraft:enchant",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "scenic",
+    "spawnFilter": [
+      "adventure:wisteria_grove",
+      "adventure:lavender_fields"
+    ],
+    "wants": {
+      "ddd:wizard_tower": "spread",
+      "ati_structures:fortified_temple": "near_border",
+      "mvs:small_oak_lantern": "near_spawn",
+      "ati_structures:haunted_ruin": "spread",
+      "shrine_tower": "spread"
+    },
+    "shuns": [
+      "monument",
+      "mansion",
+      "mss:arena",
+      "trial_chambers",
+      "ancient_city"
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+== the_sunken_temple (survey)
+borders {'player': 4096, 'generation': 2048, 'surveyed': 4096, 'surveyedOver': 'places', 'surveyedHectares': 6711}
+  jungle_coast                 {'percent': 49.8, 'landPercent': 49.8, 'landRegions': 8, 'largestPercent': 6.7, 'specksPercent': 4.4}
+  highlands                    {'percent': 50.2, 'landPercent': 50.2, 'landRegions': 10, 'largestPercent': 9.4, 'specksPercent': 4.3}
+  landRegions {'count': 1323, 'major': 18, 'top3Percent': 22.0, 'largestPercent': 9.4, 'specksPercent': 8.6}
+  islands {'dominantPlacePercent': 51.2}  (by biome: 26.3)
+  plan patches 29 max |x|,|z| 4048
+== the_sunken_temple (stand-in on the render)
+== the_aviary (survey)
+borders {'player': 4096, 'generation': 2048, 'surveyed': 4096, 'surveyedOver': 'places', 'surveyedHectares': 6711}
+  highlands                    {'percent': 22.0, 'landPercent': 23.2, 'landRegions': 1, 'largestPercent': 20.3, 'specksPercent': 0.6}
+  wisteria                     {'percent': 32.9, 'landPercent': 32.4, 'landRegions': 5, 'largestPercent': 20.9, 'specksPercent': 0.8}
+  golden                       {'percent': 15.9, 'landPercent': 14.7, 'landRegions': 4, 'largestPercent': 3.8, 'specksPercent': 0.4}
+  meadows                      {'percent': 17.3, 'landPercent': 17.2, 'landRegions': 4, 'largestPercent': 7.5, 'specksPercent': 0.6}
+  woods                        {'percent': 12.0, 'landPercent': 12.6, 'landRegions': 1, 'largestPercent': 10.6, 'specksPercent': 0.2}
+  landRegions {'count': 453, 'major': 15, 'top3Percent': 51.8, 'largestPercent': 20.9, 'specksPercent': 2.6}
+  islands {'dominantPlacePercent': 47.2}  (by biome: 37.9)
+  plan patches 31 max |x|,|z| 4048
+== the_aviary (stand-in on the render)
+== variant copy: the_aviary_k9's patches against the_aviary's
+stratified patches equal: True 24
+seeds 7826077224469180302 7826077224469180302

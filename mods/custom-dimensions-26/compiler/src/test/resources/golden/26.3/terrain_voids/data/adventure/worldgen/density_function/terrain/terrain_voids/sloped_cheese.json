@@ -1,0 +1,57 @@
+{
+  "input": {
+    "left": {
+      "left": {
+        "left": {
+          "input": {
+            "left": {
+              "left": "adventure:terrain/terrain_voids/depth",
+              "right": {
+                "left": "adventure:terrain/terrain_voids/jaggedness",
+                "right": {
+                  "input": {
+                    "noise": "minecraft:jagged",
+                    "type": "minecraft:noise",
+                    "xz_scale": 1500.0,
+                    "y_scale": 0.0
+                  },
+                  "type": "minecraft:half_negative"
+                },
+                "type": "minecraft:mul"
+              },
+              "type": "minecraft:add"
+            },
+            "right": "adventure:terrain/terrain_voids/factor",
+            "type": "minecraft:mul"
+          },
+          "type": "minecraft:quarter_negative"
+        },
+        "right": 4.0,
+        "type": "minecraft:mul"
+      },
+      "right": "minecraft:overworld/base_3d_noise",
+      "type": "minecraft:add"
+    },
+    "right": {
+      "left": {
+        "left": 0.322950994,
+        "right": {
+          "input": {
+            "noise": "adventure:terrain/voids",
+            "shift_x": "minecraft:shift_x",
+            "shift_z": "minecraft:shift_z",
+            "type": "minecraft:noise",
+            "xz_scale": 1.0,
+            "y_scale": 0.0
+          },
+          "type": "minecraft:cache"
+        },
+        "type": "minecraft:sub"
+      },
+      "right": 158.730159,
+      "type": "minecraft:mul"
+    },
+    "type": "minecraft:min"
+  },
+  "type": "minecraft:cache"
+}

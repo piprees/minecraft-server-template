@@ -1,0 +1,47 @@
+{
+ "slug": "the_ruined_timberland",
+ "targets": [
+  {
+   "key": "surface.biomesPercent.adventure:maple_woodland + surface.biomesPercent.adventure:aspen_forest",
+   "op": ">=",
+   "value": 30,
+   "from": "\"Autumn woods\"; 1.21.1 aspen_forest, maple_woodlands, autumnal_maple_forest, maple_forest"
+  },
+  {
+   "key": "surface.topBlocksPercent.minecraft:red_poplar_leaves + surface.topBlocksPercent.minecraft:orange_poplar_leaves + surface.topBlocksPercent.minecraft:yellow_poplar_leaves + surface.topBlocksPercent.minecraft:leaf_litter + surface.topBlocksPercent.minecraft:pumpkin",
+   "op": ">=",
+   "value": 10,
+   "from": "\"Autumn woods\": autumn colour on the canopy"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:ocean + surface.biomesPercent.minecraft:warm_ocean + surface.biomesPercent.minecraft:lukewarm_ocean + surface.biomesPercent.minecraft:cold_ocean + surface.biomesPercent.minecraft:deep_ocean + surface.biomesPercent.minecraft:deep_lukewarm_ocean + surface.biomesPercent.minecraft:deep_cold_ocean + surface.biomesPercent.minecraft:frozen_ocean",
+   "op": "<=",
+   "value": 3,
+   "from": "\"Autumn woods\": land (1.21.1 seaLevel 44 lowered the sea, not added one)"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": ">=",
+   "value": 60,
+   "from": "\"woods\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 10,
+   "from": "\"woods strewn with ruins\""
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one autumn wood): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

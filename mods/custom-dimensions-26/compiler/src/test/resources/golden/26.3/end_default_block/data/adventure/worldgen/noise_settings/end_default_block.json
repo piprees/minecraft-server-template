@@ -1,0 +1,7 @@
+{
+  "base": "minecraft:end",
+  "changed": {
+    "default_block": "minecraft:netherrack",
+    "material_rule": "adventure:end_default_block"
+  }
+}

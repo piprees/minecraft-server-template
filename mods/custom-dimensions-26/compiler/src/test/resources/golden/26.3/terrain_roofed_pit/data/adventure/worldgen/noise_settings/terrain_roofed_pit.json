@@ -1,0 +1,9 @@
+{
+  "base": "minecraft:nether",
+  "changed": {
+    "noise_router": "sha1:eb63dafa1d240a64b08597304c82ca4dd39448b3"
+  },
+  "removed": [
+    "debug_functions"
+  ]
+}

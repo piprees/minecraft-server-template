@@ -1,0 +1,43 @@
+{
+  "input": {
+    "left": {
+      "left": {
+        "input": {
+          "left": {
+            "left": {
+              "noise": "adventure:terrain/altitude",
+              "shift_x": "minecraft:shift_x",
+              "shift_z": "minecraft:shift_z",
+              "type": "minecraft:noise",
+              "xz_scale": 1.0,
+              "y_scale": 0.0
+            },
+            "right": 1.36861314,
+            "type": "minecraft:mul"
+          },
+          "right": {
+            "left": {
+              "noise": "adventure:terrain/detail",
+              "shift_x": "minecraft:shift_x",
+              "shift_z": "minecraft:shift_z",
+              "type": "minecraft:noise",
+              "xz_scale": 1.0,
+              "y_scale": 0.0
+            },
+            "right": 0.504032258,
+            "type": "minecraft:mul"
+          },
+          "type": "minecraft:add"
+        },
+        "max": 1.0,
+        "min": -1.0,
+        "type": "minecraft:clamp"
+      },
+      "right": 12.0,
+      "type": "minecraft:mul"
+    },
+    "right": 40.0,
+    "type": "minecraft:add"
+  },
+  "type": "minecraft:cache"
+}

@@ -1,0 +1,48 @@
+{
+  "reason": "A tall vault: a floor at 26 \u00b1 10 under a ceiling 64 up, a few pillars holding it, hollows dipping into the kept lava sea at 20; blackstone and crying obsidian for the dimension, soul soil for the valley; crimson nylium is now the default (G6).",
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 26,
+      "floorRelief": 10,
+      "ceilingGap": 64,
+      "roughness": 0.35,
+      "pillars": 0.02,
+      "pillarSize": 1.5
+    },
+    "scales": {
+      "climate": 1.5
+    }
+  },
+  "liquids": {
+    "seaLevel": 20,
+    "defaultFluid": "minecraft:lava"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:blackstone",
+    "top": "minecraft:blackstone",
+    "cliffs": "minecraft:crying_obsidian",
+    "biomes": {
+      "minecraft:soul_sand_valley": {
+        "top": "minecraft:soul_soil"
+      }
+    }
+  },
+  "biomes": [
+    "minecraft:soul_sand_valley",
+    "minecraft:crimson_forest",
+    "adventure:nether_jungle",
+    "adventure:withered_forest",
+    "minecraft:basalt_deltas"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:soul_sand_valley": 30,
+      "minecraft:crimson_forest": 25,
+      "adventure:nether_jungle": 20,
+      "adventure:withered_forest": 15,
+      "minecraft:basalt_deltas": 10
+    }
+  }
+}

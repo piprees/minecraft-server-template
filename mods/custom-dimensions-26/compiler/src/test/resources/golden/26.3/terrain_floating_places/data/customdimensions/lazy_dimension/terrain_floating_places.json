@@ -1,0 +1,72 @@
+{
+  "type": "adventure:terrain_floating_places",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "customdimensions:zoned",
+      "base": {
+        "type": "minecraft:multi_noise",
+        "biomes": [
+          {
+            "biome": "minecraft:lush_caves",
+            "parameters": {
+              "temperature": [-2.0, 2.0],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [0.0625, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:meadow",
+            "parameters": {
+              "temperature": [-2.0, 2.0],
+              "humidity": [-2.0, 0.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:cherry_grove",
+            "parameters": {
+              "temperature": [-2.0, 2.0],
+              "humidity": [0.0, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.0625],
+              "offset": 0.0
+            }
+          }
+        ]
+      },
+      "regions": {
+        "axes": [
+          "temperature",
+          "humidity"
+        ],
+        "land": {
+          "axis": "continentalness",
+          "min": -0.7
+        },
+        "areas": [
+          {
+            "role": "underside",
+            "depth": [0.0625, 2.0]
+          },
+          {
+            "role": "land",
+            "depth": [-2.0, 0.0625]
+          }
+        ],
+        "radius": 1024
+      }
+    },
+    "settings": "adventure:terrain_floating_places"
+  }
+}

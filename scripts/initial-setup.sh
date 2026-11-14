@@ -55,7 +55,7 @@ source .env
 set +a
 
 # Platform defaults live in docker-compose.yml - a lean .env omits these.
-: "${MC_VERSION:=1.21.1}"
+export_mc_version
 : "${SERVER_PORT:=25577}"
 : "${RCON_PASSWORD:=}"
 

@@ -1,0 +1,928 @@
+{
+  "input": {
+    "input": {
+      "noise": "adventure:places/the_aviary/arrangement",
+      "type": "minecraft:noise",
+      "xz_scale": 0.0,
+      "y_scale": 0.0
+    },
+    "max_exclusive": -0.184810192,
+    "min_inclusive": -1000000.0,
+    "type": "minecraft:range_choice",
+    "when_in_range": {
+      "left": {
+        "left": {
+          "left": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/the_aviary/p",
+                            "right": -0.605940899,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/the_aviary/q",
+                            "right": 0.42219496,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.174605251,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.5079801,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/the_aviary/p",
+                              "right": 0.391753736,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/the_aviary/q",
+                              "right": 0.425618004,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.0,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.5079801,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 1.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/the_aviary/p",
+                            "right": 0.63453322,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/the_aviary/q",
+                            "right": -0.563532595,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.233101024,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.5079801,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 2.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        },
+        "right": {
+          "left": {
+            "left": {
+              "input": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": "adventure:places/the_aviary/p",
+                          "right": -0.191790166,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "right": {
+                        "input": {
+                          "left": "adventure:places/the_aviary/q",
+                          "right": -0.571200634,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "type": "minecraft:add"
+                    },
+                    "right": 0.239728357,
+                    "type": "minecraft:add"
+                  },
+                  "max": 21.5079801,
+                  "min": 0.0,
+                  "type": "minecraft:clamp"
+                },
+                "right": 32768.0,
+                "type": "minecraft:mul"
+              },
+              "type": "minecraft:floor"
+            },
+            "right": 16.0,
+            "type": "minecraft:mul"
+          },
+          "right": 3.0,
+          "type": "minecraft:add"
+        },
+        "type": "minecraft:min"
+      },
+      "right": {
+        "left": {
+          "left": {
+            "input": {
+              "left": {
+                "input": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": "adventure:places/the_aviary/p",
+                        "right": -0.806738835,
+                        "type": "minecraft:add"
+                      },
+                      "type": "minecraft:square"
+                    },
+                    "right": {
+                      "input": {
+                        "left": "adventure:places/the_aviary/q",
+                        "right": -0.58521138,
+                        "type": "minecraft:add"
+                      },
+                      "type": "minecraft:square"
+                    },
+                    "type": "minecraft:add"
+                  },
+                  "right": 0.382980107,
+                  "type": "minecraft:add"
+                },
+                "max": 21.5079801,
+                "min": 0.0,
+                "type": "minecraft:clamp"
+              },
+              "right": 32768.0,
+              "type": "minecraft:mul"
+            },
+            "type": "minecraft:floor"
+          },
+          "right": 16.0,
+          "type": "minecraft:mul"
+        },
+        "right": 4.0,
+        "type": "minecraft:add"
+      },
+      "type": "minecraft:min"
+    },
+    "when_out_of_range": {
+      "input": {
+        "noise": "adventure:places/the_aviary/arrangement",
+        "type": "minecraft:noise",
+        "xz_scale": 0.0,
+        "y_scale": 0.0
+      },
+      "max_exclusive": 0.0,
+      "min_inclusive": -0.184810192,
+      "type": "minecraft:range_choice",
+      "when_in_range": {
+        "left": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/the_aviary/p",
+                              "right": 0.558531746,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/the_aviary/q",
+                              "right": -0.487431502,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.135084035,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.4666338,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/the_aviary/p",
+                                "right": -0.425157803,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/the_aviary/q",
+                                "right": -0.378408673,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.0,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.4666338,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": 1.0,
+                "type": "minecraft:add"
+              },
+              "type": "minecraft:min"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/the_aviary/p",
+                              "right": 0.630682796,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/the_aviary/q",
+                              "right": 0.452558762,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.268515881,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.4666338,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 2.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/the_aviary/p",
+                            "right": -0.554577772,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/the_aviary/q",
+                            "right": 0.594935398,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.205466369,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.4666338,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 3.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        },
+        "right": {
+          "left": {
+            "left": {
+              "input": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": "adventure:places/the_aviary/p",
+                          "right": 0.179630105,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "right": {
+                        "input": {
+                          "left": "adventure:places/the_aviary/q",
+                          "right": 0.744740176,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "type": "minecraft:add"
+                    },
+                    "right": 0.34163383,
+                    "type": "minecraft:add"
+                  },
+                  "max": 21.4666338,
+                  "min": 0.0,
+                  "type": "minecraft:clamp"
+                },
+                "right": 32768.0,
+                "type": "minecraft:mul"
+              },
+              "type": "minecraft:floor"
+            },
+            "right": 16.0,
+            "type": "minecraft:mul"
+          },
+          "right": 4.0,
+          "type": "minecraft:add"
+        },
+        "type": "minecraft:min"
+      },
+      "when_out_of_range": {
+        "input": {
+          "noise": "adventure:places/the_aviary/arrangement",
+          "type": "minecraft:noise",
+          "xz_scale": 0.0,
+          "y_scale": 0.0
+        },
+        "max_exclusive": 0.184810192,
+        "min_inclusive": 0.0,
+        "type": "minecraft:range_choice",
+        "when_in_range": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/the_aviary/p",
+                                "right": -0.679817679,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/the_aviary/q",
+                                "right": 0.0764546474,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.264231037,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.7188314,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "left": "adventure:places/the_aviary/p",
+                                  "right": 0.197552161,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "right": {
+                                "input": {
+                                  "left": "adventure:places/the_aviary/q",
+                                  "right": 0.579392751,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "type": "minecraft:add"
+                            },
+                            "right": 0.0,
+                            "type": "minecraft:add"
+                          },
+                          "max": 21.7188314,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "right": 32768.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:floor"
+                    },
+                    "right": 16.0,
+                    "type": "minecraft:mul"
+                  },
+                  "right": 1.0,
+                  "type": "minecraft:add"
+                },
+                "type": "minecraft:min"
+              },
+              "right": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/the_aviary/p",
+                                "right": 0.353422106,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/the_aviary/q",
+                                "right": -0.164384963,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.200409236,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.7188314,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": 2.0,
+                "type": "minecraft:add"
+              },
+              "type": "minecraft:min"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/the_aviary/p",
+                              "right": 0.446268506,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/the_aviary/q",
+                              "right": -0.697111754,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.194190614,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.7188314,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 3.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/the_aviary/p",
+                            "right": -0.597407927,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/the_aviary/q",
+                            "right": -0.786948626,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.593831447,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.7188314,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 4.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        },
+        "when_out_of_range": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/the_aviary/p",
+                                "right": 0.676849251,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/the_aviary/q",
+                                "right": -0.121278805,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.0561592277,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.5261158,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "left": "adventure:places/the_aviary/p",
+                                  "right": 0.0280273652,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "right": {
+                                "input": {
+                                  "left": "adventure:places/the_aviary/q",
+                                  "right": 0.516243546,
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:square"
+                              },
+                              "type": "minecraft:add"
+                            },
+                            "right": 0.0,
+                            "type": "minecraft:add"
+                          },
+                          "max": 21.5261158,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "right": 32768.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:floor"
+                    },
+                    "right": 16.0,
+                    "type": "minecraft:mul"
+                  },
+                  "right": 1.0,
+                  "type": "minecraft:add"
+                },
+                "type": "minecraft:min"
+              },
+              "right": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/the_aviary/p",
+                                "right": 0.133111333,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/the_aviary/q",
+                                "right": -0.688936637,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.189195737,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.5261158,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": 2.0,
+                "type": "minecraft:add"
+              },
+              "type": "minecraft:min"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/the_aviary/p",
+                              "right": -0.661148409,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/the_aviary/q",
+                              "right": -0.459749974,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.276520716,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.5261158,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 3.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/the_aviary/p",
+                            "right": -0.820517157,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/the_aviary/q",
+                            "right": 0.552992586,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.401115763,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.5261158,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 4.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        }
+      }
+    }
+  },
+  "type": "minecraft:cache"
+}

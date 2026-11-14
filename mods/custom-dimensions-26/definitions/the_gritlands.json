@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 2,
+  "description": "Gravel, basalt, and ash where it all went wrong. A ruined portal near the border, stone ruins, a dead mineshaft — the remains of something that tried to exist here and couldn't. Nobody could live here. Nothing organised survives.",
+  "seed": 8286382283624820051,
+  "spawn": [102, 73, 51],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "continents",
+    "setting": "gentle",
+    "params": {
+      "coast": -0.6,
+      "relief": 16,
+      "roughness": 0.3
+    }
+  },
+  "biomes": [
+    "adventure:ash_barrens",
+    "adventure:gravel_desert",
+    "minecraft:basalt_deltas",
+    {
+      "id": "adventure:mineral_strata",
+      "climate": {
+        "weirdness": [-2.0, -0.1069],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "weirdness": [-0.1069, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:ash_barrens": 37.9,
+      "adventure:gravel_desert": 27.3,
+      "minecraft:basalt_deltas": 5
+    }
+  },
+  "zones": [
+    {
+      "shape": "ring",
+      "centre": [-440, -440],
+      "inner": 500,
+      "outer": 560,
+      "blend": 160,
+      "edgeJitter": 16,
+      "terrain": {
+        "base": "ridges",
+        "params": {
+          "coast": -0.6,
+          "landHeight": 150,
+          "peakHeight": 50,
+          "jaggedness": 1.5,
+          "rangeWidth": 1,
+          "roughness": 0.8
+        }
+      },
+      "biomes": [
+        "adventure:magma_land",
+        "adventure:blackstone_basin"
+      ],
+      "liquids": {
+        "aquifers": "dry"
+      }
+    },
+    {
+      "shape": "circle",
+      "centre": [-440, -440],
+      "radius": 520,
+      "blend": 6,
+      "edgeJitter": 12,
+      "terrain": {
+        "base": "floating_islands",
+        "setting": "gentle",
+        "params": {
+          "coverage": 0.02
+        }
+      },
+      "biomes": [
+        "adventure:ash_barrens"
+      ],
+      "liquids": {
+        "aquifers": "dry"
+      }
+    }
+  ],
+  "atmosphere": {
+    "fogColor": "#8B7B6B",
+    "ambientLight": 0.18
+  },
+  "rules": {
+    "bedsWork": false
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "density": "none",
+    "force": [
+      {
+        "structure": "minecraft:ruined_portal_mountain",
+        "x": 678,
+        "z": -412
+      },
+      {
+        "structure": "nova_structures:wild_ruin",
+        "x": -592,
+        "z": 701
+      },
+      {
+        "structure": "minecraft:mineshaft",
+        "x": -718,
+        "z": -389
+      },
+      {
+        "structure": "epic:small_plains_dungeon",
+        "x": 678,
+        "z": -412
+      }
+    ],
+    "clearSpawnRadius": 256
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:coarse_dirt",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "A89070",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "adventure:ash_barrens",
+      "adventure:gravel_desert"
+    ],
+    "water": "none",
+    "shuns": [
+      "village",
+      "tavern",
+      "trial_chambers",
+      "ancient_city",
+      "mansion",
+      "monument",
+      "mss:arena"
+    ]
+  },
+  "liquids": {
+    "seaLevel": -60,
+    "aquifers": "dry"
+  }
+}

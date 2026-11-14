@@ -1,0 +1,10 @@
+{
+  "base": "minecraft:overworld",
+  "changed": {
+    "aquifers": "sha1:d5fa4c82c3142fe92daa08e37bb92a7a198800e3",
+    "noise_router": "sha1:e2f06ddc53c46d6c38d62939f5b661aa9649c167"
+  },
+  "removed": [
+    "debug_functions"
+  ]
+}

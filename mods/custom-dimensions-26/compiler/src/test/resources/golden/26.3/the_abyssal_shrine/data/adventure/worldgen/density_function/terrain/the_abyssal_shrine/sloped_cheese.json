@@ -1,0 +1,927 @@
+{
+  "input": {
+    "left": {
+      "left": {
+        "left": {
+          "input": {
+            "left": {
+              "left": "adventure:terrain/the_abyssal_shrine/depth",
+              "right": {
+                "left": "adventure:terrain/the_abyssal_shrine/jaggedness",
+                "right": {
+                  "input": {
+                    "noise": "minecraft:jagged",
+                    "type": "minecraft:noise",
+                    "xz_scale": 1500.0,
+                    "y_scale": 0.0
+                  },
+                  "type": "minecraft:half_negative"
+                },
+                "type": "minecraft:mul"
+              },
+              "type": "minecraft:add"
+            },
+            "right": "adventure:terrain/the_abyssal_shrine/factor",
+            "type": "minecraft:mul"
+          },
+          "type": "minecraft:quarter_negative"
+        },
+        "right": 4.0,
+        "type": "minecraft:mul"
+      },
+      "right": {
+        "left": "minecraft:overworld/base_3d_noise",
+        "right": 0.4,
+        "type": "minecraft:mul"
+      },
+      "type": "minecraft:add"
+    },
+    "right": {
+      "left": {
+        "left": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "alpha": {
+                    "input": {
+                      "left": {
+                        "left": "adventure:terrain/the_abyssal_shrine/lakes",
+                        "right": 0.103884048,
+                        "type": "minecraft:add"
+                      },
+                      "right": 34.0136054,
+                      "type": "minecraft:mul"
+                    },
+                    "max": 1.0,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "first": {
+                    "left": {
+                      "left": {
+                        "noise": "adventure:terrain/altitude",
+                        "shift_x": "minecraft:shift_x",
+                        "shift_z": "minecraft:shift_z",
+                        "type": "minecraft:noise",
+                        "xz_scale": 1.0,
+                        "y_scale": 0.0
+                      },
+                      "right": 218.978102,
+                      "type": "minecraft:mul"
+                    },
+                    "right": 150.0,
+                    "type": "minecraft:add"
+                  },
+                  "second": 150.0,
+                  "type": "minecraft:lerp"
+                },
+                "right": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": {
+                                  "left": {
+                                    "left": {
+                                      "noise": "adventure:terrain/islands",
+                                      "shift_x": "minecraft:shift_x",
+                                      "shift_z": "minecraft:shift_z",
+                                      "type": "minecraft:noise",
+                                      "xz_scale": 1.0,
+                                      "y_scale": 0.0
+                                    },
+                                    "right": {
+                                      "left": {
+                                        "spline": {
+                                          "coordinate": {
+                                            "input": {
+                                              "left": {
+                                                "input": {
+                                                  "left": {
+                                                    "axis": "x",
+                                                    "from_coordinate": -1000000,
+                                                    "from_value": -1000000.0,
+                                                    "tiling": "clamp_to_edge",
+                                                    "to_coordinate": 1000000,
+                                                    "to_value": 1000000.0,
+                                                    "type": "minecraft:gradient"
+                                                  },
+                                                  "right": {
+                                                    "left": {
+                                                      "noise": "adventure:terrain/warp_x",
+                                                      "type": "minecraft:noise",
+                                                      "xz_scale": 0.5,
+                                                      "y_scale": 0.0
+                                                    },
+                                                    "right": 131.386861,
+                                                    "type": "minecraft:mul"
+                                                  },
+                                                  "type": "minecraft:add"
+                                                },
+                                                "type": "minecraft:square"
+                                              },
+                                              "right": {
+                                                "input": {
+                                                  "left": {
+                                                    "axis": "z",
+                                                    "from_coordinate": -1000000,
+                                                    "from_value": -1000000.0,
+                                                    "tiling": "clamp_to_edge",
+                                                    "to_coordinate": 1000000,
+                                                    "to_value": 1000000.0,
+                                                    "type": "minecraft:gradient"
+                                                  },
+                                                  "right": {
+                                                    "left": {
+                                                      "noise": "adventure:terrain/warp_z",
+                                                      "type": "minecraft:noise",
+                                                      "xz_scale": 0.5,
+                                                      "y_scale": 0.0
+                                                    },
+                                                    "right": 131.386861,
+                                                    "type": "minecraft:mul"
+                                                  },
+                                                  "type": "minecraft:add"
+                                                },
+                                                "type": "minecraft:square"
+                                              },
+                                              "type": "minecraft:add"
+                                            },
+                                            "type": "minecraft:sqrt"
+                                          },
+                                          "points": [
+                                            {
+                                              "derivative": 0.0,
+                                              "location": 290.0,
+                                              "value": -1.0
+                                            },
+                                            {
+                                              "derivative": 0.0,
+                                              "location": 410.0,
+                                              "value": 1.0
+                                            },
+                                            {
+                                              "derivative": 0.0,
+                                              "location": 530.0,
+                                              "value": -1.0
+                                            }
+                                          ]
+                                        },
+                                        "type": "minecraft:spline"
+                                      },
+                                      "right": 0.7911,
+                                      "type": "minecraft:mul"
+                                    },
+                                    "type": "minecraft:add"
+                                  },
+                                  "right": 0.0368187746,
+                                  "type": "minecraft:add"
+                                },
+                                "right": 3.41296928,
+                                "type": "minecraft:mul"
+                              },
+                              "max": 1.0,
+                              "min": 0.0,
+                              "type": "minecraft:clamp"
+                            },
+                            "right": {
+                              "input": {
+                                "left": {
+                                  "left": "adventure:terrain/the_abyssal_shrine/lakes",
+                                  "right": 0.0744840482,
+                                  "type": "minecraft:add"
+                                },
+                                "right": -34.0136054,
+                                "type": "minecraft:mul"
+                              },
+                              "max": 1.0,
+                              "min": 0.0,
+                              "type": "minecraft:clamp"
+                            },
+                            "type": "minecraft:mul"
+                          },
+                          "right": {
+                            "left": {
+                              "input": {
+                                "left": {
+                                  "left": {
+                                    "noise": "adventure:terrain/islands",
+                                    "shift_x": "minecraft:shift_x",
+                                    "shift_z": "minecraft:shift_z",
+                                    "type": "minecraft:noise",
+                                    "xz_scale": 1.5,
+                                    "y_scale": 0.0
+                                  },
+                                  "right": -0.60174843,
+                                  "type": "minecraft:add"
+                                },
+                                "right": 3.41296928,
+                                "type": "minecraft:mul"
+                              },
+                              "max": 1.0,
+                              "min": 0.0,
+                              "type": "minecraft:clamp"
+                            },
+                            "right": {
+                              "input": {
+                                "input": {
+                                  "left": {
+                                    "left": "adventure:terrain/the_abyssal_shrine/lakes",
+                                    "right": -0.0195959518,
+                                    "type": "minecraft:add"
+                                  },
+                                  "right": 28.3446712,
+                                  "type": "minecraft:mul"
+                                },
+                                "max": 1.0,
+                                "min": 0.0,
+                                "type": "minecraft:clamp"
+                              },
+                              "type": "minecraft:cache"
+                            },
+                            "type": "minecraft:mul"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:cache"
+                      },
+                      "type": "minecraft:sqrt"
+                    },
+                    "right": {
+                      "left": {
+                        "left": 1.0,
+                        "right": {
+                          "left": {
+                            "input": {
+                              "input": {
+                                "left": {
+                                  "left": "adventure:terrain/the_abyssal_shrine/lakes",
+                                  "right": -0.0195959518,
+                                  "type": "minecraft:add"
+                                },
+                                "right": 28.3446712,
+                                "type": "minecraft:mul"
+                              },
+                              "max": 1.0,
+                              "min": 0.0,
+                              "type": "minecraft:clamp"
+                            },
+                            "type": "minecraft:cache"
+                          },
+                          "right": 0.7,
+                          "type": "minecraft:mul"
+                        },
+                        "type": "minecraft:sub"
+                      },
+                      "right": 30.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:mul"
+                  },
+                  "right": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": {
+                                  "left": {
+                                    "input": {
+                                      "left": {
+                                        "left": {
+                                          "left": {
+                                            "noise": "adventure:terrain/islands",
+                                            "shift_x": "minecraft:shift_x",
+                                            "shift_z": "minecraft:shift_z",
+                                            "type": "minecraft:noise",
+                                            "xz_scale": 1.0,
+                                            "y_scale": 0.0
+                                          },
+                                          "right": {
+                                            "left": {
+                                              "spline": {
+                                                "coordinate": {
+                                                  "input": {
+                                                    "left": {
+                                                      "input": {
+                                                        "left": {
+                                                          "axis": "x",
+                                                          "from_coordinate": -1000000,
+                                                          "from_value": -1000000.0,
+                                                          "tiling": "clamp_to_edge",
+                                                          "to_coordinate": 1000000,
+                                                          "to_value": 1000000.0,
+                                                          "type": "minecraft:gradient"
+                                                        },
+                                                        "right": {
+                                                          "left": {
+                                                            "noise": "adventure:terrain/warp_x",
+                                                            "type": "minecraft:noise",
+                                                            "xz_scale": 0.5,
+                                                            "y_scale": 0.0
+                                                          },
+                                                          "right": 131.386861,
+                                                          "type": "minecraft:mul"
+                                                        },
+                                                        "type": "minecraft:add"
+                                                      },
+                                                      "type": "minecraft:square"
+                                                    },
+                                                    "right": {
+                                                      "input": {
+                                                        "left": {
+                                                          "axis": "z",
+                                                          "from_coordinate": -1000000,
+                                                          "from_value": -1000000.0,
+                                                          "tiling": "clamp_to_edge",
+                                                          "to_coordinate": 1000000,
+                                                          "to_value": 1000000.0,
+                                                          "type": "minecraft:gradient"
+                                                        },
+                                                        "right": {
+                                                          "left": {
+                                                            "noise": "adventure:terrain/warp_z",
+                                                            "type": "minecraft:noise",
+                                                            "xz_scale": 0.5,
+                                                            "y_scale": 0.0
+                                                          },
+                                                          "right": 131.386861,
+                                                          "type": "minecraft:mul"
+                                                        },
+                                                        "type": "minecraft:add"
+                                                      },
+                                                      "type": "minecraft:square"
+                                                    },
+                                                    "type": "minecraft:add"
+                                                  },
+                                                  "type": "minecraft:sqrt"
+                                                },
+                                                "points": [
+                                                  {
+                                                    "derivative": 0.0,
+                                                    "location": 290.0,
+                                                    "value": -1.0
+                                                  },
+                                                  {
+                                                    "derivative": 0.0,
+                                                    "location": 410.0,
+                                                    "value": 1.0
+                                                  },
+                                                  {
+                                                    "derivative": 0.0,
+                                                    "location": 530.0,
+                                                    "value": -1.0
+                                                  }
+                                                ]
+                                              },
+                                              "type": "minecraft:spline"
+                                            },
+                                            "right": 0.7911,
+                                            "type": "minecraft:mul"
+                                          },
+                                          "type": "minecraft:add"
+                                        },
+                                        "right": 0.0368187746,
+                                        "type": "minecraft:add"
+                                      },
+                                      "right": 3.41296928,
+                                      "type": "minecraft:mul"
+                                    },
+                                    "max": 1.0,
+                                    "min": 0.0,
+                                    "type": "minecraft:clamp"
+                                  },
+                                  "right": {
+                                    "input": {
+                                      "left": {
+                                        "left": "adventure:terrain/the_abyssal_shrine/lakes",
+                                        "right": 0.0744840482,
+                                        "type": "minecraft:add"
+                                      },
+                                      "right": -34.0136054,
+                                      "type": "minecraft:mul"
+                                    },
+                                    "max": 1.0,
+                                    "min": 0.0,
+                                    "type": "minecraft:clamp"
+                                  },
+                                  "type": "minecraft:mul"
+                                },
+                                "right": {
+                                  "left": {
+                                    "input": {
+                                      "left": {
+                                        "left": {
+                                          "noise": "adventure:terrain/islands",
+                                          "shift_x": "minecraft:shift_x",
+                                          "shift_z": "minecraft:shift_z",
+                                          "type": "minecraft:noise",
+                                          "xz_scale": 1.5,
+                                          "y_scale": 0.0
+                                        },
+                                        "right": -0.60174843,
+                                        "type": "minecraft:add"
+                                      },
+                                      "right": 3.41296928,
+                                      "type": "minecraft:mul"
+                                    },
+                                    "max": 1.0,
+                                    "min": 0.0,
+                                    "type": "minecraft:clamp"
+                                  },
+                                  "right": {
+                                    "input": {
+                                      "input": {
+                                        "left": {
+                                          "left": "adventure:terrain/the_abyssal_shrine/lakes",
+                                          "right": -0.0195959518,
+                                          "type": "minecraft:add"
+                                        },
+                                        "right": 28.3446712,
+                                        "type": "minecraft:mul"
+                                      },
+                                      "max": 1.0,
+                                      "min": 0.0,
+                                      "type": "minecraft:clamp"
+                                    },
+                                    "type": "minecraft:cache"
+                                  },
+                                  "type": "minecraft:mul"
+                                },
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:cache"
+                            },
+                            "right": -0.02,
+                            "type": "minecraft:add"
+                          },
+                          "right": 12.5,
+                          "type": "minecraft:mul"
+                        },
+                        "max": 1.0,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": {
+                        "input": {
+                          "left": {
+                            "left": "adventure:terrain/the_abyssal_shrine/lakes",
+                            "right": 0.103884048,
+                            "type": "minecraft:add"
+                          },
+                          "right": 34.0136054,
+                          "type": "minecraft:mul"
+                        },
+                        "max": 1.0,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "type": "minecraft:mul"
+                    },
+                    "right": 40.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:add"
+                },
+                "type": "minecraft:add"
+              },
+              "right": -2.0,
+              "type": "minecraft:add"
+            },
+            "right": {
+              "axis": "y",
+              "from_coordinate": 0,
+              "from_value": 0.0,
+              "to_coordinate": 256,
+              "to_value": -256.0,
+              "type": "minecraft:gradient"
+            },
+            "type": "minecraft:add"
+          },
+          "right": {
+            "left": 0.0,
+            "right": {
+              "left": {
+                "left": {
+                  "left": {
+                    "alpha": {
+                      "input": {
+                        "left": {
+                          "left": "adventure:terrain/the_abyssal_shrine/lakes",
+                          "right": 0.103884048,
+                          "type": "minecraft:add"
+                        },
+                        "right": 34.0136054,
+                        "type": "minecraft:mul"
+                      },
+                      "max": 1.0,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "first": {
+                      "left": {
+                        "left": {
+                          "noise": "adventure:terrain/altitude",
+                          "shift_x": "minecraft:shift_x",
+                          "shift_z": "minecraft:shift_z",
+                          "type": "minecraft:noise",
+                          "xz_scale": 1.0,
+                          "y_scale": 0.0
+                        },
+                        "right": 218.978102,
+                        "type": "minecraft:mul"
+                      },
+                      "right": 150.0,
+                      "type": "minecraft:add"
+                    },
+                    "second": 150.0,
+                    "type": "minecraft:lerp"
+                  },
+                  "right": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": {
+                                "left": {
+                                  "left": {
+                                    "noise": "adventure:terrain/islands",
+                                    "shift_x": "minecraft:shift_x",
+                                    "shift_z": "minecraft:shift_z",
+                                    "type": "minecraft:noise",
+                                    "xz_scale": 1.0,
+                                    "y_scale": 0.0
+                                  },
+                                  "right": {
+                                    "left": {
+                                      "spline": {
+                                        "coordinate": {
+                                          "input": {
+                                            "left": {
+                                              "input": {
+                                                "left": {
+                                                  "axis": "x",
+                                                  "from_coordinate": -1000000,
+                                                  "from_value": -1000000.0,
+                                                  "tiling": "clamp_to_edge",
+                                                  "to_coordinate": 1000000,
+                                                  "to_value": 1000000.0,
+                                                  "type": "minecraft:gradient"
+                                                },
+                                                "right": {
+                                                  "left": {
+                                                    "noise": "adventure:terrain/warp_x",
+                                                    "type": "minecraft:noise",
+                                                    "xz_scale": 0.5,
+                                                    "y_scale": 0.0
+                                                  },
+                                                  "right": 131.386861,
+                                                  "type": "minecraft:mul"
+                                                },
+                                                "type": "minecraft:add"
+                                              },
+                                              "type": "minecraft:square"
+                                            },
+                                            "right": {
+                                              "input": {
+                                                "left": {
+                                                  "axis": "z",
+                                                  "from_coordinate": -1000000,
+                                                  "from_value": -1000000.0,
+                                                  "tiling": "clamp_to_edge",
+                                                  "to_coordinate": 1000000,
+                                                  "to_value": 1000000.0,
+                                                  "type": "minecraft:gradient"
+                                                },
+                                                "right": {
+                                                  "left": {
+                                                    "noise": "adventure:terrain/warp_z",
+                                                    "type": "minecraft:noise",
+                                                    "xz_scale": 0.5,
+                                                    "y_scale": 0.0
+                                                  },
+                                                  "right": 131.386861,
+                                                  "type": "minecraft:mul"
+                                                },
+                                                "type": "minecraft:add"
+                                              },
+                                              "type": "minecraft:square"
+                                            },
+                                            "type": "minecraft:add"
+                                          },
+                                          "type": "minecraft:sqrt"
+                                        },
+                                        "points": [
+                                          {
+                                            "derivative": 0.0,
+                                            "location": 290.0,
+                                            "value": -1.0
+                                          },
+                                          {
+                                            "derivative": 0.0,
+                                            "location": 410.0,
+                                            "value": 1.0
+                                          },
+                                          {
+                                            "derivative": 0.0,
+                                            "location": 530.0,
+                                            "value": -1.0
+                                          }
+                                        ]
+                                      },
+                                      "type": "minecraft:spline"
+                                    },
+                                    "right": 0.7911,
+                                    "type": "minecraft:mul"
+                                  },
+                                  "type": "minecraft:add"
+                                },
+                                "right": 0.0368187746,
+                                "type": "minecraft:add"
+                              },
+                              "right": 3.41296928,
+                              "type": "minecraft:mul"
+                            },
+                            "max": 1.0,
+                            "min": 0.0,
+                            "type": "minecraft:clamp"
+                          },
+                          "right": {
+                            "input": {
+                              "left": {
+                                "left": "adventure:terrain/the_abyssal_shrine/lakes",
+                                "right": 0.0744840482,
+                                "type": "minecraft:add"
+                              },
+                              "right": -34.0136054,
+                              "type": "minecraft:mul"
+                            },
+                            "max": 1.0,
+                            "min": 0.0,
+                            "type": "minecraft:clamp"
+                          },
+                          "type": "minecraft:mul"
+                        },
+                        "right": {
+                          "left": {
+                            "input": {
+                              "left": {
+                                "left": {
+                                  "noise": "adventure:terrain/islands",
+                                  "shift_x": "minecraft:shift_x",
+                                  "shift_z": "minecraft:shift_z",
+                                  "type": "minecraft:noise",
+                                  "xz_scale": 1.5,
+                                  "y_scale": 0.0
+                                },
+                                "right": -0.60174843,
+                                "type": "minecraft:add"
+                              },
+                              "right": 3.41296928,
+                              "type": "minecraft:mul"
+                            },
+                            "max": 1.0,
+                            "min": 0.0,
+                            "type": "minecraft:clamp"
+                          },
+                          "right": {
+                            "input": {
+                              "input": {
+                                "left": {
+                                  "left": "adventure:terrain/the_abyssal_shrine/lakes",
+                                  "right": -0.0195959518,
+                                  "type": "minecraft:add"
+                                },
+                                "right": 28.3446712,
+                                "type": "minecraft:mul"
+                              },
+                              "max": 1.0,
+                              "min": 0.0,
+                              "type": "minecraft:clamp"
+                            },
+                            "type": "minecraft:cache"
+                          },
+                          "type": "minecraft:mul"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "type": "minecraft:cache"
+                    },
+                    "right": 80.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:sub"
+                },
+                "right": 2.0,
+                "type": "minecraft:add"
+              },
+              "right": {
+                "axis": "y",
+                "from_coordinate": 0,
+                "from_value": 0.0,
+                "to_coordinate": 256,
+                "to_value": -256.0,
+                "type": "minecraft:gradient"
+              },
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:sub"
+          },
+          "type": "minecraft:min"
+        },
+        "right": {
+          "left": {
+            "left": "adventure:terrain/the_abyssal_shrine/basin_floor",
+            "right": {
+              "axis": "y",
+              "from_coordinate": 0,
+              "from_value": 0.0,
+              "to_coordinate": 256,
+              "to_value": -256.0,
+              "type": "minecraft:gradient"
+            },
+            "type": "minecraft:add"
+          },
+          "right": {
+            "left": 0.0,
+            "right": {
+              "left": {
+                "left": {
+                  "spline": {
+                    "coordinate": "adventure:terrain/the_abyssal_shrine/lakes",
+                    "points": [
+                      {
+                        "derivative": 0.0,
+                        "location": -0.07448405,
+                        "value": 148.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": -0.015684048,
+                        "value": 122.0
+                      },
+                      {
+                        "derivative": 0.0,
+                        "location": 0.16071595,
+                        "value": 82.0
+                      }
+                    ]
+                  },
+                  "type": "minecraft:spline"
+                },
+                "right": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "spline": {
+                            "coordinate": {
+                              "left": {
+                                "input": {
+                                  "left": {
+                                    "input": {
+                                      "left": {
+                                        "axis": "x",
+                                        "from_coordinate": -1000000,
+                                        "from_value": -1000000.0,
+                                        "tiling": "clamp_to_edge",
+                                        "to_coordinate": 1000000,
+                                        "to_value": 1000000.0,
+                                        "type": "minecraft:gradient"
+                                      },
+                                      "right": {
+                                        "left": {
+                                          "noise": "adventure:terrain/warp_x",
+                                          "type": "minecraft:noise",
+                                          "xz_scale": 0.5,
+                                          "y_scale": 0.0
+                                        },
+                                        "right": 131.386861,
+                                        "type": "minecraft:mul"
+                                      },
+                                      "type": "minecraft:add"
+                                    },
+                                    "type": "minecraft:square"
+                                  },
+                                  "right": {
+                                    "input": {
+                                      "left": {
+                                        "axis": "z",
+                                        "from_coordinate": -1000000,
+                                        "from_value": -1000000.0,
+                                        "tiling": "clamp_to_edge",
+                                        "to_coordinate": 1000000,
+                                        "to_value": 1000000.0,
+                                        "type": "minecraft:gradient"
+                                      },
+                                      "right": {
+                                        "left": {
+                                          "noise": "adventure:terrain/warp_z",
+                                          "type": "minecraft:noise",
+                                          "xz_scale": 0.5,
+                                          "y_scale": 0.0
+                                        },
+                                        "right": 131.386861,
+                                        "type": "minecraft:mul"
+                                      },
+                                      "type": "minecraft:add"
+                                    },
+                                    "type": "minecraft:square"
+                                  },
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:sqrt"
+                              },
+                              "right": {
+                                "left": {
+                                  "noise": "adventure:terrain/lakes",
+                                  "shift_x": "minecraft:shift_x",
+                                  "shift_z": "minecraft:shift_z",
+                                  "type": "minecraft:noise",
+                                  "xz_scale": 0.5,
+                                  "y_scale": 0.0
+                                },
+                                "right": 136.054422,
+                                "type": "minecraft:mul"
+                              },
+                              "type": "minecraft:sub"
+                            },
+                            "points": [
+                              {
+                                "derivative": 0.0,
+                                "location": 286.0,
+                                "value": 0.16071595
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": 326.0,
+                                "value": 0.01959595
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": 340.0,
+                                "value": -0.015684048
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": 350.0,
+                                "value": -0.05096405
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": 390.0,
+                                "value": -0.05096405
+                              },
+                              {
+                                "derivative": 0.0,
+                                "location": 391.0,
+                                "value": -0.13328405
+                              }
+                            ]
+                          },
+                          "type": "minecraft:spline"
+                        },
+                        "right": -0.0195959518,
+                        "type": "minecraft:add"
+                      },
+                      "right": 7.0861678,
+                      "type": "minecraft:mul"
+                    },
+                    "max": 1.0,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:sub"
+              },
+              "right": {
+                "axis": "y",
+                "from_coordinate": 0,
+                "from_value": 0.0,
+                "to_coordinate": 256,
+                "to_value": -256.0,
+                "type": "minecraft:gradient"
+              },
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:sub"
+          },
+          "type": "minecraft:min"
+        },
+        "type": "minecraft:max"
+      },
+      "right": 0.125,
+      "type": "minecraft:mul"
+    },
+    "type": "minecraft:max"
+  },
+  "type": "minecraft:cache"
+}

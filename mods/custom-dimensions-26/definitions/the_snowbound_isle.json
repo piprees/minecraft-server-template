@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 2,
+  "description": "A snowbound island adrift in the sky. Fir forests and drifts on floating ground — animal country where the cold keeps everything honest. The towers and vaults here grew naturally, like the trees.",
+  "seed": -3334909585477669424,
+  "spawn": [0, 126, 51],
+  "generator": {
+    "type": "clone",
+    "of": "adventure:the_aviary"
+  },
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "size": 4,
+      "coverage": 0.6,
+      "altitude": 120
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 51],
+      "radius": 260,
+      "falloff": 320,
+      "strength": 1
+    }
+  },
+  "biomes": [
+    "minecraft:snowy_taiga",
+    "minecraft:snowy_plains",
+    "minecraft:snowy_slopes",
+    "adventure:windswept_isles",
+    "adventure:dying_forest",
+    "minecraft:cherry_grove"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:snowy_taiga": 35,
+      "minecraft:snowy_plains": 20,
+      "minecraft:snowy_slopes": 15,
+      "adventure:windswept_isles": 10,
+      "adventure:dying_forest": 10,
+      "minecraft:cherry_grove": 3
+    },
+    "over": "land"
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "mss:large_tower": "pedestal"
+    },
+    "noise": {
+      "dungeons": "sparse"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:snow_block",
+      "igniterItem": "minecraft:gold_ingot",
+      "color": "C8E0F0",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "scenic",
+    "spawnFilter": [
+      "minecraft:snowy_plains"
+    ],
+    "water": "high",
+    "wants": {
+      "mvs:statue_ruins": "near_spawn",
+      "mss:large_tower": "spread",
+      "nova_structures:surface_dungeon_snowy": "spread",
+      "mss:small_tower": "near_border",
+      "igloo": "near_spawn",
+      "epic:small_ice_dungeon": "near_border",
+      "mvs:small_spruce_lantern": "near_spawn"
+    },
+    "shuns": [],
+    "terrain": "islands"
+  }
+}

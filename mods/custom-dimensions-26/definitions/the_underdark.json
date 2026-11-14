@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 2,
+  "description": "The deep dark as an endless cavern world. Ancient cities built by the endermen, abandoned during their migration, colonised by the sculk. The humans found them and the sculk woke. Mushroom light and sculk glow in equal measure, and crimson and warped fungus where the nether has pushed up through the floor.",
+  "seed": 2070195577671787983,
+  "spawn": [-128, -41, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "caves"
+  },
+  "biomes": [
+    "minecraft:deep_dark",
+    "minecraft:warped_forest",
+    "adventure:withered_forest",
+    "minecraft:dripstone_caves",
+    "minecraft:crimson_forest",
+    "minecraft:lush_caves"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:deep_dark": 38.7,
+      "minecraft:warped_forest": 14.9,
+      "adventure:withered_forest": 30.5,
+      "minecraft:dripstone_caves": 7,
+      "minecraft:crimson_forest": 3.5,
+      "minecraft:lush_caves": 5.3
+    }
+  },
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [900, -1500],
+      "radius": 220,
+      "blend": 48,
+      "biomes": [
+        "minecraft:deep_dark"
+      ]
+    }
+  ],
+  "dimensionType": {
+    "hasSkylight": false,
+    "hasCeiling": true
+  },
+  "atmosphere": {
+    "fogColor": "#1B2B1B",
+    "ambientLight": 0.06
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.8,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 64,
+      "endY": -64,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 2.0
+    }
+  },
+  "structures": {
+    "density": "dense",
+    "radial": {
+      "dungeons": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    },
+    "force": [
+      {
+        "structure": "minecraft:ancient_city",
+        "x": 900,
+        "z": -1500,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:brown_mushroom_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "2B6B4B",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "particleType": "minecraft:spore_blossom_air",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:sculk",
+          "minecraft:moss_block",
+          "minecraft:dripstone_block"
+        ]
+      }
+    }
+  ],
+  "roll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:deep_dark",
+      "minecraft:lush_caves",
+      "minecraft:dripstone_caves"
+    ],
+    "wants": {
+      "ancient_city": "spread",
+      "ati_structures:warden_monument": "near_spawn",
+      "trial_chambers": "spread",
+      "nova_structures:deepslate_camp": "near_spawn",
+      "mineshaft": "near_spawn",
+      "ati_structures:silverfish_nest": "spread",
+      "nova_structures:catacomb": "spread",
+      "epic:small_ice_dungeon": "spread",
+      "nova_structures:small_creeping_crypt": "spread"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "nova_structures:remnant_ruin_farmer"
+    ]
+  }
+}

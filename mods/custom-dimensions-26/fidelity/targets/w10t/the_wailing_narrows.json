@@ -1,0 +1,59 @@
+{
+ "slug": "the_wailing_narrows",
+ "targets": [
+  {
+   "key": "terrain.surfaceHeight.p75",
+   "op": ">=",
+   "value": 70,
+   "from": "\"Narrow bridged chasms\": walls everywhere. Restated from terrain.slopes.over45Percent >= 55: the slope share counts only the wall columns of a country of flat mesa tops and chasm floors (the vanilla Nether reaches 52.8 with a jagged floor); the walls are the drop between the mesa tops, a quarter of the floor at 70 or higher, and the chasm floors below"
+  },
+  {
+   "key": "terrain.surfaceHeight.p25",
+   "op": "<=",
+   "value": 30,
+   "from": "\"chasms\", \"deeper and deeper\": low cut ground. Restated from landforms basins + water >= 35: the landform classifier marks basins by their height against a 256-block window, so the floor of a cut wider than about 128 blocks reads as plains; a quarter of the floor or more lies 50 blocks under the mesa tops (the survey reports quartiles, so the 35% share itself is not measured)"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 15,
+   "from": "\"quartz spans over the wail\": chasms, not lava lakes"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:soul_sand_valley + surface.biomesPercent.minecraft:basalt_deltas + surface.biomesPercent.adventure:quartz_flats",
+   "op": ">=",
+   "value": 95,
+   "from": "1.21.1 biomes soul_sand_valley, basalt_deltas, quartz_flats"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:quartz_flats",
+   "op": ">=",
+   "value": 10,
+   "from": "\"quartz spans\""
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.1,
+   "from": "1.21.1 ambientLight 0.06"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 85,
+   "from": "1.21.1 type nether: a roof over the world"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one chasm country): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

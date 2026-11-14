@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 2,
+  "description": "The breadbasket. Rolling prairie and sunflowers where villagers and humans built the first joint settlements. Taverns close to spawn, honest mineshafts — a place to live, not to fight.",
+  "seed": 5150668443288750586,
+  "spawn": [128, 61, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "continents",
+    "setting": "gentle",
+    "params": {
+      "coast": -0.6,
+      "relief": 5,
+      "roughness": 0,
+      "crust": 24
+    },
+    "scale": 2.5
+  },
+  "biomes": [
+    {
+      "id": "adventure:highland_fells",
+      "climate": {
+        "weirdness": [-2.0, -0.4636],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "climate": {
+        "weirdness": [-0.4636, -0.3487],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "climate": {
+        "weirdness": [-0.3487, -0.2563],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:prairie",
+      "climate": {
+        "weirdness": [-0.2563, 0.2046],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:sunflower_plains",
+      "climate": {
+        "weirdness": [0.2046, 0.2717],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:barley_fields",
+      "climate": {
+        "weirdness": [0.2717, 0.4864],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:carnation_fields",
+      "climate": {
+        "weirdness": [0.4864, 0.5904],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "adventure:pumpkin_fields",
+      "climate": {
+        "weirdness": [0.5904, 2.0],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, 0.0145],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "weirdness": [0.0145, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    }
+  ],
+  "liquids": {
+    "seaLevel": 34
+  },
+  "carvers": {
+    "canyon": false
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.2
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:grass_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "5DAF45",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "orientation": "horizontal"
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "minecraft:plains",
+      "minecraft:sunflower_plains"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "tavern": "near_spawn",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
+      "nova_structures:firewatch_tower_forest": "spread",
+      "mineshaft": "spread",
+      "mvs:small_oak_lantern": "near_spawn",
+      "mvs:campsite": "near_spawn",
+      "ati_structures:lighthouse": "near_border"
+    },
+    "shuns": [
+      "ancient_city",
+      "mss:arena",
+      "mansion"
+    ]
+  }
+}

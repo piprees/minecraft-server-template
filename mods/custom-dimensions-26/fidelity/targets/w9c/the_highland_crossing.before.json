@@ -1,0 +1,82 @@
+{
+ "slug": "the_highland_crossing",
+ "pass": 3,
+ "fail": 5,
+ "results": [
+  {
+   "key": "terrain.surfaceHeight.p95",
+   "op": ">=",
+   "value": 200,
+   "measured": 127.0,
+   "pass": false,
+   "note": "",
+   "from": "owner: \"mountains need to be above cloud level\""
+  },
+  {
+   "key": "terrain.surfaceHeight.max",
+   "op": ">=",
+   "value": 230,
+   "measured": 241.0,
+   "pass": true,
+   "note": "",
+   "from": "\"extremely ... tall mountains\""
+  },
+  {
+   "key": "terrain.aboveCloudsPercent",
+   "op": "between",
+   "value": [
+    3,
+    25
+   ],
+   "measured": 2.2,
+   "pass": false,
+   "note": "",
+   "from": "\"above cloud level\" yet \"extremely thin\""
+  },
+  {
+   "key": "terrain.surfaceHeight.p25",
+   "op": "<=",
+   "value": 40,
+   "measured": 59.0,
+   "pass": false,
+   "note": "",
+   "from": "\"the floor of the world should be extremely low down\""
+  },
+  {
+   "key": "terrain.slopes.flatUnder15Percent",
+   "op": ">=",
+   "value": 40,
+   "measured": 51.4,
+   "pass": true,
+   "note": "",
+   "from": "\"deep flat zones in-between\""
+  },
+  {
+   "key": "terrain.slopes.over45Percent",
+   "op": ">=",
+   "value": 15,
+   "measured": 12.0,
+   "pass": false,
+   "note": "",
+   "from": "\"a thin web of dangerous mountain paths\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 15,
+   "measured": 29.0,
+   "pass": false,
+   "note": "",
+   "from": "1.21.1: \"the human-villager trade route\" over land"
+  },
+  {
+   "key": "terrain.surfaceHeight.p50",
+   "op": "<=",
+   "value": 90,
+   "measured": 78.0,
+   "pass": true,
+   "note": "",
+   "from": "\"thin\" mountains: most of the world is floor"
+  }
+ ]
+}

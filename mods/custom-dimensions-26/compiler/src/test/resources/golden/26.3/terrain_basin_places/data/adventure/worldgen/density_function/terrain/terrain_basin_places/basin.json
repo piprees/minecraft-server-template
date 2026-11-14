@@ -1,0 +1,12 @@
+{
+  "input": {
+    "left": {
+      "left": "adventure:terrain/terrain_basin_places/lakes",
+      "right": -0.115644048,
+      "type": "minecraft:add"
+    },
+    "right": 18.8964475,
+    "type": "minecraft:mul"
+  },
+  "type": "minecraft:cache"
+}

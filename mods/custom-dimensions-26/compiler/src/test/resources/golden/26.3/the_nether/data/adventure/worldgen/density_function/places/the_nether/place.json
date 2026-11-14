@@ -1,0 +1,24 @@
+{
+  "left": {
+    "left": {
+      "left": "adventure:places/the_nether/least",
+      "right": {
+        "left": {
+          "input": {
+            "left": "adventure:places/the_nether/least",
+            "right": 0.0625,
+            "type": "minecraft:mul"
+          },
+          "type": "minecraft:floor"
+        },
+        "right": 16.0,
+        "type": "minecraft:mul"
+      },
+      "type": "minecraft:sub"
+    },
+    "right": 0.333333333,
+    "type": "minecraft:mul"
+  },
+  "right": -0.833333333,
+  "type": "minecraft:add"
+}

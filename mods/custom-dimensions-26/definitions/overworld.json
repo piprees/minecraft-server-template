@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 2,
+  "description": "The world where it all begins. Villagers settled the plains and humans arrived through the stone gate. Safe at spawn, but the ancient cities near the border predate everyone — and something stirs in them.",
+  "seed": 4705305050088502262,
+  "spawn": [-64, 179, 640],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "scales": {
+      "continents": 1.3,
+      "erosion": 2.08,
+      "ridges": 1.39,
+      "climate": 4
+    },
+    "landShare": 0.65,
+    "climateShift": {
+      "temperature": 0.3
+    }
+  },
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "structures": {
+    "wants": {
+      "minecraft:mansion": {
+        "min": 5632,
+        "max": 7500
+      }
+    }
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 64,
+      "endY": -64,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 1.5
+    },
+    "playerLuck": 1.0
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:mossy_stone_bricks",
+      "igniterItem": "minecraft:torch",
+      "color": "87CEEB",
+      "lightLevel": 15,
+      "scale": 1.0,
+      "cooldown": 40,
+      "particleType": "minecraft:cloud",
+      "sounds": {
+        "ignite": "entity.parrot.ambient",
+        "enter": "entity.breeze.idle_air",
+        "exit": "entity.parrot.ambient"
+      },
+      "aura": {
+        "subsume": "none"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "minecraft:plains",
+      "minecraft:meadow",
+      "minecraft:forest",
+      "minecraft:sunflower_plains",
+      "minecraft:cherry_grove",
+      "adventure:alpine_meadow",
+      "adventure:prairie"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "tavern": "near_spawn",
+      "mvs:campsite": "near_spawn",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
+      "ruined_portal": "near_spawn",
+      "nova_structures:firewatch_tower_forest": "spread",
+      "mineshaft": "spread",
+      "pillager_outpost": "spread",
+      "trial_chambers": "spread",
+      "monument": "spread",
+      "ancient_city": "near_border",
+      "mansion": "near_border",
+      "mss:arena": "near_border"
+    },
+    "shuns": [
+      "ddd:wizard_tower",
+      "mns:nether_tower"
+    ]
+  }
+}

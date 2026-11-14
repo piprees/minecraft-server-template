@@ -28,9 +28,9 @@ curl -s "https://api.modrinth.com/v2/project/{project_id}" \
 
 Run this once per `project_id` printed in step 1. Cross-check every `required` result against `config/modrinth-mods.txt` (platform) or the merged view (`config/modrinth-mods.txt` + `overlay/mods-extra.txt`, consumer) — anything missing needs adding alongside the new mod, in the same PR/commit.
 
-**3. Never mark these optional**, no matter what step 1 reports for them: `fabric-api`, `yungs-api`, `moonlight`, `lithostitched`, `fabric-language-kotlin`. They're transitively required by dozens of shipped mods even when a specific dependency scan doesn't flag them for the mod you're adding.
+**3. Never mark a library optional**, whatever step 1 reports for it. The list and the reason: [DEPENDENCIES.md § Libraries](../../../../DEPENDENCIES.md#libraries).
 
-**4. Verify the resolved version's actual target**, don't trust the `game_versions` tag on the project page. Modrinth metadata has been wrong before — `extra_enchantments` claimed 1.21.1 support but every version actually shipped 1.21.1's incompatible sibling (1.21.2 registry keys), and it's commented out of `config/modrinth-mods.txt` for exactly that reason. If a mod behaves oddly after adding, re-fetch its version detail directly:
+**4. Verify the resolved version's actual target**, don't trust the `game_versions` tag on the project page. Modrinth metadata can be wrong: a mod can claim 1.21.1 and ship 1.21.2 registry keys. If a mod behaves oddly after adding, re-fetch its version detail directly:
 
 ```bash
 curl -s "https://api.modrinth.com/v2/project/{slug}/version/{versionId}" \
@@ -72,7 +72,3 @@ Source: `scripts/check-modrinth-compat.sh`.
 ```
 
 Read-only — makes no changes to any mod list. For every line in `config/modrinth-mods.txt` it checks, in order: does the project exist at all (404 → not found) → is there an exact match for the target version+loader (✓) → is there any build for that loader on a different MC version (~ nearby, lists the versions) → is there any build at all under a different loader (✗, lists the loaders that do exist). `datapack:` entries are listed but skipped (not checked via the mod-version API). Summarises pass/nearby/not-found/no-compatible-version counts at the end.
-
-## Never-optional libraries: current status in the shipped list
-
-All confirmed present in `config/modrinth-mods.txt` as of this writing: `fabric-api:aUrTRV7H`, `fabric-language-kotlin:bdhiINYC`, `moonlight:OtIOgMN8`, `lithostitched:JWtSqSeY`, `yungs-api:9aZPNrZC`. `balm` is **not** currently pinned (commented out — its only two dependents, `waystones` and `netherportalfix`, were both removed). Don't be surprised it's absent; re-add it only if a future mod genuinely needs it.

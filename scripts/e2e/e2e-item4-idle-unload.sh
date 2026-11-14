@@ -1,98 +1,69 @@
 #!/usr/bin/env bash
-# RETEST item 4 — idle unload.
+# e2e-item4-idle-unload.sh - Idle unload, both halves, on the rig's destination.
 #
-# Purpose: prove the_crucible unloads after the last use, and does NOT unload
-#          while the player is still near its portal.
-# Context: run item 5 FIRST. A world absent from a cold start proves nothing —
-#          the instrument has to be seen reading it present.
-# Usage:   ./e2e-item4-idle-unload.sh [wait-seconds]   (default 330)
-#          The only one of these that needs no client: residency is a server
-#          fact, so there is nothing here for a screenshot to prove.
-# Gotchas: both halves are needed. An earlier build held the dimension open
-#          forever, and only a walk-away caught it; a build that unloads too
-#          eagerly is caught only by the stay-near half.
-#          Residency is read from e2e-state's `dimensions`, which lists every
-#          loaded world by id — not from a sentence about how many there are.
+# Purpose: prove <ns>:e2e_two stays open while a player is in it for longer
+#          than settings.json's idleUnloadMinutes, and unloads after the last
+#          player leaves (LevelManager's `unloading <slug>: no players for N
+#          min` line, then `customdim list` reading it lazy again).
+# Context: template-only (not in MANIFEST); 26.x. Needs no client: the player
+#          is a Carpet bot, and residency is a server fact. Run
+#          build-e2e-portal.sh first (it opens the pair and enables Carpet's
+#          fake players). On 26.x only a player IN the level keeps it open; the
+#          arrival tickets that hold a destination while a companion watches its
+#          portal are e2e-rig-companion.sh's subject, not this one.
+# Usage:   e2e-item4-idle-unload.sh [stay-seconds]   (default 330, over the 5 min idle)
+#          RIG_NS (default adventure), OUT (default /tmp/c0-e2e/item4-<time>)
+# Gotchas: both halves are needed: a build that never unloads passes the first,
+#          one that unloads too eagerly passes the second. Each wait is bounded;
+#          the log is read only from this run's start. Exit 1 on any FAIL.
+set -uo pipefail
 
-# shellcheck disable=SC2034  # lib.sh reads it to name the run dir
-SCRIPT_NAME="item4"
-# shellcheck source=lib.sh
-. "$(cd "$(dirname "$0")" && pwd)/lib.sh"
+NS="${RIG_NS:-adventure}"
+STAY="${1:-330}"
+OUT="${OUT:-/tmp/c0-e2e/item4-$(date +%Y%m%d-%H%M%S)}"
+mkdir -p "$OUT"
+: > "$OUT/assertions.tsv"
+SINCE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+FAILED=0
 
-WAIT_SECS="${1:-330}"
-DESTINATION="adventure:the_crucible"
-RESIDENT_FILTER="[.dimensions[] | select(.id==\"$DESTINATION\")] | length"
-NEAR_X=229.0; NEAR_Y=130; NEAR_Z=310      # on the lane floor, ~13 blocks from the frame
-FAR_X=-64;    FAR_Y=179;  FAR_Z=640       # world spawn, ~450 blocks away
-
-banner "RETEST item 4 — idle unload (wait ${WAIT_SECS}s per half)"
-
-say "Gates"
-require_backup_idle
-require_mc_healthy
-require_player_online
-
-say "Negative control FIRST — the instrument must read 1 before a 0 means anything"
-state_refresh
-RESIDENT="$(state_read "$RESIDENT_FILTER")"
-if [ "$RESIDENT" != "1" ]; then
-  printf '\033[31mPRECONDITION NOT MET\033[0m — %s is not resident.\n' "$DESTINATION" >&2
-  printf 'e2e-state lists these loaded worlds: %s\n' "$(state_read '.dimensions[] | .id')" >&2
-  printf 'Run item 5 first and cross into the crucible. A 0 here measures nothing.\n' >&2
-  exit 1
-fi
-_record ok "the crucible is resident before the test starts" "1 loaded world with that id" "$RESIDENT"
-report_metric "managed worlds loaded at the start" "$(state_read '[.dimensions[] | select(.managed)] | length')" \
-  "every world this mod owns that the server currently holds open"
-
-wait_with_progress() { # seconds label
-  local left="$1" chunk=30
-  while [ "$left" -gt 0 ]; do
-    [ "$left" -lt "$chunk" ] && chunk="$left"
-    sleep "$chunk"
-    left=$((left - chunk))
-    printf '      %s: %ds remaining\n' "$2" "$left"
-  done
+rc() { timeout 20 docker exec -i mc rcon-cli "$1" 2>&1 | tr -d '\r'; }
+check() { # label ok|fail detail
+  printf '%s\t%s\t%s\n' "$2" "$1" "$3" >> "$OUT/assertions.tsv"
+  printf '  %-4s %s (%s)\n' "$(echo "$2" | tr '[:lower:]' '[:upper:]')" "$1" "$3"
+  [[ "$2" == ok ]] || FAILED=1
 }
+state() { rc "customdim list" | grep -oE "e2e_two: [a-z]+" | head -1 | sed 's/.*: //'; }
+unload_line() { docker logs mc --since "$SINCE" 2>&1 | grep -E "unloading e2e_two: no players" | tail -1; }
 
-say "Half one — stay NEAR the portal; it must NOT unload"
-rcon "execute in minecraft:overworld run tp $PLAYER $NEAR_X $NEAR_Y $NEAR_Z 0 0" >/dev/null
-note "player parked $NEAR_X $NEAR_Y $NEAR_Z, about 13 blocks from the frame"
-wait_with_progress "$WAIT_SECS" "near-portal hold"
-state_refresh
-assert_state "NEGATIVE: the crucible stays resident while the player is near" "$RESIDENT_FILTER" 1
+echo "== open e2e_two with the bot inside it"
+rc "carpet commandPlayer true" > /dev/null
+rc "player IdleBot spawn at 0 200 0 facing 0 0 in minecraft:overworld" > /dev/null
+sleep 4
+rc "customdim activate e2e_two" > /dev/null
+for _ in $(seq 1 24); do [[ "$(state)" == active ]] && break; sleep 5; done
+rc "execute in $NS:e2e_two run tp IdleBot 4.5 -60 8.5" | head -c 100; echo
+[[ "$(state)" == active ]] && check "e2e_two is open" ok "customdim list: active" ||
+  check "e2e_two is open" fail "customdim list: $(state)"
 
-say "Half two — walk away; it must unload"
-rcon "execute in minecraft:overworld run tp $PLAYER $FAR_X $FAR_Y $FAR_Z 0 0" >/dev/null
-note "player moved to world spawn, ~450 blocks from every portal"
-wait_with_progress "$WAIT_SECS" "walk-away hold"
-# A single reading at a fixed time measures the clock, not the feature: the idle
-# window and this wait are close enough that the same build passes one run and
-# fails the next. Poll until it unloads, with a bound, and report how long it
-# actually took — that number is worth more than the pass.
-UNLOADED=0
-POLLED=0
-UNREADABLE=""
-while [ "$POLLED" -lt 300 ]; do
-  # One failure for one root cause: a server that stops answering ends the
-  # poll rather than recording a failed assertion every fifteen seconds.
-  if ! state_refresh; then UNREADABLE="$STATE_REASON"; break; fi
-  if [ "$(state_read "$RESIDENT_FILTER")" = "0" ]; then UNLOADED=1; break; fi
-  sleep 15
-  POLLED=$((POLLED + 15))
+echo "== stay: ${STAY}s with the bot in it"
+sleep "$STAY"
+s="$(state)"
+[[ "$s" == active && -z "$(unload_line)" ]] && check "stays open while occupied" ok "active after ${STAY}s, no unload line" ||
+  check "stays open while occupied" fail "state $s; $(unload_line)"
+
+echo "== walk away: the bot to the overworld"
+rc "execute in minecraft:overworld run tp IdleBot 0 200 0" | head -c 100; echo
+line="" s=""
+for _ in $(seq 1 $(((STAY + 120) / 10))); do
+  line="$(unload_line)"
+  s="$(state)"
+  [[ -n "$line" && "$s" == lazy ]] && break
+  sleep 10
 done
-# Another dimension may legitimately be held open by an unrelated test; what
-# item 4 measures is that THE CRUCIBLE idled out, not that the server is empty.
-if [ -n "$UNREADABLE" ]; then
-  _record fail "the dimension idled out after the last use" "0 loaded worlds with that id" \
-    "the poll stopped after ${POLLED}s: $UNREADABLE"
-elif [ "$UNLOADED" -eq 1 ]; then
-  note "the_crucible unloaded ${POLLED}s after the walk-away wait (bound 300s)"
-  _record ok "the dimension idled out after the last use" "0 loaded worlds with that id" \
-    "gone after $((WAIT_SECS + POLLED))s"
-else
-  _record fail "the dimension idled out after the last use" "0 loaded worlds with that id" \
-    "still loaded after $((WAIT_SECS + POLLED))s"
-fi
+[[ -n "$line" ]] && check "unloads after the last player leaves" ok "$(printf '%s' "$line" | sed -E 's/^.*INFO\]: //')" ||
+  check "unloads after the last player leaves" fail "no unload line in $((STAY + 120))s"
+[[ "$s" == lazy ]] && check "reads lazy again" ok "customdim list: lazy" || check "reads lazy again" fail "customdim list: $s"
 
-finish
+rc "player IdleBot kill" > /dev/null
+echo "== $(grep -c '^ok' "$OUT/assertions.tsv") passed, $(grep -c '^fail' "$OUT/assertions.tsv") failed ($OUT/assertions.tsv)"
+exit "$FAILED"

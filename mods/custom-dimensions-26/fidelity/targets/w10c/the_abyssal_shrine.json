@@ -1,0 +1,11 @@
+{
+ "slug": "the_abyssal_shrine",
+ "targets": [
+  {"key": "surface.fluidCoverPercent.water", "per": "vertical.layerColumnsPercent.surface", "op": "between", "value": [0.25, 0.6], "from": "\"deep drowned hollows\", over the columns that hold ground or water (the w10t form counts the void)"},
+  {"key": "surface.biomesPercent.minecraft:deep_ocean + surface.biomesPercent.minecraft:deep_cold_ocean", "per": "vertical.layerColumnsPercent.surface", "op": ">=", "value": 0.2, "from": "the deep oceans in the hollows, over the same columns"},
+  {"key": "surface.waterDepth.over12Percent", "op": ">=", "value": 40, "from": "\"deep drowned hollows\""},
+  {"key": "placeness.islands.count", "op": "<=", "value": 3, "from": "place kind place: one composition round the hollow"},
+  {"key": "placeness.landBiomeRegions.largestPercent", "op": ">=", "value": 30, "from": "place kind place: the rim reads as one land"},
+  {"key": "placeness.landBiomeRegions.specksPercent", "op": "<=", "value": 5, "from": "place kind place"}
+ ]
+}

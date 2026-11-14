@@ -1,0 +1,62 @@
+{
+ "slug": "the_tidepools",
+ "targets": [
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "between",
+   "value": [
+    35,
+    70
+   ],
+   "from": "\"A pocket of tidal shallows \u2014 rock pools\""
+  },
+  {
+   "key": "surface.waterDepth.shallow1To4Percent",
+   "op": ">=",
+   "value": 40,
+   "from": "\"tidal shallows\", \"rock pools\", \"under clear water\""
+  },
+  {
+   "key": "surface.waterDepth.over12Percent",
+   "op": "<=",
+   "value": 15,
+   "from": "\"shallows\": little deep water"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:stony_shore + surface.biomesPercent.minecraft:beach + surface.biomesPercent.minecraft:windswept_gravelly_hills",
+   "op": ">=",
+   "value": 30,
+   "from": "1.21.1 rocky_reef, beach, stony_shore, granite_cliffs, gravel_beach, grassy_beach"
+  },
+  {
+   "key": "terrain.slopes.cliffPercent",
+   "op": ">=",
+   "value": 4,
+   "from": "\"gull-grey cliffs\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:stone + surface.groundBlocksPercent.minecraft:gravel + surface.groundBlocksPercent.minecraft:andesite + surface.groundBlocksPercent.minecraft:diorite + surface.groundBlocksPercent.minecraft:granite + surface.groundBlocksPercent.minecraft:tuff + surface.groundBlocksPercent.minecraft:calcite",
+   "op": ">=",
+   "value": 25,
+   "from": "\"rock pools, gull-grey cliffs\"; 1.21.1 rocky_reef, gravel_beach"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "<=",
+   "value": 3,
+   "from": "\"the animals have always had it\": an open shore"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one shoreline pocket): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

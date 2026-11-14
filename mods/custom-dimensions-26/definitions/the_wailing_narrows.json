@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 2,
+  "description": "Narrow bridged chasms — quartz spans over the wail. The quarantine that didn't hold: the zombified remnants of the boneyard war were driven here, deeper and deeper. The deeper you go, the worse it gets. The quarantine leaks back through the frame — soul sand takes whatever stands beside the portal.",
+  "seed": -539501242876497893,
+  "spawn": [128, 91, -128],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 80,
+      "floorRelief": 8,
+      "ceilingGap": 26,
+      "roughness": 0.5,
+      "chasms": 0.22,
+      "chasmDepth": 62
+    }
+  },
+  "biomes": [
+    "minecraft:soul_sand_valley",
+    "minecraft:basalt_deltas"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:soul_sand_valley": 58,
+      "minecraft:basalt_deltas": 42
+    },
+    "places": {
+      "at": {
+        "minecraft:soul_sand_valley": [128, -128]
+      },
+      "warp": {
+        "blocks": 76,
+        "wavelength": 512
+      }
+    }
+  },
+  "liquids": {
+    "seaLevel": 10
+  },
+  "atmosphere": {
+    "fogColor": "#2B1B3B",
+    "ambientLight": 0.06
+  },
+  "borders": {
+    "player": 683,
+    "generation": 683
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 2.0,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 80,
+      "endY": 0,
+      "minMultiplier": 1.5,
+      "maxMultiplier": 3.5
+    }
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "minecraft:ancient_city",
+        "x": 210,
+        "z": -180
+      }
+    ],
+    "terrainAdaptation": {
+      "mns:bridge_1": "pedestal"
+    },
+    "mode": "allow",
+    "list": [
+      "mns:bridge_1",
+      "mns:bridge_2",
+      "mns:bridge_3",
+      "mns:bridge_4",
+      "mns:bridge_5",
+      "mns:bridge_6",
+      "mns:mega_fortress",
+      "mns:giant_skull",
+      "mns:large_blackstone_pillars"
+    ],
+    "wants": {
+      "mns:bridge_1": {
+        "min": 0,
+        "max": 150
+      },
+      "mns:large_blackstone_pillars": {
+        "min": 450,
+        "max": 650
+      },
+      "mns:giant_skull": {
+        "min": 100,
+        "max": 600
+      }
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:quartz_bricks",
+      "igniterItem": "minecraft:diamond",
+      "color": "B0C8E0",
+      "lightLevel": 11,
+      "scale": 12.0,
+      "cooldown": 40,
+      "shape": "door",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything"
+      },
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:soul_sand_valley",
+      "minecraft:basalt_deltas"
+    ],
+    "wants": {
+      "nether_bridge": "near_spawn",
+      "mns:mega_fortress": "spread",
+      "giant_skull": "spread",
+      "blackstone_pillars": "near_border"
+    },
+    "shuns": [
+      "towns_and_towers:exclusives/village_piglin",
+      "crimson_fungus",
+      "bastion"
+    ]
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  }
+}

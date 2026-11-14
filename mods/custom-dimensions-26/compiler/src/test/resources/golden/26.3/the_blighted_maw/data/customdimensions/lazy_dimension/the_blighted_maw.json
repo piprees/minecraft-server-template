@@ -1,0 +1,87 @@
+{
+  "type": "adventure:the_blighted_maw",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "customdimensions:zoned",
+      "base": {
+        "type": "minecraft:multi_noise",
+        "biomes": [
+          {
+            "biome": "adventure:mycotoxic_undergrowth",
+            "parameters": {
+              "temperature": [-2.0, 0.1],
+              "humidity": [-2.0, 0.0909],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:soul_sand_valley",
+            "parameters": {
+              "temperature": [-2.0, 0.1],
+              "humidity": [0.0909, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:nether_wastes",
+            "parameters": {
+              "temperature": [0.1, 2.0],
+              "humidity": [-2.0, -0.5556],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:ash_barrens",
+            "parameters": {
+              "temperature": [0.1, 2.0],
+              "humidity": [-0.5556, 0.1111],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:withered_forest",
+            "parameters": {
+              "temperature": [0.1, 2.0],
+              "humidity": [0.1111, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          }
+        ]
+      },
+      "regions": {
+        "axes": [
+          "temperature",
+          "humidity"
+        ],
+        "land": {
+          "axis": "erosion",
+          "min": -0.0625
+        },
+        "columns": [0.1],
+        "radius": 1024
+      }
+    },
+    "settings": "adventure:the_blighted_maw"
+  }
+}

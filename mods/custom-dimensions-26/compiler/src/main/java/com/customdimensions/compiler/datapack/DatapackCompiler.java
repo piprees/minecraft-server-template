@@ -1,0 +1,1377 @@
+package com.customdimensions.compiler.datapack;
+
+import com.customdimensions.compiler.convert.JsonWriter;
+import com.customdimensions.compiler.terrain.TerrainLibrary;
+import com.customdimensions.compiler.terrain.TerrainSpec;
+import com.customdimensions.core.definition.Atmosphere;
+import com.customdimensions.core.definition.BiomeEntry;
+import com.customdimensions.core.definition.Definition;
+import com.customdimensions.core.definition.Win;
+import com.customdimensions.core.definition.DefinitionReader;
+import com.customdimensions.core.definition.DefinitionSettings;
+import com.customdimensions.core.definition.DimensionTypeFields;
+import com.customdimensions.core.definition.GameRuleValues;
+import com.customdimensions.core.definition.Generator;
+import com.customdimensions.core.definition.Liquids;
+import com.customdimensions.core.definition.Rules;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Stream;
+
+/**
+ * Compiles schema v2 definitions into an ordinary datapack: a dimension type
+ * per definition, noise settings and a material rule where liquids, the default
+ * block, palettes or ore veins change, runtime worldgen files and added ores,
+ * level stems for the base worlds where vanilla loads them, and level stems
+ * for every other dimension under {@code data/customdimensions/lazy_dimension/},
+ * a folder vanilla ignores and the runtime opens on first entry. Every file
+ * starts from the vanilla file of record for its generator. Output is
+ * deterministic: sorted keys where vanilla sorts them, two-space indent,
+ * a trailing newline.
+ */
+public final class DatapackCompiler {
+
+    /** The runtime's namespace: lazy level stems live under it. */
+    public static final String RUNTIME_NAMESPACE = "customdimensions";
+    public static final String LAZY_FOLDER = "lazy_dimension";
+    public static final String REPORT_FILE = "compile-report.md";
+    static final String FALLBACK_NOTE = "Fallback biome source";
+    static final String UNKNOWN_BIOME = "neither vanilla nor the biome library has it";
+
+    /** Base worlds by slug: the level stem id vanilla loads at start (empty: the pack's namespace and the slug). */
+    static final Map<String, String> BASE_WORLDS = Map.of(
+            "overworld", "minecraft:overworld",
+            "the_nether", "minecraft:the_nether",
+            "the_end", "minecraft:the_end",
+            "the_aviary", "");
+
+    /** Presets whose router holds temperature and vegetation constant; a biome list borrows the overworld's. */
+    static final Set<String> CONSTANT_CLIMATE = Set.of("end", "caves", "floating_islands");
+    static final Set<String> OVERWORLD_FAMILY = Set.of("overworld", "large_biomes", "amplified", "caves", "floating_islands");
+
+    /** {@code atmosphere.effects} to the vanilla dimension type whose sky it names. */
+    static final Map<String, String> EFFECTS = Map.of(
+            "minecraft:overworld", "overworld",
+            "minecraft:the_nether", "the_nether",
+            "minecraft:the_end", "the_end");
+    /** What a sky brings with it: the skybox, cardinal lighting, clouds and distance fog. */
+    static final List<String> EFFECT_FIELDS = List.of("skybox", "cardinal_light");
+    static final List<String> EFFECT_ATTRIBUTES = List.of("minecraft:visual/cloud_color", "minecraft:visual/cloud_height",
+            "minecraft:visual/fog_start_distance", "minecraft:visual/fog_end_distance");
+
+    /** Clone targets whose dimension the pack replaces: {@code of} to the slug that stands in for it. */
+    static final Map<String, String> CLONE_ALIASES = Map.of("paradise_lost:paradise_lost", "the_aviary");
+
+    /** Vanilla's End terrain references, and the copies an End without its central island uses instead. */
+    static final String END_ISLANDS = "minecraft:end/islands";
+    static final String END_SLOPED_CHEESE = "minecraft:end/sloped_cheese";
+    static final String NO_CENTRAL_ISLAND = "end_without_central_island";
+
+    /** Vanilla's checkerboard {@code scale} when a definition sets no {@code cellScale}. */
+    static final int DEFAULT_CHECKERBOARD_SCALE = 2;
+    /** The density function type that marks a checkerboard's void cells. */
+    static final String CHECKER_CELLS = "customdimensions:checker_cells";
+
+    /**
+     * The compiled pack: pack-relative path to file text, the report, and each
+     * compiled definition as the compiler saw it (a clone with its source's generator).
+     */
+    public record Output(SortedMap<String, String> files, CompileReport report, String reportText,
+                         Map<String, Definition> compiled) {
+    }
+
+    private final VanillaData vanilla;
+    private final VersionTable.Version version;
+    private final String namespace;
+    private final SortedMap<String, String> files = new TreeMap<>();
+    private final CompileReport report;
+    private final Map<String, Definition> definitions = new TreeMap<>();
+    private final Map<String, Definition> compiled = new TreeMap<>();
+    private StructuresCompiler.Catalogue structureCatalogue;
+    private BiomeLibrary.Known known;
+    private BiomeLibrary library;
+    private BiomeRoles roles;
+    /** {@code settings.json}'s {@code defaults.atmosphere.dayLength}, or null. */
+    private Atmosphere.DayLength defaultDayLength;
+
+    private DatapackCompiler(VanillaData vanilla, VersionTable.Version version, String namespace) {
+        this.vanilla = vanilla;
+        this.version = version;
+        this.namespace = namespace;
+        this.report = new CompileReport(version, namespace);
+    }
+
+    /** Compiles every definition in {@code definitionsDir} (with its {@code settings.json}). */
+    public static Output compile(Path definitionsDir, VanillaData vanilla, VersionTable.Version version) {
+        return compile(definitionsDir, StructuresCompiler.bridgesBeside(definitionsDir), vanilla, version);
+    }
+
+    /** As {@link #compile(Path, VanillaData, VersionTable.Version)} with the bridges read from {@code bridgesDir}. */
+    public static Output compile(Path definitionsDir, Path bridgesDir, VanillaData vanilla, VersionTable.Version version) {
+        DefinitionSettings settings = DefinitionReader.readSettings(definitionsDir.resolve("settings.json"));
+        String namespace = settings.namespace() != null ? settings.namespace() : "adventure";
+        GameRulesCompiler.check("settings.json defaults", GameRuleValues.fromDefaults(settings.defaults(), "settings.json"), vanilla);
+        Map<String, Definition> definitions = new TreeMap<>();
+        for (Path file : definitionFiles(definitionsDir)) {
+            String name = file.getFileName().toString();
+            definitions.put(name.substring(0, name.length() - ".json".length()), DefinitionReader.read(file));
+        }
+        Output output = compileAll(namespace, definitions, vanilla, version,
+                StructuresCompiler.Catalogue.of(vanilla, bridgesDir), BiomeLibrary.shipped(),
+                Atmosphere.DayLength.fromDefaults(settings.defaults()));
+        output.files().put("pack.mcmeta", JsonWriter.write(packMeta(version, output.report().entries().size())));
+        return output;
+    }
+
+    /** Compiles a set of definitions by slug, clones resolved against each other; no {@code pack.mcmeta}. */
+    static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
+                             VersionTable.Version version) {
+        return compileAll(namespace, definitions, vanilla, version, BiomeLibrary.shipped());
+    }
+
+    /** As {@link #compileAll(String, Map, VanillaData, VersionTable.Version)} over the given biome library. */
+    static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
+                             VersionTable.Version version, BiomeLibrary library) {
+        return compileAll(namespace, definitions, vanilla, version, StructuresCompiler.Catalogue.of(vanilla, null), library, null);
+    }
+
+    /** As {@link #compileAll(String, Map, VanillaData, VersionTable.Version)} with {@code settings.json}'s default day length. */
+    static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
+                             VersionTable.Version version, Atmosphere.DayLength dayLength) {
+        return compileAll(namespace, definitions, vanilla, version, StructuresCompiler.Catalogue.of(vanilla, null), BiomeLibrary.shipped(),
+                dayLength);
+    }
+
+    private static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
+                                     VersionTable.Version version, StructuresCompiler.Catalogue catalogue,
+                                     BiomeLibrary library, Atmosphere.DayLength dayLength) {
+        DatapackCompiler compiler = new DatapackCompiler(vanilla, version, namespace);
+        compiler.defaultDayLength = dayLength;
+        compiler.structureCatalogue = catalogue;
+        library.validate(vanilla, namespace);
+        compiler.library = library;
+        compiler.known = library.known(vanilla, namespace);
+        library.files(namespace).forEach((path, json) -> compiler.putShared(path, json));
+        compiler.definitions.putAll(definitions);
+        compiler.definitions.keySet().forEach(compiler::compile);
+        compiler.vanillaForms();
+        return new Output(compiler.files, compiler.report, compiler.report.markdown(compiler.files), compiler.compiled);
+    }
+
+    /** Compiles one definition on its own, for tests of a single mapping. */
+    static Output compileOne(String namespace, String slug, Definition definition, VanillaData vanilla,
+                             VersionTable.Version version) {
+        return compileAll(namespace, Map.of(slug, definition), vanilla, version);
+    }
+
+    /**
+     * Writes the pack into {@code packDir}, replacing what an earlier compile left
+     * there, and the report to {@code reportFile}.
+     */
+    public static void write(Output output, Path packDir, Path reportFile) {
+        try {
+            clean(packDir);
+            for (Map.Entry<String, String> e : output.files().entrySet()) {
+                Path target = packDir.resolve(e.getKey());
+                Files.createDirectories(target.getParent());
+                Files.writeString(target, e.getValue());
+            }
+            Files.createDirectories(reportFile.toAbsolutePath().getParent());
+            Files.writeString(reportFile, output.reportText());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * {@code --definitions <dir> --vanilla <dir> --pack <dir> --report <file> [--version <id>]}.
+     */
+    public static void main(String[] args) {
+        Map<String, String> opts = new TreeMap<>();
+        for (int i = 0; i + 1 < args.length; i += 2) {
+            opts.put(args[i], args[i + 1]);
+        }
+        for (String required : List.of("--definitions", "--vanilla", "--pack", "--report")) {
+            if (!opts.containsKey(required)) {
+                throw new IllegalArgumentException("missing " + required
+                        + "; usage: --definitions <dir> --vanilla <dir> --pack <dir> --report <file> [--version <id>]");
+            }
+        }
+        VersionTable.Version version = VersionTable.forId(opts.getOrDefault("--version", VersionTable.V26_3.id()));
+        Output output = compile(Path.of(opts.get("--definitions")), new VanillaData(Path.of(opts.get("--vanilla"))), version);
+        write(output, Path.of(opts.get("--pack")), Path.of(opts.get("--report")));
+        System.out.println("Compiled " + output.files().size() + " files into " + opts.get("--pack"));
+        output.report().totals(output.files()).forEach((k, v) -> System.out.println("  " + k + ": " + v));
+    }
+
+    private void compile(String slug) {
+        CompileReport.Entry entry = report.add(slug);
+        Definition def = definitions.get(slug);
+        wins(slug, def, entry);
+        GameRulesCompiler.check(slug, def.gameRules(), vanilla);
+        String cloneNote = "";
+        if (Generator.CLONE.equals(def.generator().type())) {
+            List<String> chain = cloneChain(slug);
+            String last = chain.getLast();
+            if (!definitions.containsKey(last)) {
+                entry.kind(CompileReport.Kind.CLONE, "copies `" + def.generator().of() + "`, which no definition provides"
+                        + (chain.size() > 2 ? " (via " + String.join(" -> ", chain.subList(1, chain.size() - 1)) + ")" : "")
+                        + "; not compiled");
+                return;
+            }
+            String of = def.generator().of();
+            def = cloned(def, definitions.get(last));
+            entry.cloneOf(namespace + ":" + last);
+            cloneNote = ", clone of `" + namespace + ":" + last + "`"
+                    + (CLONE_ALIASES.containsKey(of) ? ", which stands in for `" + of + "`" : "")
+                    + (chain.size() > 2 ? " via " + String.join(" -> ", chain.subList(1, chain.size() - 1)) : "");
+        }
+        compiled.put(slug, def);
+        Generator generator = def.generator();
+        String typeId = namespace + ":" + slug;
+        String stemPath;
+        if (BASE_WORLDS.containsKey(slug)) {
+            String stemId = BASE_WORLDS.get(slug).isEmpty() ? namespace + ":" + slug : BASE_WORLDS.get(slug);
+            stemPath = dataPath(stemId, "dimension");
+            entry.kind(CompileReport.Kind.BASE_WORLD, "`" + stemId + "`" + cloneNote);
+        } else {
+            stemPath = "data/" + RUNTIME_NAMESPACE + "/" + LAZY_FOLDER + "/" + slug + ".json";
+            entry.kind(CompileReport.Kind.LAZY, "`" + typeId + "`" + cloneNote);
+        }
+
+        JsonObject type = dimensionType(slug, def, entry);
+        boolean noiseBased = !Generator.FLAT.equals(generator.type()) && !Generator.VOID.equals(generator.type());
+        if (noiseBased) {
+            String seaNote = LiquidsCompiler.validate(slug, def.liquids(), type);
+            if (seaNote != null) {
+                entry.note(seaNote);
+            }
+        }
+        String bedrock = BedrockHeights.check(type);
+        if (bedrock != null) {
+            entry.bedrock(bedrock);
+        }
+        put(dataPath(typeId, "dimension_type"), sorted(type), entry);
+
+        JsonObject stem = new JsonObject();
+        stem.addProperty("type", typeId);
+        try {
+            stem.add("generator", generator(slug, def, entry));
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException(slug + ": " + e.getMessage(), e);
+        }
+        put(stemPath, stem, entry);
+        if (noiseBased) {
+            String levelId = BASE_WORLDS.containsKey(slug) && !BASE_WORLDS.get(slug).isEmpty() ? BASE_WORLDS.get(slug) : typeId;
+            RuntimeWorldgen.files(namespace, slug, levelId, def, vanilla).forEach((path, json) -> put(path, sorted(json), entry));
+        }
+
+        String controlLevel = BASE_WORLDS.containsKey(slug) && !BASE_WORLDS.get(slug).isEmpty() ? BASE_WORLDS.get(slug) : typeId;
+        StructuresCompiler.files(slug, controlLevel, def, structureCatalogue, entry).forEach((path, json) -> put(path, json, entry));
+        reportRuntimeFields(def, entry);
+    }
+
+    // ---- wins ------------------------------------------------------------------------------
+
+    /**
+     * Each win as an advancement under one {@code wins/root} tab (decisions.md
+     * RB-30). Every criterion is {@code minecraft:impossible}: the mod grants
+     * them, one per kill for a counted {@code kill} win.
+     */
+    private void wins(String slug, Definition def, CompileReport.Entry entry) {
+        if (def.wins().isEmpty()) {
+            return;
+        }
+        String rootId = namespace + ":" + Win.ROOT;
+        put(dataPath(rootId, "advancement"), winRoot(), entry);
+        for (Win win : def.wins()) {
+            JsonObject json = new JsonObject();
+            json.addProperty("parent", rootId);
+            json.add("criteria", impossible(win.criteria()));
+            JsonObject display = new JsonObject();
+            JsonObject icon = new JsonObject();
+            icon.addProperty("id", win.icon() != null ? win.icon() : Win.DEFAULT_ICON);
+            display.add("icon", icon);
+            display.addProperty("title", win.title());
+            display.addProperty("description", win.description() != null ? win.description() : win.title());
+            display.addProperty("frame", win.frame() != null ? win.frame() : "goal");
+            display.addProperty("show_toast", true);
+            display.addProperty("announce_to_chat", false);
+            json.add("display", display);
+            json.add("requirements", requirements(win.criteria()));
+            put(dataPath(namespace + ":" + win.advancementPath(slug), "advancement"), json, entry);
+        }
+        entry.note(def.wins().size() + " win(s) as advancements under `" + rootId + "`");
+    }
+
+    private static JsonObject winRoot() {
+        JsonObject root = new JsonObject();
+        root.add("criteria", impossible(List.of("root")));
+        JsonObject display = new JsonObject();
+        JsonObject icon = new JsonObject();
+        icon.addProperty("id", Win.DEFAULT_ICON);
+        display.add("icon", icon);
+        display.addProperty("title", "Wins");
+        display.addProperty("description", "What you have won across the dimensions");
+        display.addProperty("background", "minecraft:gui/advancements/backgrounds/end");
+        display.addProperty("show_toast", false);
+        display.addProperty("announce_to_chat", false);
+        root.add("display", display);
+        root.add("requirements", requirements(List.of("root")));
+        return root;
+    }
+
+    private static JsonObject impossible(List<String> names) {
+        JsonObject criteria = new JsonObject();
+        for (String name : names) {
+            JsonObject c = new JsonObject();
+            c.addProperty("trigger", "minecraft:impossible");
+            criteria.add(name, c);
+        }
+        return criteria;
+    }
+
+    /** Every criterion required: one group per criterion. */
+    private static JsonArray requirements(List<String> names) {
+        JsonArray out = new JsonArray();
+        for (String name : names) {
+            JsonArray group = new JsonArray();
+            group.add(name);
+            out.add(group);
+        }
+        return out;
+    }
+
+    // ---- clones -----------------------------------------------------------------------------
+
+    /**
+     * The slugs a clone resolves through, starting with itself and ending with
+     * the first non-clone, or with the unresolved {@code of} when no definition
+     * provides it. A chain that returns to a slug is a compile error naming it.
+     */
+    List<String> cloneChain(String slug) {
+        List<String> chain = new ArrayList<>(List.of(slug));
+        Definition def = definitions.get(slug);
+        while (def != null && Generator.CLONE.equals(def.generator().type())) {
+            String of = def.generator().of();
+            String next = cloneTarget(of);
+            if (next == null) {
+                chain.add(of);
+                return chain;
+            }
+            if (chain.contains(next)) {
+                chain.add(next);
+                throw new IllegalStateException("clone cycle: " + String.join(" -> ", chain));
+            }
+            chain.add(next);
+            def = definitions.get(next);
+            if (def == null) {
+                chain.set(chain.size() - 1, of);
+                return chain;
+            }
+        }
+        return chain;
+    }
+
+    /** The slug a clone's {@code of} names: an alias, a base world's level stem, or a pack dimension; else null. */
+    String cloneTarget(String of) {
+        if (CLONE_ALIASES.containsKey(of)) {
+            return CLONE_ALIASES.get(of);
+        }
+        for (Map.Entry<String, String> base : BASE_WORLDS.entrySet()) {
+            if (of.equals(base.getValue())) {
+                return base.getKey();
+            }
+        }
+        String prefix = namespace + ":";
+        return of.startsWith(prefix) ? of.substring(prefix.length()) : null;
+    }
+
+    /**
+     * The clone with its source's generator, and its own terrain when it has one, else its source's; its own biome list
+     * and layout when it has a list, else its source's; its own seed, dimension type,
+     * atmosphere and rules; its own liquids, default block, ores and carvers over the
+     * source's, field by field.
+     */
+    private static Definition cloned(Definition clone, Definition source) {
+        List<BiomeEntry> biomes = clone.biomes().isEmpty() ? source.biomes() : clone.biomes();
+        JsonObject biomeLayout = clone.biomes().isEmpty() ? source.biomeLayout() : clone.biomeLayout();
+        Liquids own = clone.liquids();
+        Liquids theirs = source.liquids();
+        Liquids liquids = own == null ? theirs : theirs == null ? own : new Liquids(
+                own.seaLevel() != null ? own.seaLevel() : theirs.seaLevel(),
+                own.lavaLevel() != null ? own.lavaLevel() : theirs.lavaLevel(),
+                own.defaultFluid() != null ? own.defaultFluid() : theirs.defaultFluid(),
+                own.aquifers() != null ? own.aquifers() : theirs.aquifers(),
+                own.basins() != null ? own.basins() : theirs.basins());
+        JsonObject materials = overlay(source.materials(), clone.materials());
+        JsonObject ores = overlay(source.ores(), clone.ores());
+        JsonObject carvers = overlay(source.carvers(), clone.carvers());
+        return new Definition(clone.schemaVersion(), clone.description(), clone.seed(), clone.spawn(), source.generator(),
+                clone.terrain() != null ? clone.terrain() : source.terrain(), biomes, biomeLayout, liquids, materials, ores, carvers, clone.zones(), clone.dimensionType(),
+                clone.atmosphere(), clone.rules(), clone.gameRules(), clone.borders(), clone.difficulty(), clone.structures(), clone.portals(),
+                clone.exitPortal(), clone.exits(), clone.exitShrines(), clone.deaths(), clone.wins(), clone.roll());
+    }
+
+    /** {@code theirs} with each of {@code own}'s fields over it; null when both are. */
+    private static JsonObject overlay(JsonObject theirs, JsonObject own) {
+        JsonObject out = theirs == null ? null : theirs.deepCopy();
+        if (own != null) {
+            if (out == null) {
+                out = new JsonObject();
+            }
+            for (Map.Entry<String, JsonElement> e : own.entrySet()) {
+                out.add(e.getKey(), e.getValue().deepCopy());
+            }
+        }
+        return out;
+    }
+
+    // ---- dimension type ---------------------------------------------------------------------
+
+    /** The vanilla dimension type a definition starts from. */
+    static String baseDimensionType(Generator generator) {
+        if (!Generator.NOISE.equals(generator.type()) && !Generator.SINGLE_BIOME.equals(generator.type())) {
+            return "overworld";
+        }
+        return switch (generator.noisePreset()) {
+            case "caves" -> "overworld_caves";
+            case "nether" -> "the_nether";
+            case "end" -> "the_end";
+            default -> "overworld";
+        };
+    }
+
+    private JsonObject dimensionType(String slug, Definition def, CompileReport.Entry entry) {
+        JsonObject type = vanilla.dimensionType(baseDimensionType(def.generator()));
+        applyDimensionType(type, def.dimensionType());
+        applyAtmosphere(type, def.atmosphere(), entry);
+        Atmosphere a = def.atmosphere();
+        if (a == null || a.fixedTime() == null) {
+            Atmosphere.DayLength d = a != null && a.dayLength() != null ? a.dayLength() : defaultDayLength;
+            if (d != null) applyDayLength(type, d, entry);
+        }
+        applyRules(type, def.rules());
+        if (overBiomes(a)) applyOverBiomes(slug, type, entry);
+        return type;
+    }
+
+    /** Whether the dimension's colours hold over its biomes': as {@code atmosphere.overBiomes} says, else when it sets a sky or fog colour. */
+    static boolean overBiomes(Atmosphere a) {
+        if (a == null) return false;
+        if (a.overBiomes() != null) return a.overBiomes();
+        return a.skyColor() != null || a.fogColor() != null;
+    }
+
+    /** The environment attributes {@code atmosphere.overBiomes} holds over the biomes. */
+    static final List<String> OVER_BIOMES = List.of("minecraft:visual/sky_color", "minecraft:visual/fog_color");
+
+    /**
+     * {@code atmosphere.overBiomes}: the dimension type's sky and fog colours as the timeline
+     * {@code <ns>:atmosphere/<slug>}, one constant override track each, first in the type's timelines. The game
+     * applies a dimension's attributes, then its biomes', then its timelines in order, so the colours win over every
+     * biome's own and the day's timelines still darken them at night.
+     */
+    private void applyOverBiomes(String slug, JsonObject type, CompileReport.Entry entry) {
+        JsonObject attributes = attributes(type);
+        JsonObject tracks = new JsonObject();
+        for (String key : OVER_BIOMES) {
+            JsonElement v = attributes.get(key);
+            if (v == null) continue;
+            JsonObject keyframe = new JsonObject();
+            keyframe.addProperty("ticks", 0);
+            keyframe.add("value", v.deepCopy());
+            JsonArray keyframes = new JsonArray();
+            keyframes.add(keyframe);
+            JsonObject track = new JsonObject();
+            track.add("keyframes", keyframes);
+            track.addProperty("modifier", "override");
+            tracks.add(key, track);
+        }
+        if (tracks.isEmpty()) {
+            throw new IllegalArgumentException(slug + ": atmosphere.overBiomes holds the dimension's sky and fog colours over its biomes', "
+                    + "and it has neither; give atmosphere.skyColor or fogColor");
+        }
+        JsonObject timeline = new JsonObject();
+        timeline.addProperty("clock", type.has("default_clock") ? type.get("default_clock").getAsString() : OVER_BIOMES_CLOCK);
+        timeline.add("tracks", tracks);
+        String id = namespace + ":atmosphere/" + slug;
+        put(dataPath(id, "timeline"), sorted(timeline), entry);
+        JsonArray timelines = new JsonArray();
+        timelines.add(id);
+        vanilla.expandTimelines(type.get("timelines")).forEach(timelines::add);
+        type.add("timelines", timelines);
+        entry.note("Atmosphere over the biomes: " + String.join(" and ", tracks.keySet()) + " held by the timeline `" + id
+                + "` over every biome's own");
+    }
+
+    /** The clock an over-biomes timeline names when the type has no default clock; its value is the same at every tick. */
+    static final String OVER_BIOMES_CLOCK = "minecraft:overworld";
+
+    /**
+     * {@code atmosphere.dayLength}, or the settings' default: in a dimension with vanilla's day, each timeline that
+     * repeats in whole days replaced by its warped copy ({@link DayLength}) on the day length's own clock, which becomes the
+     * dimension's default clock; clock and timelines are shared by every dimension on that length.
+     */
+    private void applyDayLength(JsonObject type, Atmosphere.DayLength length, CompileReport.Entry entry) {
+        List<String> ids = vanilla.expandTimelines(type.get("timelines"));
+        if (!ids.contains("minecraft:day")) return;
+        DayLength d = new DayLength(length.dayMinutes(), length.nightMinutes());
+        String clock = d.clockId(namespace);
+        put(dataPath(clock, "world_clock"), new JsonObject(), entry);
+        type.addProperty("default_clock", clock);
+        JsonArray timelines = new JsonArray();
+        for (String id : ids) {
+            JsonObject timeline = vanilla.timeline(id);
+            if (!DayLength.applies(timeline)) {
+                timelines.add(id);
+                continue;
+            }
+            String warped = d.id(namespace, id);
+            put(dataPath(warped, "timeline"), sorted(d.apply(timeline, clock)), entry);
+            timelines.add(warped);
+        }
+        type.add("timelines", timelines);
+        entry.note("Day length " + minutes(length.dayMinutes()) + " min day, " + minutes(length.nightMinutes())
+                + " min night: the day's timelines on a " + d.period() + "-tick period; random ticks and weather keep vanilla's pacing");
+    }
+
+    private static String minutes(double m) {
+        return m == Math.rint(m) ? String.valueOf((long) m) : String.valueOf(m);
+    }
+
+    /** {@code dimensionType}: each set field replaces the vanilla field of the same name in snake case. */
+    static void applyDimensionType(JsonObject type, DimensionTypeFields f) {
+        if (f == null) {
+            return;
+        }
+        setIfPresent(type, "min_y", f.minY());
+        setIfPresent(type, "height", f.height());
+        setIfPresent(type, "logical_height", f.logicalHeight());
+        if (f.hasSkylight() != null) {
+            type.addProperty("has_skylight", f.hasSkylight());
+        }
+        if (f.hasCeiling() != null) {
+            type.addProperty("has_ceiling", f.hasCeiling());
+        }
+        if (f.infiniburn() != null) {
+            type.addProperty("infiniburn", f.infiniburn());
+        }
+        if (f.monsterSpawnLightLevel() != null) {
+            type.add("monster_spawn_light_level", f.monsterSpawnLightLevel().deepCopy());
+        }
+        setIfPresent(type, "monster_spawn_block_light_limit", f.monsterSpawnBlockLightLimit());
+    }
+
+    /**
+     * {@code atmosphere}: {@code effects} brings the named world's sky (see
+     * {@link #EFFECT_FIELDS} and {@link #EFFECT_ATTRIBUTES}); colours become the
+     * {@code minecraft:visual/sky_color} and {@code fog_color} attributes;
+     * {@code ambientLight} is {@code ambient_light}; {@code fixedTime} freezes
+     * the dimension's timelines at that tick ({@link FixedTime}).
+     */
+    void applyAtmosphere(JsonObject type, Atmosphere a, CompileReport.Entry entry) {
+        if (a == null) {
+            return;
+        }
+        JsonObject attributes = attributes(type);
+        if (a.effects() != null) {
+            String world = EFFECTS.get(a.effects());
+            if (world == null) {
+                entry.unsupported("atmosphere.effects", "`" + a.effects() + "` is not a vanilla sky; known: "
+                        + String.join(", ", new TreeMap<>(EFFECTS).keySet()));
+            } else {
+                JsonObject source = vanilla.dimensionType(world);
+                JsonObject sourceAttributes = attributes(source);
+                for (String field : EFFECT_FIELDS) {
+                    copyOrRemove(source, type, field);
+                }
+                for (String attribute : EFFECT_ATTRIBUTES) {
+                    copyOrRemove(sourceAttributes, attributes, attribute);
+                }
+            }
+        }
+        if (a.skyColor() != null) {
+            attributes.addProperty("minecraft:visual/sky_color", colour(a.skyColor()));
+        }
+        if (a.fogColor() != null) {
+            attributes.addProperty("minecraft:visual/fog_color", colour(a.fogColor()));
+        }
+        if (a.ambientLight() != null) {
+            type.addProperty("ambient_light", a.ambientLight());
+        }
+        if (a.fixedTime() != null) {
+            applyFixedTime(type, a.fixedTime(), entry);
+        }
+    }
+
+    private void applyFixedTime(JsonObject type, long tick, CompileReport.Entry entry) {
+        JsonArray timelines = new JsonArray();
+        for (String id : vanilla.expandTimelines(type.get("timelines"))) {
+            JsonObject timeline = vanilla.timeline(id);
+            if (!FixedTime.isPeriodic(timeline)) {
+                timelines.add(id);
+                continue;
+            }
+            String name = id.substring(id.indexOf(':') + 1) + "_" + Math.floorMod(tick, timeline.get("period_ticks").getAsLong());
+            String frozenId = namespace + ":fixed_time/" + name;
+            put(dataPath(frozenId, "timeline"), sorted(FixedTime.freeze(timeline, tick)), entry);
+            timelines.add(frozenId);
+        }
+        type.add("timelines", timelines);
+        type.addProperty("has_fixed_time", true);
+    }
+
+    /**
+     * {@code rules}: {@code bedsWork} takes the overworld's or the Nether's bed
+     * rules; {@code respawnAnchorsWork}, {@code piglinsZombify} and {@code raids}
+     * set their attributes; {@code ultraWarm} sets {@code water_evaporates} and
+     * {@code fast_lava}; {@code natural} sets {@code nether_portal_spawns_piglin},
+     * the one gameplay attribute vanilla's overworld has and its Nether lacks
+     * that a 1.21.1 natural dimension implied.
+     */
+    void applyRules(JsonObject type, Rules r) {
+        if (r == null) {
+            return;
+        }
+        JsonObject attributes = attributes(type);
+        if (r.bedsWork() != null) {
+            JsonObject source = attributes(vanilla.dimensionType(r.bedsWork() ? "overworld" : "the_nether"));
+            for (String rule : List.of("minecraft:gameplay/bed_rule", "minecraft:gameplay/straw_bed_rule")) {
+                copyOrRemove(source, attributes, rule);
+            }
+        }
+        setIfPresent(attributes, "minecraft:gameplay/respawn_anchor_works", r.respawnAnchorsWork());
+        setIfPresent(attributes, "minecraft:gameplay/piglins_zombify", r.piglinsZombify());
+        setIfPresent(attributes, "minecraft:gameplay/water_evaporates", r.ultraWarm());
+        setIfPresent(attributes, "minecraft:gameplay/fast_lava", r.ultraWarm());
+        setIfPresent(attributes, "minecraft:gameplay/can_start_raid", r.raids());
+        setIfPresent(attributes, "minecraft:gameplay/nether_portal_spawns_piglin", r.natural());
+    }
+
+    // ---- generator --------------------------------------------------------------------------
+
+    private BiomeRoles roles() {
+        if (roles == null) roles = BiomeRoles.of(vanilla, library, namespace);
+        return roles;
+    }
+
+    private JsonObject generator(String slug, Definition def, CompileReport.Entry entry) {
+        Generator g = def.generator();
+        boolean laysOut = Generator.NOISE.equals(g.type()) || Generator.VOID.equals(g.type());
+        if (def.biomeLayout() != null && (!laysOut || def.biomes().isEmpty())) {
+            throw new IllegalArgumentException(slug + ": biomeLayout lays out the biome list of a noise or void generator; this definition has "
+                    + (def.biomes().isEmpty() ? "no biome list" : "a " + g.type() + " generator"));
+        }
+        RegionLayout.checkBelowFloor(slug, def);
+        return switch (g.type()) {
+            case Generator.NOISE -> {
+                RegionLayout.Plan regions = def.biomeLayout() == null ? null : RegionLayout.plan(slug, def.biomes(), def.biomeLayout(),
+                        RegionLayout.radius(def.borders()), known, entry,
+                        RegionLayout.coast(slug, def, RegionLayout.axes(slug, def.biomeLayout()), roles()), roles(), RegionLayout.ground(slug, def));
+                yield noiseGenerator(slug, def, g.preset(), regions == null ? noiseBiomeSource(def, entry) : multiNoise(regions.entries()),
+                        regions, entry);
+            }
+            case Generator.CHECKERBOARD -> noiseGenerator(slug, def, "overworld", checkerboard(def, entry), null, entry);
+            case Generator.SINGLE_BIOME -> noiseGenerator(slug, def, g.noisePreset(), fixed(g.biome(), entry), null, entry);
+            case Generator.FLAT -> flat(flatBiome(g.biome(), "minecraft:plains", entry), layers(g.layers()), def, entry);
+            case Generator.VOID -> placesBiomes(def) ? voidNoise(slug, def, entry) : flat(voidBiome(def, entry), new JsonArray(), def, entry);
+            default -> throw new IllegalStateException("generator type " + g.type());
+        };
+    }
+
+    private JsonObject noiseGenerator(String slug, Definition def, String preset, JsonObject biomeSource,
+                                      RegionLayout.Plan regions, CompileReport.Entry entry) {
+        ZonesCompiler.Plan zones = ZonesCompiler.plan(slug, namespace, def, known, entry);
+        JsonObject generator = new JsonObject();
+        generator.addProperty("type", "minecraft:noise");
+        JsonObject source = zones == null ? biomeSource : ZonesCompiler.biomeSource(zones, biomeSource,
+                "nether".equals(preset) ? "nether" : "overworld", vanilla, known, version, entry);
+        generator.add("biome_source", regions == null ? source : ZonesCompiler.withRegions(source, regions.regions()));
+        generator.addProperty("settings", noiseSettings(slug, def, preset, zones, regions == null ? null : regions.places(), entry));
+        if (zones != null) {
+            zones.files().forEach((path, json) -> put(path, sorted(json), entry));
+        }
+        return generator;
+    }
+
+    /**
+     * {@code spec} with the palette of each library biome the dimension lists,
+     * stamps or swaps to, after the definition's own per-biome palettes; a
+     * definition's own entry for that biome wins.
+     */
+    private MaterialsCompiler.Spec withLibraryPalettes(MaterialsCompiler.Spec spec, Definition def, ZonesCompiler.Plan zones,
+                                                      String preset, CompileReport.Entry entry) {
+        List<String> listed = new ArrayList<>();
+        def.biomes().forEach(b -> listed.add(b.id()));
+        if (def.generator().biome() != null) listed.add(def.generator().biome());
+        if (zones != null) {
+            for (com.customdimensions.core.zone.ZoneSpec zone : zones.zones()) {
+                zone.biomes().forEach(b -> listed.add(b.id()));
+                listed.addAll(zone.swap().values());
+            }
+        }
+        Map<String, MaterialsCompiler.Palette> biomes = new java.util.LinkedHashMap<>(spec.biomes());
+        List<String> applied = new ArrayList<>();
+        for (String id : library.named(namespace, listed)) {
+            MaterialsCompiler.Palette palette = library.get(namespace, id).orElseThrow().palette();
+            if (palette.isEmpty() || biomes.containsKey(id)) continue;
+            biomes.put(id, palette);
+            applied.add("`" + id + "`");
+        }
+        if (!applied.isEmpty()) entry.note("Library palette(s) for " + String.join(", ", applied));
+        List<String> ground = new ArrayList<>();
+        if (!"nether".equals(preset)) {
+            for (String id : new LinkedHashSet<>(listed)) {
+                MaterialsCompiler.Palette palette = MaterialsCompiler.NETHER_GROUND.get(id);
+                if (palette == null || biomes.containsKey(id)) continue;
+                biomes.put(id, palette);
+                ground.add("`" + id + "`");
+            }
+            if (!ground.isEmpty()) entry.note("Nether ground for " + String.join(", ", ground) + " on the " + preset + " preset");
+        }
+        MaterialsCompiler.Spec out = spec.withBiomes(biomes);
+        if ("caves".equals(preset) && !spec.dimension().blocks().containsKey("top")) {
+            out = out.withFloor(MaterialsCompiler.SUNLESS_FLOOR, MaterialsCompiler.ownFloors(vanilla));
+            entry.note("Under the caves preset's ceiling, `" + MaterialsCompiler.SUNLESS_FLOOR + "` tops the dry floors of biomes with no "
+                    + "floor of their own and no palette top, where vanilla lays grass");
+        }
+        return out;
+    }
+
+    /**
+     * The noise settings id: the preset's vanilla settings (each preset is named
+     * after them), or {@code <ns>:<slug>} written from them when liquids, the
+     * default block, the material palette or the ore veins change; a changed
+     * material rule is written as {@code <ns>:<slug>} too.
+     */
+    private String noiseSettings(String slug, Definition def, String preset, ZonesCompiler.Plan zones, PlaceLayout.Places places,
+                                 CompileReport.Entry entry) {
+        Liquids liquids = def.liquids();
+        String defaultBlock = defaultBlock(def);
+        boolean changesLiquids = LiquidsCompiler.changesSettings(liquids);
+        boolean removesIsland = "end".equals(preset) && Boolean.FALSE.equals(def.generator().endIsland());
+        TerrainSpec terrain = TerrainSpec.parse(slug, def.terrain());
+        JsonObject settings = vanilla.noiseSettings(preset);
+        com.customdimensions.compiler.terrain.TerrainShaping shaping = TerrainSpec.presetShaping(slug, def.terrain());
+        boolean climateOnly = shaping != null && TerrainLibrary.CLIMATE_ONLY.contains(preset);
+        if (climateOnly) {
+            TerrainLibrary.checkClimateOnly(slug, preset, shaping);
+        }
+        JsonObject voidCells = checkerVoid(slug, def, entry);
+        boolean shapesEnd = terrain != null && terrain.family() == com.customdimensions.compiler.terrain.TerrainFamily.END;
+        if (shapesEnd) {
+            TerrainLibrary.Compiled compiled = TerrainLibrary.compileEnd(slug, namespace, slug, terrain, preset, settings, !removesIsland);
+            compiled.files().forEach((path, json) -> put(path, sorted(json), entry));
+            entry.note("Terrain `end` (" + terrain.setting() + ") under `" + namespace + ":terrain/" + slug + "/`: the End's islands"
+                    + (removesIsland ? " without the central island" : "") + ", which its biomes read as their shape");
+            settings = compiled.settings();
+            removesIsland = false;
+        } else if (terrain != null) {
+            settings = terrain(slug, preset, terrain, settings, liquids, def, entry);
+        } else if (shaping != null && !climateOnly) {
+            TerrainLibrary.Compiled compiled = TerrainLibrary.shapePreset(slug, namespace, slug, shaping, preset, settings, vanilla);
+            landShared(compiled.files(), slug, shaping, RegionLayout.Coast.VANILLA.line(), def, entry).forEach((path, json) -> put(path, sorted(json), entry));
+            entry.note("Preset `" + preset + "` terrain shaped (scales, layout) under `" + namespace + ":terrain/" + slug + "/`");
+            settings = compiled.settings();
+        }
+        boolean borrowsClimate = false;
+        if (!def.biomes().isEmpty() && CONSTANT_CLIMATE.contains(preset)) {
+            JsonObject router = settings.getAsJsonObject("noise_router");
+            JsonObject overworld = vanilla.noiseSettings("overworld").getAsJsonObject("noise_router");
+            for (String key : List.of("temperature", "vegetation")) {
+                if (router.get(key).isJsonPrimitive() && router.get(key).getAsJsonPrimitive().isNumber()) {
+                    router.add(key, overworld.get(key).deepCopy());
+                    borrowsClimate = true;
+                }
+            }
+        }
+        double climate = climateOnly ? shaping.stretch("temperature")
+                : terrain != null && terrain.family().ownRouter() ? terrain.shaping().stretch("temperature") : 1;
+        com.customdimensions.compiler.terrain.TerrainShaping.Climate climateMods = climateOnly ? shaping.climate()
+                : terrain != null && terrain.family().ownRouter() ? terrain.shaping().climate()
+                : com.customdimensions.compiler.terrain.TerrainShaping.Climate.NONE;
+        if (climate != 1 || !climateMods.isNone()) {
+            TerrainLibrary.Climate stretched = TerrainLibrary.stretchClimate(namespace, slug, settings, climate, climateMods, vanilla);
+            stretched.files().forEach((path, json) -> put(path, sorted(json), entry));
+            entry.note(stretched.stretched()
+                    ? (climate != 1 ? "Climate (temperature, vegetation) stretched " + climate + "x" : "Climate (temperature, vegetation)")
+                    + (climateMods.isNone() ? "" : " shifted and warped") + " under `" + namespace + ":terrain/" + slug + "/`"
+                    : (climateMods.isNone() ? "terrain.scales.climate has no effect" : "terrain.scales.climate, climateShift and climateWarp have no effect")
+                    + ": the " + preset
+                    + " preset's biomes read no climate without a biome list");
+        }
+        if (places != null) placeField(slug, def, places, settings, entry);
+        if (voidCells != null) {
+            JsonObject router = settings.getAsJsonObject("noise_router");
+            router.add("final_density", TerrainLibrary.voided(router.get("final_density"), voidCells));
+            settings.remove("aquifers");
+            settings.addProperty("default_fluid", "minecraft:air");
+            settings.addProperty("sea_level", settings.getAsJsonObject("noise").get("min_y").getAsInt());
+            if (liquids != null && liquids.seaLevel() != null) entry.unsupported("liquids.seaLevel", "a sea would fill the void cells");
+            entry.note("No sea and no aquifers: the sea and the aquifers' water would fill the void cells");
+        }
+        boolean changesZones = zones != null && zones.changesSettings();
+        if (changesZones) {
+            settings = ZonesCompiler.apply(zones, settings, preset, liquids != null ? liquids.seaLevel() : null, vanilla,
+                    this::densityFunction, entry);
+        }
+        int seaLevel = liquids != null && liquids.seaLevel() != null ? liquids.seaLevel() : settings.get("sea_level").getAsInt();
+        JsonObject materialRule = MaterialsCompiler.compose(vanilla, settings.get("material_rule").getAsString(),
+                withLibraryPalettes(MaterialsCompiler.read(slug, def.materials()), def, zones, preset, entry), OresCompiler.veins(OresCompiler.read(slug, def.ores()), vanilla),
+                seaLevel, settings.has("default_block") ? settings.get("default_block").getAsString() : null, defaultBlock);
+        if (!changesLiquids && defaultBlock == null && !removesIsland && materialRule == null && terrain == null && shaping == null
+                && !changesZones && !borrowsClimate && voidCells == null && places == null) {
+            return "minecraft:" + preset;
+        }
+        if (removesIsland) {
+            settings = withoutCentralIsland(settings, entry);
+        }
+        if (liquids != null) {
+            LiquidsCompiler.apply(slug, preset, liquids, settings);
+        }
+        String id = namespace + ":" + slug;
+        if (materialRule != null) {
+            put(dataPath(id, "worldgen/material_rule"), sorted(materialRule), entry);
+            settings.addProperty("material_rule", id);
+        }
+        if (version.noiseSettingsDefaultBlock()) {
+            if (defaultBlock != null) {
+                settings.addProperty("default_block", defaultBlock);
+            }
+        } else {
+            settings.remove("default_block");
+            if (defaultBlock != null) {
+                settings.add("material_rule", withFallback(settings.get("material_rule"), defaultBlock));
+            }
+        }
+        put(dataPath(id, "worldgen/noise_settings"), sorted(settings), entry);
+        return id;
+    }
+
+    /** {@code settings}' router with its first region axis replaced by the place field of {@code places}; the field goes into the pack. */
+    private void placeField(String slug, Definition def, PlaceLayout.Places places, JsonObject settings, CompileReport.Entry entry) {
+        int radius = RegionLayout.radius(def.borders());
+        com.customdimensions.compiler.terrain.PlaceField.Warp warp = PlaceLayout.warp(slug, def, places, radius);
+        com.customdimensions.compiler.terrain.PlaceField.Compiled field = com.customdimensions.compiler.terrain.PlaceField.compile(
+                namespace, slug, radius, places.arrangements(), places.symmetries(), warp);
+        field.files().forEach((path, json) -> put(path, sorted(json), entry));
+        String key = "temperature".equals(places.axis()) ? "temperature" : "vegetation";
+        settings.getAsJsonObject("noise_router").addProperty(key, field.id());
+        entry.note("The router's " + key + " is the place field `" + field.id() + "` (" + field.nodes() + " nodes" + (warp.blocks() > 0
+                ? ", edges warped " + Math.round(warp.blocks()) + " blocks over " + Math.round(warp.wavelength()) : ", edges unwarped") + ")");
+        com.customdimensions.compiler.terrain.PlaceField.Warp terrain = PlaceLayout.terrainWarp(slug, def);
+        if (places.warp() == null && terrain != null && terrain.blocks() > warp.blocks()) {
+            entry.note("The places take terrain.climateWarp at " + Math.round(warp.blocks()) + " of its " + Math.round(terrain.blocks())
+                    + " blocks: more than " + com.customdimensions.compiler.terrain.PlaceField.MAX_WARP_RATIO
+                    + " of the wavelength could split a place; biomeLayout.places.warp sets the places' own");
+        }
+    }
+
+    /** The settings with a library terrain's router; its density functions and noises go into the pack. */
+    private JsonObject terrain(String slug, String preset, TerrainSpec terrain, JsonObject settings, Liquids liquids, Definition def,
+                               CompileReport.Entry entry) {
+        TerrainLibrary.Biomes biomes = RegionLayout.biomes(slug, def, roles());
+        TerrainLibrary.Compiled compiled = TerrainLibrary.compile(slug, namespace, slug, terrain, preset, settings,
+                liquids != null ? liquids.seaLevel() : null, vanilla, biomes);
+        if (biomes.place() && terrain.family().roofed()) {
+            entry.note("The router's continentalness is the floor against the sea at y " + liquids.seaLevel() + ", (floor - "
+                    + liquids.seaLevel() + ") / " + (int) com.customdimensions.compiler.terrain.RoofedTerrain.COAST_BLOCKS
+                    + ": below 0 under the sea, which its sea, shore and land biomes follow");
+        } else if (biomes.place()) {
+            entry.note("The router's continentalness is the terrain's place cue (void, basin water, land), which its biome regions follow");
+        }
+        if (!biomes.belowFloor().isEmpty()) {
+            entry.note("The router's depth reads " + com.customdimensions.compiler.terrain.RoofedTerrain.BAND + " and more from "
+                    + biomes.belowFloor().getFirst() + " blocks under the floor, so the below-floor biomes hold the ground under every place");
+        }
+        if (biomes.underside()) entry.note("The router's depth is measured down from the islands' tops, so an underside biome takes the islands below them");
+        Map<String, JsonObject> files = compiled.files();
+        if (terrain.shaping().landShare() != null) {
+            if (terrain.family().shore(terrain) == null || terrain.family() == com.customdimensions.compiler.terrain.TerrainFamily.ISLANDS) {
+                throw new IllegalArgumentException(slug + ": terrain.landShare sets where continentalness meets the sea of a land terrain or "
+                        + "the overworld presets; " + terrain.family().id() + (terrain.airborne() ? " hangs over a void" : " draws its own coast"));
+            }
+            files = landShared(files, slug, terrain.shaping(), terrain.param("coast"), def, entry);
+        }
+        files.forEach((path, json) -> put(path, sorted(json), entry));
+        String roofed = "";
+        if (terrain.family().roofed()) {
+            JsonObject out = compiled.settings();
+            double sea = liquids != null && liquids.seaLevel() != null ? liquids.seaLevel() : out.get("sea_level").getAsInt();
+            String fluid = liquids != null && liquids.defaultFluid() != null ? liquids.defaultFluid() : out.get("default_fluid").getAsString();
+            roofed = ": " + TerrainLibrary.describeRoofed(terrain, sea, fluid.substring(fluid.indexOf(':') + 1));
+        }
+        entry.note("Terrain `" + terrain.family().id() + "` (" + terrain.setting() + ") under `" + namespace + ":terrain/"
+                + slug + "/`" + (terrain.airborne() ? ", over a void with no aquifers" : "") + roofed);
+        return compiled.settings();
+    }
+
+    /** A density function by id, from this pack or vanilla's; null when neither has it. */
+    /** {@code files} with the terrain's continentalness held to {@code terrain.landShare} of the player border, noted in the report. */
+    private Map<String, JsonObject> landShared(Map<String, JsonObject> files, String slug, com.customdimensions.compiler.terrain.TerrainShaping shaping,
+                                               double coast, Definition def, CompileReport.Entry entry) {
+        if (shaping.landShare() == null) return files;
+        int radius = RegionLayout.radius(def.borders());
+        entry.note("Land share " + shaping.landShare() + ": at load the level's continentalness is shifted so that share of a " + radius
+                + "-block radius lies at or above the coast (" + coast + "), measured from the seed's own noise");
+        return TerrainLibrary.withLandShare(files, namespace, slug, shaping, coast, radius);
+    }
+
+    private JsonObject densityFunction(String id) {
+        String own = files.get(dataPath(id, "worldgen/density_function"));
+        if (own != null) return com.google.gson.JsonParser.parseString(own).getAsJsonObject();
+        return id.startsWith("minecraft:") ? vanilla.densityFunction(id.substring("minecraft:".length())) : null;
+    }
+
+    /** The material rule, then {@code block} as the last entry of a sequence: what no earlier rule claims. */
+    static JsonObject withFallback(JsonElement rule, String block) {
+        JsonObject fallback = new JsonObject();
+        fallback.addProperty("type", "minecraft:block");
+        fallback.addProperty("result_state", block);
+        JsonArray sequence = new JsonArray();
+        sequence.add(rule.deepCopy());
+        sequence.add(fallback);
+        JsonObject out = new JsonObject();
+        out.addProperty("type", "minecraft:sequence");
+        out.add("sequence", sequence);
+        return out;
+    }
+
+    /**
+     * The End's noise settings with vanilla's island function replaced by a copy
+     * that keeps only {@code end_outer_islands}: vanilla's is the maximum of a
+     * {@code distance_to_point} dome around 0,0 and the outer islands.
+     */
+    private JsonObject withoutCentralIsland(JsonObject settings, CompileReport.Entry entry) {
+        JsonObject islands = vanilla.densityFunction("end/islands");
+        JsonObject max = islands.getAsJsonObject("input");
+        if (!"minecraft:max".equals(max.get("type").getAsString())) {
+            throw new IllegalStateException("vanilla's end/islands is no longer a max; the central island cannot be removed");
+        }
+        islands.add("input", max.get("right"));
+        String islandsId = namespace + ":" + NO_CENTRAL_ISLAND + "/islands";
+        String cheeseId = namespace + ":" + NO_CENTRAL_ISLAND + "/sloped_cheese";
+        JsonObject cheese = vanilla.densityFunction("end/sloped_cheese");
+        JsonElement replaced = replaceIds(cheese, Map.of(END_ISLANDS, islandsId));
+        put(dataPath(islandsId, "worldgen/density_function"), sorted(islands), entry);
+        put(dataPath(cheeseId, "worldgen/density_function"), sorted(replaced.getAsJsonObject()), entry);
+        return replaceIds(settings, Map.of(END_ISLANDS, islandsId, END_SLOPED_CHEESE, cheeseId)).getAsJsonObject();
+    }
+
+    /** A copy of {@code e} with every string equal to a key replaced by its value. */
+    static JsonElement replaceIds(JsonElement e, Map<String, String> ids) {
+        if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString() && ids.containsKey(e.getAsString())) {
+            return new com.google.gson.JsonPrimitive(ids.get(e.getAsString()));
+        }
+        if (e.isJsonObject()) {
+            JsonObject out = new JsonObject();
+            e.getAsJsonObject().entrySet().forEach(kv -> out.add(kv.getKey(), replaceIds(kv.getValue(), ids)));
+            return out;
+        }
+        if (e.isJsonArray()) {
+            JsonArray out = new JsonArray();
+            e.getAsJsonArray().forEach(v -> out.add(replaceIds(v, ids)));
+            return out;
+        }
+        return e.deepCopy();
+    }
+
+    private static String defaultBlock(Definition def) {
+        JsonObject materials = def.materials();
+        if (materials == null || !materials.has("defaultBlock") || materials.get("defaultBlock").isJsonNull()) {
+            return null;
+        }
+        return materials.get("defaultBlock").getAsString();
+    }
+
+    private JsonObject noiseBiomeSource(Definition def, CompileReport.Entry entry) {
+        String preset = def.generator().preset();
+        List<BiomeEntry> biomes = def.biomes();
+        if (OVERWORLD_FAMILY.contains(preset)) {
+            return biomes.isEmpty() ? multiNoisePreset("overworld") : filtered("overworld", biomes, entry);
+        }
+        if ("nether".equals(preset)) {
+            return biomes.isEmpty() ? multiNoisePreset("nether") : filtered("nether", biomes, entry);
+        }
+        if (!biomes.isEmpty()) {
+            String list = isNetherIslands(biomes) ? "nether" : "overworld";
+            entry.note("A biome list in End terrain: the router's temperature and vegetation are the overworld's, "
+                    + "so the " + list + " layout spreads them across the islands");
+            return filtered(list, biomes, entry);
+        }
+        JsonObject source = new JsonObject();
+        source.addProperty("type", "minecraft:the_end");
+        return source;
+    }
+
+    /** An End-preset definition whose biomes include any of the Nether's. */
+    private boolean isNetherIslands(List<BiomeEntry> biomes) {
+        Set<String> nether = new LinkedHashSet<>();
+        for (JsonElement e : vanilla.biomeParameters("nether")) {
+            nether.add(e.getAsJsonObject().get("biome").getAsString());
+        }
+        return biomes.stream().anyMatch(b -> nether.contains(b.id()));
+    }
+
+    private static JsonObject multiNoisePreset(String list) {
+        JsonObject source = new JsonObject();
+        source.addProperty("type", "minecraft:multi_noise");
+        source.addProperty("preset", "minecraft:" + list);
+        return source;
+    }
+
+    private static JsonObject multiNoise(JsonArray entries) {
+        JsonObject source = new JsonObject();
+        source.addProperty("type", "minecraft:multi_noise");
+        source.add("biomes", entries);
+        return source;
+    }
+
+    /**
+     * {@code minecraft:multi_noise} with the vanilla {@code list} entries whose
+     * biome the definition names, in vanilla's order.
+     */
+    JsonObject filtered(String list, List<BiomeEntry> biomes, CompileReport.Entry entry) {
+        JsonObject source = new JsonObject();
+        source.addProperty("type", "minecraft:multi_noise");
+        source.add("biomes", BiomeLayout.partition(biomes, list, vanilla.biomeParameters(list), known,
+                version.multiNoiseDisjoint(), version.id(), entry));
+        return source;
+    }
+
+    private JsonObject checkerboard(Definition def, CompileReport.Entry entry) {
+        JsonArray biomes = new JsonArray();
+        Set<String> seen = new LinkedHashSet<>();
+        for (BiomeEntry b : def.biomes()) {
+            if (!known.contains(b.id())) {
+                entry.skippedBiome(b.id(), UNKNOWN_BIOME);
+            } else if (seen.add(b.id())) {
+                biomes.add(b.id());
+            }
+        }
+        if (biomes.isEmpty()) {
+            biomes.add("minecraft:plains");
+            entry.note(FALLBACK_NOTE + ": no listed biome is vanilla, so the checkerboard is all `minecraft:plains`");
+        }
+        JsonObject source = new JsonObject();
+        source.addProperty("type", "minecraft:checkerboard");
+        source.add("biomes", biomes);
+        Integer scale = def.generator().cellScale();
+        source.addProperty("scale", scale != null ? scale : DEFAULT_CHECKERBOARD_SCALE);
+        return source;
+    }
+
+    /**
+     * {@code generator.voidBiomes}: a {@code customdimensions:checker_cells} function, 1 in the checkerboard cells of
+     * the listed biomes, which the router's final density is held at or below -1 in; null without the field.
+     */
+    private JsonObject checkerVoid(String slug, Definition def, CompileReport.Entry entry) {
+        List<String> listed = def.generator().voidBiomes();
+        if (listed == null || !Generator.CHECKERBOARD.equals(def.generator().type())) return null;
+        List<String> order = new ArrayList<>();
+        for (BiomeEntry b : def.biomes()) {
+            if (known.contains(b.id()) && !order.contains(b.id())) order.add(b.id());
+        }
+        JsonArray cells = new JsonArray();
+        for (String id : listed) {
+            int i = order.indexOf(id);
+            if (i < 0) throw new IllegalArgumentException(slug + ": generator.voidBiomes." + id + " is not a biome the checkerboard lays");
+            cells.add(i);
+        }
+        if (cells.size() == order.size()) throw new IllegalArgumentException(slug + ": generator.voidBiomes lists every biome; use the void generator");
+        Integer scale = def.generator().cellScale();
+        JsonObject f = new JsonObject();
+        f.addProperty("type", CHECKER_CELLS);
+        f.addProperty("scale", scale != null ? scale : DEFAULT_CHECKERBOARD_SCALE);
+        f.addProperty("count", order.size());
+        f.add("cells", cells);
+        entry.note("Checkerboard cells of " + listed + " carry no terrain: the final density is held at -1 there ("
+                + com.customdimensions.core.zone.CheckerCells.width(scale != null ? scale : DEFAULT_CHECKERBOARD_SCALE) + "-block cells)");
+        return f;
+    }
+
+    private JsonObject fixed(String biome, CompileReport.Entry entry) {
+        JsonObject source = new JsonObject();
+        source.addProperty("type", "minecraft:fixed");
+        source.addProperty("biome", flatBiome(biome, "minecraft:plains", entry));
+        return source;
+    }
+
+    private String flatBiome(String biome, String fallback, CompileReport.Entry entry) {
+        if (biome == null) {
+            return fallback;
+        }
+        if (!known.contains(biome)) {
+            entry.skippedBiome(biome, UNKNOWN_BIOME);
+            entry.note(FALLBACK_NOTE + ": `" + fallback + "` replaces `" + biome + "`");
+            return fallback;
+        }
+        return biome;
+    }
+
+    /** Whether a void world lays out its biomes: more than one known biome listed, or a biome layout. */
+    private boolean placesBiomes(Definition def) {
+        if (def.biomeLayout() != null) return true;
+        return def.biomes().stream().map(BiomeEntry::id).filter(known::contains).distinct().count() > 1;
+    }
+
+    /**
+     * A void world that places its listed biomes: a noise generator on the overworld's climate whose final
+     * density is -1 everywhere, so no block generates, with no aquifers and its sea at the bottom of the
+     * world; the biomes are laid out as a noise world's are, by climate box or {@code biomeLayout}.
+     */
+    private JsonObject voidNoise(String slug, Definition def, CompileReport.Entry entry) {
+        if (def.liquids() != null) entry.unsupported("liquids", "a void world has no sea or fluid");
+        if (def.materials() != null) {
+            for (String key : def.materials().keySet()) entry.unsupported("materials." + key, "a void world has no blocks");
+        }
+        if (def.ores() != null) entry.unsupported("ores", "a void world has no stone for ores");
+        if (def.terrain() != null) entry.unsupported("terrain", "a void world has no terrain");
+        RegionLayout.Plan regions = def.biomeLayout() == null ? null : RegionLayout.plan(slug, def.biomes(), def.biomeLayout(),
+                RegionLayout.radius(def.borders()), known, entry, null, roles(), null);
+        JsonObject biomeSource = regions == null ? filtered("overworld", def.biomes(), entry) : multiNoise(regions.entries());
+        ZonesCompiler.Plan zones = ZonesCompiler.plan(slug, namespace, def, known, entry);
+        if (zones != null && zones.changesSettings()) entry.unsupported("zones", "a void world's zones place biomes only, no terrain");
+        JsonObject source = zones == null ? biomeSource : ZonesCompiler.biomeSource(zones, biomeSource, "overworld", vanilla, known, version, entry);
+        JsonObject generator = new JsonObject();
+        generator.addProperty("type", "minecraft:noise");
+        generator.add("biome_source", regions == null ? source : ZonesCompiler.withRegions(source, regions.regions()));
+        JsonObject settings = vanilla.noiseSettings("overworld");
+        JsonObject router = settings.getAsJsonObject("noise_router");
+        router.addProperty("final_density", -1.0);
+        if (regions != null && regions.places() != null) placeField(slug, def, regions.places(), settings, entry);
+        settings.remove("aquifers");
+        settings.remove("debug_functions");
+        settings.addProperty("sea_level", settings.getAsJsonObject("noise").get("min_y").getAsInt());
+        settings.addProperty("default_fluid", "minecraft:air");
+        if (!version.noiseSettingsDefaultBlock()) settings.remove("default_block");
+        String id = namespace + ":" + slug;
+        put(dataPath(id, "worldgen/noise_settings"), sorted(settings), entry);
+        generator.addProperty("settings", id);
+        entry.note("Void world placing its biomes: a noise generator on the overworld's climate with final density -1, so no block "
+                + "generates, no aquifers and its sea at the bottom of the world");
+        return generator;
+    }
+
+    /** A void world's biome: the first vanilla biome it lists, else {@code minecraft:the_void}. */
+    private String voidBiome(Definition def, CompileReport.Entry entry) {
+        String chosen = null;
+        for (BiomeEntry b : def.biomes()) {
+            if (!known.contains(b.id())) {
+                entry.skippedBiome(b.id(), UNKNOWN_BIOME);
+            } else if (chosen == null) {
+                chosen = b.id();
+            } else if (!chosen.equals(b.id())) {
+                entry.skippedBiome(b.id(), "a void world takes one biome; `" + chosen + "` is first");
+            }
+        }
+        return chosen != null ? chosen : "minecraft:the_void";
+    }
+
+    private static JsonArray layers(List<JsonObject> layers) {
+        JsonArray out = new JsonArray();
+        if (layers != null) {
+            layers.forEach(l -> out.add(l.deepCopy()));
+        }
+        return out;
+    }
+
+    private static JsonObject flat(String biome, JsonArray layers, Definition def, CompileReport.Entry entry) {
+        if (def.liquids() != null) {
+            entry.unsupported("liquids", "a flat generator has no sea level or fluid");
+        }
+        if (def.materials() != null) {
+            for (String key : def.materials().keySet()) {
+                entry.unsupported("materials." + key, "a flat generator is made of its layers");
+            }
+        }
+        if (def.ores() != null) {
+            entry.unsupported("ores", "a flat generator places no features");
+        }
+        JsonObject settings = new JsonObject();
+        settings.addProperty("biome", biome);
+        settings.addProperty("features", false);
+        settings.addProperty("lakes", false);
+        settings.add("layers", layers);
+        settings.add("structure_overrides", new JsonArray());
+        JsonObject generator = new JsonObject();
+        generator.addProperty("type", "minecraft:flat");
+        generator.add("settings", settings);
+        return generator;
+    }
+
+    // ---- report -----------------------------------------------------------------------------
+
+    private void reportRuntimeFields(Definition def, CompileReport.Entry entry) {
+        if (def.borders() != null) {
+            entry.unsupported("borders", "world borders are set by the runtime, M2");
+        }
+        if (def.seed() != null) {
+            entry.unsupported("seed", "a level stem has no seed; the runtime seeds the level (RB-37)");
+        }
+        if (!def.gameRules().isEmpty()) {
+            entry.unsupported("gameRules", "game rules are runtime state; the runtime holds them per level (RB-38)");
+        }
+        if (def.spawn() != null) {
+            entry.unsupported("spawn", "spawn is placed by the runtime, M2");
+        }
+        String generatorType = def.generator().type();
+        if (!def.zones().isEmpty() && (Generator.FLAT.equals(generatorType) || Generator.VOID.equals(generatorType))) {
+            entry.unsupported("zones", "a " + generatorType + " generator has no noise router or biome layout");
+        }
+        JsonObject terrain = def.terrain();
+        String type = def.generator().type();
+        if (terrain != null && terrain.has("base") && !terrain.get("base").isJsonNull()
+                && (Generator.FLAT.equals(type) || Generator.VOID.equals(type))) {
+            entry.unsupported("terrain", "a " + type + " generator has no noise terrain");
+        }
+    }
+
+    // ---- helpers ----------------------------------------------------------------------------
+
+    /** A file no one definition owns: the biome library's. */
+    /** Each vanilla-visible file that names a type of ours in its vanilla form, the compiled form beside it ({@link VanillaForms}). */
+    private void vanillaForms() {
+        Map<String, String> moved = new TreeMap<>();
+        SortedMap<String, String> split = VanillaForms.split(files, moved);
+        files.clear();
+        files.putAll(split);
+        for (CompileReport.Entry e : report.entries().values()) {
+            moved.forEach((path, runtime) -> {
+                if (e.emitted().contains(path)) e.emitted(runtime);
+            });
+        }
+        VanillaForms.check(files);
+    }
+
+    private void putShared(String path, JsonObject json) {
+        files.put(path, JsonWriter.write(json));
+    }
+
+    private void put(String path, JsonObject json, CompileReport.Entry entry) {
+        String text = JsonWriter.write(json);
+        String existing = files.putIfAbsent(path, text);
+        if (existing != null && !existing.equals(text)) {
+            throw new IllegalStateException(path + " is emitted twice with different content");
+        }
+        entry.emitted(path);
+    }
+
+    /** {@code ns:path} in {@code folder} to {@code data/ns/folder/path.json}. */
+    public static String dataPath(String id, String folder) {
+        int colon = id.indexOf(':');
+        return "data/" + id.substring(0, colon) + "/" + folder + "/" + id.substring(colon + 1) + ".json";
+    }
+
+    static JsonObject packMeta(VersionTable.Version version, int definitions) {
+        JsonObject pack = new JsonObject();
+        pack.addProperty("description", "custom-dimensions: " + definitions + " dimension definitions compiled for Minecraft "
+                + version.id());
+        pack.addProperty("min_format", version.packFormat());
+        pack.addProperty("max_format", version.packFormat());
+        JsonObject meta = new JsonObject();
+        meta.add("pack", pack);
+        return meta;
+    }
+
+    /** {@code #4A2C6B} as vanilla writes colours: lower case. */
+    static String colour(String hex) {
+        return hex.toLowerCase(Locale.ROOT);
+    }
+
+    /** A copy with every object's keys in sorted order, as vanilla writes its files. */
+    static JsonObject sorted(JsonObject o) {
+        return (JsonObject) sortedElement(o);
+    }
+
+    private static JsonElement sortedElement(JsonElement e) {
+        if (e.isJsonObject()) {
+            JsonObject out = new JsonObject();
+            new TreeMap<>(e.getAsJsonObject().asMap()).forEach((k, v) -> out.add(k, sortedElement(v)));
+            return out;
+        }
+        if (e.isJsonArray()) {
+            JsonArray out = new JsonArray();
+            e.getAsJsonArray().forEach(v -> out.add(sortedElement(v)));
+            return out;
+        }
+        return e.deepCopy();
+    }
+
+    private static JsonObject attributes(JsonObject type) {
+        if (!type.has("attributes")) {
+            type.add("attributes", new JsonObject());
+        }
+        return type.getAsJsonObject("attributes");
+    }
+
+    private static void copyOrRemove(JsonObject from, JsonObject to, String key) {
+        if (from.has(key)) {
+            to.add(key, from.get(key).deepCopy());
+        } else {
+            to.remove(key);
+        }
+    }
+
+    private static void setIfPresent(JsonObject o, String key, Number value) {
+        if (value != null) {
+            o.addProperty(key, value);
+        }
+    }
+
+    private static void setIfPresent(JsonObject o, String key, Boolean value) {
+        if (value != null) {
+            o.addProperty(key, value);
+        }
+    }
+
+    private static List<Path> definitionFiles(Path dir) {
+        try (Stream<Path> files = Files.list(dir)) {
+            return files.filter(p -> p.getFileName().toString().endsWith(".json"))
+                    .filter(p -> !p.getFileName().toString().equals("settings.json"))
+                    .sorted(Comparator.comparing(p -> p.getFileName().toString()))
+                    .toList();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /** Empties {@code packDir}; refuses a non-empty directory that is not an earlier pack. */
+    private static void clean(Path packDir) throws IOException {
+        if (!Files.exists(packDir)) {
+            return;
+        }
+        boolean empty;
+        try (Stream<Path> s = Files.list(packDir)) {
+            empty = s.findAny().isEmpty();
+        }
+        if (!empty && !Files.exists(packDir.resolve("pack.mcmeta"))) {
+            throw new IOException(packDir + " is not empty and holds no pack.mcmeta; refusing to replace it");
+        }
+        List<Path> paths = new ArrayList<>();
+        try (Stream<Path> walk = Files.walk(packDir)) {
+            walk.sorted(Comparator.reverseOrder()).forEach(paths::add);
+        }
+        for (Path p : paths) {
+            if (!p.equals(packDir)) {
+                Files.delete(p);
+            }
+        }
+    }
+}

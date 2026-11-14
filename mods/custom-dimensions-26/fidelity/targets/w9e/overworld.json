@@ -1,0 +1,29 @@
+{
+ "slug": "overworld",
+ "targets": [
+  {
+   "key": "placeness.biomeRegions.largestPercent",
+   "op": ">=",
+   "value": 4.1,
+   "from": "meeting: \"wide continents and climate regions, the 1.21.1 wide tune\" (measured 4.6)"
+  },
+  {
+   "key": "placeness.biomeRegions.top3Percent",
+   "op": ">=",
+   "value": 10.8,
+   "from": "meeting: \"wide continents and climate regions, the 1.21.1 wide tune\" (measured 12.1)"
+  },
+  {
+   "key": "placeness.correlationLength.continentalness.blocks",
+   "op": ">=",
+   "value": 2016.0,
+   "from": "meeting: \"wide continents and climate regions, the 1.21.1 wide tune\" (measured 2240)"
+  },
+  {
+   "key": "placeness.biomeRegions.edgeKmPerKm2",
+   "op": "<=",
+   "value": 12.8,
+   "from": "meeting: \"wide continents and climate regions, the 1.21.1 wide tune\" (measured 11.59)"
+  }
+ ]
+}

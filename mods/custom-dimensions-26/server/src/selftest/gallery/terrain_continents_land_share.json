@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: continents held to 80% land over a 512-block border, gathered round the centre by a radial layout; the coast is measured from the seed at load.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "continents",
+    "landShare": 0.8,
+    "layout": {
+      "type": "radial",
+      "radius": 200,
+      "falloff": 300,
+      "strength": 0.4
+    }
+  },
+  "borders": {
+    "player": 512,
+    "generation": 1024
+  }
+}

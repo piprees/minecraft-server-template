@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 2,
+  "description": "A toxic little hell that came apart. Piglin scientists built labs and reactors here to study the sculk infection from the boneyard; the blight won, and took the ground with it. What is left is a tight cluster of floating islands with a long fall between them. Fall off and the blight rejects you rather than killing you. Loot escalates with the danger. The blight is not finished; a build beside the portal is just ground it has not taken yet.",
+  "seed": -4203435855543360977,
+  "spawn": [0, 46, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "end",
+    "endIsland": false
+  },
+  "terrain": {
+    "base": "end",
+    "params": {
+      "coverage": 0.12
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 0],
+      "radius": 200,
+      "falloff": 300,
+      "strength": 0.8
+    },
+    "scales": {
+      "climate": 2
+    }
+  },
+  "biomes": [
+    "adventure:mycotoxic_undergrowth",
+    "minecraft:soul_sand_valley",
+    "adventure:withered_forest",
+    "adventure:ash_barrens",
+    "minecraft:nether_wastes"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:mycotoxic_undergrowth": 30,
+      "minecraft:soul_sand_valley": 25,
+      "adventure:withered_forest": 20,
+      "adventure:ash_barrens": 15,
+      "minecraft:nether_wastes": 10
+    },
+    "over": "land"
+  },
+  "liquids": {
+    "seaLevel": -60,
+    "defaultFluid": "minecraft:lava"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:netherrack"
+  },
+  "atmosphere": {
+    "fogColor": "#3B1B1B",
+    "ambientLight": 0.08
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8,
+    "playerLuck": 2.0,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 100,
+      "endY": 10,
+      "minMultiplier": 1.2,
+      "maxMultiplier": 2.2
+    }
+  },
+  "structures": {
+    "density": "dense",
+    "terrainAdaptation": {
+      "mns:crimson_forge": "platform_skirt"
+    },
+    "force": [
+      {
+        "structure": "mns:crimson_forge",
+        "x": -380,
+        "z": 290,
+        "exclusive": false
+      },
+      {
+        "structure": "ati_structures:warden_monument",
+        "x": -364,
+        "z": 274
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:nether_wart_block",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "8B2B2B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything"
+      }
+    }
+  ],
+  "exits": {
+    "void": {
+      "action": "teleport",
+      "target": "origin"
+    }
+  },
+  "roll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "adventure:mycotoxic_undergrowth",
+      "minecraft:soul_sand_valley",
+      "adventure:withered_forest"
+    ],
+    "wants": {
+      "mns:copper_tower": "near_spawn",
+      "mns:crimson_forge": "spread",
+      "bastion": "spread",
+      "mns:mega_fortress": "spread",
+      "mns:bridge_1": "spread"
+    },
+    "shuns": [
+      "towns_and_towers:exclusives/village_piglin",
+      "crimson_fungus",
+      "mvs:large_warped_tower"
+    ],
+    "terrain": "islands",
+    "water": "none"
+  }
+}

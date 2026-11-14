@@ -1,0 +1,11 @@
+{
+  "base": "minecraft:overworld",
+  "changed": {
+    "default_fluid": "minecraft:air",
+    "noise_router": "sha1:be510265d453c1921aafaeb3264f679f8171352e",
+    "sea_level": -64
+  },
+  "removed": [
+    "aquifers"
+  ]
+}

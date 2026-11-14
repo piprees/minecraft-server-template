@@ -1,0 +1,17 @@
+{
+ "slug": "the_pillared_void",
+ "targets": [
+  {
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 80,
+   "from": "place kind one place, deliberately empty: each pillar one biome (pillars are under a hectare, so specks measure nothing here)"
+  },
+  {
+   "key": "placeness.landBiomeRegions.biomesPercent.minecraft:end_barrens + placeness.landBiomeRegions.biomesPercent.minecraft:the_end",
+   "op": ">=",
+   "value": 50,
+   "from": "\"void, with tall thin pillars\": bare End stone pillars lead"
+  }
+ ]
+}

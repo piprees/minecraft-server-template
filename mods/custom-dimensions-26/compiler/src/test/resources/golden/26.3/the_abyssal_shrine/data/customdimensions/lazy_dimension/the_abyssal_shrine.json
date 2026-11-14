@@ -1,0 +1,180 @@
+{
+  "type": "adventure:the_abyssal_shrine",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "customdimensions:zoned",
+      "base": {
+        "type": "minecraft:multi_noise",
+        "biomes": [
+          {
+            "biome": "minecraft:deep_cold_ocean",
+            "parameters": {
+              "temperature": [-2.0, 2.0],
+              "humidity": [-2.0, 0.2],
+              "continentalness": [-0.7, 0.05],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:deep_ocean",
+            "parameters": {
+              "temperature": [-2.0, 2.0],
+              "humidity": [0.2, 2.0],
+              "continentalness": [-0.7, 0.05],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:sky_highlands",
+            "parameters": {
+              "temperature": [-2.0, 0.0],
+              "humidity": [0.2, 2.0],
+              "continentalness": [-2.0, -0.7],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:sky_highlands",
+            "parameters": {
+              "temperature": [-2.0, 0.0],
+              "humidity": [0.2, 2.0],
+              "continentalness": [0.05, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:sky_highlands",
+            "parameters": {
+              "temperature": [-2.0, 0.0],
+              "humidity": [-2.0, 0.2],
+              "continentalness": [-2.0, -0.7],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:sky_highlands",
+            "parameters": {
+              "temperature": [-2.0, 0.0],
+              "humidity": [-2.0, 0.2],
+              "continentalness": [0.05, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:umbral_wastes",
+            "parameters": {
+              "temperature": [0.0, 2.0],
+              "humidity": [-2.0, -0.2],
+              "continentalness": [-2.0, -0.7],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:umbral_wastes",
+            "parameters": {
+              "temperature": [0.0, 2.0],
+              "humidity": [-2.0, -0.2],
+              "continentalness": [0.05, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:chalk_cliffs",
+            "parameters": {
+              "temperature": [0.0, 2.0],
+              "humidity": [0.2, 2.0],
+              "continentalness": [-2.0, -0.7],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:chalk_cliffs",
+            "parameters": {
+              "temperature": [0.0, 2.0],
+              "humidity": [0.2, 2.0],
+              "continentalness": [0.05, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:chalk_cliffs",
+            "parameters": {
+              "temperature": [0.0, 2.0],
+              "humidity": [-0.2, 0.2],
+              "continentalness": [-2.0, -0.7],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:chalk_cliffs",
+            "parameters": {
+              "temperature": [0.0, 2.0],
+              "humidity": [-0.2, 0.2],
+              "continentalness": [0.05, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          }
+        ]
+      },
+      "regions": {
+        "axes": [
+          "temperature",
+          "humidity"
+        ],
+        "land": {
+          "axis": "continentalness",
+          "min": -0.7
+        },
+        "areas": [
+          {
+            "role": "basin",
+            "continentalness": [-0.7, 0.05]
+          },
+          {
+            "role": "land",
+            "columns": [0.0]
+          }
+        ],
+        "radius": 512
+      }
+    },
+    "settings": "adventure:the_abyssal_shrine"
+  }
+}

@@ -1,0 +1,71 @@
+{
+ "slug": "the_whitestone_ford",
+ "targets": [
+  {
+   "key": "placeness.dominant.percent",
+   "op": ">=",
+   "value": 54.0,
+   "from": "place: \"wide river country\" (measured 60.1)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:chalk_cliffs",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.adventure:lichen_caves.columns? + biomeExpression.biomes.adventure:lichen_caves.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:muddy_river",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:lush_caves.columns? + biomeExpression.biomes.minecraft:lush_caves.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:meadow",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:plains",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomeRegions.largestPercent",
+   "op": ">=",
+   "value": 54.4,
+   "from": "place: biome regions (W9f, measured 60.4)"
+  },
+  {
+   "key": "placeness.biomeRegions.specksPercent",
+   "op": "<=",
+   "value": 1.2,
+   "from": "place: biome regions (W9f, measured 0.6)"
+  },
+  {
+   "key": "placeness.biomeRegions.perKm2",
+   "op": "<=",
+   "value": 1.5,
+   "from": "place: biome regions (W9f, measured 1.2)"
+  },
+  {
+   "key": "placeness.biomeRegions.top3Percent",
+   "op": ">=",
+   "value": 84.2,
+   "from": "place: biome regions (W9f, measured 93.5)"
+  }
+ ]
+}

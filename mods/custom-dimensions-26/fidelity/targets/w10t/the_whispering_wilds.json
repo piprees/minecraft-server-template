@@ -1,0 +1,53 @@
+{
+ "slug": "the_whispering_wilds",
+ "targets": [
+  {
+   "key": "surface.biomesPercent.adventure:redwood_grove + surface.biomesPercent.minecraft:old_growth_spruce_taiga + surface.biomesPercent.minecraft:old_growth_pine_taiga + surface.biomesPercent.minecraft:dark_forest + surface.biomesPercent.adventure:sugi_forest + surface.biomesPercent.minecraft:old_growth_birch_forest",
+   "op": ">=",
+   "value": 40,
+   "from": "\"Redwoods\", \"old growth that's never been cut\""
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": ">=",
+   "value": 100,
+   "from": "\"Untouched wilds\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:mangrove_swamp + surface.biomesPercent.minecraft:jungle + surface.biomesPercent.minecraft:sparse_jungle",
+   "op": "<=",
+   "value": 15,
+   "from": "1.21.1 lists them among 25; redwoods lead the words"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:ocean + surface.biomesPercent.minecraft:warm_ocean + surface.biomesPercent.minecraft:lukewarm_ocean + surface.biomesPercent.minecraft:cold_ocean + surface.biomesPercent.minecraft:deep_ocean + surface.biomesPercent.minecraft:deep_lukewarm_ocean + surface.biomesPercent.minecraft:deep_cold_ocean + surface.biomesPercent.minecraft:frozen_ocean",
+   "op": "<=",
+   "value": 5,
+   "from": "\"wilds\": 1.21.1 lists river, no ocean"
+  },
+  {
+   "key": "biomeExpression.expressed",
+   "op": ">=",
+   "value": 12,
+   "from": "1.21.1 lists 25 biomes"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting (old-growth forests): the largest three regions hold most of the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": "<=",
+   "value": 8,
+   "from": "place kind meeting: a few places, not many"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of biome specks"
+  }
+ ]
+}

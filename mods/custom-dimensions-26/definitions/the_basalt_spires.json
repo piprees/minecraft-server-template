@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 2,
+  "description": "Piglin architecture at its most dramatic — basalt pillars standing in lava, bridges slung between columns, a bastion anchoring the centre. They built upward here, into the dark, and there has never been a sky over it.",
+  "seed": -8231015609373989591,
+  "spawn": [-128, 67, 128],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "spires",
+    "setting": "extreme",
+    "params": {
+      "coast": 0.1,
+      "landHeight": 64
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 0],
+      "radius": 500,
+      "falloff": 900,
+      "strength": 0.3
+    },
+    "scales": {
+      "climate": 2.0
+    }
+  },
+  "biomes": [
+    "adventure:ash_barrens",
+    "minecraft:soul_sand_valley",
+    "adventure:blackstone_basin",
+    "adventure:quartz_flats",
+    "minecraft:nether_wastes",
+    "adventure:magma_land",
+    "minecraft:basalt_deltas"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:ash_barrens": 15.5,
+      "minecraft:soul_sand_valley": 10.8,
+      "adventure:blackstone_basin": 9.5,
+      "adventure:quartz_flats": 11.1,
+      "minecraft:nether_wastes": 16.1,
+      "adventure:magma_land": 17.6,
+      "minecraft:basalt_deltas": 19.1
+    },
+    "roles": {
+      "minecraft:basalt_deltas": "ocean"
+    }
+  },
+  "liquids": {
+    "seaLevel": 40,
+    "defaultFluid": "minecraft:lava"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:blackstone",
+    "biomes": {
+      "minecraft:nether_wastes": {
+        "top": "minecraft:netherrack",
+        "filler": "minecraft:netherrack"
+      },
+      "minecraft:soul_sand_valley": {
+        "top": "minecraft:soul_sand",
+        "filler": "minecraft:soul_soil"
+      },
+      "minecraft:basalt_deltas": {
+        "top": "minecraft:basalt",
+        "filler": "minecraft:blackstone"
+      }
+    }
+  },
+  "dimensionType": {
+    "minY": 0,
+    "height": 320,
+    "logicalHeight": 320,
+    "hasSkylight": false
+  },
+  "atmosphere": {
+    "fogColor": "#3B2B2B",
+    "ambientLight": 0.15,
+    "effects": "minecraft:the_nether"
+  },
+  "rules": {
+    "ultraWarm": true
+  },
+  "borders": {
+    "player": 2048,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.5
+  },
+  "structures": {
+    "density": "normal",
+    "terrainAdaptation": {
+      "mns:sword": "pedestal",
+      "minecraft:bastion_remnant": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "minecraft:bastion_remnant",
+        "x": 0,
+        "z": 0
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:basalt",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "5B4B4B",
+      "lightLevel": 11,
+      "scale": 4.0,
+      "cooldown": 40,
+      "particleType": "minecraft:ash",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "minecraft:basalt_deltas",
+      "adventure:magma_land"
+    ],
+    "wants": {
+      "blackstone_pillars": "spread",
+      "mns:sword": "spread",
+      "crimson_forge": "near_border",
+      "mns:nether_tower": "spread",
+      "mns:bridge_1": "spread"
+    },
+    "shuns": [
+      "towns_and_towers:exclusives/village_piglin"
+    ],
+    "terrain": "extreme",
+    "heightRange": [40, 250],
+    "water": "none"
+  }
+}

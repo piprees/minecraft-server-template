@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture and showcase: the biome library's buried dunes filling a whole level on overworld terrain, where a cave biome fills the caverns too, for the biomes section's per-biome checks, renders and screenshots.",
+  "seed": 9,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "single_biome",
+    "biome": "adventure:buried_dunes"
+  },
+  "borders": {
+    "player": 512
+  }
+}

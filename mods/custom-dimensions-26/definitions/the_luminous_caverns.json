@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 2,
+  "description": "Serene glowing caverns — lush moss and quartz light under a bedrock roof. No armies ever found this place. The copper towers and strange outposts were built by someone who came for the light and stayed.",
+  "seed": -2911567766574036977,
+  "spawn": [0, 102, -448],
+  "generator": {
+    "type": "noise",
+    "preset": "caves"
+  },
+  "biomes": [
+    "adventure:mineral_strata",
+    "adventure:crystal_hollows",
+    "adventure:cinnabar_veins",
+    "minecraft:sulfur_caves",
+    "minecraft:dripstone_caves",
+    "adventure:lichen_caves",
+    "minecraft:lush_caves",
+    "adventure:quartz_flats",
+    "adventure:buried_dunes",
+    "minecraft:crimson_forest"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:mineral_strata": 6.3,
+      "adventure:crystal_hollows": 19.8,
+      "adventure:cinnabar_veins": 27.2,
+      "minecraft:sulfur_caves": 28,
+      "minecraft:dripstone_caves": 6.2,
+      "adventure:lichen_caves": 3.6,
+      "minecraft:lush_caves": 8.4,
+      "adventure:quartz_flats": 1,
+      "adventure:buried_dunes": 1,
+      "minecraft:crimson_forest": 1
+    }
+  },
+  "dimensionType": {
+    "hasSkylight": false,
+    "hasCeiling": true
+  },
+  "atmosphere": {
+    "fogColor": "#4B3B1B",
+    "ambientLight": 0.4
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.0,
+    "playerLuck": 2.2,
+    "hostileSpawning": false
+  },
+  "structures": {
+    "density": "sparse",
+    "noise": {
+      "dungeons": "sparse",
+      "landmarks": "sparse"
+    },
+    "force": [
+      {
+        "structure": "nova_structures:deepslate_camp",
+        "x": 80,
+        "z": 80
+      },
+      {
+        "structure": "mns:copper_tower",
+        "x": 120,
+        "z": -380,
+        "exclusive": false
+      },
+      {
+        "structure": "minecraft:ancient_city",
+        "x": -780,
+        "z": 640
+      }
+    ],
+    "terrainAdaptation": {
+      "nova_structures:deepslate_camp": "pedestal"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:ochre_froglight",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "FFD850",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "none"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "minecraft:lush_caves",
+      "minecraft:sulfur_caves"
+    ],
+    "wants": {
+      "copper_tower": "spread",
+      "mns:warped_dome": "spread",
+      "ati_structures:jungle_grotto": "near_spawn",
+      "ati_structures:warden_monument": "spread",
+      "mineshaft": "spread"
+    },
+    "shuns": [
+      "mns:mega_fortress",
+      "bastion",
+      "nova_structures:sealing_halls"
+    ]
+  }
+}

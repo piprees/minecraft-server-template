@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: continents, the climate stretched three times, warmed by 0.25 and warped 160 blocks, so biome edges wander.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "continents",
+    "scales": {
+      "climate": 3
+    },
+    "climateShift": {
+      "temperature": 0.25
+    },
+    "climateWarp": {
+      "blocks": 160,
+      "wavelength": 768
+    }
+  },
+  "borders": {
+    "player": 2048
+  }
+}

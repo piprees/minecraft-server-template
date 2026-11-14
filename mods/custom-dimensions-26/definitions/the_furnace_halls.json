@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 2,
+  "description": "Classic nether halls — fortress corridors that defined piglin military power. A mega-fortress anchors the far end, built when the piglin empire was at its height. Brick and fire all the way down.",
+  "seed": 4702348154996830415,
+  "spawn": [128, 138, -128],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    "minecraft:soul_sand_valley",
+    "minecraft:nether_wastes",
+    "minecraft:crimson_forest",
+    "adventure:magma_land",
+    "minecraft:basalt_deltas"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:soul_sand_valley": 17.8,
+      "minecraft:nether_wastes": 26.4,
+      "minecraft:crimson_forest": 14.7,
+      "adventure:magma_land": 13.1,
+      "minecraft:basalt_deltas": 27.9
+    },
+    "places": {}
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "mns:mega_fortress": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "mns:mega_fortress",
+        "x": 138,
+        "z": 57,
+        "exclusive": false
+      },
+      {
+        "structure": "mns:mega_fortress",
+        "x": -476,
+        "z": -83
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:chiseled_nether_bricks",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "FF6B2B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:nether_wastes",
+      "minecraft:basalt_deltas"
+    ],
+    "wants": {
+      "mns:mega_fortress": "near_spawn",
+      "nether_brick_hall": "spread",
+      "mns:crimson_forge": "near_border",
+      "copper_tower": "spread",
+      "mns:bridge_1": "spread",
+      "blackstone_walls": "spread"
+    },
+    "shuns": [
+      "towns_and_towers:exclusives/village_piglin",
+      "mvs:large_warped_tower"
+    ]
+  },
+  "liquids": {
+    "seaLevel": 24
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: spires out of a sea: every column rising from the sea floor.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "spires",
+    "floor": "sea",
+    "params": {
+      "coverage": 0.06
+    }
+  },
+  "borders": {
+    "player": 2048
+  }
+}

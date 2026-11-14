@@ -1,0 +1,744 @@
+{
+  "input": {
+    "input": {
+      "noise": "adventure:places/places_four/arrangement",
+      "type": "minecraft:noise",
+      "xz_scale": 0.0,
+      "y_scale": 0.0
+    },
+    "max_exclusive": -0.184810192,
+    "min_inclusive": -1000000.0,
+    "type": "minecraft:range_choice",
+    "when_in_range": {
+      "left": {
+        "left": {
+          "left": {
+            "left": {
+              "input": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": "adventure:places/places_four/p",
+                          "right": -0.512064777,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "right": {
+                        "input": {
+                          "left": "adventure:places/places_four/q",
+                          "right": 0.485585244,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "type": "minecraft:add"
+                    },
+                    "right": 0.0,
+                    "type": "minecraft:add"
+                  },
+                  "max": 21.1293945,
+                  "min": 0.0,
+                  "type": "minecraft:clamp"
+                },
+                "right": 32768.0,
+                "type": "minecraft:mul"
+              },
+              "type": "minecraft:floor"
+            },
+            "right": 16.0,
+            "type": "minecraft:mul"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/places_four/p",
+                            "right": 0.487208034,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/places_four/q",
+                            "right": 0.512729831,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.00146484375,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.1293945,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 1.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        },
+        "right": {
+          "left": {
+            "left": {
+              "input": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": "adventure:places/places_four/p",
+                          "right": 0.513793385,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "right": {
+                        "input": {
+                          "left": "adventure:places/places_four/q",
+                          "right": -0.48567774,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "type": "minecraft:add"
+                    },
+                    "right": 0.00439453125,
+                    "type": "minecraft:add"
+                  },
+                  "max": 21.1293945,
+                  "min": 0.0,
+                  "type": "minecraft:clamp"
+                },
+                "right": 32768.0,
+                "type": "minecraft:mul"
+              },
+              "type": "minecraft:floor"
+            },
+            "right": 16.0,
+            "type": "minecraft:mul"
+          },
+          "right": 2.0,
+          "type": "minecraft:add"
+        },
+        "type": "minecraft:min"
+      },
+      "right": {
+        "left": {
+          "left": {
+            "input": {
+              "left": {
+                "input": {
+                  "left": {
+                    "left": {
+                      "input": {
+                        "left": "adventure:places/places_four/p",
+                        "right": -0.485168487,
+                        "type": "minecraft:add"
+                      },
+                      "type": "minecraft:square"
+                    },
+                    "right": {
+                      "input": {
+                        "left": "adventure:places/places_four/q",
+                        "right": -0.514325144,
+                        "type": "minecraft:add"
+                      },
+                      "type": "minecraft:square"
+                    },
+                    "type": "minecraft:add"
+                  },
+                  "right": 0.0,
+                  "type": "minecraft:add"
+                },
+                "max": 21.1293945,
+                "min": 0.0,
+                "type": "minecraft:clamp"
+              },
+              "right": 32768.0,
+              "type": "minecraft:mul"
+            },
+            "type": "minecraft:floor"
+          },
+          "right": 16.0,
+          "type": "minecraft:mul"
+        },
+        "right": 3.0,
+        "type": "minecraft:add"
+      },
+      "type": "minecraft:min"
+    },
+    "when_out_of_range": {
+      "input": {
+        "noise": "adventure:places/places_four/arrangement",
+        "type": "minecraft:noise",
+        "xz_scale": 0.0,
+        "y_scale": 0.0
+      },
+      "max_exclusive": 0.0,
+      "min_inclusive": -0.184810192,
+      "type": "minecraft:range_choice",
+      "when_in_range": {
+        "left": {
+          "left": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/places_four/p",
+                            "right": 0.469547148,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/places_four/q",
+                            "right": -0.529692734,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 7.32421875E-5,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.1312256,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/places_four/p",
+                              "right": -0.526817303,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/places_four/q",
+                              "right": -0.467946286,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.00622558594,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.1312256,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 1.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/places_four/p",
+                            "right": -0.470663355,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/places_four/q",
+                            "right": 0.528425644,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.00161132812,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.1312256,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 2.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        },
+        "right": {
+          "left": {
+            "left": {
+              "input": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "left": "adventure:places/places_four/p",
+                          "right": 0.525821312,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "right": {
+                        "input": {
+                          "left": "adventure:places/places_four/q",
+                          "right": 0.468404219,
+                          "type": "minecraft:add"
+                        },
+                        "type": "minecraft:square"
+                      },
+                      "type": "minecraft:add"
+                    },
+                    "right": 0.0,
+                    "type": "minecraft:add"
+                  },
+                  "max": 21.1312256,
+                  "min": 0.0,
+                  "type": "minecraft:clamp"
+                },
+                "right": 32768.0,
+                "type": "minecraft:mul"
+              },
+              "type": "minecraft:floor"
+            },
+            "right": 16.0,
+            "type": "minecraft:mul"
+          },
+          "right": 3.0,
+          "type": "minecraft:add"
+        },
+        "type": "minecraft:min"
+      },
+      "when_out_of_range": {
+        "input": {
+          "noise": "adventure:places/places_four/arrangement",
+          "type": "minecraft:noise",
+          "xz_scale": 0.0,
+          "y_scale": 0.0
+        },
+        "max_exclusive": 0.184810192,
+        "min_inclusive": 0.0,
+        "type": "minecraft:range_choice",
+        "when_in_range": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/places_four/p",
+                              "right": -0.520799042,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/places_four/q",
+                              "right": 0.475483626,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.0,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.1298853,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/places_four/p",
+                                "right": 0.477662144,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/places_four/q",
+                                "right": 0.522467696,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.00488525391,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.1298853,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": 1.0,
+                "type": "minecraft:add"
+              },
+              "type": "minecraft:min"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/places_four/p",
+                              "right": -0.475455839,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/places_four/q",
+                              "right": -0.518839489,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.00375,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.1298853,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 2.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/places_four/p",
+                            "right": 0.521204574,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/places_four/q",
+                            "right": -0.479273823,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.00267333984,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.1298853,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 3.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        },
+        "when_out_of_range": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/places_four/p",
+                              "right": 0.503258137,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/places_four/q",
+                              "right": 0.4989232,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.00544087246,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.1348357,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "left": {
+                            "left": {
+                              "input": {
+                                "left": "adventure:places/places_four/p",
+                                "right": -0.496249026,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "right": {
+                              "input": {
+                                "left": "adventure:places/places_four/q",
+                                "right": 0.500535807,
+                                "type": "minecraft:add"
+                              },
+                              "type": "minecraft:square"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "right": 0.00638984425,
+                          "type": "minecraft:add"
+                        },
+                        "max": 21.1348357,
+                        "min": 0.0,
+                        "type": "minecraft:clamp"
+                      },
+                      "right": 32768.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:floor"
+                  },
+                  "right": 16.0,
+                  "type": "minecraft:mul"
+                },
+                "right": 1.0,
+                "type": "minecraft:add"
+              },
+              "type": "minecraft:min"
+            },
+            "right": {
+              "left": {
+                "left": {
+                  "input": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": "adventure:places/places_four/p",
+                              "right": 0.496496492,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "right": {
+                            "input": {
+                              "left": "adventure:places/places_four/q",
+                              "right": -0.503432704,
+                              "type": "minecraft:add"
+                            },
+                            "type": "minecraft:square"
+                          },
+                          "type": "minecraft:add"
+                        },
+                        "right": 0.00983568581,
+                        "type": "minecraft:add"
+                      },
+                      "max": 21.1348357,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "right": 32768.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:floor"
+                },
+                "right": 16.0,
+                "type": "minecraft:mul"
+              },
+              "right": 2.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:min"
+          },
+          "right": {
+            "left": {
+              "left": {
+                "input": {
+                  "left": {
+                    "input": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": "adventure:places/places_four/p",
+                            "right": -0.503912154,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "right": {
+                          "input": {
+                            "left": "adventure:places/places_four/q",
+                            "right": -0.49641144,
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:square"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "right": 0.0,
+                      "type": "minecraft:add"
+                    },
+                    "max": 21.1348357,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "right": 32768.0,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:floor"
+              },
+              "right": 16.0,
+              "type": "minecraft:mul"
+            },
+            "right": 3.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:min"
+        }
+      }
+    }
+  },
+  "type": "minecraft:cache"
+}

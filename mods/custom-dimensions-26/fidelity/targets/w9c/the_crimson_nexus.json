@@ -1,0 +1,72 @@
+{
+ "slug": "the_crimson_nexus",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:netherrack + surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:crimson_nylium + surface.groundBlocksPercent.minecraft:warped_nylium + surface.groundBlocksPercent.minecraft:mud + surface.groundBlocksPercent.minecraft:packed_mud + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:smooth_basalt + surface.groundBlocksPercent.minecraft:magma_block + surface.groundBlocksPercent.minecraft:red_sand + surface.groundBlocksPercent.minecraft:red_sandstone + surface.groundBlocksPercent.minecraft:soul_soil + surface.groundBlocksPercent.minecraft:soul_sand + surface.groundBlocksPercent.minecraft:nether_wart_block + surface.groundBlocksPercent.minecraft:cinnabar + surface.groundBlocksPercent.minecraft:quartz_block + surface.groundBlocksPercent.minecraft:terracotta + surface.groundBlocksPercent.minecraft:white_terracotta + surface.groundBlocksPercent.minecraft:orange_terracotta + surface.groundBlocksPercent.minecraft:yellow_terracotta + surface.groundBlocksPercent.minecraft:brown_terracotta + surface.groundBlocksPercent.minecraft:red_terracotta + surface.groundBlocksPercent.minecraft:light_gray_terracotta + surface.groundBlocksPercent.minecraft:black_terracotta + surface.groundBlocksPercent.minecraft:gray_terracotta + surface.groundBlocksPercent.minecraft:pink_terracotta + surface.groundBlocksPercent.minecraft:purple_terracotta",
+   "op": ">=",
+   "value": 70,
+   "from": "owner: \"badlands but made from nether blocks and red / dark blocks like mud\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 5,
+   "from": "owner: \"badlands, birch ... don't make sense\""
+  },
+  {
+   "key": "vegetation.species.minecraft:birch_log.layers.surface? + vegetation.species.minecraft:oak_log.layers.surface?",
+   "op": "<=",
+   "value": 0.5,
+   "from": "owner: \"birch ... don't make sense\" (surface trees per hectare)",
+   "per": "plan.hectares"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 3,
+   "from": "owner: \"lava don't make sense\", chasms \"not filled with lava\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 2,
+   "from": "\"the nether brought to the overworld\""
+  },
+  {
+   "key": "terrain.belowZeroPercent",
+   "op": ">=",
+   "value": 2,
+   "from": "\"deep seams that go down very far ... down to deepslate\""
+  },
+  {
+   "key": "terrain.surfaceHeight.p5",
+   "op": "<=",
+   "value": 10,
+   "from": "\"chasms ... cracks in the world\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:badlands + surface.biomesPercent.minecraft:eroded_badlands + surface.biomesPercent.minecraft:wooded_badlands",
+   "op": ">=",
+   "value": 20,
+   "from": "\"it should be badlands\"; 1.21.1: \"scarred badlands\""
+  },
+  {
+   "key": "landforms.zones.0.depthBelowRing",
+   "op": ">=",
+   "value": 20,
+   "from": "\"the circle overlaid on top should be a crater\""
+  },
+  {
+   "key": "landforms.zones.0.tallestRise",
+   "op": ">=",
+   "value": 60,
+   "from": "\"with a floating pillar or obelisk\", \"a fortress but vertical\""
+  },
+  {
+   "key": "landforms.zones.0.risePercent",
+   "op": "<=",
+   "value": 10,
+   "from": "one vertical mass, not a mountain filling the crater"
+  }
+ ]
+}

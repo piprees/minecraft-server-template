@@ -1,0 +1,58 @@
+{
+  "input": {
+    "alpha": {
+      "input": {
+        "left": {
+          "input": {
+            "left": {
+              "input": {
+                "left": {
+                  "left": {
+                    "noise": "adventure:terrain/spires",
+                    "shift_x": "minecraft:shift_x",
+                    "shift_z": "minecraft:shift_z",
+                    "type": "minecraft:noise",
+                    "xz_scale": 1.0,
+                    "y_scale": 0.0
+                  },
+                  "right": -0.444674263,
+                  "type": "minecraft:add"
+                },
+                "right": 6.56167979,
+                "type": "minecraft:mul"
+              },
+              "max": 1.0,
+              "min": 0.0,
+              "type": "minecraft:clamp"
+            },
+            "right": {
+              "input": {
+                "left": {
+                  "left": "adventure:terrain/terrain_spires/continents",
+                  "right": 0.15,
+                  "type": "minecraft:add"
+                },
+                "right": 10.0,
+                "type": "minecraft:mul"
+              },
+              "max": 1.0,
+              "min": 0.0,
+              "type": "minecraft:clamp"
+            },
+            "type": "minecraft:mul"
+          },
+          "type": "minecraft:cache"
+        },
+        "right": 6.0,
+        "type": "minecraft:mul"
+      },
+      "max": 1.0,
+      "min": 0.0,
+      "type": "minecraft:clamp"
+    },
+    "first": 9.2,
+    "second": 24.0,
+    "type": "minecraft:lerp"
+  },
+  "type": "minecraft:cache"
+}

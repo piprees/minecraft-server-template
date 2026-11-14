@@ -1,0 +1,207 @@
+{
+  "type": "adventure:the_end",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "customdimensions:zoned",
+      "base": {
+        "type": "minecraft:the_end"
+      },
+      "zones": [
+        {
+          "biomes": [
+            {
+              "biome": "adventure:chorus_forest",
+              "parameters": {
+                "temperature": [-2.0, 2.0],
+                "humidity": [0.3, 1.0],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:glowing_grasslands",
+              "parameters": {
+                "temperature": [0.3, 1.0],
+                "humidity": [-0.3, 0.3],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:foggy_mushroomland",
+              "parameters": {
+                "temperature": [-0.3, 0.3],
+                "humidity": [-0.3, 0.3],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:lantern_woods",
+              "parameters": {
+                "temperature": [-1.0, -0.4],
+                "humidity": [0.3, 1.0],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:sulphur_springs",
+              "parameters": {
+                "temperature": [-0.4, 0.2],
+                "humidity": [-1.0, -0.3],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:megalake",
+              "parameters": {
+                "temperature": [-1.0, -0.3],
+                "humidity": [-0.3, 0.3],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:lantern_woods",
+              "parameters": {
+                "temperature": [-1.0, -0.4],
+                "humidity": [0.3, 1.0],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:sulphur_springs",
+              "parameters": {
+                "temperature": [-0.4, 0.2],
+                "humidity": [-1.0, -0.3],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:megalake",
+              "parameters": {
+                "temperature": [-1.0, -0.3],
+                "humidity": [-0.3, 0.3],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:chorus_forest",
+              "parameters": {
+                "temperature": [-2.0, 2.0],
+                "humidity": [0.3, 1.0],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:glowing_grasslands",
+              "parameters": {
+                "temperature": [0.3, 1.0],
+                "humidity": [-0.3, 0.3],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "biomes": [
+            {
+              "biome": "adventure:foggy_mushroomland",
+              "parameters": {
+                "temperature": [-0.3, 0.3],
+                "humidity": [-0.3, 0.3],
+                "continentalness": [-2.0, 2.0],
+                "erosion": [-2.0, 2.0],
+                "weirdness": [-2.0, 2.0],
+                "depth": [-2.0, 2.0],
+                "offset": 0.0
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "settings": "adventure:the_end"
+  }
+}

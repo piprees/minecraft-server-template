@@ -1,0 +1,65 @@
+{
+  "input": {
+    "spline": {
+      "coordinate": {
+        "input": {
+          "left": {
+            "input": {
+              "axis": "x",
+              "from_coordinate": -1000000,
+              "from_value": -1000000.0,
+              "tiling": "clamp_to_edge",
+              "to_coordinate": 1000000,
+              "to_value": 1000000.0,
+              "type": "minecraft:gradient"
+            },
+            "type": "minecraft:square"
+          },
+          "right": {
+            "input": {
+              "axis": "z",
+              "from_coordinate": -1000000,
+              "from_value": -1000000.0,
+              "tiling": "clamp_to_edge",
+              "to_coordinate": 1000000,
+              "to_value": 1000000.0,
+              "type": "minecraft:gradient"
+            },
+            "type": "minecraft:square"
+          },
+          "type": "minecraft:add"
+        },
+        "type": "minecraft:sqrt"
+      },
+      "points": [
+        {
+          "derivative": 0.0,
+          "location": 156.0,
+          "value": 0.30968404
+        },
+        {
+          "derivative": 0.0,
+          "location": 196.0,
+          "value": 0.16856405
+        },
+        {
+          "derivative": 0.0,
+          "location": 210.0,
+          "value": 0.13328405
+        },
+        {
+          "derivative": 0.0,
+          "location": 220.0,
+          "value": 0.07448405
+        },
+        {
+          "derivative": 0.0,
+          "location": 228.0,
+          "value": 0.015684048
+        }
+      ]
+    },
+    "type": "minecraft:spline"
+  },
+  "type": "minecraft:cache"
+}

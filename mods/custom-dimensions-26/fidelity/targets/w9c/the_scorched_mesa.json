@@ -1,0 +1,59 @@
+{
+ "slug": "the_scorched_mesa",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 5,
+   "from": "owner: \"too much grass\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:terracotta + surface.groundBlocksPercent.minecraft:white_terracotta + surface.groundBlocksPercent.minecraft:orange_terracotta + surface.groundBlocksPercent.minecraft:yellow_terracotta + surface.groundBlocksPercent.minecraft:brown_terracotta + surface.groundBlocksPercent.minecraft:red_terracotta + surface.groundBlocksPercent.minecraft:light_gray_terracotta + surface.groundBlocksPercent.minecraft:black_terracotta + surface.groundBlocksPercent.minecraft:gray_terracotta + surface.groundBlocksPercent.minecraft:pink_terracotta + surface.groundBlocksPercent.minecraft:purple_terracotta + surface.groundBlocksPercent.minecraft:red_sand + surface.groundBlocksPercent.minecraft:sand + surface.groundBlocksPercent.minecraft:red_sandstone + surface.groundBlocksPercent.minecraft:sandstone + surface.groundBlocksPercent.minecraft:coarse_dirt",
+   "op": ">=",
+   "value": 75,
+   "from": "\"a hard, harsh desert\"; 1.21.1: \"painted canyon country\", \"badlands\""
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "<=",
+   "value": 1,
+   "from": "\"like Venus, with extremely rare\" life"
+  },
+  {
+   "key": "surface.canopyPercent",
+   "op": "<=",
+   "value": 2,
+   "from": "\"extremely rare\" vegetation"
+  },
+  {
+   "key": "surface.groundPlantsPercent.grass + surface.groundPlantsPercent.flower",
+   "op": "<=",
+   "value": 3,
+   "from": "\"baked to the bone\", \"very rare vegetation\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 1,
+   "from": "\"a hard, harsh desert\""
+  },
+  {
+   "key": "landforms.sharesPercent.plateaus + landforms.sharesPercent.mountains",
+   "op": ">=",
+   "value": 12,
+   "from": "1.21.1: \"dramatic tiered mesas\""
+  },
+  {
+   "key": "terrain.slopes.cliffPercent",
+   "op": ">=",
+   "value": 2,
+   "from": "1.21.1: \"canyon country\", \"tiered\" (cliff steps)"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:savanna + surface.biomesPercent.minecraft:windswept_savanna",
+   "op": "<=",
+   "value": 3,
+   "from": "owner: \"too much grass\" (savanna is the grass)"
+  }
+ ]
+}

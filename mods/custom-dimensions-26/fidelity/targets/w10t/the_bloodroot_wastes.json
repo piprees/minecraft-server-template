@@ -1,0 +1,47 @@
+{
+ "slug": "the_bloodroot_wastes",
+ "targets": [
+  {
+   "key": "surface.biomesPercent.minecraft:crimson_forest + surface.biomesPercent.adventure:nether_jungle + surface.biomesPercent.adventure:upside_down_forest + surface.biomesPercent.adventure:crimson_pinewood",
+   "op": ">=",
+   "value": 60,
+   "from": "\"Crimson root-country\"; 1.21.1 crimson_forest, weeping_valley, inverted_forest, infernal_holt"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:crimson_nylium + surface.groundBlocksPercent.minecraft:nether_wart_block + surface.groundBlocksPercent.minecraft:shroomlight + surface.topBlocksPercent.minecraft:nether_wart_block + surface.topBlocksPercent.minecraft:weeping_vines_plant + surface.topBlocksPercent.minecraft:weeping_vines + surface.topBlocksPercent.minecraft:crimson_roots",
+   "op": ">=",
+   "value": 35,
+   "from": "\"Crimson root-country\", \"fungus in the red haze\""
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": ">=",
+   "value": 40,
+   "from": "\"fungus\": huge crimson fungi"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:basalt_deltas",
+   "op": "<=",
+   "value": 10,
+   "from": "\"root-country\": deltas are one minor biome of six"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 85,
+   "from": "1.21.1 type nether: a roof over the world"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one crimson country): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

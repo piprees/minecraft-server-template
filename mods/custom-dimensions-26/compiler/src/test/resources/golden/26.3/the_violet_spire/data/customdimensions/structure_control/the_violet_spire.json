@@ -1,0 +1,98 @@
+{
+  "level": "adventure:the_violet_spire",
+  "density": "normal",
+  "noise": true,
+  "radiusChunks": 42,
+  "spawnChunk": [0, -3],
+  "groups": {
+    "deco": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 6,
+      "clearSpawnChunks": 0
+    },
+    "settlements": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 12,
+      "clearSpawnChunks": 0
+    },
+    "landmarks": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 19,
+      "clearSpawnChunks": 0
+    },
+    "loot": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 8,
+      "clearSpawnChunks": 0
+    }
+  },
+  "mode": "allow",
+  "list": [
+    "mss:large_tower",
+    "mss:small_tower",
+    "mes:enderwatch_tower",
+    "mes:mystical_archway",
+    "ddd:dddtowers",
+    "nova_structures:shrine_tower"
+  ],
+  "exclude": [],
+  "include": [],
+  "rarity": {
+    "mss:small_tower": "common",
+    "mss:large_tower": "common",
+    "mes:enderwatch_tower": "common",
+    "mes:mystical_archway": "common"
+  },
+  "spacing": {},
+  "force": [
+    {
+      "structure": "mss:large_tower",
+      "x": 60,
+      "z": 60,
+      "radius": 0,
+      "exclusive": false
+    },
+    {
+      "structure": "mes:mystical_archway",
+      "x": -300,
+      "z": 180,
+      "radius": 0,
+      "exclusive": false
+    }
+  ],
+  "wants": [
+    {
+      "name": "ati_structures:fortified_temple",
+      "structure": "ati_structures:fortified_temple",
+      "min": 450,
+      "max": 650
+    },
+    {
+      "name": "mss:castle_ruin",
+      "structure": "mss:castle_ruin",
+      "min": 450,
+      "max": 650
+    },
+    {
+      "name": "ddd:wizard_tower",
+      "structure": "ddd:wizard_tower",
+      "min": 150,
+      "max": 500
+    },
+    {
+      "name": "nova_structures:shrine_tower",
+      "structure": "nova_structures:shrine_tower",
+      "min": 100,
+      "max": 500
+    }
+  ],
+  "shuns": [],
+  "replace": {},
+  "terrainAdaptation": {
+    "mss:large_tower": "beard_box"
+  }
+}

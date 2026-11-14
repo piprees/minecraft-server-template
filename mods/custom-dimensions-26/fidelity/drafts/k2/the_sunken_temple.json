@@ -1,0 +1,42 @@
+{
+  "reason": "Route 1-3 as a clone with terrain (G9): basin_islands lakes (lakeShare 0.5, basinDepth 16, rimHeight 6, islandShare 0.4) holding water; the warm oceans take the basins (G11 basin), jungle and sky_highlands the islands, hanging_gardens the undersides (G11 underside); beach and desert_oasis dropped; climate 2x.",
+  "terrain": {
+    "base": "basin_islands",
+    "params": {
+      "lakeShare": 0.5,
+      "basinDepth": 16,
+      "rimHeight": 6,
+      "islandShare": 0.4
+    },
+    "scales": {
+      "climate": 2
+    }
+  },
+  "liquids": {
+    "basins": {}
+  },
+  "biomes": [
+    "minecraft:lukewarm_ocean",
+    "minecraft:warm_ocean",
+    "minecraft:deep_lukewarm_ocean",
+    "minecraft:jungle",
+    "adventure:sky_highlands",
+    "minecraft:meadow",
+    "adventure:hanging_gardens"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:lukewarm_ocean": 25,
+      "minecraft:warm_ocean": 15,
+      "minecraft:deep_lukewarm_ocean": 10,
+      "minecraft:jungle": 25,
+      "adventure:sky_highlands": 20,
+      "minecraft:meadow": 5
+    },
+    "over": "land",
+    "roles": {
+      "adventure:hanging_gardens": "underside"
+    }
+  }
+}

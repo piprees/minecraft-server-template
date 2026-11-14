@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 2,
+  "description": "The nether — piglin heartland, 1:8 compressed. Fortresses and bastions in reach, Incendium's sanctum near the rim. Every civilisation that touched this place left infrastructure; only the piglins called it home.",
+  "seed": -6876984017876508741,
+  "spawn": [0, 92, -64],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "terrain": {
+    "scales": {
+      "climate": 2.5
+    }
+  },
+  "biomes": [
+    "minecraft:nether_wastes",
+    "minecraft:crimson_forest",
+    "minecraft:warped_forest",
+    "minecraft:soul_sand_valley",
+    "minecraft:basalt_deltas",
+    "adventure:quartz_flats"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:nether_wastes": 31,
+      "minecraft:crimson_forest": 25,
+      "minecraft:warped_forest": 15,
+      "minecraft:soul_sand_valley": 15,
+      "minecraft:basalt_deltas": 10,
+      "adventure:quartz_flats": 5
+    },
+    "places": {}
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.4
+  },
+  "portals": [
+    {
+      "vanillaManaged": true,
+      "frameBlock": "minecraft:obsidian",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "8000FF",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "particleType": "minecraft:portal",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:nether_wastes",
+      "minecraft:warped_forest",
+      "adventure:quartz_flats"
+    ],
+    "wants": {
+      "mns:mega_fortress": "spread",
+      "bastion": "spread",
+      "towns_and_towers:exclusives/village_piglin": "spread",
+      "nova_structures:sealing_halls": "near_border",
+      "nether_bridge": "spread"
+    },
+    "shuns": []
+  },
+  "structures": {
+    "mode": "allow",
+    "list": [
+      "minecraft:nether_complexes",
+      "mns:mega_fortress",
+      "mns:bridge_1",
+      "mns:bridge_2",
+      "mns:bridge_3",
+      "mns:bridge_4",
+      "mns:bridge_5",
+      "mns:bridge_6",
+      "minecraft:nether_fossils"
+    ],
+    "wants": {
+      "towns_and_towers:exclusives/village_piglin": {
+        "min": 200,
+        "max": 900
+      },
+      "nova_structures:sealing_halls": {
+        "min": 700,
+        "max": 1000
+      }
+    }
+  }
+}

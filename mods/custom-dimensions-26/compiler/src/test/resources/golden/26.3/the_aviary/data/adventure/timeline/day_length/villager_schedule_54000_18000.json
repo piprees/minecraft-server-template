@@ -1,0 +1,54 @@
+{
+  "clock": "adventure:day_length/54000_18000",
+  "period_ticks": 72000,
+  "tracks": {
+    "minecraft:gameplay/baby_villager_activity": {
+      "keyframes": [
+        {
+          "ticks": 45,
+          "value": "minecraft:idle"
+        },
+        {
+          "ticks": 13500,
+          "value": "minecraft:play"
+        },
+        {
+          "ticks": 27000,
+          "value": "minecraft:idle"
+        },
+        {
+          "ticks": 45000,
+          "value": "minecraft:play"
+        },
+        {
+          "ticks": 54000,
+          "value": "minecraft:rest"
+        }
+      ]
+    },
+    "minecraft:gameplay/villager_activity": {
+      "keyframes": [
+        {
+          "ticks": 45,
+          "value": "minecraft:idle"
+        },
+        {
+          "ticks": 9000,
+          "value": "minecraft:work"
+        },
+        {
+          "ticks": 40500,
+          "value": "minecraft:meet"
+        },
+        {
+          "ticks": 49500,
+          "value": "minecraft:idle"
+        },
+        {
+          "ticks": 54000,
+          "value": "minecraft:rest"
+        }
+      ]
+    }
+  }
+}

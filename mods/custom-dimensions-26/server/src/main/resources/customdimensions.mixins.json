@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.customdimensions.server.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "ChunkBlockChangedMixin", "ChunkGeneratorAccessor", "NoiseBasedChunkGeneratorAccessor", "StructureStateMixin", "ChunkMapStructuresMixin", "StructureBiomeBypassMixin", "StructureCheckBypassMixin", "ChunkGeneratorLocateMixin", "BeardifierAdaptationMixin", "NoiseBasedAquiferMixin", "DisabledAquiferMixin", "DryFluidFeatureMixin", "PrepareSpawnTaskMixin", "ServerLevelSeedMixin", "MinecraftServerLevelsMixin", "ServerLevelGameRulesMixin", "ServerPlayerRestoreMixin", "MinecraftServerGameRulesMixin", "ServerLevelWeatherMixin", "HolderReferenceAccessor", "MappedRegistryAccessor", "MaterialRuleContextAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

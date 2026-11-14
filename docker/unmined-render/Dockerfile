@@ -9,7 +9,8 @@
 # build, so image builds are not bit-reproducible. The CLI version baked
 # into a release image is whatever was current at build time; the running
 # binary logs its exact version at startup.
-FROM debian:bookworm-slim
+# libicu72 is Debian 12's ICU package; a Debian 13 base needs its own (libicu76).
+FROM debian:12.15-slim
 
 ARG TARGETARCH
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \

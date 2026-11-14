@@ -1,0 +1,23 @@
+{
+ "slug": "the_boneyard",
+ "targets": [
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind one battlefield: no scatter of biome specks"
+  },
+  {
+   "key": "placeness.places.byPlace.minecraft:soul_sand_valley.landPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "\"soul sand and ash under a bone-pale haze\": the soul sand place holds half the land"
+  },
+  {
+   "key": "placeness.places.landRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "places, not perlin: no scatter of place specks"
+  }
+ ]
+}

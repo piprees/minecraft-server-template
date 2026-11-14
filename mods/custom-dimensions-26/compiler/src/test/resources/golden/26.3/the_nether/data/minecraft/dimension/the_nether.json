@@ -1,0 +1,36 @@
+{
+  "type": "adventure:the_nether",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "minecraft:nether_wastes",
+          "parameters": "sha1:1afa21c0d522b2bfa03cc6471f047b5e8b9e0710"
+        },
+        {
+          "biome": "minecraft:crimson_forest",
+          "parameters": "sha1:904bd5be957eba23883a3d5fc7273c4f9aad540c"
+        },
+        {
+          "biome": "minecraft:warped_forest",
+          "parameters": "sha1:6d39a786dc9ddb28a6ce7874df333ac1e670578d"
+        },
+        {
+          "biome": "minecraft:soul_sand_valley",
+          "parameters": "sha1:6d4c4de87dd5e3b2ed62c07fd6a2e30c7cd65600"
+        },
+        {
+          "biome": "minecraft:basalt_deltas",
+          "parameters": "sha1:ed546f177f5991fd3c6d67f4ee1311f2126f3832"
+        },
+        {
+          "biome": "adventure:quartz_flats",
+          "parameters": "sha1:644d4b17e3e254416cd296a13ec2fecd22a4865a"
+        }
+      ]
+    },
+    "settings": "adventure:the_nether"
+  }
+}

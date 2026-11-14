@@ -1,0 +1,71 @@
+{
+ "slug": "the_gritlands",
+ "targets": [
+  {
+   "key": "landforms.sharesPercent.void",
+   "op": ">=",
+   "value": 20,
+   "from": "owner: \"the void needs to be bigger\""
+  },
+  {
+   "key": "landforms.voidHoles.largestPercentOfVoid",
+   "op": ">=",
+   "value": 60,
+   "from": "\"the hole should feel truly catastrophic\" (one hole, not many)"
+  },
+  {
+   "key": "landforms.voidHoles.largestDiameterBlocks",
+   "op": ">=",
+   "value": 500,
+   "from": "\"a reverse asteroid impact world killer\""
+  },
+  {
+   "key": "surface.snowIcePercent",
+   "op": "<=",
+   "value": 0.5,
+   "from": "W9b dossier: snow 48.7%; owner: \"charred world\""
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "<=",
+   "value": 0.5,
+   "from": "\"no trees\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 3,
+   "from": "\"nothing but ash layers and charred world\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:gravel + surface.groundBlocksPercent.minecraft:tuff + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:smooth_basalt + surface.groundBlocksPercent.minecraft:coarse_dirt + surface.groundBlocksPercent.minecraft:soul_soil + surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:magma_block + surface.groundBlocksPercent.minecraft:andesite + surface.groundBlocksPercent.minecraft:cobblestone + surface.groundBlocksPercent.minecraft:coal_block",
+   "op": ">=",
+   "value": 70,
+   "from": "\"ash layers and charred world\"; 1.21.1: \"gravel, basalt, and ash\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:magma_block + surface.groundBlocksPercent.minecraft:blackstone",
+   "op": ">=",
+   "value": 2,
+   "from": "\"magma ring, blackstone\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 3,
+   "from": "a charred, burnt-out world, not a lava field"
+  },
+  {
+   "key": "landforms.voidRim.nearSteepPercent",
+   "op": ">=",
+   "value": 40,
+   "from": "\"the lip of the hole should be sharp around the hole itself\""
+  },
+  {
+   "key": "landforms.voidRim.farSteepPercent",
+   "op": "<=",
+   "value": 10,
+   "from": "\"rolling down toward the ash world\""
+  }
+ ]
+}

@@ -28,6 +28,9 @@
 
 # shellcheck disable=SC2034  # lib.sh reads it to name the run dir
 SCRIPT_NAME="c2-live-table"
+# shellcheck source=mc-version.sh
+. "$(cd "$(dirname "$0")" && pwd)/mc-version.sh"
+e2e_refuse_on_26 "it reads the 1.21.1 Projection wire (states[] and light[]); on 26.3 the destination is fed as whole chunks, and e2e-companion-portal.sh's live step re-censuses a changed far-side block"
 # shellcheck source=lib.sh
 . "$(cd "$(dirname "$0")" && pwd)/lib.sh"
 

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: a void that places its listed biomes on weirdness bands, with no blocks.",
+  "seed": 1,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "void"
+  },
+  "biomes": [
+    {
+      "id": "minecraft:snowy_plains",
+      "climate": {
+        "weirdness": [
+          -2.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "id": "minecraft:ice_spikes",
+      "climate": {
+        "weirdness": [
+          0.0,
+          2.0
+        ]
+      }
+    }
+  ],
+  "borders": {
+    "player": 256
+  }
+}

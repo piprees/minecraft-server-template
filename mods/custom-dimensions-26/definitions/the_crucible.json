@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 2,
+  "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back, and crimson fungus rooted in the canopy where the nether leaked in. Whatever was built here was consumed long ago — the jungle doesn't negotiate, and what it reaches through the portal it keeps.",
+  "seed": -1677720627089150295,
+  "spawn": [320, 67, -192],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "shattered",
+    "setting": "extreme",
+    "params": {
+      "coast": -0.6,
+      "landHeight": 110,
+      "relief": 80,
+      "faultHeight": 48,
+      "lift": 1,
+      "roughness": 0.9
+    },
+    "scale": 0.6,
+    "scales": {
+      "climate": 2.0
+    }
+  },
+  "biomes": [
+    "minecraft:dark_forest",
+    "minecraft:jungle",
+    "adventure:cloud_forest",
+    "minecraft:bamboo_jungle",
+    "adventure:upside_down_forest",
+    "minecraft:mangrove_swamp",
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.0155],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "adventure:root_hollows",
+      "climate": {
+        "weirdness": [-0.0155, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:dark_forest": 1.9,
+      "minecraft:jungle": 63.5,
+      "adventure:cloud_forest": 1.4,
+      "minecraft:bamboo_jungle": 1.5,
+      "adventure:upside_down_forest": 1.5,
+      "minecraft:mangrove_swamp": 1
+    }
+  },
+  "liquids": {
+    "seaLevel": 30,
+    "aquifers": "dry"
+  },
+  "atmosphere": {
+    "skyColor": "#1E3A1E",
+    "fogColor": "#2B4B2B",
+    "ambientLight": 0.1
+  },
+  "borders": {
+    "player": 2048,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 2.0,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 64,
+      "endY": -32,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 2.0
+    }
+  },
+  "structures": {
+    "density": "dense",
+    "force": [
+      {
+        "structure": "nova_structures:illager_treehouse",
+        "x": 180,
+        "z": -70,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": [
+        "minecraft:copper_block",
+        "minecraft:exposed_copper",
+        "minecraft:weathered_copper",
+        "minecraft:waxed_copper_block",
+        "minecraft:waxed_exposed_copper",
+        "minecraft:waxed_weathered_copper",
+        "minecraft:waxed_oxidized_copper"
+      ],
+      "framePlaceBlock": "minecraft:copper_block",
+      "igniterItem": "minecraft:diamond",
+      "color": "8BAF5B",
+      "lightLevel": 11,
+      "scale": 4.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:moss_block",
+          "minecraft:mud",
+          "minecraft:rooted_dirt",
+          "minecraft:podzol"
+        ],
+        "flora": [
+          "minecraft:fern",
+          "minecraft:large_fern",
+          "minecraft:moss_carpet"
+        ]
+      }
+    }
+  ],
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:jungle",
+      "minecraft:bamboo_jungle",
+      "adventure:cloud_forest"
+    ],
+    "wants": {
+      "nova_structures:jungle_ruins": "near_spawn",
+      "nova_structures:illager_treehouse": "near_spawn",
+      "mtr:jungle_temple": "spread",
+      "ati_structures:arachnid_dwelling": "spread",
+      "trial_chambers": "spread",
+      "nova_structures:small_creeping_crypt": "spread",
+      "ati_structures:jungle_grotto": "spread",
+      "nova_structures:deepslate_camp": "near_spawn"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "nova_structures:remnant_ruin_farmer"
+    ]
+  },
+  "materials": {
+    "cliffs": "minecraft:moss_block"
+  }
+}

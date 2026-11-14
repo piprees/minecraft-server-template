@@ -1,0 +1,27 @@
+{
+  "reason": "Base world keeps the vanilla Nether's own cavern (fidelity); the route's six-biome list in regions, stretched 1.6x so a 1024 border holds a few large regions (G2).",
+  "terrain": {
+    "scales": {
+      "climate": 1.6
+    }
+  },
+  "biomes": [
+    "minecraft:nether_wastes",
+    "minecraft:crimson_forest",
+    "minecraft:warped_forest",
+    "minecraft:soul_sand_valley",
+    "minecraft:basalt_deltas",
+    "adventure:quartz_flats"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:nether_wastes": 30,
+      "minecraft:crimson_forest": 20,
+      "minecraft:warped_forest": 15,
+      "minecraft:soul_sand_valley": 15,
+      "minecraft:basalt_deltas": 12,
+      "adventure:quartz_flats": 8
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: continents, gentle setting.",
+  "seed": 20261025,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "continents",
+    "setting": "gentle"
+  },
+  "borders": {
+    "player": 2048
+  }
+}

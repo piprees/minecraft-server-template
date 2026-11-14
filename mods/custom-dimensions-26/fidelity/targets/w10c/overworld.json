@@ -1,0 +1,9 @@
+{
+ "slug": "overworld",
+ "targets": [
+  {"key": "placeness.landBiomeRegions.top3Percent", "op": ">=", "value": 25, "from": "a varied overworld read as broad regions, over land (seas take the coasts)"},
+  {"key": "placeness.landBiomeRegions.perKm2", "op": "<=", "value": 6, "from": "broad regions, not a scatter"},
+  {"key": "placeness.landBiomeRegions.specksPercent", "op": "<=", "value": 5, "from": "not a scatter"},
+  {"key": "placeness.biomesPercent.minecraft:plains + placeness.biomesPercent.minecraft:forest + placeness.biomesPercent.minecraft:meadow + placeness.biomesPercent.minecraft:sunflower_plains + placeness.biomesPercent.minecraft:flower_forest + placeness.biomesPercent.minecraft:birch_forest", "op": ">=", "value": 20, "from": "\"Villagers settled the plains\": ordinary plains and forests over the border"}
+ ]
+}

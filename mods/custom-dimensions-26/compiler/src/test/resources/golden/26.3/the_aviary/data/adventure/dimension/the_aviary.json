@@ -1,0 +1,80 @@
+{
+  "type": "adventure:the_aviary",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "adventure:hanging_gardens",
+          "parameters": "sha1:4e759bb9bbd448d055eeee41345dc58508a8e042"
+        },
+        {
+          "biome": "adventure:hanging_gardens",
+          "parameters": "sha1:49c9e588765588a31084c75353a40f0eea3bf33b"
+        },
+        {
+          "biome": "adventure:hanging_gardens",
+          "parameters": "sha1:0bbf65dc744172d3247bdfa7cc8419f6ffbe3e88"
+        },
+        {
+          "biome": "adventure:hanging_gardens",
+          "parameters": "sha1:b02ac84f932ee8977471e828bf75390f38d039fc"
+        },
+        {
+          "biome": "adventure:hanging_gardens",
+          "parameters": "sha1:121a1974540fd99a17a62a854e5cd3993ee61de1"
+        },
+        {
+          "biome": "adventure:sky_highlands",
+          "parameters": "sha1:6091436319859b0b981f11fb89ad99ac109a11c0"
+        },
+        {
+          "biome": "adventure:windswept_isles",
+          "parameters": "sha1:b2764324f9f4c5f33feb15ffcf25c9a43c41a473"
+        },
+        {
+          "biome": "minecraft:snowy_slopes",
+          "parameters": "sha1:298bf5deca43a00abad2bc58f8fef00c831ae937"
+        },
+        {
+          "biome": "adventure:wisteria_grove",
+          "parameters": "sha1:b86223f4b17cefdfb5ca5eb6c54bec84266e2b79"
+        },
+        {
+          "biome": "minecraft:cherry_grove",
+          "parameters": "sha1:2392e85fbef13c62ac6eda31e98262bda5a3741e"
+        },
+        {
+          "biome": "adventure:golden_skygrove",
+          "parameters": "sha1:cdfa8009f9adb48a1ea5757218e81033a7623e15"
+        },
+        {
+          "biome": "minecraft:flower_forest",
+          "parameters": "sha1:7e9d19cf318d0d40c5911dd2b48e4c8b3f440d29"
+        },
+        {
+          "biome": "minecraft:meadow",
+          "parameters": "sha1:d3ffc60bd7f075aa2ff75c7848df9f0555bc3936"
+        },
+        {
+          "biome": "minecraft:plains",
+          "parameters": "sha1:0caa011924914b7aa8b92bf058544f4bf249853c"
+        },
+        {
+          "biome": "adventure:cloud_reef",
+          "parameters": "sha1:b16057546c3fd87a50b336ec0fe4bc50dc17419e"
+        },
+        {
+          "biome": "minecraft:forest",
+          "parameters": "sha1:69204a86b55520779b60c2a59d6b89b03c135143"
+        },
+        {
+          "biome": "minecraft:birch_forest",
+          "parameters": "sha1:067eafb9a2eb9a36227d6a3dce7415be90eaf18a"
+        }
+      ]
+    },
+    "settings": "adventure:the_aviary"
+  }
+}

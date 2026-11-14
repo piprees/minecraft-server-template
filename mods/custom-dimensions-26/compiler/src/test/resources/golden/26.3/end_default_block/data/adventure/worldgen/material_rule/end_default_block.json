@@ -1,0 +1,9 @@
+{
+  "sequence": [
+    {
+      "result_state": "minecraft:netherrack",
+      "type": "minecraft:block"
+    }
+  ],
+  "type": "minecraft:sequence"
+}

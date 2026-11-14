@@ -1,0 +1,275 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "nether",
+  "inspiredBy": "BetterNether's magma land: cracked fields of magma between lava pools.",
+  "differs": "Basalt deltas are grey basalt and blackstone; here the ground itself is magma, cracked with netherrack seams, broken by lava pools rimmed in obsidian, fires burn on the magma, and the air is a heavy red haze full of popping lava.",
+  "climate": {
+    "temperature": [
+      0.6,
+      1.0
+    ],
+    "humidity": [
+      -1.0,
+      0.25
+    ]
+  },
+  "palette": {
+    "top": "minecraft:magma_block",
+    "filler": "minecraft:netherrack"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:block.lava.pop",
+          "tick_chance": 0.03
+        },
+        "loop": "minecraft:ambient.basalt_deltas.loop",
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.basalt_deltas.mood",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.nether.basalt_deltas"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "creature": [
+              {
+                "type": "minecraft:strider",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 2,
+                  "min_inclusive": 1
+                },
+                "weight": 60
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:ghast",
+                "count": 1,
+                "weight": 40
+              },
+              {
+                "type": "minecraft:magma_cube",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 5,
+                  "min_inclusive": 2
+                },
+                "weight": 100
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:lava"
+            },
+            "probability": 0.002
+          },
+          {
+            "particle": {
+              "type": "minecraft:smoke"
+            },
+            "probability": 0.0025
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#a0200c"
+    },
+    "carvers": "minecraft:nether_cave",
+    "downfall": 0.0,
+    "effects": {
+      "water_color": "#3f76e4"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [
+        "~lava_pools"
+      ],
+      [],
+      [],
+      [
+        "minecraft:spring_open",
+        "minecraft:glowstone_extra",
+        "minecraft:glowstone",
+        "minecraft:ore_magma",
+        "minecraft:spring_closed",
+        "minecraft:ore_gravel_nether",
+        "minecraft:ore_blackstone",
+        "minecraft:ore_gold_nether",
+        "minecraft:ore_quartz_nether",
+        "minecraft:ore_ancient_debris_large",
+        "minecraft:ore_debris_small",
+        "~netherrack_cracks"
+      ],
+      [],
+      [
+        "minecraft:spring_lava",
+        "~magma_fires"
+      ]
+    ],
+    "has_precipitation": false,
+    "temperature": 2.0
+  },
+  "features": {
+    "lava_pools": {
+      "feature": {
+        "type": "minecraft:delta_feature",
+        "rim": "minecraft:obsidian",
+        "contents": "minecraft:lava",
+        "rim_size": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 2,
+          "min_inclusive": 1
+        },
+        "size": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 7,
+          "min_inclusive": 3
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 24
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "netherrack_cracks": {
+      "feature": {
+        "type": "minecraft:ore",
+        "discard_chance_on_air_exposure": 0.0,
+        "size": 12,
+        "targets": [
+          {
+            "state": "minecraft:netherrack",
+            "target": {
+              "predicate_type": "minecraft:block_match",
+              "block": "minecraft:magma_block"
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 24
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "below_top": 0
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "magma_fires": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "id": "minecraft:fire",
+          "properties": {
+            "age": "0",
+            "east": "false",
+            "north": "false",
+            "south": "false",
+            "up": "false",
+            "west": "false"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 4
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 48
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 3,
+            "min": -3,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:magma_block"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

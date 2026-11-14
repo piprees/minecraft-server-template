@@ -1,0 +1,405 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "nether",
+  "inspiredBy": "BetterNether's upside down forest: a fungus forest hanging from the Nether's roof.",
+  "differs": "Vanilla Nether forests grow upwards from the floor; here the roof is a canopy of wart, crimson stems hang down from it like inverted fungi with shroomlight lanterns at their tips, weeping vines fall in dense curtains, the floor below is bare and lit by lava, and crimson spores drift down.",
+  "climate": {
+    "temperature": [
+      -1.0,
+      -0.6
+    ],
+    "humidity": [
+      0.35,
+      1.0
+    ]
+  },
+  "palette": {
+    "ceilings": "minecraft:nether_wart_block"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:ambient.crimson_forest.additions",
+          "tick_chance": 0.0111
+        },
+        "loop": "minecraft:ambient.crimson_forest.loop",
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.crimson_forest.mood",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.nether.crimson_forest"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "creature": [
+              {
+                "type": "minecraft:strider",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 2,
+                  "min_inclusive": 1
+                },
+                "weight": 60
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:zombified_piglin",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 2
+                },
+                "weight": 1
+              },
+              {
+                "type": "minecraft:hoglin",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 3
+                },
+                "weight": 9
+              },
+              {
+                "type": "minecraft:piglin",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 3
+                },
+                "weight": 5
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:crimson_spore"
+            },
+            "probability": 0.03
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#4a0b14"
+    },
+    "carvers": "minecraft:nether_cave",
+    "downfall": 0.0,
+    "effects": {
+      "water_color": "#3f76e4"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [
+        "minecraft:spring_open",
+        "minecraft:patch_fire",
+        "minecraft:glowstone_extra",
+        "minecraft:glowstone",
+        "minecraft:ore_magma",
+        "minecraft:spring_closed",
+        "minecraft:ore_gravel_nether",
+        "minecraft:ore_blackstone",
+        "minecraft:ore_gold_nether",
+        "minecraft:ore_quartz_nether",
+        "minecraft:ore_ancient_debris_large",
+        "minecraft:ore_debris_small"
+      ],
+      [],
+      [
+        "minecraft:spring_lava",
+        "~hanging_fungi",
+        "~vine_curtains",
+        "~shroomlight_clusters"
+      ]
+    ],
+    "has_precipitation": false,
+    "temperature": 2.0
+  },
+  "features": {
+    "hanging_fungi": {
+      "feature": {
+        "type": "minecraft:overlay",
+        "features": [
+          {
+            "feature": {
+              "type": "minecraft:block_column",
+              "allowed_placement": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "direction": "down",
+              "layers": [
+                {
+                  "height": {
+                    "type": "minecraft:uniform",
+                    "max_inclusive": 9,
+                    "min_inclusive": 3
+                  },
+                  "provider": {
+                    "id": "minecraft:crimson_stem",
+                    "properties": {
+                      "axis": "y"
+                    }
+                  }
+                },
+                {
+                  "height": 1,
+                  "provider": {
+                    "id": "minecraft:shroomlight"
+                  }
+                }
+              ],
+              "prioritize_tip": true
+            },
+            "placement": []
+          },
+          {
+            "feature": {
+              "type": "minecraft:random_neighbor_spread",
+              "accepted_neighbors": [
+                "minecraft:netherrack",
+                "minecraft:nether_wart_block"
+              ],
+              "attempts": 160,
+              "block": {
+                "id": "minecraft:nether_wart_block"
+              },
+              "can_replace": {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              "xz_offset": {
+                "type": "minecraft:trapezoid",
+                "max": 4,
+                "min": -4,
+                "plateau": 0
+              },
+              "y_offset": {
+                "type": "minecraft:trapezoid",
+                "max": 1,
+                "min": -3,
+                "plateau": 2
+              }
+            },
+            "placement": []
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 60
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "below_top": 0
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          }
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "up",
+          "max_steps": 24,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": -1,
+          "z": 0
+        }
+      ]
+    },
+    "vine_curtains": {
+      "feature": "minecraft:weeping_vines",
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 80
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "below_top": 0
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          }
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "up",
+          "max_steps": 24,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": -1,
+          "z": 0
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_blocks",
+            "blocks": [
+              "minecraft:netherrack",
+              "minecraft:nether_wart_block"
+            ],
+            "offset": [
+              0,
+              1,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    "shroomlight_clusters": {
+      "feature": {
+        "type": "minecraft:random_neighbor_spread",
+        "accepted_neighbors": [
+          "minecraft:nether_wart_block",
+          "minecraft:shroomlight"
+        ],
+        "attempts": 120,
+        "block": {
+          "id": "minecraft:shroomlight"
+        },
+        "can_replace": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "xz_offset": {
+          "type": "minecraft:trapezoid",
+          "max": 3,
+          "min": -3,
+          "plateau": 0
+        },
+        "y_offset": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 0,
+          "min_inclusive": -3
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 30
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "below_top": 0
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          }
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "up",
+          "max_steps": 24,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": -1,
+          "z": 0
+        }
+      ]
+    }
+  }
+}

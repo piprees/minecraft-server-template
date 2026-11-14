@@ -1,0 +1,19 @@
+14:59 — w10r start; read brief, rules, batch brief, owner notes
+15:09 — r1 launched: 10 baselines + 19 variants (violet a/b, sunken a/b, abyssal a/b, molten a/b, forged a/b, wailing a/b, gilded a/b, bloodroot a/b, end a/b, nether a), full survey + fastrender each
+15:10 — bloodroot map cause: crimson_pinewood and nether_jungle hash to reds within 30 of crimson_forest (#D12A34, #CD3430 vs #A3242A); kit fix: fixed colours for all 82 library biomes (BiomePalette.LIBRARY), RenderTest nether-realm distance test; build after r1
+15:14 — kit-gaps.md #1 written (per-dimension mob spawns: wailing's zombies)
+15:20 — lead: description-first cards + real structure mods; 11 design cards written to /tmp/claude-0/w10r/cards/
+15:22 — cards amended per lead: structure sections follow places/dimensions.md (one departure: abyssal vault stand-in, a cave structure in the void); struct/<slug>.json blocks written
+15:51 — kit fix: ores.remove reaches a library biome's own named features (WorldgenRuntime.removals, WorldgenRuntimeRemovalsTest); RenderTest + removals tests green; committed
+15:53 — kit: basin_islands hollowJitter + hollowApron (IslandSpiresAndHollowTest 14/14, TerrainLibraryTest 84/84 incl. schema, goldens 21/21); committed
+15:54 — r1 read; applied candidates to definitions: violet (night, crystal_hollows with amethyst/calcite ground, spires .3 taper .25, cherry out), sunken b (rim 16, level 165, tiers 36/16, underside 50), abyssal (apron 60, jitter 40), molten (floor 36 relief 8 flats .65, blackstone crust, magma beaches, fires/columns removed), forged (rough .6 relief 18 chasms pillars, trees removed, lava 24), wailing (quartz out, chasms .22), gilded (falloff 32, warp 16/256, spawn -516), end (12 library zones on the outer ring), nether quartz 5; structures curated per places plan on all ten
+15:54 — r2 launched with the structure mods: 10 applied finals-candidates + abyssal c, forged c, molten c (full + fast), overworld render at the mountain (3580,-160), gilded render at the spawn ledge
+16:16 — abyssal r2: apron joins lake to ring but a 1-3 block void seam opens at the apron's end (islands held off where lakes noise is just under the mass edge); apron now ends within a block (TerrainFamily, uncommitted until the lane is back)
+16:17 — overworld: highest column near the first shot's view at (3427,-20) in a stony band (render r256 at 3580,-160); rig shots orig/near/side queued for r3
+16:47 — lane back (K13 + 49b450ec merged); r3 launched on the repo definitions with structure mods: violet (wisteria 40), abyssal (radius 410, falloff 120, apron 40, jitter 40), gilded (spawn -500, warp 12/256), forged (places at forge/deep, magma by depth bands) full+fast; ten locates; r512/r1024 renders; finals of the other six
+16:49 — forged: pinned place sites refused (forge 18-26% cannot hold its site beside pinewood); kept the core places with magma by depth, plus magma/blackstone depth bands; r3 relaunched
+17:35 — kit-gaps 2 (expression after deliberate feature removal) and 3 (pinned landing) written; waiting for the lane
+17:49 — lane back; rig w1 launched (66 entries, 47 pairs, render distance 32, structure mods)
+18:49 — committed definitions, reviews, evidence; waiting for the lane for goldens, build, self-test
+18:50 — tail2 launched: goldens, full build, full fresh-world self-test (CI props, seed 20261022)
+19:42 — full fresh-world self-test (CI props, seed 20261022): 280 PASS 2 FAIL 1 SKIP in 2090 s; both FAILs in K13's structure mixins (StructureCheckBypassMixin, ChunkGeneratorLocateMixin: forced igloo / mountain portal in selftest_structures); build: 1560 tests, 1 failure (ApplyIdMappingTest count 77->78 from the_end's zones) fixed in a6c48169, not re-run; server down

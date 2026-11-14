@@ -1,0 +1,59 @@
+{
+ "slug": "the_rosebluff",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:calcite + surface.groundBlocksPercent.minecraft:diorite + surface.groundBlocksPercent.minecraft:stone",
+   "op": ">=",
+   "value": 10,
+   "from": "\"Blossom cliffs over white stone\""
+  },
+  {
+   "key": "terrain.slopes.cliffPercent",
+   "op": ">=",
+   "value": 6,
+   "from": "\"cliffs\", \"on the bluffs\""
+  },
+  {
+   "key": "surface.biomesPercent.adventure:wisteria_grove + surface.biomesPercent.minecraft:cherry_grove + surface.biomesPercent.adventure:magnolia_woodland + surface.biomesPercent.adventure:lavender_fields",
+   "op": ">=",
+   "value": 55,
+   "from": "\"wisteria, sakura\"; 1.21.1 wisteria_forest, sakura_grove, cherry_grove, lavender_forest, magnolia_woodland"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:chalk_cliffs",
+   "op": ">=",
+   "value": 8,
+   "from": "1.21.1 white_cliffs"
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 12,
+   "from": "\"Villager country\": land"
+  },
+  {
+   "key": "surface.groundPlantsPercent.flower + surface.topBlocksPercent.minecraft:pink_petals",
+   "op": ">=",
+   "value": 5,
+   "from": "\"Blossom\""
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting (blossom groves on white bluffs): the largest three regions hold most of the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": "<=",
+   "value": 8,
+   "from": "place kind meeting: a few places, not many"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of biome specks"
+  }
+ ]
+}

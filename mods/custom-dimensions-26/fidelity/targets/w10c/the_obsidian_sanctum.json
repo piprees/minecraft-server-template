@@ -1,0 +1,41 @@
+{
+ "slug": "the_obsidian_sanctum",
+ "targets": [
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind one place with a fringe: the place is one region holding half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind one place: no scatter of biome specks"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:withered_forest",
+   "op": ">=",
+   "value": 45,
+   "from": "\"soul ground and withered trees in the dark\": the withered forest is the sanctum's ground"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:soul_soil + surface.groundBlocksPercent.minecraft:soul_sand",
+   "op": ">=",
+   "value": 40,
+   "from": "\"soul ground\""
+  },
+  {
+   "key": "placeness.places.byPlace.adventure:withered_forest.landPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "one place with a fringe: the withered forest place holds half the land"
+  },
+  {
+   "key": "placeness.places.landRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "places, not perlin: no scatter of place specks"
+  }
+ ]
+}

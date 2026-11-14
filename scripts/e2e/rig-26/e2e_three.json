@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 2,
+  "description": "E2E rig e2e_three: netherrack from y -63 to -61 under the Nether's fog, for the end-to-end harness; its portal lies flat, so whatever the far side shows below it is netherrack.",
+  "seed": 2203,
+  "spawn": [
+    4,
+    -60,
+    1
+  ],
+  "generator": {
+    "type": "flat",
+    "biome": "minecraft:the_void",
+    "layers": [
+      {
+        "block": "minecraft:bedrock",
+        "height": 1
+      },
+      {
+        "block": "minecraft:netherrack",
+        "height": 3
+      }
+    ]
+  },
+  "atmosphere": {
+    "ambientLight": 0.1,
+    "fixedTime": 18000,
+    "effects": "minecraft:the_nether",
+    "fogColor": "#330808"
+  },
+  "rules": {
+    "natural": false
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "structures": {
+    "density": "sparse",
+    "clearSpawnRadius": 512
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:red_concrete",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "FED83D",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "orientation": "horizontal"
+    }
+  ]
+}

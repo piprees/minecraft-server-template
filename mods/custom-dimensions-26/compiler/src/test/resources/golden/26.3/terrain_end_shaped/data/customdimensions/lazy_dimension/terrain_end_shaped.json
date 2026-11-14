@@ -1,0 +1,10 @@
+{
+  "type": "adventure:terrain_end_shaped",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:the_end"
+    },
+    "settings": "adventure:terrain_end_shaped"
+  }
+}

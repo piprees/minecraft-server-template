@@ -1,0 +1,62 @@
+{
+ "slug": "the_souldrift",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:soul_sand + surface.groundBlocksPercent.minecraft:soul_soil + surface.groundBlocksPercent.minecraft:tuff + surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:gravel + surface.groundBlocksPercent.minecraft:sculk",
+   "op": ">=",
+   "value": 40,
+   "from": "\"Soul-sand drifting into shadow\", \"nether ash and soul valleys\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:soul_sand_valley + surface.biomesPercent.adventure:ash_barrens",
+   "op": ">=",
+   "value": 20,
+   "from": "\"nether ash and soul valleys\""
+  },
+  {
+   "key": "underground.caveBiomesPercent.minecraft:deep_dark",
+   "op": ">=",
+   "value": 10,
+   "from": "\"over a deep dark that shouldn't be this close to the surface\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:sculk + surface.topBlocksPercent.minecraft:sculk_vein",
+   "op": ">=",
+   "value": 2,
+   "from": "\"the surface scar where the underground sculk infection broke through\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 10,
+   "from": "\"Soul-sand drifting\": a dry scar"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.fixedTime?",
+   "op": "between",
+   "value": [
+    12000,
+    14000
+   ],
+   "from": "1.21.1 fixedTime 13000"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting (ash, soul and sculk): the largest three regions hold most of the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": "<=",
+   "value": 8,
+   "from": "place kind meeting: a few places, not many"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of biome specks"
+  }
+ ]
+}

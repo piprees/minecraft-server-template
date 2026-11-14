@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: roofed, extreme setting, on the nether preset.",
+  "seed": 20261025,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "terrain": {
+    "base": "roofed",
+    "setting": "extreme"
+  },
+  "borders": {
+    "player": 2048
+  }
+}

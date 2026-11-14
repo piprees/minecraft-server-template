@@ -1,0 +1,12 @@
+{
+  "input": {
+    "left": {
+      "left": "adventure:terrain/the_abyssal_shrine/lakes",
+      "right": 0.0333240482,
+      "type": "minecraft:add"
+    },
+    "right": 18.8964475,
+    "type": "minecraft:mul"
+  },
+  "type": "minecraft:cache"
+}

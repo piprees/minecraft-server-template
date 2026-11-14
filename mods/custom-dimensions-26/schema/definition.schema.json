@@ -1,0 +1,2628 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:custom-dimensions:definition:2",
+  "title": "Dimension definition, schema v2",
+  "description": "One dimension of the custom-dimensions mod for Minecraft 26.3. Field map: docs/design/rebuild-26/schema-v2.md. A file without \"schemaVersion\": 2 is a 1.21.1 definition; convert it with ./gradlew :compiler:convertDefinitions.",
+  "type": "object",
+  "required": ["schemaVersion", "generator"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "description": "Always 2. The 26.3 mod refuses a file without it.",
+      "const": 2
+    },
+    "description": {
+      "description": "What the dimension is, for players and the viewer.",
+      "type": "string"
+    },
+    "seed": {
+      "description": "The seed this dimension's level generates from, base worlds included (decisions.md RB-37); \"env\" or absent takes the world seed (level-seed, from SEED). A level whose region folder holds chunks keeps the seed they generated from.",
+      "oneOf": [
+        { "type": "integer" },
+        { "const": "env" }
+      ]
+    },
+    "spawn": {
+      "description": "The spawn point, [x, y, z].",
+      "type": "array",
+      "items": { "type": "integer" },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "generator": { "$ref": "#/$defs/generator" },
+    "terrain": {
+      "description": "The terrain layer: a library terrain, its setting and parameters. base null keeps the preset's own terrain.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "base": {
+          "description": "A library terrain; null is the generator preset's own.",
+          "enum": [null, "continents", "erosion", "ridges", "terraces", "canyons", "rivers", "floating_islands", "basin_islands", "islands", "voids", "shattered", "spires", "roofed", "end"]
+        },
+        "setting": {
+          "description": "Starting values for the parameters: gentle (near vanilla), default, extreme.",
+          "enum": ["gentle", "default", "extreme"],
+          "default": "default"
+        },
+        "params": {
+          "description": "Parameters of the base terrain, over its setting; each terrain's are under $defs/terrain_<base>.",
+          "type": "object"
+        },
+        "scale": {
+          "description": "Horizontal stretch of every terrain noise and of the biome climate; 2 is twice as broad. scales multiply it per router noise",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "heightMultiplier": {
+          "description": "Multiplies every height above or below sea level",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 3,
+          "default": 1
+        },
+        "scales": {
+          "description": "Per-noise horizontal stretch, each multiplied with scale and applied to the router noise it names: continents (continentalness: continent and ocean size), erosion (range and valley width), ridges (weirdness: ridge, river and peak spacing), climate (temperature and vegetation: biome region size). Larger is broader. Library noises follow scale only. Biome climate boxes keep their bounds, so check every listed biome on a render after a change (T174). Without a base it shapes the overworld, large_biomes and amplified presets' own terrain; on the nether, caves and end presets it takes climate alone, and so does a roofed terrain.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "continents": { "description": "Horizontal stretch of one router noise, multiplied with scale; 2 is twice as broad", "type": "number", "minimum": 0.25, "maximum": 4, "default": 1 },
+            "erosion": { "description": "Horizontal stretch of one router noise, multiplied with scale; 2 is twice as broad", "type": "number", "minimum": 0.25, "maximum": 4, "default": 1 },
+            "ridges": { "description": "Horizontal stretch of one router noise, multiplied with scale; 2 is twice as broad", "type": "number", "minimum": 0.25, "maximum": 4, "default": 1 },
+            "climate": { "description": "Horizontal stretch of one router noise, multiplied with scale; 2 is twice as broad", "type": "number", "minimum": 0.25, "maximum": 4, "default": 1 }
+          }
+        },
+        "landShare": {
+          "description": "Share of the player border that is land, measured from each seed's continentalness when the level loads. The coast moves to where that share of a 96 x 96 grid over the border lies at or above it, so the share holds for any seed, scales and layout. Without a base it acts on the overworld, large_biomes and amplified presets' own terrain; with one, on a land terrain whose coast continentalness draws (not islands, roofed, end or a terrain over a void).",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "climateShift": {
+          "description": "Added to the router's temperature and vegetation before biomes read them: a shift, not a clamp. A biome whose climate box lies past the shifted range takes less of the map or none, and the box at the far end takes all that lies beyond it, so +0.3 on temperature warms a cold seed by about one vanilla band and -0.5 freezes all but the hottest land. On a base terrain, the preset's own terrain, the nether, caves and end presets, and a roofed or end terrain alike.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "temperature": { "description": "Added to the router's temperature or vegetation; vanilla's biome bands are about 0.3 to 0.55 wide", "type": "number", "minimum": -1, "maximum": 1, "default": 0 },
+            "vegetation": { "description": "Added to the router's temperature or vegetation; vanilla's biome bands are about 0.3 to 0.55 wide", "type": "number", "minimum": -1, "maximum": 1, "default": 0 }
+          }
+        },
+        "climateWarp": {
+          "description": "Moves the point the router's temperature and vegetation are sampled at along two noises, so every climate boundary between biomes (bands, regions, a biome list's cells) wanders like an ecotone instead of running straight across a broad climate. It moves boundaries; it does not change any biome's share of the map.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "blocks": { "description": "Blocks the climate's sampling point moves by, two standard deviations; every biome boundary wanders by about as much", "type": "number", "minimum": 0, "maximum": 1024, "default": 0 },
+            "wavelength": { "description": "Blocks across the warp's features: a boundary bends about once a wavelength", "type": "number", "minimum": 64, "maximum": 4096, "default": 512 }
+          }
+        },
+        "floor": {
+          "description": "What a spires terrain's columns stand on: land (the shared land, columns rising inland), sea (a sea floor at seaFloor with every column rising out of the sea), void (nothing between them: each column stands from the bottom of an open world) or islands (each column on a domed island of its own over a void). void and islands are terrains over a void, with no aquifers.",
+          "enum": ["land", "void", "sea", "islands"],
+          "default": "land"
+        },
+        "layout": {
+          "description": "A large-scale shape added to continentalness (land and biomes both read it) so the bordered area composes as one place: radial is a continent (1 within radius, falling to -1 over falloff), ring is a crest at radius round a low centre, linear is a coast rising towards direction. The shape times strength adds to the noise, never replaces it. Without a base it shapes the overworld, large_biomes and amplified presets' own terrain. On a roofed terrain it places the pits instead: the shape times strength moves the pit noise, so radial is one pit round the centre. On floating_islands, basin_islands and spires over a void or a sea it moves the coverage noise (islands, lake masses, spires) by up to three of its deviations: radial gathers them round the centre and clears the sky past the falloff, ring sets them round a hollow. On an end terrain it adds the shape times 0.4 times strength to the island density.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": { "enum": ["radial", "ring", "linear", "none"] },
+            "centre": {
+              "description": "Block x, z of the shape's centre, or a point on a linear coast; default the border's centre, 0, 0",
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "radius": {
+            "description": "Blocks from the centre to where a radial shape starts to fall, or to a ring's crest",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 8192,
+            "default": 512
+          },
+            "direction": { "description": "Degrees towards which a linear layout rises: 0 east, 90 south", "type": "number" },
+            "falloff": {
+            "description": "Blocks over which the shape goes from land (1) to sea (-1)",
+            "type": "number",
+            "minimum": 16,
+            "maximum": 8192,
+            "default": 256
+          },
+            "strength": {
+            "description": "How far the layout moves continentalness: 1 adds the whole shape (-1 to 1), 0 none",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.5
+          },
+            "warp": {
+              "description": "How far the shape's edges wander: the point the shape (and a ring's hollow) is read at moves along the warp noises terrain.climateWarp uses, by up to blocks (two standard deviations) over features wavelength blocks across, so a ring's rim and a continent's coast are no drawn circle. blocks at most 0.15 of wavelength, which keeps the map from folding, so a ring stays one ring. Absent: the shape stands still.",
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "blocks": { "type": "number", "minimum": 0, "maximum": 1024, "default": 0 },
+                "wavelength": { "type": "number", "minimum": 64, "maximum": 4096, "default": 512 }
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "continents"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_continents"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "erosion"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_erosion"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "ridges"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_ridges"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "terraces"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_terraces"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "canyons"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_canyons"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "rivers"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_rivers"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "floating_islands"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_floating_islands"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "basin_islands"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_basin_islands"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "islands"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_islands"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "voids"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_voids"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "shattered"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_shattered"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "spires"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_spires"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "roofed"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_roofed"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "base": {
+                "const": "end"
+              }
+            },
+            "required": ["base"]
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "$ref": "#/$defs/terrain_end"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "biomes": {
+      "description": "Biome ids, or {id, climate} entries placing a biome by multi-noise climate.",
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/id" },
+          {
+            "type": "object",
+            "required": ["id"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "climate": { "$ref": "#/$defs/climate" }
+            }
+          }
+        ]
+      }
+    },
+    "biomeLayout": {
+      "description": "How a noise generator lays out the biome list. regions: every listed biome without a climate takes one large region on the region axes, a share of the world border equal to its weight over the sum, whatever the seed; consecutive biomes in the list share a border. A listed biome with a climate is bound to the land: it keeps its box, which wins over every region (oceans on continentalness, caves on depth, peaks on erosion). The axes are in rank space: -1 is the lowest value the seed reaches inside the world border (borders.player, else borders.generation), 1 the highest; a bound box on a region axis reads it the same way. Stretch the region axes with terrain.scales (climate for temperature and humidity) for fewer, larger regions.",
+      "type": "object",
+      "required": ["mode"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": { "const": "regions" },
+        "axes": {
+          "description": "One or two slow axes the regions are cut on; default [temperature, humidity]. With two, the regional biomes fill columns along the first in list order and rows along the second.",
+          "type": "array",
+          "items": { "enum": ["temperature", "humidity", "continentalness", "erosion", "weirdness"] },
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "weights": {
+          "description": "A regional biome's weight; 1 when absent. On a terrain with a coastline its share of its role's area is its weight over the sum of the weights in that area; otherwise its share of the border is its weight over the sum of the regional biomes' weights.",
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
+        },
+        "roles": {
+          "description": "A listed biome's role, over the one its tags or library entry give. On a terrain with a coastline, regional land, peak and wetland biomes take regions on land only, ocean biomes in the sea only, cave biomes at depth only; shore and river biomes listed without a climate take the terrain's shore and river bands, divided among them by weight. On a roofed terrain with a liquids.seaLevel over part of its floor, an ocean or shore role makes the floor against the sea its coastline: ocean biomes take the floor under the sea, shore biomes 3 blocks either side of it, land biomes the dry floor; a roofed floor has no river band. Over a void: underside takes the islands more than 8 blocks below their tops (hanging gardens), basin the open water of basin_islands' lake masses; the other biomes take the island tops, each group ranked over its own ground.",
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "enum": ["land", "ocean", "shore", "river", "peak", "cave", "wetland", "basin", "underside"] }
+        },
+        "over": {
+          "description": "Which cells the region axes are ranked over: all (default) or land, the cells that hold land, so each regional biome takes its weight's share of the islands and not of the void between. For the end preset (its own islands or an end terrain), whose erosion is the island density, and for a terrain over a void, whose router continentalness becomes its place cue (void, basin water, land); under land an ocean biome on basin_islands takes the basin role. On a roofed terrain with a liquids.seaLevel over part of its floor, land is the floor above that sea.",
+          "enum": ["all", "land"],
+          "default": "all"
+        },
+        "belowFloor": {
+          "description": "On terrain.base roofed: a listed biome without a climate to the blocks under the floor from which it holds every point, under every place and none of the open floor; several biomes stack in bands, each from its own start to the next deeper one's.",
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "type": "integer", "minimum": 4, "maximum": 256 }
+        },
+        "sea": {
+          "description": "The biome of the sea when no ocean biome is listed, on a terrain with a coastline; absent: the vanilla ocean that suits the land biomes' mean temperature.",
+          "$ref": "#/$defs/id"
+        },
+        "places": {
+          "description": "Lay the regional land biomes (all regional biomes on a terrain with no coastline) out as places: each biome, or each named group, takes ONE contiguous region of the world border (borders.player, else borders.generation, as the regions) whose share is its weight over the sum, by a power (weighted Voronoi) diagram instead of a climate noise. The router's first region axis (temperature or humidity) becomes the place field, one value per place, read as it is; a group's biomes are mixed inside their place by the second axis's ranked noise. Ocean, shore, river, cave, underside and basin biomes keep their role areas, a place's own members in its column and the rest in every column; bound biomes, zones and over: land work as with regions. Without at or a named arrangement the sites are automatic: four layouts solved at compile time, and the level's seed picks one of them and one of the square's eight symmetries, so rolling seeds gives different arrangements with the same shares.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "groups": {
+              "description": "Named places of several biomes: name (lowercase letters, digits, _) to a list of listed biomes without a climate. A group's share is the sum of its land biomes' weights; a group may also name ocean, shore or other role biomes, which then take that place's column of their role area.",
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[a-z0-9_]+$"
+              },
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/id"
+                },
+                "minItems": 1
+              }
+            },
+            "arrangement": {
+              "description": "Where the places' sites go: auto (default; deterministic sites relaxed to round places, chosen by the seed), ring (round a ring in list order, meeting near the centre), sectors (wedges round the centre as wide as their shares), bands (parallel bands across the border along direction, in list order, as wide as their shares), core (the first place at the centre, the rest round it; a first place smaller than one of the others is a heart, a disc of its share round the centre with the rest in wedges round it, each meeting it).",
+              "enum": [
+                "auto",
+                "ring",
+                "sectors",
+                "bands",
+                "core"
+              ],
+              "default": "auto"
+            },
+            "direction": {
+              "description": "Compass degrees (0 north, 90 east) of the first place of a ring, sectors or core, or the way bands run; default 0.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 360
+            },
+            "at": {
+              "description": "A place's site in blocks, [x, z], inside 95% of the border: place name (a group's or a biome id) to its site. The place holds the whole circle a tenth of the border's radius round its site, so a spawn or an arrival there stands inside it; a lone site no power cell can hold becomes a heart, a disc of its share round the site with the rest in wedges round it; otherwise the compiler refuses the definition naming the place. Given for every place, the places hold those sites for every seed; given for some, the rest are automatic. Not with a named arrangement.",
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "neighbours": {
+              "description": "Pairs of places that must share a border: the automatic search honours them, and a named arrangement or at that breaks one is refused at compile time. Consecutive places in the list share a border where they can without it.",
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "apart": {
+              "description": "Pairs of places that must not share a border, honoured or refused as neighbours are.",
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "warp": {
+              "description": "How far place edges wander: the sampling point moves by up to blocks (two standard deviations) over features wavelength blocks across, tapered to nothing at the border; a heart's disc takes the whole warp all round, held to the room between the heart and a tenth of the radius inside the border. blocks at most 0.15 of wavelength, which keeps every place one region. Absent: terrain.climateWarp when it warps (capped at 0.15 of its wavelength), else blocks 0.1 of a wavelength of half the border's radius; either is cut to a heart's room.",
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "blocks": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1024
+                },
+                "wavelength": {
+                  "type": "number",
+                  "minimum": 64,
+                  "maximum": 4096
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "liquids": {
+      "description": "Sea level, the lava level, the fluid below sea level and the aquifer mode.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "seaLevel": { "type": "integer" },
+        "lavaLevel": { "type": "integer", "description": "Open cells below the lower of this and sea level are lava; the generator's own is -54." },
+        "defaultFluid": { "$ref": "#/$defs/id" },
+        "aquifers": {
+          "enum": ["on", "off", "dry", "flooded"],
+          "description": "on: the preset's aquifers; off and flooded: none, so open cells below sea level hold the default fluid; dry: none, air as the default fluid, and no water springs or dripstone clusters."
+        },
+        "basins": {
+          "description": "Fluid that fills a terrain's basins (basin_islands) and nothing else: open cells inside a basin, above its floor and below level; the void and the open sky stay air.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "level": { "type": "integer", "description": "The fluid's surface; between the basin floor and the rim's top. Absent: the terrain's altitude, its water line." },
+            "fluid": { "$ref": "#/$defs/id", "description": "Absent: minecraft:water." }
+          }
+        }
+      }
+    },
+    "materials": {
+      "description": "The material layer: the fallback block, a palette for the dimension, palettes per biome and palettes by depth. A vanilla Nether biome listed on another preset takes its own ground (nylium, soul sand, netherrack, basalt) unless a palette names it; on the caves preset a biome with no floor of its own takes moss_block, not grass, unless the dimension's palette sets top.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "defaultBlock": { "$ref": "#/$defs/id" },
+        "top": { "$ref": "#/$defs/id" },
+        "filler": { "$ref": "#/$defs/id" },
+        "deep": { "$ref": "#/$defs/id" },
+        "cliffs": { "$ref": "#/$defs/id" },
+        "beaches": { "$ref": "#/$defs/id" },
+        "ceilings": { "$ref": "#/$defs/id" },
+        "biomes": {
+          "description": "A palette per biome id or #tag, over the dimension's.",
+          "type": "object",
+          "propertyNames": { "pattern": "^#?[a-z0-9_.-]+:[a-z0-9_./-]+$" },
+          "additionalProperties": { "$ref": "#/$defs/palette" }
+        },
+        "bands": {
+          "description": "Palettes by depth, deepest first: each holds below its below (an absolute y, each above the last) and wins over the per-biome palettes and the dimension's there, so a world can turn hotter and harder downward.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["below"],
+            "properties": {
+              "below": { "description": "The band's top: it holds where y is below this.", "type": "integer" },
+              "top": { "$ref": "#/$defs/id" },
+              "filler": { "$ref": "#/$defs/id" },
+              "deep": { "$ref": "#/$defs/id" },
+              "cliffs": { "$ref": "#/$defs/id" },
+              "beaches": { "$ref": "#/$defs/id" },
+              "ceilings": { "$ref": "#/$defs/id" }
+            }
+          }
+        }
+      }
+    },
+    "carvers": {
+      "description": "Vanilla carvers by name (canyon, cave, cave_extra_underground, nether_cave; a bare name is minecraft:): false removes it from every biome's carver list in this dimension, true adds it to every biome's.",
+      "type": "object",
+      "propertyNames": { "pattern": "^([a-z0-9_.-]+:)?[a-z0-9_/.-]+$" },
+      "additionalProperties": { "type": "boolean" }
+    },
+    "ores": {
+      "description": "Ore veins, ores added to the dimension and placed features removed from it.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "veins": {
+          "description": "true keeps the preset's veins, false removes them, a list replaces them.",
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "array", "items": { "$ref": "#/$defs/oreVein" } }
+          ]
+        },
+        "add": { "type": "array", "items": { "$ref": "#/$defs/ore" } },
+        "remove": { "type": "array", "items": { "$ref": "#/$defs/id" } }
+      }
+    },
+    "zones": {
+      "description": "Shapes that replace layers inside them, in order.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/zone" }
+    },
+    "dimensionType": {
+      "description": "Dimension-type fields; unset ones keep the base type's.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "minY": { "type": "integer" },
+        "height": { "type": "integer", "minimum": 16 },
+        "logicalHeight": { "type": "integer", "minimum": 0 },
+        "hasSkylight": { "type": "boolean" },
+        "hasCeiling": { "type": "boolean" },
+        "infiniburn": { "$ref": "#/$defs/id" },
+        "monsterSpawnLightLevel": {
+          "description": "A light level, or an int provider object.",
+          "oneOf": [
+            { "type": "integer", "minimum": 0, "maximum": 15 },
+            { "type": "object" }
+          ]
+        },
+        "monsterSpawnBlockLightLimit": { "type": "integer", "minimum": 0, "maximum": 15 }
+      }
+    },
+    "atmosphere": {
+      "description": "Sky, fog, light and time.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "skyColor": { "$ref": "#/$defs/colour" },
+        "fogColor": { "$ref": "#/$defs/colour" },
+        "ambientLight": { "type": "number", "minimum": 0, "maximum": 1 },
+        "fixedTime": { "type": "integer", "minimum": 0 },
+        "effects": { "$ref": "#/$defs/id" },
+        "overBiomes": {
+          "description": "true: the dimension's sky and fog colours (skyColor, fogColor, or those effects brings) win over every biome's own, as the first of its timelines, whose override the day and night still darken; false: a biome's own colours win where it has them. Default: true when the dimension sets skyColor or fogColor, false otherwise.",
+          "type": "boolean"
+        },
+        "dayLength": {
+          "description": "Real minutes of day (sunrise to sunset) and night; the day's timelines are warped to it. settings.json's defaults.atmosphere.dayLength applies to every dimension with vanilla's day and no fixedTime.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dayMinutes", "nightMinutes"],
+          "properties": {
+            "dayMinutes": { "type": "number", "minimum": 1, "maximum": 600 },
+            "nightMinutes": { "type": "number", "minimum": 1, "maximum": 600 }
+          }
+        }
+      },
+      "not": { "required": ["fixedTime", "dayLength"] }
+    },
+    "rules": {
+      "description": "What works here; unset rules keep the base type's.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bedsWork": { "type": "boolean" },
+        "respawnAnchorsWork": { "type": "boolean" },
+        "piglinsZombify": { "type": "boolean" },
+        "ultraWarm": { "type": "boolean" },
+        "natural": { "type": "boolean" },
+        "raids": { "type": "boolean" }
+      }
+    },
+    "gameRules": {
+      "description": "Game rules held by this dimension's level (decisions.md RB-38): a 26.3 game rule id (minecraft: may be left off) to a boolean or a whole number. Unset rules take settings.json's defaults.gameRules, then the server-wide value. advance_time is refused: the clocks are server-wide; atmosphere.fixedTime and atmosphere.dayLength set a dimension's time. A dimension that sets advance_weather keeps weather of its own.",
+      "type": "object",
+      "propertyNames": { "pattern": "^([a-z0-9_.-]+:)?[a-z0-9_./-]+$" },
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "boolean" },
+          { "type": "integer", "minimum": -2147483648, "maximum": 2147483647 }
+        ]
+      }
+    },
+    "borders": {
+      "description": "World-border radius for players, and the pre-generation radius, in blocks.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "player": { "type": "integer", "minimum": 1 },
+        "generation": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "difficulty": {
+      "description": "Mob scaling and player luck.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "hostileSpawning": { "type": "boolean" },
+        "mobMultiplier": { "type": "number", "minimum": 0 },
+        "playerLuck": { "type": "number" },
+        "attributes": { "type": "object" },
+        "depthScaling": { "type": "object" }
+      }
+    },
+    "structures": {
+      "description": "Structure control (worldgen.md § Structure control). Structure ids or #tags for force, wants, shuns, replace and terrainAdaptation; structure set ids for list, exclude, include, rarity and spacing.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "density": { "description": "Every noise group's profile, or theme factors on vanilla grids; none places no organic structure.", "enum": ["dense", "normal", "sparse", "none"] },
+        "wants": {
+          "description": "Structures guaranteed between min and max blocks of spawn, by id, #tag or short name.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": { "min": { "type": "integer", "minimum": 0 }, "max": { "type": "integer", "minimum": 1 } }
+          }
+        },
+        "shuns": {
+          "description": "Structures that never place here, by id, #tag or short name.",
+          "type": "object",
+          "additionalProperties": { "type": "object", "maxProperties": 0 }
+        },
+        "spacing": {
+          "description": "A random-spread set's own grid, kept outside the noise groups.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["spacing", "separation"],
+            "properties": { "spacing": { "type": "integer", "minimum": 1, "maximum": 4096 }, "separation": { "type": "integer", "minimum": 0 } }
+          }
+        },
+        "mode": { "description": "allow keeps only the sets in list, reject drops them, none drops every organic set.", "enum": ["allow", "reject", "none"] },
+        "list": { "type": "array", "items": { "type": "string" } },
+        "force": {
+          "description": "A structure at a block position, or in a chunk within radius blocks of it; exclusive (default true) removes its organic copies.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["structure", "x", "z"],
+            "properties": {
+              "structure": { "type": "string", "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$" },
+              "x": { "type": "integer" },
+              "z": { "type": "integer" },
+              "y": { "type": ["integer", "null"] },
+              "radius": { "type": "integer", "minimum": 0 },
+              "exclusive": { "type": "boolean" }
+            }
+          }
+        },
+        "clearSpawnRadius": { "description": "Blocks round spawn where the dungeons and endgame groups place nothing.", "type": "integer", "minimum": 0 },
+        "terrainAdaptation": {
+          "description": "Terrain around a structure or a group's structures: a vanilla adjustment, or pedestal, platform_skirt and ground_blend as their vanilla counterparts.",
+          "type": "object",
+          "additionalProperties": { "enum": ["none", "beard_thin", "beard_box", "bury", "encapsulate", "pedestal", "platform_skirt", "ground_blend", "moat", "drain"] }
+        },
+        "noise": { "description": "A profile for every group, a map of group to profile, or false for vanilla grids.", "type": ["string", "object", "boolean"] },
+        "radial": {
+          "description": "A group's density from spawn to border, 10 points in 0-3.",
+          "type": "object",
+          "additionalProperties": { "type": "array", "minItems": 10, "maxItems": 10, "items": { "type": "number", "minimum": 0, "maximum": 3 } }
+        },
+        "rarity": { "type": "object", "additionalProperties": { "enum": ["common", "uncommon", "rare", "endgame"] } },
+        "exclude": { "type": "array", "items": { "type": "string" } },
+        "include": { "description": "Sets placed although no biome here suits them, on their own grids with the biome check skipped.", "type": "array", "items": { "type": "string" } },
+        "replace": { "description": "Wherever the left structure would place, the right one does.", "type": "object", "additionalProperties": { "type": "string" } },
+        "repetition": {
+          "description": "A group's ceiling on copies of one structure, in place of the world type's (6 unless the type sets one).",
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 }
+        },
+        "loot": {
+          "description": "Items container loot gains in this dimension when the container stands in a piece of a named structure, in place of the world type's rules; [] for none.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["item", "chance", "structures"],
+            "properties": {
+              "item": { "type": "string", "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$" },
+              "chance": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+              "structures": { "description": "Structure ids, #tags or group names.", "type": "array", "minItems": 1, "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "portals": {
+      "description": "The ways in. The first entry is the primary portal.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/portal" }
+    },
+    "exitPortal": { "type": "object", "additionalProperties": true },
+    "exits": {
+      "description": "Exit rules by trigger: void, death, death:<cause>, enderPearl, fallFrom.",
+      "type": "object",
+      "additionalProperties": true
+    },
+    "exitShrines": { "type": "object", "additionalProperties": true },
+    "deaths": {
+      "description": "What a player who dies here keeps (decisions.md RB-31). Set, it wins over the keep_inventory game rule; absent, this dimension's keep_inventory decides.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "inventory": {
+          "enum": [
+            "keep",
+            "drop"
+          ]
+        },
+        "experience": {
+          "enum": [
+            "keep",
+            "drop"
+          ]
+        }
+      }
+    },
+    "wins": {
+      "description": "Wins (decisions.md RB-30): each grants the advancement <namespace>:wins/<slug>/<id> when its trigger fires.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/win"
+      }
+    },
+    "roll": {
+      "description": "What the seed roller scores.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "skip": { "type": "boolean" },
+        "mood": { "enum": ["hard", "adventurous", "dramatic", "scenic", "pastoral", "serene", "desolate", "standard"] },
+        "spawnFilter": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "water": { "enum": ["none", "high", "sea"] },
+        "terrain": { "type": "string" },
+        "heightRange": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "wants": { "type": "object" },
+        "shuns": { "type": ["array", "object"] },
+        "allowHazardousSpawn": { "type": "boolean" },
+        "family": false,
+        "spawnRadius": false,
+        "locateCap": false,
+        "allowEndgameNearSpawn": false
+      }
+    }
+  },
+  "$defs": {
+    "palette": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "top": { "$ref": "#/$defs/id" },
+        "filler": { "$ref": "#/$defs/id" },
+        "deep": { "$ref": "#/$defs/id" },
+        "cliffs": { "$ref": "#/$defs/id" },
+        "beaches": { "$ref": "#/$defs/id" },
+        "ceilings": { "$ref": "#/$defs/id" }
+      }
+    },
+    "oreVein": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["like", "ore"],
+      "properties": {
+        "like": { "enum": ["copper", "iron"], "description": "The vanilla vein whose shape and heights it takes." },
+        "ore": { "$ref": "#/$defs/id" },
+        "rawOre": { "$ref": "#/$defs/id" },
+        "filler": { "$ref": "#/$defs/id" },
+        "rawOreChance": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "ore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "block", "count", "minY", "maxY"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "block": { "$ref": "#/$defs/id" },
+        "deepBlock": { "$ref": "#/$defs/id" },
+        "size": { "type": "integer", "minimum": 0, "maximum": 64 },
+        "count": { "type": "integer", "minimum": 0, "maximum": 256 },
+        "minY": { "type": "integer" },
+        "maxY": { "type": "integer" },
+        "shape": { "enum": ["uniform", "trapezoid"] },
+        "airExposure": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "win": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "trigger",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "trigger": {
+          "$ref": "#/$defs/winTrigger"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string",
+          "description": "An item id; default minecraft:nether_star."
+        },
+        "frame": {
+          "enum": [
+            "task",
+            "goal",
+            "challenge"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "description": "A key in config/messages.json; default win.earned. Variables: {player} {dimension} {win}."
+        },
+        "exit": {
+          "description": "Where the player is sent after the win, in the ExitTarget grammar.",
+          "oneOf": [
+            {
+              "enum": [
+                "bed",
+                "worldSpawn",
+                "origin"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "dimension"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "winTrigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "enter",
+            "reach",
+            "kill",
+            "obtain",
+            "survive",
+            "advancement"
+          ]
+        },
+        "pos": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "radius": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "entity": {
+          "type": "string"
+        },
+        "item": {
+          "type": "string"
+        },
+        "advancement": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "ticks": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "reach"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "pos"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "kill"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "entity"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "obtain"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "item"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "survive"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "ticks"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "advancement"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "advancement"
+            ]
+          }
+        }
+      ]
+    },
+    "id": {
+      "description": "A namespaced id, or a #tag.",
+      "type": "string",
+      "pattern": "^#?([a-z0-9_.-]+:)?[a-z0-9_./-]+$"
+    },
+    "colour": {
+      "description": "#RRGGBB.",
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{6}$"
+    },
+    "climateValue": {
+      "oneOf": [
+        { "type": "number" },
+        {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      ]
+    },
+    "climate": {
+      "description": "Multi-noise placement: a point or a [min, max] range per parameter.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "temperature": { "$ref": "#/$defs/climateValue" },
+        "humidity": { "$ref": "#/$defs/climateValue" },
+        "continentalness": { "$ref": "#/$defs/climateValue" },
+        "erosion": { "$ref": "#/$defs/climateValue" },
+        "depth": { "$ref": "#/$defs/climateValue" },
+        "weirdness": { "$ref": "#/$defs/climateValue" },
+        "offset": { "type": "number" }
+      }
+    },
+    "generator": {
+      "description": "What builds the chunks.",
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "enum": ["noise", "void", "flat", "checkerboard", "single_biome", "clone"] },
+        "preset": {
+          "description": "The noise settings, for type noise, and for type single_biome (default overworld).",
+          "enum": ["overworld", "large_biomes", "amplified", "caves", "floating_islands", "nether", "end"]
+        },
+        "of": {
+          "description": "The dimension a clone copies.",
+          "$ref": "#/$defs/id"
+        },
+        "cellScale": {
+          "description": "Checkerboard cell size: 2^(cellScale + 4) blocks.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 62
+        },
+        "voidBiomes": {
+          "description": "Checkerboard biomes whose cells carry no terrain: the final density is held at -1 in those cells. Each must be on the biome list, and not every one.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "biome": {
+          "description": "The biome of a flat or single_biome world.",
+          "$ref": "#/$defs/id"
+        },
+        "layers": {
+          "description": "A flat world's layers, bottom up.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["block", "height"],
+            "additionalProperties": false,
+            "properties": {
+              "block": { "$ref": "#/$defs/id" },
+              "height": { "type": "integer", "minimum": 1 }
+            }
+          }
+        },
+        "endIsland": {
+          "description": "False removes the End's island at the origin. End preset only.",
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "noise" } } },
+          "then": { "required": ["preset"] }
+        },
+        {
+          "if": { "properties": { "type": { "enum": ["noise", "single_biome"] } } },
+          "else": { "properties": { "preset": false } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "clone" } } },
+          "then": { "required": ["of"] },
+          "else": { "properties": { "of": false } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "checkerboard" } } },
+          "else": { "properties": { "cellScale": false, "voidBiomes": false } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "flat" } } },
+          "else": { "properties": { "layers": false } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "single_biome" } } },
+          "then": { "required": ["biome"] }
+        },
+        {
+          "if": { "properties": { "type": { "enum": ["flat", "single_biome"] } } },
+          "else": { "properties": { "biome": false } }
+        },
+        {
+          "if": { "required": ["preset"], "properties": { "preset": { "const": "end" } } },
+          "else": { "properties": { "endIsland": false } }
+        }
+      ]
+    },
+    "zone": {
+      "description": "A shape around spawn or a point that replaces layers inside it. Zones apply in order, each over the ones before it; outside them the definition's own layers hold.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "shape": {
+          "description": "circle (radius), ring (inner, outer), square (radius: half its side), box (halfSize), sector (radius or outer, inner, angles) or polygon (points); all covers the whole dimension, for swaps.",
+          "enum": [
+            "circle",
+            "ring",
+            "square",
+            "box",
+            "sector",
+            "polygon",
+            "all"
+          ],
+          "default": "circle"
+        },
+        "centre": {
+          "description": "[x, z], or spawn: the definition's spawn (0, 0 without one).",
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            {
+              "const": "spawn"
+            }
+          ]
+        },
+        "radius": {
+          "description": "circle and square: blocks from the centre to the edge; sector: its outer radius.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "inner": {
+          "description": "ring and sector: the hole's radius.",
+          "type": "number",
+          "minimum": 0
+        },
+        "outer": {
+          "description": "ring and sector: the outer radius.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "halfSize": {
+          "description": "box: half its size along x and z.",
+          "type": "array",
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "angles": {
+          "description": "sector: [from, to] in degrees from east (+x) towards south (+z).",
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "points": {
+          "description": "polygon: [x, z] corners relative to the centre, at least three.",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "minItems": 3
+        },
+        "blend": {
+          "description": "Blocks beyond the edge over which the zone fades out; 0 is a hard edge.",
+          "type": "number",
+          "minimum": 0,
+          "default": 32
+        },
+        "edgeJitter": {
+          "description": "Blocks the edge wanders by noise (two standard deviations), so it reads as landscape.",
+          "type": "number",
+          "minimum": 0,
+          "default": 0
+        },
+        "terrain": {
+          "description": "The zone's terrain: a library terrain's name, or a terrain object as the definition's.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/properties/terrain"
+            }
+          ]
+        },
+        "biomes": {
+          "description": "The zone's biomes, laid out as the definition's are; materials and ores follow them.",
+          "type": "array",
+          "items": {
+            "$ref": "#/properties/biomes/items"
+          }
+        },
+        "swap": {
+          "description": "Biome id to biome id, applied inside the zone; on shape all, everywhere.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "mass": {
+          "description": "A floating mass: solid ground from bottom to top inside the zone's shape, with open air between it and the ground below; its side lies mid-blend, and taper moves it inwards towards the top, to where the mask is 0.5 + taper / 2.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["bottom", "top"],
+          "properties": {
+            "bottom": {"type": "integer", "minimum": -64, "maximum": 320},
+            "top": {"type": "integer", "minimum": -64, "maximum": 320},
+            "taper": {"type": "number", "minimum": 0, "maximum": 1, "default": 0}
+          }
+        },
+        "liquids": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "aquifers": {
+              "description": "on keeps the dimension's; dry: no aquifer or sea water in the zone.",
+              "enum": [
+                "on",
+                "dry"
+              ]
+            }
+          }
+        },
+        "structures": {
+          "description": "Structure wants and shuns scoped to the zone, applied by structure control.",
+          "type": "object",
+          "properties": {
+            "wants": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "shuns": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "portal": {
+      "description": "One way in.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "frameBlock": {},
+        "frameMaterials": { "type": "object" },
+        "framePlaceBlock": { "$ref": "#/$defs/id" },
+        "igniterItem": { "$ref": "#/$defs/id" },
+        "consumesIgniter": { "type": "boolean" },
+        "vanillaManaged": { "type": "boolean" },
+        "color": { "type": "string", "pattern": "^[0-9A-Fa-f]{6}$" },
+        "lightLevel": { "type": "integer", "minimum": 0, "maximum": 15 },
+        "scale": { "type": "number", "minimum": 0.001, "maximum": 1000 },
+        "cooldown": { "type": "integer", "minimum": 0, "maximum": 200 },
+        "particleType": { "$ref": "#/$defs/id" },
+        "orientation": { "enum": ["any", "vertical", "horizontal", "vertical_x", "vertical_z"] },
+        "shape": { "type": ["string", "object"] },
+        "centreBlock": { "$ref": "#/$defs/id" },
+        "sounds": { "type": "object" },
+        "anchor": { "type": "object" },
+        "singleUse": { "type": "object" },
+        "aura": { "type": "object" },
+        "preview": {
+          "description": "See through the portal. On unless false; an object tunes it.",
+          "type": ["boolean", "object"]
+        },
+        "immersive": false
+      }
+    },
+    "terrain_continents": {
+      "description": "Oceans and land masses from continentalness, with erosion hills.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "crust": {
+          "description": "Blocks under the surface that no noise cave opens into, so caves never break the ground; 0 lets them",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 48,
+          "default": 0
+        }
+      }
+    },
+    "terrain_erosion": {
+      "description": "Land worn down to flat basin floors at landHeight, with the hills that remain between them.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 70
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 0
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.3
+        },
+        "basinShare": {
+          "description": "Share of the land worn down to the flat basin floor",
+          "type": "number",
+          "minimum": 0.02,
+          "maximum": 0.9,
+          "default": 0.4
+        },
+        "hillHeight": {
+          "description": "Blocks the remaining hills rise above the basin floor",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 160,
+          "default": 40
+        },
+        "steepness": {
+          "description": "0 is soft rolling hills, 1 is cliff-sided flat-topped mesas",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.55
+        }
+      }
+    },
+    "terrain_ridges": {
+      "description": "Mountain ranges along the ridges noise, with jagged peaks.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "peakHeight": {
+          "description": "Blocks a range rises above the land",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 240,
+          "default": 70
+        },
+        "jaggedness": {
+          "description": "Spikiness of the peaks (vanilla's jaggedness)",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.5,
+          "default": 0.35
+        },
+        "rangeWidth": {
+          "description": "Share of the ridges range that is mountain",
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 1,
+          "default": 0.4
+        },
+        "crest": {
+          "description": "Profile of a range: 1 rises evenly from foot to crest; lower lifts the flanks so the range stands tall from a steep foot",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 1,
+          "default": 1
+        },
+        "erosionFalloff": {
+          "description": "How far high erosion lowers the ranges: 1 to a quarter, 0 not at all",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        },
+        "web": {
+          "description": "Where ranges run: 0 on vanilla's peaks, rings round the weirdness noise's extremes; 1 along its zero line, one web across the map",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        }
+      }
+    },
+    "terrain_terraces": {
+      "description": "Land stepped into flat terraces, capped by a plateau height.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 96
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 72
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.15
+        },
+        "stepHeight": {
+          "description": "Blocks between terrace levels",
+          "type": "number",
+          "minimum": 3,
+          "maximum": 48,
+          "default": 8
+        },
+        "riser": {
+          "description": "Share of each step that is slope rather than flat",
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 0.95,
+          "default": 0.2
+        },
+        "plateauHeight": {
+          "description": "Height above which land is cut flat",
+          "type": "number",
+          "minimum": 64,
+          "maximum": 256,
+          "default": 256
+        }
+      }
+    },
+    "terrain_canyons": {
+      "description": "Dry steep-walled canyons whose flat floors step down in falls toward sea level, like old river beds.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 112
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.35
+        },
+        "depth": {
+          "description": "Blocks the floor lies below the land at a canyon's upper reaches",
+          "type": "number",
+          "minimum": 8,
+          "maximum": 120,
+          "default": 24
+        },
+        "width": {
+          "description": "Canyon width, as a share of the channel noise",
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 0.3,
+          "default": 0.06
+        },
+        "frequency": {
+          "description": "How often canyons occur; higher is more and tighter",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "grade": {
+          "description": "How far floors descend from their upper reaches toward sea level; 0 keeps every floor depth below the land",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        },
+        "cascadeStep": {
+          "description": "Blocks between floor levels; each drop is a dry fall",
+          "type": "number",
+          "minimum": 2,
+          "maximum": 32,
+          "default": 8
+        },
+        "pools": {
+          "description": "Share of canyon floor sunk 4 blocks into hollows, which hold water at sea level",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.3,
+          "default": 0.05
+        }
+      }
+    },
+    "terrain_rivers": {
+      "description": "Rivers cut to just below sea level across the land, with banks.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "width": {
+          "description": "River width, as a share of the channel noise",
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 0.25,
+          "default": 0.05
+        },
+        "depth": {
+          "description": "Blocks the river bed lies below sea level",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 16,
+          "default": 4
+        },
+        "bankWidth": {
+          "description": "Width of the slope from river to land",
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 0.3,
+          "default": 0.08
+        },
+        "frequency": {
+          "description": "How often rivers occur",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        }
+      }
+    },
+    "terrain_floating_islands": {
+      "description": "Islands in the sky over a void: domed or flat-topped, tapering undersides, in one layer or stacked tiers, with spires standing on the lowest tier's tops.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "altitude": {
+          "description": "Height of the island layer",
+          "type": "number",
+          "minimum": 40,
+          "maximum": 240,
+          "default": 150
+        },
+        "thickness": {
+          "description": "Blocks an island's top rises above the layer",
+          "type": "number",
+          "minimum": 4,
+          "maximum": 64,
+          "default": 18
+        },
+        "underside": {
+          "description": "Blocks an island's underside hangs below the layer",
+          "type": "number",
+          "minimum": 4,
+          "maximum": 120,
+          "default": 40
+        },
+        "coverage": {
+          "description": "Share of the sky with islands",
+          "type": "number",
+          "minimum": 0.02,
+          "maximum": 0.8,
+          "default": 0.3
+        },
+        "size": {
+          "description": "Island size; higher is larger and fewer",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "spread": {
+          "description": "Blocks island altitudes vary by",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 80,
+          "default": 24
+        },
+        "flatness": {
+          "description": "Shape of an island's top: 0 a dome; higher reaches the full thickness nearer the edge and stays flat inside it, 1 a table with a short roll-off",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        },
+        "terraces": {
+          "description": "Plateau levels of an island top: 1 floors the layer's tilt into level treads terraceStep apart; 2 or more also lift patches of the top by up to one level fewer; 0 leaves the top unstepped",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "default": 0
+        },
+        "terraceStep": {
+          "description": "Blocks between plateau levels",
+          "type": "number",
+          "minimum": 2,
+          "maximum": 32,
+          "default": 6
+        },
+        "spires": {
+          "description": "Share of the lowest tier's island tops under spires, several to a broad island; 0 none",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.3,
+          "default": 0
+        },
+        "spireHeight": {
+          "description": "Blocks a spire rises above the island top it stands on",
+          "type": "number",
+          "minimum": 16,
+          "maximum": 200,
+          "default": 70
+        },
+        "spireThickness": {
+          "description": "Spire girth; higher is thicker",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "spireTaper": {
+          "description": "0 is straight-sided columns, 1 is cones",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "tiers": {
+          "description": "Island layers, counting the terrain's own: each further tier floats tierSpacing above the one under it",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "default": 1
+        },
+        "tierSpacing": {
+          "description": "Blocks from one tier's altitude to the next tier's",
+          "type": "number",
+          "minimum": 32,
+          "maximum": 200,
+          "default": 64
+        },
+        "tierGap": {
+          "description": "Blocks of open sky always left between a tier's island tops and the undersides of the tier above",
+          "type": "number",
+          "minimum": 16,
+          "maximum": 64,
+          "default": 20
+        },
+        "tierShrink": {
+          "description": "Each tier's island size, thickness and underside against the tier under it",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 1,
+          "default": 0.6
+        },
+        "tierCoverage": {
+          "description": "Share of the sky each further tier covers; 0 takes the coverage under it times tierShrink",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.8,
+          "default": 0
+        }
+      }
+    },
+    "terrain_basin_islands": {
+      "description": "Sky islands joined into lake masses: a dished basin held by a rim at the water line, with gaps where it spills into the void.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "altitude": {
+          "description": "Height of the island layer and of the basins' water line",
+          "type": "number",
+          "minimum": 40,
+          "maximum": 240,
+          "default": 150
+        },
+        "thickness": {
+          "description": "Blocks an island's top rises above the layer",
+          "type": "number",
+          "minimum": 4,
+          "maximum": 64,
+          "default": 18
+        },
+        "underside": {
+          "description": "Blocks an island's underside hangs below the layer",
+          "type": "number",
+          "minimum": 4,
+          "maximum": 120,
+          "default": 40
+        },
+        "coverage": {
+          "description": "Share of the sky with islands",
+          "type": "number",
+          "minimum": 0.02,
+          "maximum": 0.8,
+          "default": 0.3
+        },
+        "size": {
+          "description": "Island size; higher is larger and fewer",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "spread": {
+          "description": "Blocks the altitudes of islands outside a lake mass vary by",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 80,
+          "default": 24
+        },
+        "lakeShare": {
+          "description": "Share of the sky joined into lake masses",
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 0.8,
+          "default": 0.4
+        },
+        "lakeSize": {
+          "description": "Lake mass size; higher is larger and fewer",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "basinDepth": {
+          "description": "Blocks the basin floor lies below the water line at a mass's heart",
+          "type": "number",
+          "minimum": 2,
+          "maximum": 40,
+          "default": 8
+        },
+        "rimHeight": {
+          "description": "Blocks the rim round a mass stands above the water line",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 16,
+          "default": 4
+        },
+        "gaps": {
+          "description": "Share of the rim cut below the water line, where a basin spills into the void",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.5,
+          "default": 0.35
+        },
+        "islandShare": {
+          "description": "Share of a lake mass's basin with islands, smaller and more of them than outside",
+          "type": "number",
+          "minimum": 0.02,
+          "maximum": 0.8,
+          "default": 0.3
+        },
+        "islandRise": {
+          "description": "Blocks of cliff the islands inside a lake mass rise by out of the water",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60,
+          "default": 8
+        },
+        "hollowDepth": {
+          "description": "With a ring terrain.layout: blocks below the water line the floor of one lake filling the ring's hollow lies, held by a rim at the hollow's edge; 0 leaves the hollow open void",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60,
+          "default": 0
+        },
+        "ringLakes": {
+          "description": "With a hollow lake: 1 keeps the lake masses round the ring, 0 makes the hollow's lake the only one",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        },
+        "hollowApron": {
+          "description": "With a hollow lake: blocks past the hollow's edge its rim runs on as solid ground at the rim's height, so the lake's edge joins the ring's land with no void between",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 0
+        },
+        "hollowJitter": {
+          "description": "With a hollow lake: blocks the hollow's edge wanders in and out by (one standard deviation), read from the lakes noise, so the lake is no drawn circle",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 0
+        },
+        "tiers": {
+          "description": "Island layers, counting the terrain's own: each further tier floats tierSpacing above the one under it",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "default": 1
+        },
+        "tierSpacing": {
+          "description": "Blocks from one tier's altitude to the next tier's",
+          "type": "number",
+          "minimum": 32,
+          "maximum": 200,
+          "default": 64
+        },
+        "tierGap": {
+          "description": "Blocks of open sky always left between a tier's island tops and the undersides of the tier above",
+          "type": "number",
+          "minimum": 16,
+          "maximum": 64,
+          "default": 20
+        },
+        "tierShrink": {
+          "description": "Each tier's island size, thickness and underside against the tier under it",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 1,
+          "default": 0.6
+        },
+        "tierCoverage": {
+          "description": "Share of the sky each further tier covers; 0 takes the coverage under it times tierShrink",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.8,
+          "default": 0
+        }
+      }
+    },
+    "terrain_islands": {
+      "description": "An ocean of islands and archipelagos.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 30
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "coverage": {
+          "description": "Share of the map that is land",
+          "type": "number",
+          "minimum": 0.02,
+          "maximum": 0.7,
+          "default": 0.2
+        },
+        "size": {
+          "description": "Island size; higher is larger and fewer",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "islandHeight": {
+          "description": "Blocks an island rises above sea level",
+          "type": "number",
+          "minimum": 4,
+          "maximum": 120,
+          "default": 28
+        },
+        "archipelago": {
+          "description": "How much islands break into clusters of smaller ones",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.4
+        },
+        "trench": {
+          "description": "Blocks the sea floor falls below seaFloor far from any island; 0 keeps it flat",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 40,
+          "default": 10
+        },
+        "crust": {
+          "description": "Blocks under the surface that no noise cave opens into, so caves never break the ground or the sea floor; 0 lets them",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 48,
+          "default": 0
+        }
+      }
+    },
+    "terrain_voids": {
+      "description": "Land broken by bottomless voids, each ringed by a raised rim.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.6
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 56
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "coverage": {
+          "description": "Share of the land that is void",
+          "type": "number",
+          "minimum": 0.02,
+          "maximum": 0.5,
+          "default": 0.1
+        },
+        "size": {
+          "description": "Void size; higher is larger and fewer",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "rimHeight": {
+          "description": "Blocks a rim rises above the land",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60,
+          "default": 14
+        },
+        "rimWidth": {
+          "description": "Rim width, as a share of the void noise",
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 0.3,
+          "default": 0.06
+        }
+      }
+    },
+    "terrain_shattered": {
+      "description": "Land broken into tilted blocks by fault cliffs and split by deep near-vertical chasms.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 88
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 36
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "faultHeight": {
+          "description": "Blocks each tilted block rises to before its fault cliff drops",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 48,
+          "default": 16
+        },
+        "faultSpacing": {
+          "description": "Fault spacing; higher is larger blocks",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "crackWidth": {
+          "description": "Chasm width, as a share of the crack noise",
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 0.3,
+          "default": 0.1
+        },
+        "crackScale": {
+          "description": "Chasm spacing; higher is wider apart",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1.3
+        },
+        "chasmDepth": {
+          "description": "Blocks a chasm floor lies below sea level",
+          "type": "number",
+          "minimum": 4,
+          "maximum": 60,
+          "default": 24
+        },
+        "lift": {
+          "description": "How far the ground breaks into overhangs and shards",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.3
+        }
+      }
+    },
+    "terrain_spires": {
+      "description": "Tall stone columns rising from the land.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coast": {
+          "description": "Continentalness at the shoreline; higher is more ocean",
+          "type": "number",
+          "minimum": -0.6,
+          "maximum": 0.4,
+          "default": -0.15
+        },
+        "seaFloor": {
+          "description": "Height of the open ocean floor",
+          "type": "number",
+          "minimum": -40,
+          "maximum": 60,
+          "default": 36
+        },
+        "landHeight": {
+          "description": "Height of the land far inland",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 80
+        },
+        "relief": {
+          "description": "Blocks of hills where erosion is low",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 24
+        },
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.4
+        },
+        "spireHeight": {
+          "description": "Blocks a spire rises above the land",
+          "type": "number",
+          "minimum": 16,
+          "maximum": 200,
+          "default": 70
+        },
+        "coverage": {
+          "description": "Share of the land under spires",
+          "type": "number",
+          "minimum": 0.005,
+          "maximum": 0.3,
+          "default": 0.04
+        },
+        "thickness": {
+          "description": "Spire girth; higher is thicker",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "taper": {
+          "description": "0 is straight-sided columns, 1 is cones",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        }
+      }
+    },
+    "terrain_end": {
+      "description": "The End's islands on the end preset's own router, grown or shrunk, raised taller, ridged along their tops and gathered by terrain.layout; the End's biome source reads the shaped islands, so its highlands follow them.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coverage": { "description": "Added to the End's island density: above 0 islands grow and join into masses, below 0 they shrink to fewer and smaller ones", "type": "number", "minimum": -0.3, "maximum": 0.3, "default": 0 },
+        "islandHeight": { "description": "Blocks higher the island tops reach: the End's top slide starts this much higher", "type": "number", "minimum": 0, "maximum": 48, "default": 0 },
+        "peaks": { "description": "Ridges raised along the island tops: 1 lifts a crest about 30 blocks", "type": "number", "minimum": 0, "maximum": 1, "default": 0 },
+        "peakWidth": { "description": "Ridge width, as a share of the ridge noise", "type": "number", "minimum": 0.02, "maximum": 0.3, "default": 0.08 }
+      }
+    },
+    "terrain_roofed": {
+      "description": "A cavern floor under a solid ceiling, on the nether or caves preset's own router: plains or rough country, with pits, chasms, sunken corridors, stepped ledges and floor-to-ceiling pillars.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "roughness": {
+          "description": "How far 3D noise breaks the surface; 0 smooth, 1 overhangs",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.35
+        },
+        "floorHeight": {
+          "description": "Height of the cavern floor in blocks; below the preset's sea level it lies under the lava or water sea",
+          "type": "number",
+          "minimum": -60,
+          "maximum": 120,
+          "default": 40
+        },
+        "floorRelief": {
+          "description": "Blocks the floor rises and falls about floorHeight: 0 is flat plains, 40 rough country",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60,
+          "default": 12
+        },
+        "ceilingGap": {
+          "description": "Blocks of open height from floorHeight to the ceiling, which rises and falls by half the floor's relief",
+          "type": "number",
+          "minimum": 16,
+          "maximum": 160,
+          "default": 52
+        },
+        "flats": {
+          "description": "Share of the floor worn flat at floorHeight, its relief gone",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.9,
+          "default": 0
+        },
+        "pit": {
+          "description": "Share of the floor sunk into large pits; with terrain.layout, the layout's shape decides where",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.6,
+          "default": 0
+        },
+        "pitDepth": {
+          "description": "Blocks below floorHeight a pit's flat floor lies",
+          "type": "number",
+          "minimum": 4,
+          "maximum": 96,
+          "default": 32
+        },
+        "pitSize": {
+          "description": "Pit size; higher is larger and fewer",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        },
+        "chasms": {
+          "description": "Width of the deep narrow chasms cut into the floor, as a share of the chasm noise; 0 none",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.3,
+          "default": 0
+        },
+        "chasmDepth": {
+          "description": "Blocks a chasm cuts below the floor round it",
+          "type": "number",
+          "minimum": 8,
+          "maximum": 120,
+          "default": 48
+        },
+        "corridors": {
+          "description": "Width of the long sunken corridors, as a share of the corridor noise; 0 none",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.3,
+          "default": 0
+        },
+        "corridorDepth": {
+          "description": "Blocks below floorHeight a corridor's flat bed lies",
+          "type": "number",
+          "minimum": 2,
+          "maximum": 60,
+          "default": 14
+        },
+        "ledges": {
+          "description": "How far slopes and walls break into flat shelves: 0 none, 1 every wall stepped",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        },
+        "ledgeStep": {
+          "description": "Blocks between shelves",
+          "type": "number",
+          "minimum": 3,
+          "maximum": 32,
+          "default": 8
+        },
+        "pillars": {
+          "description": "Share of the floor under floor-to-ceiling pillars",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.2,
+          "default": 0
+        },
+        "pillarSize": {
+          "description": "Pillar girth; higher is thicker",
+          "type": "number",
+          "minimum": 0.25,
+          "maximum": 4,
+          "default": 1
+        }
+      }
+    }
+  }
+}

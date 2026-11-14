@@ -5,6 +5,7 @@
 #          overworld, and that the mod does not refuse it.
 # Context: run this straight after item 2, while the player is still in the End.
 # Usage:   ./dev launch --dev-bridge   then   ./e2e-item3-end-exit.sh
+# Usage:   # 26.x: inside vanilla-join.sh --during with the dev bridge (README § On 26.x)
 # Gotchas: the return lands on the player's OWN spawn, not a projected
 #          position, so an unexpected arrival coordinate is not a defect. The
 #          failure to watch for is still reading minecraft:the_end after

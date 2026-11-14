@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 2,
+  "description": "Nether biomes on overworld noise — a nexus where the crimson bleeds through. Crimson and warped forest, quartz flats and weeping valleys lying over scarred badlands and volcanic rock, under an open sky. A fortress stands where it has no business standing, as if punched through from the other side, and what the portal reaches it converts.",
+  "seed": -2221576921009827702,
+  "spawn": [512, 68, -256],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "canyons",
+    "setting": "default",
+    "params": {
+      "coast": -0.6,
+      "seaFloor": -10,
+      "landHeight": 140,
+      "depth": 120,
+      "width": 0.03,
+      "grade": 0,
+      "cascadeStep": 2,
+      "pools": 0,
+      "roughness": 0.5
+    },
+    "scales": {
+      "ridges": 1.4,
+      "climate": 3.0
+    }
+  },
+  "biomes": [
+    "minecraft:badlands",
+    "minecraft:crimson_forest",
+    "minecraft:nether_wastes",
+    "minecraft:eroded_badlands",
+    "minecraft:warped_forest",
+    "adventure:blackstone_basin",
+    "adventure:quartz_flats",
+    "adventure:nether_grasslands",
+    "adventure:withered_forest",
+    "adventure:nether_jungle",
+    "adventure:redstone_abyss",
+    "adventure:crimson_pinewood",
+    {
+      "id": "adventure:magmatic_caves",
+      "climate": {
+        "weirdness": [-2.0, 0.0025],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:sulfur_caves",
+      "climate": {
+        "weirdness": [0.0025, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:badlands": 16,
+      "minecraft:crimson_forest": 11.7,
+      "minecraft:nether_wastes": 9.8,
+      "minecraft:eroded_badlands": 13.8,
+      "minecraft:warped_forest": 7.8,
+      "adventure:blackstone_basin": 6.2,
+      "adventure:quartz_flats": 5.9,
+      "adventure:nether_grasslands": 7.8,
+      "adventure:withered_forest": 5.8,
+      "adventure:nether_jungle": 4.8,
+      "adventure:redstone_abyss": 5.3,
+      "adventure:crimson_pinewood": 4.5
+    }
+  },
+  "liquids": {
+    "seaLevel": -60,
+    "lavaLevel": -64,
+    "aquifers": "dry"
+  },
+  "materials": {
+    "top": "minecraft:netherrack",
+    "filler": "minecraft:netherrack",
+    "cliffs": "minecraft:blackstone",
+    "biomes": {
+      "minecraft:crimson_forest": {
+        "top": "minecraft:crimson_nylium"
+      },
+      "minecraft:warped_forest": {
+        "top": "minecraft:warped_nylium"
+      },
+      "minecraft:badlands": {
+        "top": "minecraft:red_sand",
+        "filler": "minecraft:red_sandstone"
+      },
+      "minecraft:eroded_badlands": {
+        "top": "minecraft:mud",
+        "filler": "minecraft:packed_mud"
+      },
+      "minecraft:basalt_deltas": {
+        "top": "minecraft:crying_obsidian",
+        "filler": "minecraft:nether_bricks",
+        "deep": "minecraft:blackstone",
+        "ceilings": "minecraft:basalt",
+        "cliffs": "minecraft:nether_bricks"
+      }
+    }
+  },
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [287, -64],
+      "radius": 160,
+      "blend": 48,
+      "edgeJitter": 16,
+      "terrain": {
+        "base": "spires",
+        "params": {
+          "coast": -0.6,
+          "seaFloor": -40,
+          "landHeight": 45,
+          "relief": 0,
+          "roughness": 0.2,
+          "coverage": 0.02,
+          "spireHeight": 170,
+          "thickness": 1.5,
+          "taper": 0.2
+        }
+      },
+      "biomes": [
+        "minecraft:crimson_forest"
+      ],
+      "liquids": {
+        "aquifers": "dry"
+      }
+    },
+    {
+      "shape": "circle",
+      "centre": [287, -64],
+      "radius": 14,
+      "blend": 12,
+      "biomes": [
+        "minecraft:basalt_deltas"
+      ],
+      "mass": {
+        "bottom": 115,
+        "top": 245,
+        "taper": 0.8
+      }
+    },
+    {
+      "shape": "circle",
+      "centre": [-410, 705],
+      "radius": 96,
+      "blend": 24,
+      "biomes": [
+        "adventure:quartz_flats"
+      ]
+    }
+  ],
+  "dimensionType": {
+    "infiniburn": "#minecraft:infiniburn_nether"
+  },
+  "atmosphere": {
+    "skyColor": "#5A1414",
+    "fogColor": "#3A0E0E",
+    "ambientLight": 0.12
+  },
+  "rules": {
+    "respawnAnchorsWork": true,
+    "piglinsZombify": false
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.6,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 40,
+      "endY": -60,
+      "minMultiplier": 1.5,
+      "maxMultiplier": 2.6
+    }
+  },
+  "structures": {
+    "radial": {
+      "dungeons": [2.8, 2.3, 1.9, 1.6, 1.35, 1.15, 0.95, 0.8, 0.65, 0.55]
+    },
+    "force": [
+      {
+        "structure": "minecraft:fortress",
+        "x": 287,
+        "z": -64
+      },
+      {
+        "structure": "mns:crimson_forge",
+        "x": -410,
+        "z": 705
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:nether_bricks",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "AF2B2B",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:netherrack",
+          "minecraft:blackstone",
+          "minecraft:magma_block",
+          "minecraft:crimson_nylium"
+        ],
+        "flora": [
+          "minecraft:crimson_fungus",
+          "minecraft:crimson_roots"
+        ],
+        "fluids": [
+          "minecraft:lava"
+        ],
+        "fireChance": 0.08
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:badlands",
+      "minecraft:crimson_forest",
+      "minecraft:nether_wastes"
+    ],
+    "wants": {
+      "ddd:wizard_tower": "spread",
+      "ati_structures:ancient_temple": "spread",
+      "ati_structures:dark_keep": "near_border",
+      "nova_structures:badlands_miner_outpost": "spread",
+      "ati_structures:illager_tower": "near_border"
+    },
+    "shuns": [
+      "village",
+      "monument"
+    ]
+  }
+}

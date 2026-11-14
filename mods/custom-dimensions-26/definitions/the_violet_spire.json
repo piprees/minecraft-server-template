@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 2,
+  "description": "Violet spires in the sky — where endermen architecture meets the natural skylands. Wisteria islands and amethyst canyons, aurel towers and birdcages. Arcane but not hostile; a place where two worlds overlapped and neither broke.",
+  "seed": 4125527150931361467,
+  "spawn": [0, 134, -34],
+  "generator": {
+    "type": "clone",
+    "of": "adventure:the_aviary"
+  },
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "altitude": 120,
+      "coverage": 0.5,
+      "size": 2.25,
+      "thickness": 14,
+      "underside": 50,
+      "spread": 10,
+      "flatness": 0.5,
+      "spires": 0.3,
+      "spireHeight": 100,
+      "spireThickness": 1.1,
+      "spireTaper": 0.25
+    },
+    "scales": {
+      "climate": 4
+    },
+    "climateWarp": {
+      "blocks": 160,
+      "wavelength": 640
+    },
+    "scale": 2
+  },
+  "biomes": [
+    "adventure:wisteria_grove",
+    "adventure:lavender_fields",
+    "adventure:sky_highlands",
+    "adventure:umbrella_jungle",
+    "adventure:chorus_forest",
+    "adventure:crystal_hollows"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:wisteria_grove": 40,
+      "adventure:lavender_fields": 30,
+      "adventure:sky_highlands": 15,
+      "adventure:umbrella_jungle": 10,
+      "adventure:chorus_forest": 5,
+      "adventure:crystal_hollows": 12
+    },
+    "over": "land",
+    "places": {
+      "groups": {
+        "wisteria": [
+          "adventure:wisteria_grove",
+          "adventure:lavender_fields"
+        ],
+        "skylands": [
+          "adventure:sky_highlands"
+        ],
+        "endward": [
+          "adventure:umbrella_jungle",
+          "adventure:chorus_forest",
+          "adventure:crystal_hollows"
+        ]
+      },
+      "arrangement": "bands",
+      "direction": 90
+    },
+    "roles": {
+      "adventure:crystal_hollows": "land"
+    }
+  },
+  "materials": {
+    "biomes": {
+      "adventure:chorus_forest": {
+        "cliffs": "minecraft:purpur_block"
+      },
+      "adventure:sky_highlands": {
+        "cliffs": "minecraft:amethyst_block"
+      },
+      "adventure:lavender_fields": {
+        "cliffs": "minecraft:amethyst_block"
+      },
+      "adventure:wisteria_grove": {
+        "cliffs": "minecraft:amethyst_block"
+      },
+      "adventure:crystal_hollows": {
+        "top": "minecraft:amethyst_block",
+        "filler": "minecraft:calcite",
+        "cliffs": "minecraft:amethyst_block"
+      }
+    }
+  },
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [-240, 200],
+      "radius": 110,
+      "blend": 32,
+      "biomes": [
+        "adventure:ice_starfield"
+      ],
+      "edgeJitter": 40
+    },
+    {
+      "shape": "circle",
+      "centre": [-420, -230],
+      "radius": 85,
+      "blend": 24,
+      "biomes": [
+        "minecraft:sparse_jungle"
+      ],
+      "edgeJitter": 32
+    }
+  ],
+  "atmosphere": {
+    "skyColor": "#6B4B9B",
+    "fogColor": "#3A2352",
+    "ambientLight": 0.25,
+    "fixedTime": 18000
+  },
+  "borders": {
+    "player": 683,
+    "generation": 683
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "mss:large_tower",
+        "x": 60,
+        "z": 60,
+        "exclusive": false
+      },
+      {
+        "structure": "mes:mystical_archway",
+        "x": -300,
+        "z": 180,
+        "exclusive": false
+      }
+    ],
+    "terrainAdaptation": {
+      "mss:large_tower": "pedestal"
+    },
+    "rarity": {
+      "mss:small_tower": "common",
+      "mss:large_tower": "common",
+      "mes:enderwatch_tower": "common",
+      "mes:mystical_archway": "common"
+    },
+    "noise": {
+      "landmarks": "dense"
+    },
+    "mode": "allow",
+    "list": [
+      "mss:large_tower",
+      "mss:small_tower",
+      "mes:enderwatch_tower",
+      "mes:mystical_archway",
+      "ddd:dddtowers",
+      "nova_structures:shrine_tower"
+    ],
+    "wants": {
+      "ati_structures:fortified_temple": {
+        "min": 450,
+        "max": 650
+      },
+      "mss:castle_ruin": {
+        "min": 450,
+        "max": 650
+      },
+      "ddd:wizard_tower": {
+        "min": 150,
+        "max": 500
+      },
+      "nova_structures:shrine_tower": {
+        "min": 100,
+        "max": 500
+      }
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": [
+        "minecraft:purpur_block",
+        "minecraft:purpur_pillar"
+      ],
+      "igniterItem": "minecraft:lilac",
+      "color": "9B5BB0",
+      "lightLevel": 11,
+      "scale": 12.0,
+      "cooldown": 40,
+      "shape": "door",
+      "sounds": {
+        "ignite": "block.end_portal_frame.fill",
+        "enter": "entity.enderman.teleport",
+        "exit": "entity.enderman.teleport"
+      },
+      "framePlaceBlock": "minecraft:purpur_block",
+      "aura": {
+        "subsume": "natural",
+        "palette": [
+          "minecraft:amethyst_block",
+          "minecraft:purpur_block",
+          "minecraft:calcite"
+        ]
+      }
+    }
+  ],
+  "exits": {
+    "void": {
+      "action": "teleport",
+      "target": "origin"
+    }
+  },
+  "roll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "adventure:lavender_fields",
+      "adventure:crystal_hollows"
+    ],
+    "wants": {
+      "mss:large_tower": "near_spawn",
+      "mss:small_tower": "spread",
+      "ddd:wizard_tower": "spread",
+      "mss:castle_ruin": "near_border",
+      "ati_structures:fortified_temple": "near_border",
+      "shrine_tower": "spread",
+      "mystical_archway": "spread"
+    },
+    "shuns": [
+      "village",
+      "monument"
+    ],
+    "terrain": "islands"
+  }
+}

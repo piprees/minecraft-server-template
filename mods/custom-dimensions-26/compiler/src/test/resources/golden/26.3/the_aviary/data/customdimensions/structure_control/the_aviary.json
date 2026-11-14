@@ -1,0 +1,50 @@
+{
+  "level": "adventure:the_aviary",
+  "density": "normal",
+  "noise": true,
+  "radiusChunks": 256,
+  "spawnChunk": [0, -26],
+  "groups": {
+    "deco": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 6,
+      "clearSpawnChunks": 0
+    },
+    "settlements": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 12,
+      "clearSpawnChunks": 0
+    },
+    "landmarks": {
+      "profile": "sparse",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 31,
+      "clearSpawnChunks": 0
+    },
+    "loot": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 8,
+      "clearSpawnChunks": 0
+    },
+    "dungeons": {
+      "profile": "sparse",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 21,
+      "clearSpawnChunks": 0
+    }
+  },
+  "mode": null,
+  "list": [],
+  "exclude": [],
+  "include": [],
+  "rarity": {},
+  "spacing": {},
+  "force": [],
+  "wants": [],
+  "shuns": [],
+  "replace": {},
+  "terrainAdaptation": {}
+}

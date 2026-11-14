@@ -1,0 +1,41 @@
+{
+  "input": {
+    "alpha": {
+      "input": {
+        "left": {
+          "left": {
+            "left": {
+              "left": {
+                "left": "adventure:terrain/the_aviary/tier0_top",
+                "right": "adventure:terrain/the_aviary/tier1_bottom",
+                "type": "minecraft:add"
+              },
+              "right": 0.5,
+              "type": "minecraft:mul"
+            },
+            "right": {
+              "axis": "y",
+              "from_coordinate": 0,
+              "from_value": 0.0,
+              "to_coordinate": 256,
+              "to_value": -256.0,
+              "type": "minecraft:gradient"
+            },
+            "type": "minecraft:add"
+          },
+          "right": -0.5,
+          "type": "minecraft:add"
+        },
+        "right": -1.0,
+        "type": "minecraft:mul"
+      },
+      "max": 1.0,
+      "min": 0.0,
+      "type": "minecraft:clamp"
+    },
+    "first": "adventure:terrain/the_aviary/tier0_top",
+    "second": "adventure:terrain/the_aviary/tier1_top",
+    "type": "minecraft:lerp"
+  },
+  "type": "minecraft:cache"
+}

@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # build-modpack.sh - Build the client .mrpack + download page from the manifest.
 #
-# Reads modpack/adventure.mrpack.json (_clientMods required/optional,
-# _resourcePacks, _shaderPacks), resolves each slug's latest MC_VERSION Fabric
-# build from Modrinth, bakes in overrides/ (Configured Defaults, servers.dat
-# generated as real NBT), and writes modpack/dist/:
+# Reads the version's manifest (mc_manifest in lib.sh: modpack/adventure.mrpack.json,
+# or modpack/adventure-<MC_VERSION>.mrpack.json when it exists; _clientMods
+# required/optional, _resourcePacks, _shaderPacks), resolves each slug's latest
+# MC_VERSION Fabric build from Modrinth, bakes in overrides/ (Configured
+# Defaults, servers.dat generated as real NBT) with the version's
+# modpack/versions/<MC_VERSION>/ laid over it (pack_version_overrides in
+# lib.sh), and writes modpack/dist/:
 #   ${BRAND_SLUG}-<MC_VERSION>-v<gitsha>.mrpack  + ${BRAND_SLUG}-<MC_VERSION>-latest.mrpack
 #   index.html (the player-facing "how to join" download page)
 #
@@ -38,10 +41,10 @@ if [[ -f .env ]]; then
   set +a
 fi
 
-MC_VERSION="${MC_VERSION:-1.21.1}"
+MC_VERSION="$(mc_version)"
 PACK_VERSION="${GIT_SHA:-$(git rev-parse --short HEAD 2> /dev/null || echo unknown)}"
-MANIFEST="${MANIFEST:-$PROJECT_DIR/modpack/adventure.mrpack.json}"
-FABRIC_LOADER_VERSION=$(python3 -c "import json; print(json.load(open('$MANIFEST'))['dependencies']['fabric-loader'])" 2> /dev/null || echo "0.19.3")
+MANIFEST="${MANIFEST:-$(mc_manifest "$PROJECT_DIR" "$MC_VERSION")}"
+FABRIC_LOADER_VERSION=$(python3 -c "import json; print(json.load(open('$MANIFEST'))['dependencies']['fabric-loader'])" 2> /dev/null || echo "0.19.5")
 DIST_DIR="$PROJECT_DIR/modpack/dist"
 WORK_DIR="$(mktemp -d)"
 PACK_NAME="${BRAND_SLUG:-adventure}-${MC_VERSION}-v${PACK_VERSION}"
@@ -65,7 +68,7 @@ fi
 # would block their pack entirely; the platform's own lists are hard-gated
 # by the same script in test-scripts.sh.
 PARITY_CHECK="${PARITY_CHECK:-$PROJECT_DIR/scripts/check-client-parity.py}"
-SERVER_MODS="${SERVER_MODS:-$PROJECT_DIR/config/modrinth-mods.txt}"
+SERVER_MODS="${SERVER_MODS:-$(mc_mod_list "$PROJECT_DIR" "$MC_VERSION")}"
 if [[ -f "$PARITY_CHECK" ]]; then
   PARITY_ARGS=(--manifest "$MANIFEST")
   [[ -f "$SERVER_MODS" ]] && PARITY_ARGS+=(--server "$SERVER_MODS")
@@ -355,7 +358,7 @@ for entry in files:
         modrinth_only += 1
 
 # --- Mirror server mod JARs ---
-server_mods_file = '$PROJECT_DIR/config/modrinth-mods.txt'
+server_mods_file = '$(mc_mod_list "$PROJECT_DIR" "$MC_VERSION")'
 server_fetched = 0
 if os.path.isfile(server_mods_file):
     slug_vid_pairs = []
@@ -448,6 +451,7 @@ python3 "$SCRIPT_DIR/check-pack-coherence.py" "$MIRROR_DIR"
 OVERRIDES_SRC="$PROJECT_DIR/modpack/overrides"
 if [[ -d "$OVERRIDES_SRC" ]]; then
   cp -r "$OVERRIDES_SRC" "$WORK_DIR/overrides"
+  pack_version_overrides "$PROJECT_DIR/modpack/versions" "$WORK_DIR/overrides" "$MC_VERSION"
 
   python3 -c "
 import struct, io
@@ -580,29 +584,6 @@ for f in picked:
       echo "  ! $slug - no ${MC_VERSION} build found" >&2
     fi
   done <<< "$RESOURCE_PACKS"
-
-  # options.txt enables packs by exact filename. When a pack updates on
-  # Modrinth the filename changes, and a stale options.txt entry would ship
-  # the pack silently disabled - fail the build so the entry gets refreshed.
-  OPTIONS_TXT="$WORK_DIR/overrides/configureddefaults/options.txt"
-  if [[ -f "$OPTIONS_TXT" ]]; then
-    python3 - "$OPTIONS_TXT" "$WORK_DIR/overrides/resourcepacks" << 'DRIFTEOF'
-import json, os, sys
-options_path, rp_dir = sys.argv[1], sys.argv[2]
-line = next((l for l in open(options_path, encoding='utf-8')
-             if l.startswith('resourcePacks:')), None)
-if line:
-    entries = json.loads(line.split(':', 1)[1])
-    have = set(os.listdir(rp_dir))
-    missing = [e[5:] for e in entries
-               if e.startswith('file/') and e.endswith('.zip') and e[5:] not in have]
-    for m in missing:
-        print(f"  ✗ options.txt enables '{m}' but no such file was downloaded"
-              " (pack updated on Modrinth? refresh the filename)", file=sys.stderr)
-    if missing:
-        sys.exit(1)
-DRIFTEOF
-  fi
 fi
 
 # --- download shader packs into overrides --------------------------------------
@@ -665,6 +646,13 @@ for f in v.get('files', []):
     fi
   done <<< "$SHADER_PACKS"
 fi
+
+# --- point the client configs at the shipped pack files ---------------------
+# options.txt and iris.properties select packs by filename; the pinned
+# filenames carry versions, so pack_files.py re-points them at the downloads.
+echo ""
+echo "==> Enabling packs in options.txt and iris.properties..."
+python3 "$SCRIPT_DIR/pack_files.py" enable "$WORK_DIR"
 
 # --- package as .mrpack (ZIP with modrinth.index.json + overrides) ------------
 echo ""
@@ -903,13 +891,19 @@ mods = sum(1 for e in index_entries if e[2])
 print(f'  packwiz index: {mods} mods + {len(index_entries) - mods} files')
 PWEOF
 
-# Pinned packwiz-installer-bootstrap (cached; GitHub needed at build time only)
+# Pinned packwiz-installer-bootstrap (cached per version; GitHub needed at build time only)
+PACKWIZ_BOOTSTRAP_VERSION="0.0.3"
 BOOTSTRAP_JAR="$PACKWIZ_DIR/packwiz-installer-bootstrap.jar"
-if [[ ! -f "$BOOTSTRAP_JAR" ]]; then
-  echo "  Fetching packwiz-installer-bootstrap v0.0.3..."
-  curl -sL --max-time 120 -o "$BOOTSTRAP_JAR" \
-    "https://github.com/packwiz/packwiz-installer-bootstrap/releases/download/v0.0.3/packwiz-installer-bootstrap.jar" \
-    || { rm -f "$BOOTSTRAP_JAR"; echo "  ! bootstrap download failed - instance zip will be skipped" >&2; }
+BOOTSTRAP_STAMP="$PACKWIZ_DIR/.packwiz-installer-bootstrap.version"
+if [[ ! -f "$BOOTSTRAP_JAR" || "$(cat "$BOOTSTRAP_STAMP" 2> /dev/null)" != "$PACKWIZ_BOOTSTRAP_VERSION" ]]; then
+  echo "  Fetching packwiz-installer-bootstrap v${PACKWIZ_BOOTSTRAP_VERSION}..."
+  if curl -fsSL --max-time 120 -o "$BOOTSTRAP_JAR" \
+    "https://github.com/packwiz/packwiz-installer-bootstrap/releases/download/v${PACKWIZ_BOOTSTRAP_VERSION}/packwiz-installer-bootstrap.jar"; then
+    echo "$PACKWIZ_BOOTSTRAP_VERSION" > "$BOOTSTRAP_STAMP"
+  else
+    rm -f "$BOOTSTRAP_JAR" "$BOOTSTRAP_STAMP"
+    echo "  ! bootstrap download failed - instance zip will be skipped" >&2
+  fi
 fi
 
 # --- build the one-click Prism instance zip ------------------------------------

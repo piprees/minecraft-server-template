@@ -1,0 +1,290 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "end",
+  "inspiredBy": "BetterEnd's lantern woods.",
+  "differs": "A haunted wood in the void, unlike the overworld's pale garden: pale oaks on End islands of pale moss, soul lanterns hanging blue from their leaves, pale moss draped from their crowns and trunks, pale moss carpets on the ground, and soul motes rising in a cold blue gloom.",
+  "climate": {
+    "temperature": [
+      -1.0,
+      -0.4
+    ],
+    "humidity": [
+      0.3,
+      1.0
+    ]
+  },
+  "palette": {
+    "top": "minecraft:pale_moss_block"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:ambient.soul_sand_valley.additions",
+          "tick_chance": 0.004
+        },
+        "loop": "minecraft:ambient.soul_sand_valley.loop",
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.cave",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 6000,
+          "replace_current_music": true,
+          "sound": "minecraft:music.end"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "monster": [
+              {
+                "type": "minecraft:enderman",
+                "count": 4,
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:soul"
+            },
+            "probability": 0.002
+          },
+          {
+            "particle": {
+              "type": "minecraft:pale_oak_leaves"
+            },
+            "probability": 0.003
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#34445e",
+      "minecraft:visual/sky_color": "#141c2a"
+    },
+    "carvers": [],
+    "downfall": 0.5,
+    "effects": {
+      "water_color": "#5a7aa0",
+      "grass_color": "#778272",
+      "foliage_color": "#878d76"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [
+        "minecraft:end_gateway_return"
+      ],
+      [],
+      [],
+      [],
+      [],
+      [
+        "~pale_oaks",
+        "~pale_carpets"
+      ],
+      []
+    ],
+    "has_precipitation": false,
+    "temperature": 0.4
+  },
+  "features": {
+    "pale_oaks": {
+      "feature": {
+        "type": "minecraft:tree",
+        "below_trunk_provider": "minecraft:soil_beneath_tree",
+        "decorators": [
+          {
+            "type": "minecraft:pale_moss",
+            "ground_probability": 0.6,
+            "leaves_probability": 0.6,
+            "trunk_probability": 0.5
+          },
+          {
+            "type": "minecraft:attached_to_leaves",
+            "block_provider": {
+              "id": "minecraft:soul_lantern",
+              "properties": {
+                "hanging": "true",
+                "waterlogged": "false"
+              }
+            },
+            "directions": [
+              "down"
+            ],
+            "exclusion_radius_xz": 1,
+            "exclusion_radius_y": 0,
+            "probability": 0.35,
+            "required_empty_blocks": 2
+          }
+        ],
+        "foliage_placer": {
+          "type": "minecraft:dark_oak_foliage_placer",
+          "offset": 0,
+          "radius": 0
+        },
+        "foliage_provider": {
+          "id": "minecraft:pale_oak_leaves",
+          "properties": {
+            "distance": "7",
+            "persistent": "false",
+            "waterlogged": "false"
+          }
+        },
+        "ignore_vines": true,
+        "minimum_size": {
+          "type": "minecraft:three_layers_feature_size",
+          "upper_size": 2
+        },
+        "trunk_placer": {
+          "type": "minecraft:dark_oak_trunk_placer",
+          "base_height": 6,
+          "height_rand_a": 2,
+          "height_rand_b": 1
+        },
+        "trunk_provider": {
+          "id": "minecraft:pale_oak_log",
+          "properties": {
+            "axis": "y"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:weighted_list",
+            "distribution": [
+              {
+                "data": 2,
+                "weight": 2
+              },
+              {
+                "data": 3,
+                "weight": 2
+              },
+              {
+                "data": 4,
+                "weight": 1
+              }
+            ]
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:would_survive",
+            "state": "minecraft:pale_oak_sapling"
+          }
+        }
+      ]
+    },
+    "pale_carpets": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "id": "minecraft:pale_moss_carpet",
+          "properties": {
+            "bottom": "true",
+            "east": "none",
+            "north": "none",
+            "south": "none",
+            "west": "none"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 24
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 5,
+            "min": -5,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 2,
+            "min": -2,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 5,
+            "min": -5,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:pale_moss_block"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

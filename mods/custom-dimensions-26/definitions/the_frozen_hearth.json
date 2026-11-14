@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 2,
+  "description": "The warm hearth in a frozen world. Snowy villages and taigas where villagers adapted to the cold — igloos, outposts, campsites. The dungeons out in the ice are older than the settlements.",
+  "seed": -7832561563439705203,
+  "spawn": [-128, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "erosion",
+    "setting": "gentle",
+    "params": {
+      "coast": -0.6
+    },
+    "scales": {
+      "continents": 1.3,
+      "erosion": 2.0,
+      "ridges": 1.8,
+      "climate": 3.0
+    }
+  },
+  "biomes": [
+    "minecraft:snowy_beach",
+    "minecraft:snowy_plains",
+    "minecraft:ice_spikes",
+    "minecraft:snowy_taiga",
+    "minecraft:frozen_river",
+    "adventure:dying_forest",
+    "minecraft:grove",
+    "minecraft:snowy_slopes",
+    {
+      "id": "minecraft:frozen_peaks",
+      "climate": {
+        "weirdness": [0.4727, 0.6107],
+        "depth": [-2.0, 0.2]
+      }
+    },
+    {
+      "id": "minecraft:jagged_peaks",
+      "climate": {
+        "weirdness": [0.6107, 2.0],
+        "depth": [-2.0, 0.2]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:snowy_plains": 21.5,
+      "minecraft:ice_spikes": 9.8,
+      "minecraft:snowy_taiga": 24.8,
+      "adventure:dying_forest": 8.2,
+      "minecraft:grove": 10,
+      "minecraft:snowy_slopes": 8.2,
+      "minecraft:snowy_beach": 3.6,
+      "minecraft:frozen_river": 3.9
+    }
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.3
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:lapis_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "6B9BD0",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "minecraft:snowy_plains",
+      "minecraft:snowy_taiga"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "igloo": "near_spawn",
+      "towns_and_towers:pillager_outpost_taiga": "spread",
+      "nova_structures:surface_dungeon_snowy": "spread",
+      "ice_dungeon_l": "near_border",
+      "epic:small_ice_dungeon": "near_border",
+      "mvs:campsite": "near_spawn",
+      "mvs:small_spruce_lantern": "near_spawn",
+      "nova_structures:firewatch_tower_taiga": "spread"
+    },
+    "shuns": [
+      "monument",
+      "mss:arena"
+    ]
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 2,
+  "description": "Craggy quarry country — bare spires, engineers' towers, and old workings in the stone. The humans' industrial heartland, where they mined the raw materials for the sun kingdoms and the highland crossing. The deeper shafts are harder.",
+  "seed": -3441490954914475026,
+  "spawn": [-384, 132, -320],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "spires",
+    "setting": "default",
+    "scales": {
+      "ridges": 1.5
+    }
+  },
+  "biomes": [
+    "adventure:alpine_scree",
+    "minecraft:stony_peaks",
+    "minecraft:windswept_hills",
+    "minecraft:stony_shore",
+    "minecraft:windswept_gravelly_hills",
+    "minecraft:basalt_deltas",
+    "adventure:maple_woodland",
+    "adventure:magma_land",
+    "minecraft:jagged_peaks",
+    "minecraft:windswept_forest",
+    "adventure:lavender_fields",
+    {
+      "id": "adventure:mineral_strata",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:alpine_scree": 31.1,
+      "minecraft:stony_peaks": 5.4,
+      "minecraft:windswept_hills": 2.5,
+      "minecraft:stony_shore": 2.7,
+      "minecraft:windswept_gravelly_hills": 2.9,
+      "minecraft:basalt_deltas": 2.9,
+      "adventure:maple_woodland": 3.2,
+      "adventure:magma_land": 3.3,
+      "minecraft:jagged_peaks": 2.8,
+      "minecraft:windswept_forest": 3.5,
+      "adventure:lavender_fields": 37.8
+    },
+    "roles": {
+      "minecraft:stony_shore": "land"
+    }
+  },
+  "atmosphere": {
+    "fogColor": "#7B7B8B"
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.2,
+    "playerLuck": 1.4,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 128,
+      "endY": 0,
+      "minMultiplier": 0.8,
+      "maxMultiplier": 1.6
+    }
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "landmarks": "platform_skirt"
+    },
+    "radial": {
+      "dungeons": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:smooth_stone",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "8B8B9B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "adventure:alpine_scree",
+      "adventure:mineral_strata"
+    ],
+    "water": "none",
+    "wants": {
+      "mineshaft": "near_spawn",
+      "ati_structures:small_keep": "spread",
+      "ati_structures:steam_house": "spread",
+      "ati_structures:ancient_temple": "near_border",
+      "nova_structures:firewatch_tower_taiga": "spread",
+      "nova_structures:badlands_miner_outpost": "near_border",
+      "epic:small_ice_dungeon": "near_border"
+    },
+    "shuns": [
+      "village",
+      "monument"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+01:05 — f4b start; fast-forwarded worktree to 605cf645
+01:08 — copied compiler/build/vanilla/26.3; read DhLodSelfTest (surface = Sampler.surface on full chunk, trees excluded) and LodSource (pregen detail 0 = whole noise columns, roof kept)
+01:12 — added LodBench column diagnostic (fastBenchLodColumns); running nether bench seed -6876984017876508741 at the miss columns
+01:13 — bench: LOD detail-0 runs equal vanilla getBaseColumn at all 7 columns (-440,-440 roof 127..67 floor 21; 440,-264 roof 127..84 floor 65; 88,-440 solid 127..0; 264,88 roof 127..105 floor 28; -88,264 floor 54); misses are chunk-open where noise solid -> carvers suspected
+01:13 — lead adds: check the_underdark coarse LOD for picker water in roofed/underground open runs (aquifer world); fix like F3b slices, unit test, record under T275
+01:15 — bench before fix: the_underdark LOD columns with picker fluid under a run/roof: 4096/4096 detail 0, 3808/4096 detail 4 (confirmed); the_nether 304/2041 (no aquifers: its lava sea is right)
+01:17 — fixes written: RunDress.openRuns + LodSource (no picker fluid under roof/run with aquifers); ChunkGround + DhLodSelfTest reads the noise where the chunk was dug; tests RunDressTest +3, ChunkGroundTest 6
+01:19 — after fix the_underdark still 4096/3808: its compiled noise settings have no aquifers key (aquifers off), and vanilla getBaseColumn itself floods it (-440,-440: water 13..-10 under stone) -> its LOD water is real; fix bites on aquifer levels; measuring overworld before/after
+01:20 — overworld LOD columns with picker fluid under ground: 488->0 (detail 0), 2297->0 (detail 4); messaged lead (underdark has no aquifers, its water is real)
+01:22 — traps T269-T280 recorded (T-F3e merged into T265; F4's as T276-T279; T280 carver caves in the LOD check; LOD picker rule under T275); AGENTS ranges T1-T280, mkshas re-recorded; lane script handoff/evidence/f4b/lane-f4b.sh shellcheck clean
+01:30 — committed code; committing traps and evidence

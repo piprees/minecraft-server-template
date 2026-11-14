@@ -10,7 +10,7 @@
 # build-modpack.sh runs — see strip-removed-mods.py.
 set -euo pipefail
 
-MC_VERSION="${MC_VERSION:-1.21.1}"
+MC_VERSION="${MC_VERSION:-$(cat /defaults/.minecraft-version)}"
 DOMAIN="${DOMAIN:-example.com}"
 BRAND_NAME="${BRAND_NAME:-Adventure Server}"
 BRAND_SLUG="${BRAND_SLUG:-adventure}"

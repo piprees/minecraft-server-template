@@ -1,0 +1,53 @@
+{
+ "slug": "the_blossom_gardens",
+ "targets": [
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 25,
+   "from": "1.21.1: \"Cherry-blossom gardens where the first villagers planted a life worth protecting ... peaceful\": a garden, not a sea (W9h: 45%)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:ocean?",
+   "op": "<=",
+   "value": 30,
+   "from": "1.21.1: \"Cherry-blossom gardens where the first villagers planted a life worth protecting ... peaceful\": the sea is the garden's edge (W9h: 62.6% of the border)"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:cherry_grove",
+   "op": ">=",
+   "value": 5,
+   "from": "1.21.1: \"Cherry-blossom gardens where the first villagers planted a life worth protecting ... peaceful\": cherry blossom"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:cherry_grove",
+   "op": ">=",
+   "value": 6,
+   "from": "1.21.1: \"Cherry-blossom gardens where the first villagers planted a life worth protecting ... peaceful\": cherry blossom across the border"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:flower_forest + placeness.biomesPercent.adventure:magnolia_woodland + placeness.biomesPercent.adventure:wisteria_grove + placeness.biomesPercent.adventure:carnation_fields + placeness.biomesPercent.adventure:lavender_fields? + placeness.biomesPercent.minecraft:cherry_grove",
+   "op": ">=",
+   "value": 25,
+   "from": "1.21.1: \"Cherry-blossom gardens where the first villagers planted a life worth protecting ... peaceful\": the garden biomes hold a quarter of the border"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:carnation_fields",
+   "op": ">",
+   "value": 0,
+   "from": "1.21.1: \"Cherry-blossom gardens where the first villagers planted a life worth protecting ... peaceful\": garden biome placed"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:lavender_fields",
+   "op": ">",
+   "value": 0,
+   "from": "1.21.1: \"Cherry-blossom gardens where the first villagers planted a life worth protecting ... peaceful\": garden biome placed"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:cherry_grove.columns",
+   "op": ">=",
+   "value": 300,
+   "from": "cherry_grove in the survey (missing in the W9 fast survey)"
+  }
+ ]
+}

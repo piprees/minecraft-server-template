@@ -1,0 +1,98 @@
+{
+ "the_aviary": {
+  "w10t": "6/9",
+  "w10c": "4/7",
+  "missT": [
+   "landforms.sharesPercent.plateaus + landforms.sharesPercent.plains >= 35: 23.7",
+   "placeness.landBiomeRegions.top3Percent >= 60: 33.8",
+   "placeness.landBiomeRegions.specksPercent <= 5: 5.5"
+  ],
+  "missC": [
+   "landforms.sharesPercent.plateaus + landforms.sharesPercent.plains >= 0.35: 0.31 (per vertical.layerColumnsPercent.surface)",
+   "placeness.islands.dominantBiomePercent >= 55: 32.2",
+   "placeness.landBiomeRegions.specksPercent <= 5: 5.5"
+  ]
+ },
+ "overworld": {
+  "w10t": "8/9",
+  "w10c": "2/4",
+  "missT": [
+   "placeness.landBiomeRegions.specksPercent <= 5: 7.2"
+  ],
+  "missC": [
+   "placeness.landBiomeRegions.perKm2 <= 6: 6.5",
+   "placeness.landBiomeRegions.specksPercent <= 5: 7.2"
+  ]
+ },
+ "the_nether": {
+  "w10t": "9/10",
+  "w10c": "4/5",
+  "missT": [
+   "surface.groundBlocksPercent.minecraft:netherrack + surface.groundBlocksPercent.minecraft:crimson_nylium + surface.groundBlocksPercent.minecraft:warped_nylium + surface.groundBlocksPercent.minecraft:soul_sand + surface.groundBlocksPercent.minecraft:soul_soil + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:magma_block + surface.groundBlocksPercent.minecraft:gravel >= 85: 83.8"
+  ],
+  "missC": [
+   "placeness.landBiomeRegions.major <= 8: 10.0"
+  ]
+ },
+ "the_end": {
+  "w10t": "7/8",
+  "w10c": "4/4",
+  "missT": [
+   "placeness.landBiomeRegions.largestPercent >= 20: 0.2"
+  ],
+  "missC": []
+ },
+ "the_snowbound_isle": {
+  "w10t": "5/9",
+  "w10c": "7/7",
+  "missT": [
+   "surface.snowIcePercent >= 70: 25.6",
+   "surface.biomesPercent.minecraft:snowy_taiga + surface.biomesPercent.minecraft:snowy_plains + surface.biomesPercent.minecraft:snowy_slopes + surface.biomesPercent.adventure:windswept_isles + surface.biomesPercent.minecraft:grove >= 70: 25.0 (minecraft:grove not listed)",
+   "surface.precipitationPercent.snow >= 85: 31.6",
+   "placeness.landBiomeRegions.largestPercent >= 50: 36.8"
+  ],
+  "missC": []
+ },
+ "the_abyssal_shrine": {
+  "w10t": "7/10",
+  "w10c": "4/6",
+  "missT": [
+   "surface.fluidCoverPercent.water between 25-60: 7.0",
+   "surface.biomesPercent.minecraft:deep_ocean + surface.biomesPercent.minecraft:deep_cold_ocean >= 20: 7.7",
+   "landforms.sharesPercent.plateaus >= 15: 2.9"
+  ],
+  "missC": [
+   "surface.fluidCoverPercent.water between 0.25-0.6: 0.15 (per vertical.layerColumnsPercent.surface)",
+   "surface.biomesPercent.minecraft:deep_ocean + surface.biomesPercent.minecraft:deep_cold_ocean >= 0.2: 0.17 (per vertical.layerColumnsPercent.surface)"
+  ]
+ },
+ "the_violet_spire": {
+  "w10t": "6/10",
+  "w10c": "3/7",
+  "missT": [
+   "terrain.slopes.cliffPercent >= 15: 6.3",
+   "placeness.landBiomeRegions.top3Percent >= 60: 51.5",
+   "placeness.landBiomeRegions.major <= 8: 13.0",
+   "placeness.landBiomeRegions.specksPercent <= 5: 13.9"
+  ],
+  "missC": [
+   "placeness.landBiomeRegions.top3Percent >= 60: 51.5",
+   "placeness.landBiomeRegions.major <= 8: 13.0",
+   "placeness.landBiomeRegions.specksPercent <= 5: 13.9",
+   "placeness.islands.dominantBiomePercent >= 60: 50.0"
+  ]
+ },
+ "the_sunken_temple": {
+  "w10t": "7/10",
+  "w10c": "4/6",
+  "missT": [
+   "placeness.landBiomeRegions.top3Percent >= 60: 14.4",
+   "placeness.landBiomeRegions.major <= 8: 20.0",
+   "placeness.landBiomeRegions.specksPercent <= 5: 10.7"
+  ],
+  "missC": [
+   "placeness.landBiomeRegions.top3Percent >= 60: 14.4",
+   "placeness.landBiomeRegions.specksPercent <= 5: 10.7"
+  ]
+ }
+}

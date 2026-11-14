@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 2,
+  "description": "The last piglin forge still burning. Crimson forges and reactors in a small brutal deep — the fires here never went out because nobody survived to bank them. The deeper you go, the hotter and harder it gets. The heat comes back through the frame, and anything built beside the portal is fuel.",
+  "seed": -295827713663215989,
+  "spawn": [0, 73, -110],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 72,
+      "floorRelief": 18,
+      "ceilingGap": 40,
+      "roughness": 0.6,
+      "pit": 0.04,
+      "pitDepth": 34,
+      "ledges": 0.5,
+      "ledgeStep": 8,
+      "chasms": 0.08,
+      "chasmDepth": 24,
+      "pillars": 0.05
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 300],
+      "radius": 380,
+      "falloff": 64,
+      "strength": 1,
+      "warp": {
+        "blocks": 76,
+        "wavelength": 512
+      }
+    },
+    "scales": {
+      "climate": 1.5
+    }
+  },
+  "biomes": [
+    "adventure:quartz_flats",
+    "adventure:crimson_pinewood",
+    "minecraft:basalt_deltas",
+    "minecraft:crimson_forest",
+    "minecraft:nether_wastes",
+    {
+      "id": "adventure:magma_land",
+      "climate": {
+        "depth": [0.2, 1]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:crimson_pinewood": 52,
+      "adventure:quartz_flats": 15,
+      "minecraft:basalt_deltas": 18,
+      "minecraft:crimson_forest": 8,
+      "minecraft:nether_wastes": 7
+    },
+    "places": {
+      "groups": {
+        "forge": [
+          "adventure:quartz_flats",
+          "minecraft:crimson_forest"
+        ],
+        "basalt": [
+          "minecraft:basalt_deltas",
+          "minecraft:nether_wastes"
+        ]
+      },
+      "arrangement": "core",
+      "warp": {
+        "blocks": 76,
+        "wavelength": 512
+      }
+    }
+  },
+  "atmosphere": {
+    "fogColor": "#4B2B1B",
+    "ambientLight": 0.08
+  },
+  "borders": {
+    "player": 683,
+    "generation": 683
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 2.2,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 90,
+      "endY": 10,
+      "minMultiplier": 1.5,
+      "maxMultiplier": 3.5
+    }
+  },
+  "structures": {
+    "density": "dense",
+    "mode": "allow",
+    "list": [
+      "mns:crimson_forge",
+      "mns:large_house_1",
+      "mns:medium_house",
+      "mns:large_blackstone_walls",
+      "mns:mega_fortress",
+      "mns:copper_tower",
+      "minecraft:nether_complexes",
+      "nova_structures:nether_structures"
+    ],
+    "repetition": {
+      "settlements": 12,
+      "landmarks": 12
+    },
+    "wants": {
+      "mns:crimson_forge": {
+        "min": 0,
+        "max": 120
+      },
+      "nova_structures:piglin_donjon": {
+        "min": 100,
+        "max": 600
+      },
+      "nova_structures:nether_keep": {
+        "min": 100,
+        "max": 600
+      },
+      "minecraft:bastion_remnant": {
+        "min": 150,
+        "max": 650
+      }
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:polished_blackstone_bricks",
+      "igniterItem": "minecraft:diamond",
+      "color": "6B7B8B",
+      "lightLevel": 11,
+      "scale": 12.0,
+      "cooldown": 40,
+      "shape": "door",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything"
+      },
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:basalt_deltas",
+      "adventure:magma_land",
+      "adventure:quartz_flats"
+    ],
+    "wants": {
+      "crimson_forge": "near_spawn",
+      "mns:crimson_forge": "spread",
+      "bastion": "spread",
+      "mns:mega_fortress": "spread",
+      "mns:copper_tower": "spread"
+    },
+    "shuns": [
+      "towns_and_towers:exclusives/village_piglin",
+      "crimson_fungus",
+      "mvs:large_warped_tower"
+    ]
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "ores": {
+    "remove": [
+      "adventure:biome/crimson_pinewood/crimson_pines",
+      "minecraft:crimson_fungi",
+      "minecraft:crimson_forest_vegetation",
+      "minecraft:weeping_vines"
+    ]
+  },
+  "liquids": {
+    "lavaLevel": 24
+  },
+  "materials": {
+    "bands": [
+      {
+        "below": 40,
+        "top": "minecraft:magma_block",
+        "filler": "minecraft:blackstone",
+        "cliffs": "minecraft:blackstone"
+      },
+      {
+        "below": 52,
+        "cliffs": "minecraft:blackstone",
+        "filler": "minecraft:blackstone"
+      }
+    ]
+  }
+}

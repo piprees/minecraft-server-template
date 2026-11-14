@@ -1,0 +1,14 @@
+{
+  "base": "minecraft:overworld",
+  "changed": {
+    "aquifers": "sha1:32e953441693292e25fdb8d4d220336f71283fcf",
+    "default_block": "minecraft:blackstone",
+    "default_fluid": "minecraft:lava",
+    "material_rule": "adventure:the_basalt_spires",
+    "noise_router": "sha1:d22b95f76d4e4ef653d9d9b1342457de8ecb3e22",
+    "sea_level": 40
+  },
+  "removed": [
+    "debug_functions"
+  ]
+}

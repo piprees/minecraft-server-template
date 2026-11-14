@@ -1,0 +1,238 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "nether",
+  "inspiredBy": "BetterNether's crimson pinewood.",
+  "differs": "Crimson forest has round caps; these are tall pines: crimson stems rise bare to crowns of nether wart in stacked tiers that narrow to a point, shroomlights glow in the tiers, crimson roots and small fungi carpet the nylium, and crimson spores drift down.",
+  "climate": {
+    "temperature": [
+      0.0,
+      0.4
+    ],
+    "humidity": [
+      0.3,
+      1.0
+    ]
+  },
+  "palette": {
+    "top": "minecraft:crimson_nylium"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:ambient.crimson_forest.additions",
+          "tick_chance": 0.0111
+        },
+        "loop": "minecraft:ambient.crimson_forest.loop",
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.crimson_forest.mood",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.nether.crimson_forest"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "creature": [
+              {
+                "type": "minecraft:strider",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 2,
+                  "min_inclusive": 1
+                },
+                "weight": 60
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:zombified_piglin",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 2
+                },
+                "weight": 1
+              },
+              {
+                "type": "minecraft:hoglin",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 3
+                },
+                "weight": 9
+              },
+              {
+                "type": "minecraft:piglin",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 3
+                },
+                "weight": 5
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:crimson_spore"
+            },
+            "probability": 0.025
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#4a0e16"
+    },
+    "carvers": "minecraft:nether_cave",
+    "downfall": 0.0,
+    "effects": {
+      "water_color": "#3f76e4"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [
+        "minecraft:spring_open",
+        "minecraft:patch_fire",
+        "minecraft:glowstone_extra",
+        "minecraft:glowstone",
+        "minecraft:ore_magma",
+        "minecraft:spring_closed",
+        "minecraft:ore_gravel_nether",
+        "minecraft:ore_blackstone",
+        "minecraft:ore_gold_nether",
+        "minecraft:ore_quartz_nether",
+        "minecraft:ore_ancient_debris_large",
+        "minecraft:ore_debris_small"
+      ],
+      [],
+      [
+        "~crimson_pines",
+        "minecraft:spring_lava",
+        "minecraft:brown_mushroom_normal",
+        "minecraft:red_mushroom_normal",
+        "minecraft:weeping_vines",
+        "minecraft:crimson_forest_vegetation"
+      ]
+    ],
+    "has_precipitation": false,
+    "temperature": 2.0
+  },
+  "features": {
+    "crimson_pines": {
+      "feature": {
+        "type": "minecraft:tree",
+        "below_trunk_provider": {
+          "id": "minecraft:crimson_nylium"
+        },
+        "decorators": [],
+        "foliage_placer": {
+          "type": "minecraft:spruce_foliage_placer",
+          "offset": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 1,
+            "min_inclusive": 0
+          },
+          "radius": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 3,
+            "min_inclusive": 2
+          },
+          "trunk_height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 3,
+            "min_inclusive": 2
+          }
+        },
+        "foliage_provider": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:nether_wart_block"
+              },
+              "weight": 13
+            },
+            {
+              "data": {
+                "id": "minecraft:shroomlight"
+              },
+              "weight": 1
+            }
+          ]
+        },
+        "ignore_vines": true,
+        "minimum_size": {
+          "type": "minecraft:two_layers_feature_size",
+          "limit": 2,
+          "upper_size": 2
+        },
+        "trunk_placer": {
+          "type": "minecraft:straight_trunk_placer",
+          "base_height": 7,
+          "height_rand_a": 3,
+          "height_rand_b": 2
+        },
+        "trunk_provider": {
+          "id": "minecraft:crimson_stem",
+          "properties": {
+            "axis": "y"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 24
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:crimson_nylium"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

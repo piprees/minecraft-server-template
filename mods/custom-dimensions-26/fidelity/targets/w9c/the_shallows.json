@@ -1,0 +1,65 @@
+{
+ "slug": "the_shallows",
+ "targets": [
+  {
+   "key": "surface.waterDepth.shallow1To4Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "owner: \"extremely shallow tropical waters\""
+  },
+  {
+   "key": "surface.waterDepth.p50",
+   "op": "<=",
+   "value": 4,
+   "from": "\"extremely shallow\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "between",
+   "value": [
+    50,
+    85
+   ],
+   "from": "1.21.1: \"broad warm shallows and mirage isles\""
+  },
+  {
+   "key": "terrain.surfaceHeight.p95",
+   "op": "<=",
+   "value": 70,
+   "from": "\"barely-out-of-sea level flat islands\" (sea level 63)"
+  },
+  {
+   "key": "terrain.reliefMedian",
+   "op": "<=",
+   "value": 6,
+   "from": "\"flat islands\", \"not weird cliffs\""
+  },
+  {
+   "key": "terrain.slopes.over45Percent",
+   "op": "<=",
+   "value": 4,
+   "from": "\"not weird cliffs\""
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "between",
+   "value": [
+    1,
+    12
+   ],
+   "from": "\"sparse trees\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:warm_ocean + surface.biomesPercent.minecraft:lukewarm_ocean + surface.biomesPercent.minecraft:beach + surface.biomesPercent.adventure:tropical_shores",
+   "op": ">=",
+   "value": 70,
+   "from": "\"paradise islands\", \"tropical waters\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:deep_lukewarm_ocean",
+   "op": "<=",
+   "value": 5,
+   "from": "\"extremely shallow\""
+  }
+ ]
+}

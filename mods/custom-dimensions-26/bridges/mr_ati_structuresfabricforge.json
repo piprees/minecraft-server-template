@@ -1,0 +1,678 @@
+{
+  "mod": "mr_ati_structuresfabricforge",
+  "reviewed": true,
+  "structureSets": [
+    "ati_structures:aboveground_large",
+    "ati_structures:aboveground_medium",
+    "ati_structures:aboveground_small",
+    "ati_structures:rare",
+    "ati_structures:underground_medium",
+    "ati_structures:underground_small"
+  ],
+  "structures": [
+    {
+      "id": "ati_structures:ancient_temple",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 96,
+        "z": 49
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:ancient_vessel",
+      "set": "ati_structures:rare",
+      "size": {
+        "x": 43,
+        "y": 35,
+        "z": 19
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:arachnid_dwelling",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 78,
+        "z": 48
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:ati_stoneworks",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 150,
+        "y": 96,
+        "z": 144
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:castillo",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 26,
+        "y": 44,
+        "z": 50
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:catalonian_castle",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 80,
+        "z": 48
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:dark_keep",
+      "set": "ati_structures:aboveground_medium",
+      "size": {
+        "x": 25,
+        "y": 59,
+        "z": 25
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:dark_tower",
+      "set": "ati_structures:aboveground_medium",
+      "size": {
+        "x": 25,
+        "y": 45,
+        "z": 25
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:deepslate_keep",
+      "set": "ati_structures:aboveground_small",
+      "size": {
+        "x": 25,
+        "y": 41,
+        "z": 25
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:desert_outpost",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 96,
+        "z": 49
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:dojo",
+      "set": "ati_structures:aboveground_medium",
+      "size": {
+        "x": 48,
+        "y": 88,
+        "z": 48
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:fortified_temple",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 96,
+        "z": 49
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:gnome_hut",
+      "set": "ati_structures:rare",
+      "size": {
+        "x": 48,
+        "y": 65,
+        "z": 47
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:granite_fort",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 49,
+        "y": 96,
+        "z": 48
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:haunted_ruin",
+      "set": "ati_structures:aboveground_small",
+      "size": {
+        "x": 39,
+        "y": 35,
+        "z": 39
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:herobrine_stronghold",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 96,
+        "z": 49
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:ice_tribe",
+      "set": "ati_structures:aboveground_small",
+      "size": {
+        "x": 42,
+        "y": 20,
+        "z": 34
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:illager_homestead",
+      "set": "ati_structures:aboveground_small",
+      "size": {
+        "x": 25,
+        "y": 39,
+        "z": 25
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:illager_tower",
+      "set": "ati_structures:aboveground_medium",
+      "size": {
+        "x": 25,
+        "y": 49,
+        "z": 25
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:jungle_grotto",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 96,
+        "z": 49
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:jungle_settlement",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 72,
+        "y": 41,
+        "z": 72
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:lighthouse",
+      "set": "ati_structures:aboveground_medium",
+      "size": {
+        "x": 45,
+        "y": 40,
+        "z": 48
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:manor",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 79,
+        "z": 49
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:marble_chateau",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 96,
+        "z": 48
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:monastery_tower",
+      "set": "ati_structures:aboveground_medium",
+      "size": {
+        "x": 25,
+        "y": 69,
+        "z": 25
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:mosque",
+      "set": "ati_structures:aboveground_medium",
+      "size": {
+        "x": 41,
+        "y": 50,
+        "z": 50
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:mud_tower",
+      "set": "ati_structures:aboveground_small",
+      "size": {
+        "x": 25,
+        "y": 49,
+        "z": 25
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:nomadic_camp",
+      "set": "ati_structures:aboveground_small",
+      "size": {
+        "x": 72,
+        "y": 84,
+        "z": 72
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:old_fort",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 96,
+        "z": 49
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:old_home",
+      "set": "ati_structures:aboveground_small",
+      "size": {
+        "x": 25,
+        "y": 44,
+        "z": 25
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:old_residence",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 85,
+        "z": 48
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:overgrown_outpost",
+      "set": "ati_structures:aboveground_medium",
+      "size": {
+        "x": 48,
+        "y": 93,
+        "z": 48
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:pufferfish_cave",
+      "set": "ati_structures:underground_small",
+      "size": {
+        "x": 17,
+        "y": 15,
+        "z": 13
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:quarry",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 174,
+        "y": 69,
+        "z": 177
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:rotten_log",
+      "set": "ati_structures:aboveground_small",
+      "size": {
+        "x": 39,
+        "y": 33,
+        "z": 49
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:rotting_temple",
+      "set": "ati_structures:aboveground_small",
+      "size": {
+        "x": 25,
+        "y": 44,
+        "z": 25
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:rotting_temple_underground",
+      "set": "ati_structures:underground_small",
+      "size": {
+        "x": 44,
+        "y": 44,
+        "z": 44
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:ruined_castle",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 93,
+        "z": 49
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:sculk_deposit",
+      "set": "ati_structures:underground_small",
+      "size": {
+        "x": 15,
+        "y": 11,
+        "z": 15
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:silverfish_nest",
+      "set": "ati_structures:underground_small",
+      "size": {
+        "x": 15,
+        "y": 10,
+        "z": 15
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:sinking_temple",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 48,
+        "z": 48
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:small_keep",
+      "set": "ati_structures:aboveground_medium",
+      "size": {
+        "x": 25,
+        "y": 62,
+        "z": 25
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:spider_nest",
+      "set": "ati_structures:underground_medium",
+      "size": {
+        "x": 45,
+        "y": 32,
+        "z": 45
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:steam_house",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 96,
+        "z": 49
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:storage_house",
+      "set": "ati_structures:aboveground_small",
+      "size": {
+        "x": 49,
+        "y": 60,
+        "z": 49
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:storage_shack",
+      "set": "ati_structures:aboveground_small",
+      "size": {
+        "x": 49,
+        "y": 59,
+        "z": 49
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:stray_ruins",
+      "set": "ati_structures:aboveground_small",
+      "size": {
+        "x": 39,
+        "y": 34,
+        "z": 39
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:tavern",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 49,
+        "y": 85,
+        "z": 48
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:underground_monument",
+      "set": "ati_structures:underground_medium",
+      "size": {
+        "x": 45,
+        "y": 11,
+        "z": 45
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:underwater_dungeon",
+      "set": "ati_structures:underground_small",
+      "size": {
+        "x": 15,
+        "y": 10,
+        "z": 15
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:villager_inn",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 96,
+        "z": 48
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:warden_monument",
+      "set": "ati_structures:rare",
+      "size": {
+        "x": 72,
+        "y": 72,
+        "z": 72
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:wither_cavern",
+      "set": "ati_structures:underground_medium",
+      "size": {
+        "x": 45,
+        "y": 45,
+        "z": 45
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:wither_keep",
+      "set": "ati_structures:aboveground_medium",
+      "size": {
+        "x": 30,
+        "y": 71,
+        "z": 25
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "ati_structures:woodland_keep",
+      "set": "ati_structures:aboveground_large",
+      "size": {
+        "x": 48,
+        "y": 88,
+        "z": 48
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    }
+  ],
+  "features": [],
+  "spawns": [],
+  "mixins": [],
+  "registries": []
+}

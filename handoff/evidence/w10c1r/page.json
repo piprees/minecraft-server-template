@@ -1,0 +1,104 @@
+[
+ {
+  "slug": "the_aviary",
+  "terrain": "floating islands in two stacked layers, flat-topped plateaus",
+  "changed": "Wisteria is weighted higher, so it now leads the surface, and the region edges are bent by a slow warp. The islands are unchanged. This review is interim: a layout that gives each biome one region comes next.",
+  "fidelity": 4,
+  "why": "Wisteria covers 20.5% of the surface and cherry 15%, with open sky under 23% of the map and upper islands over 14% of it. 11 of the 12 placed biomes show their own plants and trees. The biomes still come as many small regions: the largest three hold 34% of the land.",
+  "misses": [
+   "largest three land regions 33.8% (wants 60): waits for the places layout",
+   "each island led by one biome, 32.2% (wants 55): waits for the places layout",
+   "land in specks 5.5% (wants 5 or less): waits for the places layout",
+   "plains and plateaus 31% of the ground (wants 35): island tops read as rolling hills more than tables; not tuned in this pass"
+  ],
+  "ownersEye": [
+   "A boundary between two regions still runs almost straight north to south. The new layout should bend it: check it then."
+  ]
+ },
+ {
+  "slug": "overworld",
+  "terrain": "vanilla overworld on its own seed, climate stretched 4 times and one band warmer, 65% land",
+  "changed": "The climate is stretched 4 times and shifted about one vanilla temperature band warmer. The cold that covered the map is now confined to the mountains. This review is interim: a layout that gives each biome one region comes next.",
+  "fidelity": 4,
+  "why": "Snow or ice covers 6% of the surface (it was 28%), water 36%, and plains, ocean, taiga and forest lead. The largest three land regions hold 26% of the land. The biomes still come as many blobs: 6.5 regions per square kilometre and 7% of the land in specks.",
+  "misses": [
+   "6.5 land regions per square kilometre (wants 6 or fewer): waits for the places layout",
+   "land in specks 7.2% (wants 5 or less): waits for the places layout"
+  ],
+  "ownersEye": []
+ },
+ {
+  "slug": "the_nether",
+  "terrain": "vanilla Nether cavern, biome regions stretched 2.5 times",
+  "changed": "The base Nether now lists the five vanilla biomes plus quartz flats, laid out as large regions with the crimson forest weighted highest.",
+  "fidelity": 4,
+  "why": "Crimson forest is the largest biome at 30% and warped forest covers 22%. Lava covers 17% and the roof covers 94% of the map. The largest three regions hold 61% of the land, but the land splits into ten major regions rather than eight.",
+  "ownersEye": [
+   "Should quartz flats, the white Nether, be part of the base Nether?"
+  ],
+  "misses": [
+   "10 major land regions (wants 8 or fewer): waits for the places layout"
+  ]
+ },
+ {
+  "slug": "the_end",
+  "terrain": "vanilla End on its own seed",
+  "changed": "No generator change. Re-surveyed with the current survey.",
+  "fidelity": 4,
+  "why": "Void covers 47% of the map. End midlands and highlands lead, and all four biomes show. The largest island covers 176 hectares. Chorus is thin at 0.7% of top blocks, and the cities near the gateways were not measured.",
+  "ownersEye": []
+ },
+ {
+  "slug": "the_snowbound_isle",
+  "terrain": "one floating island gathered at spawn, void beyond",
+  "changed": "The island field copied from the Aviary became one snowy island about 800 blocks across, with fir forest, snowy plains, slopes and a dying forest for the autumnal tundra.",
+  "fidelity": 4,
+  "why": "There is one island of 57 hectares in open void, and snow lies on 79% of its ground. All six listed biomes show. The 1.21.1 frozen cliffs are gone, and the island splits into five biome regions rather than reading as one fir forest.",
+  "ownersEye": [
+   "Is an island about 800 blocks across big enough for 'animal country'?"
+  ]
+ },
+ {
+  "slug": "the_abyssal_shrine",
+  "terrain": "a ring of plateau islands round one deep drowned lake, void beyond",
+  "changed": "The ring now holds one lake 40 blocks deep that fills its hollow, held by a rim, with no islets in it and no other lakes. The plateau islands stand round it.",
+  "fidelity": 4,
+  "why": "The ring reads as one place: its largest region holds 52% of the land and almost none lies in specks. The deep oceans lie in the water, and all five listed biomes show. Water covers only 7% of the map, or 15% of the ground, so the drowned centre is smaller than the description suggests.",
+  "misses": [
+   "water 15% of the ground (wants 25 to 60) and deep oceans 17% (wants 20): the hollow is only as wide as the ring leaves it, 220 blocks in radius. A wider ring or a shorter fall from the ring to the hollow would raise both; not tried in this pass."
+  ],
+  "ownersEye": [
+   "A perfectly round rim holds the lake, with a strip of void between it and the plateau ring. Is that acceptable, or should the rim join the plateaus?",
+   "The noon shots do not look as dark as the shrine's dark-blue sky asks. Should it be darker?"
+  ]
+ },
+ {
+  "slug": "the_violet_spire",
+  "terrain": "broad floating islands carrying thin, pointed spires, faced with amethyst",
+  "changed": "The spires now stand on five broad floating islands instead of each on an islet of its own. The region edges are warped and the two zones have uneven edges. This review is interim: a layout that gives each biome one region comes next.",
+  "fidelity": 4,
+  "why": "Lavender (18%) and wisteria (14%) lead, spires reach y 233, amethyst faces their cliffs, and cliffs make up 6% of the slopes. The islands are up to 46 hectares and the sky lies open under half the map. The biome regions are blobs with speckled edges: 14% of the land lies in specks.",
+  "misses": [
+   "largest three land regions 51.5% (wants 60): waits for the places layout",
+   "13 major regions (wants 8 or fewer): waits for the places layout",
+   "land in specks 13.9% (wants 5 or less): waits for the places layout",
+   "each island led by one biome, 50% (wants 60): waits for the places layout",
+   "cliffs 6.3% of slopes (the 1.21.1 target wants 15): spires stand on a fifth of the island tops; not tuned further"
+  ],
+  "ownersEye": [
+   "The lavender field and the crystal patch have no frame yet: every try was inside leaves or showed only sky."
+  ]
+ },
+ {
+  "slug": "the_sunken_temple",
+  "terrain": "sky islands joined into large drowned basins, with a second layer of islands above",
+  "changed": "The copied island field became island masses holding warm water in their basins, with the ocean biomes in the water, jungle and highlands on the islands, and a layer of smaller islands above. This pass added a far view.",
+  "fidelity": 4,
+  "why": "Water covers 45% of the map and void only 13%. The warm oceans lie in the basins, jungle covers 21% and highlands 16%, and islands sit above in 19% of columns. Islets inside the basins break the land into small regions: the largest three hold 14% of it.",
+  "ownersEye": [],
+  "misses": [
+   "largest three land regions 14.4% (wants 60): waits for the places layout",
+   "land in specks 10.7% (wants 5 or less): the basins and the small islands of the upper layer break the land into pieces; fewer islets in the basins did not move it"
+  ]
+ }
+]

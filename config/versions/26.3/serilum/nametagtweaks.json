@@ -1,0 +1,5 @@
+{
+	"droppedNameTagbyEntityKeepsNameValue": false,
+	"enableNameTagCommand": true,
+	"nameTagCommandReplaceUnderscoresWithSpaces": true
+}

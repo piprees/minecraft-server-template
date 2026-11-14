@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture and showcase: the biome library's old growth oakwood filling a whole level on overworld terrain, for the biomes section's per-biome checks, renders and screenshots.",
+  "seed": 20,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "single_biome",
+    "biome": "adventure:old_growth_oakwood"
+  },
+  "borders": {
+    "player": 512
+  }
+}

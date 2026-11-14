@@ -1,0 +1,77 @@
+{
+  "level": "adventure:the_blighted_maw",
+  "density": "dense",
+  "noise": true,
+  "radiusChunks": 64,
+  "spawnChunk": [0, 0],
+  "groups": {
+    "deco": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 5,
+      "clearSpawnChunks": 0
+    },
+    "dungeons": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 13,
+      "clearSpawnChunks": 0,
+      "repetition": 350
+    },
+    "landmarks": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 19,
+      "clearSpawnChunks": 0
+    },
+    "maritime": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 10,
+      "clearSpawnChunks": 0
+    },
+    "endgame": {
+      "profile": "dense",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 32,
+      "clearSpawnChunks": 0
+    }
+  },
+  "mode": null,
+  "list": [],
+  "exclude": [],
+  "include": [],
+  "rarity": {},
+  "spacing": {},
+  "force": [
+    {
+      "structure": "mns:crimson_forge",
+      "x": -380,
+      "z": 290,
+      "radius": 0,
+      "exclusive": false
+    },
+    {
+      "structure": "ati_structures:warden_monument",
+      "x": -364,
+      "z": 274,
+      "radius": 0,
+      "exclusive": true
+    }
+  ],
+  "wants": [],
+  "shuns": [],
+  "replace": {},
+  "terrainAdaptation": {
+    "mns:crimson_forge": "beard_box"
+  },
+  "loot": [
+    {
+      "item": "minecraft:elytra",
+      "chance": 0.08,
+      "structures": [
+        "dungeons"
+      ]
+    }
+  ]
+}

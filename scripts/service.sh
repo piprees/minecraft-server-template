@@ -108,6 +108,21 @@ fi
 
 # Validate targets
 targets=("$@")
+
+# A local mc is created as dev-up.sh creates it: the selected Minecraft
+# version's image, loader and mod list, and the server pack's RESOURCE_PACK*
+# values. Compose's own defaults are 1.21.1's, so a 26.x consumer's mc would
+# crash-loop installing the 1.21.1 loader.
+if [[ $LOCAL -eq 1 && " ${targets[*]:-} " == *" mc "* && "$ACTION" != status ]]; then
+  export_mc_version
+  if [[ -f "$SCRIPT_DIR/server-pack.py" ]]; then
+    while IFS=$'\t' read -r name value; do
+      export "$name=$value"
+    done < <(python3 "$SCRIPT_DIR/server-pack.py" "$CONSUMER" \
+      "${SERVER_PACK_URL:-http://pack.${LOCAL_DOMAIN:-${BRAND_SLUG}.local}:${WEB_PORT:-8080}}" \
+      --dist "${DIST_DIR:-$CONSUMER/modpack-dist}")
+  fi
+fi
 if [[ ${#targets[@]} -eq 0 && "$ACTION" != "status" ]]; then
   echo "No service specified."
   usage

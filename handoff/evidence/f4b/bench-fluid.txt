@@ -1,0 +1,20 @@
+# before the open-runs rule
+fast bench: the_underdark lod request detail 0: 4096 columns, 10.52 segments and 6.86 solid segments per column, 0 columns malformed, 4096 with fluid under ground, 98 ms
+fast bench: the_underdark lod request detail 4: 4096 columns, 10.34 segments and 7.04 solid segments per column, 0 columns malformed, 3808 with fluid under ground, 153 ms
+fast bench: the_nether lod request detail 0: 4096 columns, 4.99 segments and 3.47 solid segments per column, 0 columns malformed, 304 with fluid under ground, 34 ms
+fast bench: the_nether lod request detail 4: 4096 columns, 6.14 segments and 4.04 solid segments per column, 0 columns malformed, 2041 with fluid under ground, 90 ms
+fast bench: overworld lod request detail 0: 4096 columns, 4.69 segments and 2.52 solid segments per column, 0 columns malformed, 488 with fluid under ground, 184 ms
+fast bench: overworld lod request detail 4: 4096 columns, 6.68 segments and 4.54 solid segments per column, 0 columns malformed, 2297 with fluid under ground, 439 ms
+# after
+fast bench: the_underdark lod column -440 -440: lod surface 82, runs [127..94, 81..73, 71..58, 33..14, -11..-64] roofed; noise surface 82, blocks [127..94 stone, 93..82 air, 81..73 stone, 72..72 air, 71..58 stone, 57..34 air, 33..14 stone, 13..-10 water, -11..-64 stone]
+fast bench: the_underdark lod column 264 88: lod surface 43, runs [127..51, 42..27, 0..0, -44..-64] roofed; noise surface 43, blocks [127..51 stone, 50..43 air, 42..27 stone, 26..1 water, 0..0 stone, -1..-43 water, -44..-64 stone]
+fast bench: the_underdark lod request detail 0: 4096 columns, 10.52 segments and 6.86 solid segments per column, 0 columns malformed, 4096 with fluid under ground, 89 ms
+fast bench: the_underdark lod request detail 4: 4096 columns, 10.34 segments and 7.04 solid segments per column, 0 columns malformed, 3808 with fluid under ground, 264 ms
+fast bench: the_nether lod column -440 -440: lod surface 22, runs [127..67, 21..0] roofed; noise surface 22, blocks [127..67 netherrack, 66..32 air, 31..22 lava, 21..0 netherrack]
+fast bench: the_nether lod column 264 88: lod surface 29, runs [127..105, 28..0] roofed; noise surface 29, blocks [127..105 netherrack, 104..32 air, 31..29 lava, 28..0 netherrack]
+fast bench: the_nether lod request detail 0: 4096 columns, 4.99 segments and 3.47 solid segments per column, 0 columns malformed, 304 with fluid under ground, 19 ms
+fast bench: the_nether lod request detail 4: 4096 columns, 6.14 segments and 4.04 solid segments per column, 0 columns malformed, 2041 with fluid under ground, 134 ms
+fast bench: overworld lod column -440 -440: lod surface 48, runs [47..-64]; noise surface 48, blocks [319..63 air, 62..48 water, 47..-64 stone]
+fast bench: overworld lod column 264 88: lod surface 65, runs [64..-18, -44..-64]; noise surface 65, blocks [319..65 air, 64..-18 stone, -19..-43 air, -44..-64 stone]
+fast bench: overworld lod request detail 0: 4096 columns, 4.69 segments and 2.52 solid segments per column, 0 columns malformed, 0 with fluid under ground, 106 ms
+fast bench: overworld lod request detail 4: 4096 columns, 6.67 segments and 4.54 solid segments per column, 0 columns malformed, 0 with fluid under ground, 349 ms

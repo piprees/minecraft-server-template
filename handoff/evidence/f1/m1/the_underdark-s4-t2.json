@@ -1,0 +1,249 @@
+{
+  "kind": "fastrender",
+  "dimension": "the_underdark",
+  "seed": 2070195577671787983,
+  "seedSource": "definition",
+  "radius": 4096,
+  "step": 4,
+  "side": 2048,
+  "centre": [
+    0,
+    0
+  ],
+  "pixel": "the column at the north-west corner of each step x step cell; north is up",
+  "surface": "OCEAN_FLOOR_WG: one above the top motion-blocking block; under a roof, one above the first motion-blocking block below the roof's underside",
+  "biomeY": "the surface height, clamped into the dimension (the generator's noise biome there)",
+  "seaLevel": 32,
+  "files": {
+    "biome": "fast-2070195577671787983-r4096-biome.png",
+    "height": "fast-2070195577671787983-r4096-height.png",
+    "zones": "fast-2070195577671787983-r4096-zones.png",
+    "hillshade": "fast-2070195577671787983-r4096-hillshade.png",
+    "map": "fast-2070195577671787983-r4096-map.png",
+    "roofoff": "fast-2070195577671787983-r4096-roofoff.png",
+    "cut": "fast-2070195577671787983-r4096-cut.png",
+    "tier1": "fast-2070195577671787983-r4096-tier1.png",
+    "tier2": "fast-2070195577671787983-r4096-tier2.png",
+    "tier3": "fast-2070195577671787983-r4096-tier3.png",
+    "structures": "fast-2070195577671787983-r4096-structures.png"
+  },
+  "timings": {
+    "prepare": 2,
+    "prescan": 535,
+    "sample": 149311,
+    "structures": 1001,
+    "compare": 361,
+    "images": 5195,
+    "runs": 43,
+    "total": 156525,
+    "columns": 4194304,
+    "threads": 2,
+    "columnsPerSecond": 28091
+  },
+  "legend": {
+    "biomes": [
+      {
+        "id": "minecraft:deep_dark",
+        "colour": "#0e2a30",
+        "fixed": true,
+        "pixels": 1607041
+      },
+      {
+        "id": "adventure:withered_forest",
+        "colour": "#4b8cce",
+        "fixed": false,
+        "pixels": 1292613
+      },
+      {
+        "id": "minecraft:warped_forest",
+        "colour": "#168a84",
+        "fixed": true,
+        "pixels": 618283
+      },
+      {
+        "id": "minecraft:dripstone_caves",
+        "colour": "#8a6a4a",
+        "fixed": true,
+        "pixels": 303999
+      },
+      {
+        "id": "minecraft:lush_caves",
+        "colour": "#60b040",
+        "fixed": true,
+        "pixels": 227842
+      },
+      {
+        "id": "minecraft:crimson_forest",
+        "colour": "#a3242a",
+        "fixed": true,
+        "pixels": 144526
+      }
+    ],
+    "height": {
+      "lowest": -48,
+      "highest": 128,
+      "greyFrom": 33,
+      "greyTo": 128,
+      "grey": "60 at greyFrom to 230 at greyTo (the dry surface's 1st and 99th percentile), lit from the north-west",
+      "contourEvery": 16,
+      "water": "blue, darker by depth below sea level",
+      "lava": "#d8581c",
+      "empty": "#000000"
+    }
+  },
+  "fast": {
+    "stride": 4,
+    "threads": 2,
+    "tile": 16,
+    "columnsPerSecond": 28091,
+    "referenceColumnsPerSecond": 45511,
+    "speedup": 0.62,
+    "noiseRange": [
+      -64,
+      127
+    ],
+    "scout": {
+      "cellXz": 4,
+      "cellY": 8,
+      "rule": "the final density on rows one interpolation cell apart (8 blocks when it is not interpolated); each cell whose rows differ in sign sampled block by block; a layer thinner than a cell between two rows is missed",
+      "scoutPointsPerColumn": 25.0,
+      "crossingsPerColumn": 5.32
+    },
+    "runs": {
+      "cap": 24,
+      "max": 10,
+      "mean": 3.66,
+      "atCap": 0,
+      "file": "fast-2070195577671787983-r4096-runs.bin.gz",
+      "format": "gzip members, big-endian: int magic 0x43445231, int side, int step, int x0, int z0, int minY, int noiseTop; then per pixel, rows north to south, west to east: u8 count, and per run topmost first i16 top, i16 bottom, u16 topBlock, u16 undersideBlock, u16 fluidBlock, i16 fluidLevel (block indices into palette, 65535 for none; fluidLevel is the block above the fluid's surface)"
+    },
+    "roofedShare": 1.0,
+    "roofLayers": true,
+    "cut": {
+      "y": 35,
+      "rule": "the height open in the most roofed columns of a grid every 64 blocks",
+      "prescanColumns": 16384,
+      "prescanRoofed": 16384
+    },
+    "tiers": [
+      1,
+      2,
+      3
+    ],
+    "tierRule": "tierN shows run N+1 from the top, drawn when 0.02 of columns have it",
+    "fluids": "the level's global fluid picker (sea level, lava level, dry zones) at the lowest open block over each run; an aquifer's local water tables need a noise chunk and are not sampled",
+    "surfaceBlocks": "the level's compiled material rule at each run's top, and at a roof's underside",
+    "structures": {
+      "footprints": 91,
+      "rule": "starts from the level's placement state with its structure control (Sampler.starts), at most 64 of each structure, outlined by the start's bounding box",
+      "legend": {
+        "minecraft:mineshaft": "#26e0ff",
+        "minecraft:ancient_city": "#26c3ff",
+        "minecraft:trial_chambers": "#ffa126",
+        "minecraft:ruined_portal_nether": "#ff26c1",
+        "minecraft:bastion_remnant": "#73ff26",
+        "minecraft:fortress": "#ff5326",
+        "minecraft:stronghold": "#fd26ff"
+      }
+    },
+    "comparison": {
+      "spacing": 64,
+      "columns": 16384,
+      "heightsWithinOne": 1.0,
+      "heightsExact": 1.0,
+      "biomesEqual": 0.9999,
+      "fluidsEqual": 1.0,
+      "referenceMillis": 360,
+      "examples": [
+        "3136,-2432: height 16 against 16, biome minecraft:deep_dark against minecraft:dripstone_caves"
+      ]
+    },
+    "palette": [
+      {
+        "block": "minecraft:bedrock",
+        "state": "Block{minecraft:bedrock}",
+        "mapColour": "#707070"
+      },
+      {
+        "block": "minecraft:water",
+        "state": "Block{minecraft:water}[level=0]",
+        "mapColour": "#4040ff"
+      },
+      {
+        "block": "minecraft:warped_nylium",
+        "state": "Block{minecraft:warped_nylium}",
+        "mapColour": "#167e86"
+      },
+      {
+        "block": "minecraft:moss_block",
+        "state": "Block{minecraft:moss_block}",
+        "mapColour": "#667f33"
+      },
+      {
+        "block": "minecraft:granite",
+        "state": "Block{minecraft:granite}",
+        "mapColour": "#976d4d"
+      },
+      {
+        "block": "minecraft:crimson_nylium",
+        "state": "Block{minecraft:crimson_nylium}",
+        "mapColour": "#bd3031"
+      },
+      {
+        "block": "minecraft:stone",
+        "state": "Block{minecraft:stone}",
+        "mapColour": "#707070"
+      },
+      {
+        "block": "minecraft:copper_ore",
+        "state": "Block{minecraft:copper_ore}",
+        "mapColour": "#707070"
+      },
+      {
+        "block": "minecraft:soul_soil",
+        "state": "Block{minecraft:soul_soil}",
+        "mapColour": "#664c33"
+      },
+      {
+        "block": "minecraft:gravel",
+        "state": "Block{minecraft:gravel}",
+        "mapColour": "#707070"
+      },
+      {
+        "block": "minecraft:deepslate",
+        "state": "Block{minecraft:deepslate}[axis=y]",
+        "mapColour": "#646464"
+      },
+      {
+        "block": "minecraft:dirt",
+        "state": "Block{minecraft:dirt}",
+        "mapColour": "#976d4d"
+      },
+      {
+        "block": "minecraft:netherrack",
+        "state": "Block{minecraft:netherrack}",
+        "mapColour": "#700200"
+      },
+      {
+        "block": "minecraft:tuff",
+        "state": "Block{minecraft:tuff}",
+        "mapColour": "#392923"
+      },
+      {
+        "block": "minecraft:deepslate_iron_ore",
+        "state": "Block{minecraft:deepslate_iron_ore}",
+        "mapColour": "#646464"
+      },
+      {
+        "block": "minecraft:raw_iron_block",
+        "state": "Block{minecraft:raw_iron_block}",
+        "mapColour": "#d8af93"
+      },
+      {
+        "block": "minecraft:raw_copper_block",
+        "state": "Block{minecraft:raw_copper_block}",
+        "mapColour": "#d87f33"
+      }
+    ]
+  }
+}

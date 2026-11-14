@@ -33,6 +33,9 @@ CONSUMER_DIR="${CONSUMER_DIR:-$HOME/Projects/elfydd}"
 BRIDGE_PORT="${BRIDGE_PORT:-8766}"
 BRIDGE="http://127.0.0.1:${BRIDGE_PORT}"
 MC_CONTAINER="${MC_CONTAINER:-mc}"
+# shellcheck source=mc-version.sh
+. "$(cd "$(dirname "$0")" && pwd)/mc-version.sh"
+if e2e_is_26; then IS_26=1; else IS_26=0; fi
 
 CHECK_ONLY=0
 TIMEOUT=180
@@ -80,6 +83,11 @@ state_screen() {
 }
 
 relaunch() {
+  # On 26.x the client is vanilla-join.sh's, which only a fresh run of that
+  # script can bring back; nothing here can relaunch it.
+  if [ "$IS_26" -eq 1 ]; then
+    die "the 26.x client is vanilla-join.sh's and cannot be relaunched from here — $reason; rerun vanilla-join.sh"
+  fi
   # Prism swallows a --launch for an instance that is already running, so the
   # stuck JVM has to go first. Killed by main class, never by a stale pid.
   pids="$(pgrep -f 'org.prismlauncher.EntryPoint' 2>/dev/null || true)"

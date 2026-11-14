@@ -1,0 +1,73 @@
+{
+  "level": "minecraft:the_nether",
+  "density": "normal",
+  "noise": true,
+  "radiusChunks": 64,
+  "spawnChunk": [0, -4],
+  "groups": {
+    "deco": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 6,
+      "clearSpawnChunks": 0
+    },
+    "settlements": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 12,
+      "clearSpawnChunks": 0
+    },
+    "dungeons": {
+      "profile": "natural",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 16,
+      "clearSpawnChunks": 0
+    },
+    "landmarks": {
+      "profile": "sparse",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 31,
+      "clearSpawnChunks": 0
+    },
+    "endgame": {
+      "profile": "sparse",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 52,
+      "clearSpawnChunks": 0
+    }
+  },
+  "mode": "allow",
+  "list": [
+    "minecraft:nether_complexes",
+    "mns:mega_fortress",
+    "mns:bridge_1",
+    "mns:bridge_2",
+    "mns:bridge_3",
+    "mns:bridge_4",
+    "mns:bridge_5",
+    "mns:bridge_6",
+    "minecraft:nether_fossils"
+  ],
+  "exclude": [],
+  "include": [],
+  "rarity": {},
+  "spacing": {},
+  "force": [],
+  "wants": [
+    {
+      "name": "towns_and_towers:exclusives/village_piglin",
+      "structure": "towns_and_towers:exclusives/village_piglin",
+      "min": 200,
+      "max": 900
+    },
+    {
+      "name": "nova_structures:sealing_halls",
+      "structure": "nova_structures:sealing_halls",
+      "min": 700,
+      "max": 1000
+    }
+  ],
+  "shuns": [],
+  "replace": {},
+  "terrainAdaptation": {}
+}
