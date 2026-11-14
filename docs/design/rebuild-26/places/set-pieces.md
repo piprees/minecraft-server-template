@@ -80,7 +80,7 @@ Every element is drawn by one structure piece of ours (`customdimensions:set_pie
 | `hovel` | `size`, `palette`, `roof` (`flat`, `pitched`, `dome`), `state` | A small dwelling of the dimension's own materials: a piglin hovel of blackstone and wart blocks, a shack |
 | `farm` | `crop` (`nether_wart`, `crimson_fungus`, `warped_fungus`, `wheat`, `mushroom`), `plots`, `irrigation` (`water`, `lava`, `none`), `fence` | Tilled plots, rows of crop, channels, composters and a hovel or two |
 | `works` | `columns` (chimneys), `lines` (pipes, chains), `machines` (levers, pistons, observers, hoppers, cauldrons, blast furnaces in a palette), `slag` (a `field`) | Industry: chimneys, pipe runs, chain hoists, a quench pool, slag heaps |
-| `cell` | `count`, `bars`, `captive` (entity type, `persistent`, `name`), `holder` (`floor`, `minecart`, `boat`) | Cages and cells; an enderman is held in a minecart behind bars, since a riding enderman does not teleport (SP3 tests it on 26.3) |
+| `cell` | `count`, `bars`, `captive` (entity type, `persistent`, `name`), `holder` (`floor`, `minecart`, `boat`) | Cages and cells; an enderman is held in a minecart behind bars, since a riding enderman does not teleport (SP4 tests it on 26.3) |
 | `gate` | `frame` (`nether`, `end`, `custom` block list), `state` (`broken`, `attempt`), `marker` | A portal frame left broken, or an attempted gateway (frame, end rods, a bedrock plinth, brewing stands); with `marker` it is a working exit |
 
 ### Things inside
@@ -146,28 +146,37 @@ The owner's ruling is that shots labelled as places show one. A set piece is a s
 
 ## Work packages
 
-Each is about 180 steps, in order. SP1–SP4 are kit work in a non-server lane except their self-test runs; SP5–SP7 are authoring in the server lane.
+Each is about 180 steps, in this order. SP1 comes first because it makes the pack's own structures show as places in the reviews before any set piece exists. SP1–SP4 are kit work in a non-server lane except their self-test runs; SP5–SP7 are authoring in the server lane.
 
-### SP1 — The set-piece structure type
+### SP1 — Places in the tools
 
-Register `customdimensions:set_piece` (structure type) and `customdimensions:set_piece_part` (piece type); `setPieces` in the schema and the converter; the compiler writes the structures and group sets; seats `ground`, `floor`, `pinned`; elements `template` and `scatter` of blocks; `chest` and `spawner`; the `size` check.
+Census `sites`, dossier `places.named` (every forced start and want now; set pieces join it when SP2 lands), `pick-shots.py` place shots, `review-packet.py` Places section, map `places.json` and the viewer's pins.
+
+Acceptance:
+- Python unit tests for `pick-shots.py` and `review-packet.py` on a dossier fixture with three named places: three `place-*` shots come first, each facing its origin, each with three alternates; a dossier without `places.named` gives the shot list it gives today.
+- Self-test `survey`: the dossier for a fixture dimension with two forced starts and one want lists all three with coordinates inside the border, and the census lists `sites` nearest first.
+- The rig shoots one fixture dimension and every `place-*` frame passes the frame gate with the structure label.
+
+### SP2 — The set-piece structure type
+
+Register `customdimensions:set_piece` (structure type) and `customdimensions:set_piece_part` (piece type); `setPieces` in the schema and the converter; the compiler writes the structures and group sets; seats `ground`, `floor`, `pinned`; elements `template` and `scatter` of blocks; `chest` and `spawner`; the `size` check; set pieces in `places.named`.
 
 Acceptance:
 - Unit: the spec codec round-trips; an unknown field, a template id vanilla lacks, or elements that can reach past `size` stop the compile with the slug and the set piece's name.
 - Unit: the same seed and spec write byte-identical blocks into a test region twice; a different seed writes different ones.
-- Self-test `setpieces`: a fixture dimension forces one piece of each seat at fixed coordinates; each generates with its expected block counts (template blocks present, chest with its loot table, spawner with its entity); a `ground` piece forced over void declines and the log says so; a piece in a group appears in the census.
-- A vanilla client joins a server with the type registered (smoke-test-26 join gate).
+- Self-test `setpieces`: a fixture dimension forces one piece of each seat at fixed coordinates; each generates with its expected block counts (template blocks present, chest with its loot table, spawner with its entity); a `ground` piece forced over void declines and the log says so; a piece in a group appears in the census and in `places.named`.
+- A vanilla client joins a server with the types registered (smoke-test-26 join gate).
 
-### SP2 — Shapes
+### SP3 — Shapes
 
 `crater`, `pit`, `fall`, `wall`, `line`, `column`, `field`, `crown`, `platform`; seats `roof`, `wall`, `water`; liquid ticks; `terrainAdaptation` default per piece.
 
 Acceptance:
 - Unit, per shape: block counts and bounding box for fixed parameters; the carved volume of a crater and pit within 10% of its formula; a `wall` follows a stepped test ground without gaps.
-- Self-test: a lava `fall` on a pit wall flows on the first tick after generation (lava below the source within 20 ticks); a `crown` puts growth only on local maxima; a `platform` pinned at a height exists on three seeds.
+- Self-test: a lava `fall` on a pit wall flows after generation (lava below the source within 20 ticks); a `crown` puts growth only on local maxima; a `platform` pinned at a height exists on three seeds.
 - Edge cases: a shape crossing a chunk border is continuous (blocks on both sides match the formula); a shape at the world border clips without error; a `roof` seat in a dimension without a roof declines.
 
-### SP3 — Assemblies and things inside
+### SP4 — Assemblies and things inside
 
 `wreck`, `skeleton`, `camp`, `hovel`, `farm`, `works`, `cell`, `gate` (with `marker` through `ExitShrines`); `mob` with name, attributes and equipment; `archaeology`.
 
@@ -176,20 +185,11 @@ Acceptance:
 - Unit: `burned` camps swap wood for their burned palette; a farm's crops are on blocks that hold them (wart on soul sand).
 - Bad paths: a `mob` entity id that does not exist, a loot table that does not exist and a processor list that does not exist each stop the compile.
 
-### SP4 — Places in the tools
-
-Census `sites`, dossier `places.named`, `pick-shots.py` place shots, `review-packet.py` Places section, map `places.json` and the viewer's pins.
-
-Acceptance:
-- Python unit tests for `pick-shots.py` and `review-packet.py` on a dossier fixture with three named places: three `place-*` shots first, each facing its origin, each with three alternates.
-- Self-test `survey`: a dossier for the fixture dimension lists every forced start and set piece with coordinates inside the border.
-- The rig shoots one fixture dimension and every `place-*` frame passes the frame gate with the structure label.
-
 ### SP5 — Places for Batches 1 and 2 (19 dimensions)
 
 Author the set pieces and the structure wiring in [dimensions.md](dimensions.md) for Batches 1–2 (the owner's notes given), survey, shoot and write the review packets.
 
-Acceptance: every place listed for these dimensions is in `places.named` inside the player border on the review seed; each has a shot that shows it; no structure starts over void on the four sky worlds (census sites against the void map); the owner's named ones (the_boneyard's ship, craters, skulls, spawners and golem; the_gilded_pit's ledge and its four landmarks; the_molten_flats' industry, barracks, broken portals, cells) each appear.
+Acceptance: every place listed for these dimensions is in `places.named` inside the player border on the review seed; each has a shot that shows it; no structure starts over void on the four sky worlds (census sites against the void map); the owner's named ones (the_boneyard's ships, craters, skulls, spawners and golem; the_gilded_pit's ledge and its four landmarks; the_molten_flats' works, barracks, broken portals and cells) each appear.
 
 ### SP6 — Places for Batches 3 and 4 (22 dimensions)
 

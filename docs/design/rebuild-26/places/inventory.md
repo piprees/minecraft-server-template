@@ -88,7 +88,7 @@ Story gaps:
 | `dungeons_plus:muddy_dungeon` | lost; `nova_structures:surface_dungeon_swamp` | the_claymarsh, the_miredeep |
 | `dungeons_plus:scorched_tomb` | lost; `nova_structures:surface_dungeon_desert` | the_ashgrove, the_souldrift |
 | `dungeons_plus:webbed_dungeon` | lost; `ati_structures:arachnid_dwelling` | the_crucible, the_overgrowth |
-| `epic:large_dungeons` | kept | the_gauntlet |
+| `epic:large_dungeons` | kept (a structure set) | the_gauntlet |
 | `epic:large_ice_dungeon` | kept | the_frozen_hearth, the_gauntlet |
 | `epic:large_sand_dungeon` | kept | the_sun_kingdoms |
 | `epic:medium_ice_dungeon` | kept | the_frozen_strait |
@@ -123,7 +123,7 @@ Story gaps:
 | `explorify:watchtower/plains` | lost; `nova_structures:firewatch_tower_forest` | overworld, the_endless_expanse, the_greenreach, the_highland_crossing, the_sun_kingdoms, the_whitestone_ford |
 | `friendsandfoes:citadel` | lost; `nova_structures:stray_fort` | the_icebound_rift |
 | `minecraft:pillager_outpost` | kept | overworld, the_endless_expanse, the_lost_outpost |
-| `minecraft:pillager_outposts` | kept | the_lost_outpost |
+| `minecraft:pillager_outposts` | kept (a structure set) | the_lost_outpost |
 | `mss:arena` | kept | the_shattered_skies |
 | `nova_structures:lone_citadel` | kept | the_gauntlet |
 | `nova_structures:shrine_tower` | kept | the_crystal_vale, the_rosebluff, the_violet_spire |
@@ -214,7 +214,7 @@ Story gaps:
 | `mns:medium_crimson_fungus` | kept | the_bloodroot_wastes, the_ember_fields, the_fungal_lanterns, the_twisted_groves |
 | `mns:mega_fortress` | kept | the_furnace_halls |
 | `mtr:nether_temple` | kept | the_obsidian_sanctum |
-| `nova_structures:skeleton_camp_soul` | kept | the_boneyard |
+| `nova_structures:skeleton_camp_soul` | kept; the 26.3 id is `nova_structures:nether_skeleton_camp_soul` | the_boneyard |
 | `philipsruins:bone_dungeon` | lost; `nova_structures:catacomb` | the_boneyard, the_sculked_beyond, the_soulfields, the_underdark |
 | `philipsruins:lost_soul_dungeon` | lost; `nova_structures:nether_skeleton_tower_soul` | the_soulfields |
 | `philipsruins:nether_lava_ruins` | lost; `mns:large_nether_brick` | the_buried_age |
