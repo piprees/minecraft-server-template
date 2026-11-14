@@ -17,6 +17,7 @@
 #   --definitions runs the server on that folder instead of the self-test definitions; --render-distance sets the
 #   client's render distance and the started server's view distance (default 8); --dh adds Distant Horizons to the
 #   biome-shots client and the server (runServer -Pdh), which generates the LODs the client requests.
+#   STRUCTURE_MODS=<dir> in the environment boots the started server with the 26.3 structure mods (runServer -PstructureMods).
 #   Screenshots land in DIR/screenshots (default DIR /tmp/claude-0/m8-screens) as <variant>-near.png and
 #   <variant>-far.png, or as <name>.png per shot-list entry; each client log is DIR/<variant>.log (DIR/biomes.log),
 #   the server log DIR/server.log.
@@ -111,7 +112,7 @@ motd=customdimensions rig"
 	mkfifo "$CONSOLE"
 	exec 3<>"$CONSOLE"
 	# shellcheck disable=SC2086
-	(cd "$SERVER_PROJECT" && setsid ./gradlew :server:runServer --offline $DEFINITIONS ${DH:+-Pdh} <&3 > "$OUT/server.log" 2>&1 &)
+	(cd "$SERVER_PROJECT" && setsid ./gradlew :server:runServer --offline $DEFINITIONS ${DH:+-Pdh} ${STRUCTURE_MODS:+-PstructureMods=$STRUCTURE_MODS} <&3 > "$OUT/server.log" 2>&1 &)
 	i=0
 	while [ $i -lt 90 ] && ! grep -q 'Done (' "$OUT/server.log"; do sleep 5; i=$((i + 1)); done
 	grep -q 'Done (' "$OUT/server.log" || { log "the server did not start; see $OUT/server.log"; exit 1; }

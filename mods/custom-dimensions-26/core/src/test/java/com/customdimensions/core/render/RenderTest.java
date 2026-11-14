@@ -73,11 +73,28 @@ class RenderTest {
     }
 
     @Test
-    void vanillaBiomesHaveFixedDistinctColours() {
-        assertEquals(67, BiomePalette.fixedIds().size());
+    void vanillaAndLibraryBiomesHaveFixedDistinctColours() {
+        assertEquals(67 + 82, BiomePalette.fixedIds().size());
         assertEquals(0x2040A0, BiomePalette.colour("minecraft:ocean"));
         assertEquals(BiomePalette.fixedIds().size(),
                 BiomePalette.fixedIds().stream().map(BiomePalette::colour).distinct().count());
+    }
+
+    @Test
+    void theNetherRealmsBiomesReadApartOnAMap() {
+        List<String> nether = List.of("minecraft:crimson_forest", "minecraft:nether_wastes", "minecraft:warped_forest",
+                "minecraft:soul_sand_valley", "minecraft:basalt_deltas", "adventure:ash_barrens", "adventure:blackstone_basin",
+                "adventure:bone_reef", "adventure:crimson_pinewood", "adventure:gravel_desert", "adventure:magma_land",
+                "adventure:mycotoxic_undergrowth", "adventure:nether_grasslands", "adventure:nether_jungle",
+                "adventure:quartz_flats", "adventure:redstone_abyss", "adventure:upside_down_forest", "adventure:withered_forest");
+        for (int i = 0; i < nether.size(); i++) {
+            for (int j = i + 1; j < nether.size(); j++) {
+                int a = BiomePalette.colour(nether.get(i)), b = BiomePalette.colour(nether.get(j));
+                double d = Math.sqrt(Math.pow((a >> 16 & 0xFF) - (b >> 16 & 0xFF), 2)
+                        + Math.pow((a >> 8 & 0xFF) - (b >> 8 & 0xFF), 2) + Math.pow((a & 0xFF) - (b & 0xFF), 2));
+                assertTrue(d >= 30, nether.get(i) + " and " + nether.get(j) + " are " + d + " apart");
+            }
+        }
     }
 
     @Test
