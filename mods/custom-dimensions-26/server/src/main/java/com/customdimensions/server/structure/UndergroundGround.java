@@ -10,6 +10,7 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * An underground structure starts only where its level has ground under it.
@@ -26,7 +27,14 @@ public final class UndergroundGround {
     static final Set<GenerationStep.Decoration> UNDERGROUND = EnumSet.of(GenerationStep.Decoration.UNDERGROUND_STRUCTURES,
             GenerationStep.Decoration.UNDERGROUND_DECORATION, GenerationStep.Decoration.STRONGHOLDS);
 
+    private static final Set<String> LOGGED = ConcurrentHashMap.newKeySet();
+
     private UndergroundGround() {
+    }
+
+    /** Whether this is the first refusal of {@code structure} in {@code level} in this process, so the log names each once. */
+    public static boolean firstRefusal(String level, String structure) {
+        return LOGGED.add(level + " " + structure);
     }
 
     /** Whether {@code structure} generates in an underground step. */

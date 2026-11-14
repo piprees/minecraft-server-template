@@ -44,6 +44,10 @@ abstract class StructureBiomeBypassMixin {
                     + "its own rules refuse that height", level.identifier(), holder.getRegisteredName(), chunk, ground);
         }
         if (ground == null && start.isValid() && UndergroundGround.floats(structure, start.getBoundingBox(), generator, random, height)) {
+            if (UndergroundGround.firstRefusal(level.identifier().toString(), holder.getRegisteredName())) {
+                com.customdimensions.server.CustomDimensions.LOG.info("{}: underground {} at chunk {} did not start: no ground under it "
+                        + "(logged once per structure)", level.identifier(), holder.getRegisteredName(), chunk);
+            }
             return StructureStart.INVALID_START;
         }
         return start;
