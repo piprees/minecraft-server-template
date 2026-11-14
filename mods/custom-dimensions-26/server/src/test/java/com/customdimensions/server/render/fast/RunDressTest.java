@@ -72,6 +72,35 @@ class RunDressTest {
     }
 
     @Test
+    void withAquifersACaveUnderARunTakesNoPickerFluid() {
+        ColumnRuns r = runs(40, 50, LO, 20);
+        RunDress<String> d = RunDress.of(r, 0, 0, LO, HI, new Stub(), SEA, "stone", true, RunDress.openRuns(r.count(), true, false));
+        assertEquals("water", d.fluid(0), "the sea over the topmost run, under open sky");
+        assertNull(d.fluid(1), "the cave between 21 and 39 stays open");
+    }
+
+    @Test
+    void withAquifersAFloorUnderARoofTakesNoPickerFluid() {
+        ColumnRuns floor = runs(LO, 40);
+        RunDress<String> d = RunDress.of(floor, 0, 0, LO, HI, new Stub(), SEA, "stone", true, RunDress.openRuns(1, true, true));
+        assertNull(d.fluid(0), "a floor whose roof the coarse shortcut left out is under ground");
+        assertEquals("grass", d.top(0), "and its top is dressed dry");
+        ColumnRuns roofed = runs(100, HI, 20, 40, LO, 0);
+        RunDress<String> whole = RunDress.of(roofed, 0, 0, LO, HI, new Stub(), SEA, "stone", true, RunDress.openRuns(3, true, true));
+        for (int i = 0; i < roofed.count(); i++) assertNull(whole.fluid(i), "run " + i + " of a roofed whole column");
+    }
+
+    @Test
+    void withoutAquifersEveryOpenRunTakesThePickerFluid() {
+        ColumnRuns r = runs(100, HI, LO, 20);
+        assertEquals(2, RunDress.openRuns(2, false, true));
+        RunDress<String> d = RunDress.of(r, 0, 0, LO, HI, new Stub(), SEA, "stone", true, RunDress.openRuns(r.count(), false, true));
+        assertEquals("water", d.fluid(1), "a roofed sea in a level without aquifers, as the Nether's lava");
+        assertEquals(0, RunDress.openRuns(0, true, false));
+        assertEquals(1, RunDress.openRuns(3, true, false));
+    }
+
+    @Test
     void aBlockTheRuleLeavesIsTheDefault() {
         RunDress.Materials<String> none = (x, y, z, a, b, w) -> null;
         RunDress<String> d = RunDress.of(runs(100, 110, LO, 0), 0, 0, LO, HI, none, SEA, "stone", true);
