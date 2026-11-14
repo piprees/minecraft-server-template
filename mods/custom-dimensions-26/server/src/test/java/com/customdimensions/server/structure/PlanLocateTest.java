@@ -113,7 +113,7 @@ class PlanLocateTest {
     }
 
     @Test
-    void vanillasAnswerOutsideTheWorldBorderIsDropped() {
+    void vanillasAnswerOutsideTheWorldBorderIsDroppedAndNotReplacedByItsNextStart() {
         net.minecraft.world.level.border.WorldBorder border = new net.minecraft.world.level.border.WorldBorder();
         border.setCenter(0, 0);
         border.setSize(1024);

@@ -5,7 +5,7 @@
 # minecraft:chests/shipwreck_map twice, as a shipwreck's map chest rolls it (treasure tag, radius 50, no reference).
 # A minecraft:map with minecraft:map_id in a chest is a found buried treasure; none means the search failed there.
 # Results -> /tmp/claude-0/k13/lane/<tag>/: server.log, driver.log, prove.log.
-# Usage: P=<absolute mods/custom-dimensions-26 checkout> [MODS=<structure mod jar dir>] maps-prove.sh <tag>
+# Usage: P=<absolute mods/custom-dimensions-26 checkout> [MODS=<structure mod jar dir>] [ONLY=mansion] maps-prove.sh <tag>
 set -u
 TAG=${1:-p1}
 P=${P:-/home/user/minecraft-server-template/.claude/worktrees/agent-af600b2f415e01031/mods/custom-dimensions-26}
@@ -58,7 +58,7 @@ for from in "0 0" "6000 6000" "-6000 6000" "6000 -6000" "-6000 -6000"; do
   read -r fx fz <<< "$from"
   located minecraft:mansion "$fx" "$fz" > /dev/null
 done
-for from in "0 0" "1500 -1500" "-2000 1000"; do
+[ "${ONLY:-}" = mansion ] || for from in "0 0" "1500 -1500" "-2000 1000"; do
   read -r fx fz <<< "$from"
   at=$(located minecraft:shipwreck "$fx" "$fz")
   [ -n "$at" ] || continue
