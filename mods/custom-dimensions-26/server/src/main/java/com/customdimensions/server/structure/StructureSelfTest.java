@@ -339,9 +339,13 @@ public final class StructureSelfTest {
             refused.add(p.structure());
             Holder<Structure> holder = holder(level, p.structure());
             ChunkPos chunk = new ChunkPos(p.chunkX(), p.chunkZ());
-            var placement = state.getPlacementsForStructure(holder).stream().filter(pl -> pl instanceof StructurePlacements.Fixed f
-                    && f.chunkX() == p.chunkX() && f.chunkZ() == p.chunkZ()).findFirst().orElse(null);
-            if (placement == null || level.structureManager().checkStructurePresence(chunk, holder.value(), placement, false)
+            var placement = state.possibleStructureSets().stream().map(Holder::value)
+                    .filter(set -> set.placement() instanceof StructurePlacements.Fixed f && f.chunkX() == p.chunkX() && f.chunkZ() == p.chunkZ()
+                            && set.structures().stream().anyMatch(e -> e.structure().value() == holder.value()))
+                    .map(StructureSet::placement).findFirst().orElse(null);
+            if (placement == null) {
+                unpredicted.add(p.structure() + " at " + p.chunkX() + "," + p.chunkZ() + " (no fixed set places it)");
+            } else if (level.structureManager().checkStructurePresence(chunk, holder.value(), placement, false)
                     == net.minecraft.world.level.levelgen.structure.StructureCheckResult.START_NOT_PRESENT) {
                 unpredicted.add(p.structure() + " at " + p.chunkX() + "," + p.chunkZ());
             }

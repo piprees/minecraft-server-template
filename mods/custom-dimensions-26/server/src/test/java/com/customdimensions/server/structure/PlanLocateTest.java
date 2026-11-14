@@ -123,4 +123,24 @@ class PlanLocateTest {
         assertTrue(PlanLocate.inside(border, near) == near);
         assertNull(PlanLocate.inside(border, null));
     }
+
+    @Test
+    void aForcedStartWhoseBiomesTheLevelLacksIsStillSearched() {
+        var lookup = net.minecraft.data.registries.VanillaRegistries.createWorldLookup();
+        var settings = lookup.lookupOrThrow(net.minecraft.core.registries.Registries.NOISE_SETTINGS)
+                .getOrThrow(net.minecraft.world.level.levelgen.NoiseGeneratorSettings.END);
+        var biomes = net.minecraft.world.level.biome.TheEndBiomeSource.create(lookup.lookupOrThrow(net.minecraft.core.registries.Registries.BIOME));
+        var random = net.minecraft.world.level.levelgen.RandomState.create(lookup.lookupOrThrow(net.minecraft.core.registries.Registries.NOISE),
+                20261022L, settings.value());
+        var snowy = lookup.lookupOrThrow(net.minecraft.core.registries.Registries.BIOME).getOrThrow(net.minecraft.world.level.biome.Biomes.SNOWY_PLAINS);
+        Holder<Structure> igloo = Holder.direct(new net.minecraft.world.level.levelgen.structure.structures.IglooStructure(
+                new Structure.StructureSettings(net.minecraft.core.HolderSet.direct(snowy))));
+        var forced = new StructurePlacements.Fixed(12, -19);
+        var base = net.minecraft.world.level.chunk.ChunkGeneratorStructureState.createForFlat(random, 20261022L, new ChunkPos(0, 0), biomes,
+                java.util.stream.Stream.empty());
+        var state = StructureReflection.withSets(base, List.of(Holder.direct(new net.minecraft.world.level.levelgen.structure.StructureSet(igloo, forced))));
+        assertTrue(state.getPlacementsForStructure(igloo).isEmpty(), "vanilla's index leaves out a structure whose biomes the level lacks");
+        var scans = PlanLocate.scans(state, net.minecraft.core.HolderSet.direct(igloo));
+        assertEquals(Set.of(igloo), scans.get(forced));
+    }
 }

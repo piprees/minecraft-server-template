@@ -67,8 +67,8 @@ class ApplyIdMappingTest {
             distinct += r.biomesAfter();
         }
         assertEquals(78, withBiomes);
-        assertEquals(738, distinct);
-        assertTrue(readReport().contains(": 738 → 738\n"));
+        assertEquals(743, distinct);
+        assertTrue(readReport().contains(": 743 → 743\n"));
     }
 
     @Test

@@ -23,6 +23,14 @@
     "player": 8192,
     "generation": 8192
   },
+  "structures": {
+    "wants": {
+      "minecraft:mansion": {
+        "min": 5632,
+        "max": 7500
+      }
+    }
+  },
   "difficulty": {
     "mobMultiplier": 1.0,
     "depthScaling": {

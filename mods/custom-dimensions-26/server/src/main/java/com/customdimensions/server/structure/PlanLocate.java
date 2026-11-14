@@ -88,12 +88,22 @@ public final class PlanLocate {
         return out;
     }
 
-    /** The plan's placements among those of {@code wanted}, each with the wanted structures it places. */
+    /**
+     * The plan's placements among the state's sets, each with the wanted
+     * structures it places. Read from the sets themselves, not
+     * {@code getPlacementsForStructure}, which leaves out a structure whose
+     * biomes the level lacks: a forced start or a want ignores its biomes (T53),
+     * so its structure can have none here.
+     */
     static Map<StructurePlacement, Set<Holder<Structure>>> scans(ChunkGeneratorStructureState state, HolderSet<Structure> wanted) {
+        Set<Structure> sought = java.util.Collections.newSetFromMap(new IdentityHashMap<>());
+        for (Holder<Structure> structure : wanted) sought.add(structure.value());
         Map<StructurePlacement, Set<Holder<Structure>>> out = new IdentityHashMap<>();
-        for (Holder<Structure> structure : wanted) {
-            for (StructurePlacement placement : state.getPlacementsForStructure(structure)) {
-                if (sites(placement) != null) out.computeIfAbsent(placement, p -> new LinkedHashSet<>()).add(structure);
+        for (Holder<net.minecraft.world.level.levelgen.structure.StructureSet> set : state.possibleStructureSets()) {
+            StructurePlacement placement = set.value().placement();
+            if (sites(placement) == null) continue;
+            for (net.minecraft.world.level.levelgen.structure.StructureSet.StructureSelectionEntry e : set.value().structures()) {
+                if (sought.contains(e.structure().value())) out.computeIfAbsent(placement, p -> new LinkedHashSet<>()).add(e.structure());
             }
         }
         return out;
