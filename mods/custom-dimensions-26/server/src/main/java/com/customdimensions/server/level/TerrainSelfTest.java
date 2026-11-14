@@ -945,10 +945,12 @@ public final class TerrainSelfTest {
     static final int ROOFED_SEA = 74, ROOFED_NOISE_TOP = 127, ROOFED_MARGIN = 4, ROOFED_BELOW = 16, ROOFED_MIN_COLUMNS = 40;
     static final double ROOFED_SEA_SHARE = 0.9, ROOFED_DRY_SHARE = 0.05, ROOFED_BAND_SHARE = 0.95, ROOFED_FLOOR_BAND = 0.01;
     static final int ROOFED_FOG = 0x1B0B2B;
+    /** The fixture's sea biome: one whose features stand nothing out of the lava, so a floor over the sea is the noise floor. */
+    static final String ROOFED_SEA_BIOME = "minecraft:nether_wastes";
 
     /**
      * {@code selftest_roofed_biomes} in the spaced area, every fourth column: the noise biome over floors more than
-     * {@link #ROOFED_MARGIN} under the lava sea is its ocean (basalt deltas), and over floors as far above it is not; the
+     * {@link #ROOFED_MARGIN} under the lava sea is its ocean ({@link #ROOFED_SEA_BIOME}), and over floors as far above it is not; the
      * biome {@link #ROOFED_BELOW} blocks under the floor is the below-floor deep dark, and on the floor never; and the fog a
      * player reads on the floor is the dimension's, whatever biome it stands in.
      */
@@ -968,10 +970,10 @@ public final class TerrainSelfTest {
                         String at = Sampler.id(level.getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(h), QuartPos.fromBlock(z)));
                         if (h <= ROOFED_SEA - ROOFED_MARGIN) {
                             sea++;
-                            if (at.equals("minecraft:basalt_deltas")) seaHeld++;
+                            if (at.equals(ROOFED_SEA_BIOME)) seaHeld++;
                         } else if (h > ROOFED_SEA + ROOFED_MARGIN) {
                             dry++;
-                            if (at.equals("minecraft:basalt_deltas")) dryOcean++;
+                            if (at.equals(ROOFED_SEA_BIOME)) dryOcean++;
                         }
                         floors++;
                         if (at.equals("minecraft:deep_dark")) floorBand++;

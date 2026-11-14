@@ -1,1 +1,1 @@
-done: all eleven applied, reviewed, committed; self-test 278/0/1 at 2b5f8540; next: K10 merge (lead) then gap users re-measured (buried, obsidian, boneyard, ember, blackstone, far views), build, final self-test
+w10c2c: step 1 done (K10 lane: kit PASS; self-test fixture fix committed); next step 2 F4 lane
