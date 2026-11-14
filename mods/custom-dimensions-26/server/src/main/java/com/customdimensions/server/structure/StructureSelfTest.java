@@ -290,7 +290,7 @@ public final class StructureSelfTest {
         double w = query.weight(zone, p.chunkX() * 16 + 8, p.chunkZ() * 16 + 8);
         var spec = StructureRuntime.spec(levelId).orElseThrow();
         long seed = level(levelId).getChunkSource().getGeneratorState().getLevelSeed();
-        StructureSites.Site unscoped = StructureSites.choose(StructureSites.seed(seed, "want:" + want.name()),
+        StructureSites.Site unscoped = StructureSites.choosePlaced(StructureSites.seed(seed, "want:" + want.name()),
                 spec.spawnChunkX() * 16 + 8, spec.spawnChunkZ() * 16 + 8, want.min(), want.max(), (cx, cz) -> true);
         double uw = query.weight(zone, unscoped.chunk().x() * 16 + 8, unscoped.chunk().z() * 16 + 8);
         return String.format("; zone %d wants it: weight %.2f at the site (needs %.1f)%s; unscoped, the first candidate is chunk %d,%d at weight %.2f",

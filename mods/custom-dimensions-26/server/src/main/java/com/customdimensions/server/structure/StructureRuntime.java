@@ -434,7 +434,7 @@ public final class StructureRuntime {
                 CustomDimensions.LOG.warn("{}: forced structure {} is not in the registry", level, f.structure());
                 continue;
             }
-            StructureSites.Site site = StructureSites.choose(StructureSites.seed(original.getLevelSeed(), "force:" + f.structure()),
+            StructureSites.Site site = StructureSites.choosePlaced(StructureSites.seed(original.getLevelSeed(), "force:" + f.structure()),
                     f.x(), f.z(), 0, f.radius(), (cx, cz) -> biomeAt(s.get().value(), biomes, sampler, cx, cz, seaLevel));
             fixed(out, bypass, placed, "force", f.structure(), s.get(), site);
             if (f.y() != null) {
@@ -452,7 +452,7 @@ public final class StructureRuntime {
             Holder<Structure> pick = candidates.stream().filter(h -> hasBiomeIn(h.value(), biomes)).findFirst().orElse(candidates.getFirst());
             ZoneStructureRules rules = zoneRules.getOrDefault(level, ZoneStructureRules.NONE);
             ZoneStructureRules.ZoneQuery query = zoneQueries.apply(level);
-            StructureSites.Site site = StructureSites.choose(StructureSites.seed(original.getLevelSeed(), "want:" + w.name()),
+            StructureSites.Site site = StructureSites.choosePlaced(StructureSites.seed(original.getLevelSeed(), "want:" + w.name()),
                     spec.spawnChunkX() * 16 + 8, spec.spawnChunkZ() * 16 + 8, w.min(), w.max(),
                     (cx, cz) -> (query == null || rules.wantAccepts(name -> matches(pick, name), cx * 16 + 8, cz * 16 + 8, query))
                             && biomeAt(pick.value(), biomes, sampler, cx, cz, seaLevel));
@@ -487,6 +487,10 @@ public final class StructureRuntime {
         out.add(Holder.direct(new StructureSet(structure, new StructurePlacements.Fixed(site.chunk().x(), site.chunk().z()))));
         bypass.computeIfAbsent(ChunkPos.pack(site.chunk().x(), site.chunk().z()), k -> new HashSet<>()).add(structure.value());
         placed.add(new Placed(kind, id, site.chunk().x(), site.chunk().z(), site.matched()));
+        if (!site.matched()) {
+            CustomDimensions.LOG.warn("{} {}: none of up to {} tested chunks has its biome; it starts at chunk {}, {} with the biome check "
+                    + "bypassed (T53)", kind, id, StructureSites.PLACED_TESTS, site.chunk().x(), site.chunk().z());
+        }
     }
 
     /** The group's index, its exclusion widened until the sites stay within the group's repetition ceiling per pooled structure. */

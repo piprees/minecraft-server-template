@@ -220,4 +220,22 @@ class StructureSpecTest {
         assertEquals(new ChunkPos(-2, 2).toLong(), own.chunk().toLong());
         assertNotNull(StructureSites.choose(1L, 0, 0, 0, 1, (x, z) -> true).chunk());
     }
+
+    @Test
+    void aPlacedSiteFindsABiomeRareInItsRing() {
+        // About one ring chunk in 2,000 accepts: none in the 96 tests a noise site's settling makes, one within a placed site's.
+        java.util.function.BiPredicate<Integer, Integer> rare = (x, z) -> Math.floorMod(x * 31 + z * 17, 2000) == 0;
+        StructureSites.Site settling = StructureSites.choose(4705305050088502262L, -64, 640, 5632, 7500, rare);
+        StructureSites.Site placed = StructureSites.choosePlaced(4705305050088502262L, -64, 640, 5632, 7500, rare);
+        assertFalse(settling.matched());
+        assertTrue(placed.matched());
+        assertTrue(rare.test(placed.chunk().x(), placed.chunk().z()));
+    }
+
+    @Test
+    void aPlacedSiteKeepsTheChunkTheFirstTestsFind() {
+        java.util.function.BiPredicate<Integer, Integer> common = (x, z) -> (x + z) % 3 == 0;
+        assertEquals(StructureSites.choose(9L, 0, 0, 200, 900, common).chunk().toLong(),
+                StructureSites.choosePlaced(9L, 0, 0, 200, 900, common).chunk().toLong());
+    }
 }
