@@ -8,6 +8,7 @@
     },
     "has_fixed_time": true,
     "timelines": [
+      "adventure:atmosphere/the_wuthering_wisteria",
       "adventure:fixed_time/villager_schedule_12000",
       "adventure:fixed_time/day_12000",
       "adventure:fixed_time/moon_12000",

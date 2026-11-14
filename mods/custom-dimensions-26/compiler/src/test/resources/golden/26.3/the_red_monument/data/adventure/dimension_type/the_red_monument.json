@@ -22,6 +22,7 @@
     "monster_spawn_light_level": 0,
     "skybox": "end",
     "timelines": [
+      "adventure:atmosphere/the_red_monument",
       "adventure:fixed_time/villager_schedule_18000",
       "adventure:fixed_time/day_18000",
       "adventure:fixed_time/moon_18000",
