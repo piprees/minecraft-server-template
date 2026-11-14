@@ -37,21 +37,28 @@ import net.minecraft.world.level.ChunkPos;
  * inside the border, drawn from above with the generated terrain's palette,
  * tints, water and relief ({@link ExploredChunk}, {@link MapShade}) and cut
  * into {@code explored/<z>/<x>/<y>.png} at the same zooms, transparent where
- * no chunk is saved; {@value #JSON} lists the tiles written by zoom. Incremental: a region file is read again only when its
+ * no chunk is saved; {@value #JSON} lists the tiles written by zoom. Incremental: a region file is opened again only when its
  * modification time differs from the one recorded in
- * {@code .cache/explored/state.json}; its cells are cached beside it
- * ({@link ExploredRegion}), and the tiles are rebuilt from the caches when
- * any region changed, staged and swapped in whole.
+ * {@code .cache/explored/state.json}, and then only the chunks whose time in
+ * the region's timestamp table differs from the one recorded beside its
+ * cells ({@code r.<x>.<z>.stamps}) are read: a running server rewrites a
+ * region whenever a loaded chunk in it is saved. A region that lost a chunk,
+ * or whose cells span chunks, is read whole. Cells are cached per region
+ * ({@link ExploredRegion}); the tiles are rebuilt from the caches when any
+ * region changed, staged and swapped in whole.
  */
 public final class ExploredExport {
     public static final String DIR = "explored";
     public static final String JSON = "explored.json";
     static final String CACHE = ".cache/explored";
     private static final Pattern REGION = Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mca");
+    /** A chunk's recorded time when the region holds none, and when it could not be read (read again next time). */
+    static final long ABSENT = -1;
+    static final long UNREAD = -2;
 
     private ExploredExport() {}
 
-    public record Result(String dimension, boolean skipped, int regions, int regionsRead, long chunks, long chunksUnreadable,
+    public record Result(String dimension, boolean skipped, int regions, int regionsRead, long chunks, long chunksKept, long chunksUnreadable,
                          long chunksUnfinished, long readMillis, long columnsPerSecond, long tiles, long bytes, long millis) {}
 
     public static Result run(String dimension, ServerLevel level, Path regionDir, ExploredChunk.Resolver colours, int radius, Path out,
@@ -88,16 +95,20 @@ public final class ExploredExport {
         for (String name : state.keySet()) {
             if (seen.containsKey(name)) continue;
             Matcher m = REGION.matcher(name);
-            if (m.matches()) Files.deleteIfExists(cacheFile(cache, Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2))));
+            if (m.matches()) {
+                Files.deleteIfExists(cacheFile(cache, Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2))));
+                Files.deleteIfExists(stampsFile(cache, Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2))));
+            }
             removed = true;
         }
         if (changed.isEmpty() && !removed && Files.isRegularFile(out.resolve(JSON))) {
-            return new Result(dimension, true, seen.size(), 0, 0, 0, 0, 0, 0, 0, 0, (System.nanoTime() - started) / 1_000_000);
+            return new Result(dimension, true, seen.size(), 0, 0, 0, 0, 0, 0, 0, 0, 0, (System.nanoTime() - started) / 1_000_000);
         }
 
         AtomicLong chunks = new AtomicLong();
         AtomicLong unreadable = new AtomicLong();
         AtomicLong unfinished = new AtomicLong();
+        AtomicLong kept = new AtomicLong();
         Map<String, Long> read = new ConcurrentHashMap<>();
         long t = System.nanoTime();
         List<CompletableFuture<Void>> work = new ArrayList<>();
@@ -109,14 +120,38 @@ public final class ExploredExport {
                 int rz = Integer.parseInt(m.group(2));
                 try {
                     long mtime = Files.getLastModifiedTime(f).toMillis();
-                    ExploredRegion region = new ExploredRegion(rx, rz, step);
+                    SavedChunks.Header header = SavedChunks.header(f);
+                    Path file = cacheFile(cache, rx, rz);
+                    long[] before = force ? null : readStamps(stampsFile(cache, rx, rz));
+                    ExploredRegion region = null;
+                    if (before != null && Files.isRegularFile(file) && !lost(before, header)) {
+                        try (InputStream in = Files.newInputStream(file)) {
+                            region = ExploredRegion.read(in);
+                        } catch (IOException e) {
+                            region = null;
+                        }
+                        if (region != null && !region.chunkCells()) region = null;
+                    }
+                    boolean partial = region != null;
+                    if (!partial) region = new ExploredRegion(rx, rz, step);
+                    long[] stamps = new long[1024];
+                    java.util.Arrays.fill(stamps, ABSENT);
                     boolean complete = true;
-                    for (int index : SavedChunks.present(f)) {
+                    for (int index = 0; index < 1024; index++) {
+                        if (header.locations()[index] == 0) continue;
+                        long written = header.written()[index];
+                        stamps[index] = written;
                         ChunkPos pos = new ChunkPos(rx * 32 + (index & 31), rz * 32 + (index >> 5));
                         if (!inside(pos, radius)) continue;
+                        if (partial && before[index] == written) {
+                            kept.incrementAndGet();
+                            continue;
+                        }
+                        if (partial) region.clearChunk(index & 31, index >> 5);
                         Optional<CompoundTag> tag = SavedChunks.read(level, f, pos);
                         if (tag.isEmpty()) {
                             unreadable.incrementAndGet();
+                            stamps[index] = UNREAD;
                             complete = false;
                             continue;
                         }
@@ -127,12 +162,12 @@ public final class ExploredExport {
                         region.add(index & 31, index >> 5, ExploredChunk.columns(SavedChunks.sections(tag.get()), colours));
                         chunks.incrementAndGet();
                     }
-                    Path file = cacheFile(cache, rx, rz);
                     Path tmp = file.resolveSibling(file.getFileName() + ".tmp");
                     try (OutputStream o = Files.newOutputStream(tmp)) {
                         region.write(o);
                     }
                     Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+                    writeStamps(stampsFile(cache, rx, rz), stamps);
                     if (complete) read.put(f.getFileName().toString(), mtime);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
@@ -164,6 +199,7 @@ public final class ExploredExport {
         json.addProperty("regions", seen.size());
         json.addProperty("regionsRead", changed.size());
         json.addProperty("chunksRead", chunks.get());
+        json.addProperty("chunksKept", kept.get());
         json.addProperty("chunksUnreadable", unreadable.get());
         json.addProperty("chunksUnfinished", unfinished.get());
         json.addProperty("readMillis", readMillis);
@@ -179,8 +215,40 @@ public final class ExploredExport {
         json.add("index", indexJson);
         json.addProperty("millis", millis);
         write(out.resolve(JSON), json);
-        return new Result(dimension, false, seen.size(), changed.size(), chunks.get(), unreadable.get(), unfinished.get(), readMillis, cps,
-                tileStats[0], tileStats[1], millis);
+        return new Result(dimension, false, seen.size(), changed.size(), chunks.get(), kept.get(), unreadable.get(), unfinished.get(),
+                readMillis, cps, tileStats[0], tileStats[1], millis);
+    }
+
+    /** Whether a chunk recorded in {@code before} is gone from the region: its cells cannot be taken out alone then. */
+    static boolean lost(long[] before, SavedChunks.Header now) {
+        for (int i = 0; i < 1024; i++) if (before[i] != ABSENT && now.locations()[i] == 0) return true;
+        return false;
+    }
+
+    private static Path stampsFile(Path cache, int rx, int rz) {
+        return cache.resolve("r." + rx + "." + rz + ".stamps");
+    }
+
+    /** The chunk times recorded for a region, or null when there are none. */
+    static long[] readStamps(Path file) {
+        try {
+            if (!Files.isRegularFile(file)) return null;
+            java.nio.ByteBuffer b = java.nio.ByteBuffer.wrap(Files.readAllBytes(file));
+            if (b.remaining() != 1024 * 8) return null;
+            long[] out = new long[1024];
+            for (int i = 0; i < 1024; i++) out[i] = b.getLong();
+            return out;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private static void writeStamps(Path file, long[] stamps) throws IOException {
+        java.nio.ByteBuffer b = java.nio.ByteBuffer.allocate(1024 * 8);
+        for (long s : stamps) b.putLong(s);
+        Path tmp = file.resolveSibling(file.getFileName() + ".tmp");
+        Files.write(tmp, b.array());
+        Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
     }
 
     /** Rebuilds every explored tile from the region caches into {@code index} ({@code x/y} by zoom); returns tiles and bytes written. */

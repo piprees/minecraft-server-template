@@ -20,8 +20,12 @@ class MapSiteTest {
     void theManifestListsEveryDimensionDrawnOrNot(@TempDir Path root) throws Exception {
         Path drawn = MapSite.dimension(root, "the_aviary");
         Files.createDirectories(drawn.resolve("explored"));
-        Files.writeString(drawn.resolve("layers.json"), "{\"generatedAt\": 100}");
-        Files.writeString(drawn.resolve(ExploredExport.JSON), "{\"updatedAt\": 250}");
+        Files.writeString(drawn.resolve("layers.json"), "{\"generatedAt\": 100, \"stats\": {\"bytes\": 4096}}");
+        Files.writeString(drawn.resolve(ExploredExport.JSON), "{\"updatedAt\": 250, \"tiles\": 3, \"bytes\": 900}");
+        Path empty = MapSite.dimension(root, "the_void");
+        Files.createDirectories(empty.resolve("explored"));
+        Files.writeString(empty.resolve("layers.json"), "{\"generatedAt\": 100, \"stats\": {\"bytes\": 0}}");
+        Files.writeString(empty.resolve(ExploredExport.JSON), "{\"updatedAt\": 250, \"tiles\": 0, \"bytes\": 0}");
         int[] green = new int[16];
         java.util.Arrays.fill(green, 0xFF306030);
         MapImages.png(drawn.resolve("thumb.png"), 4, 4, green);
@@ -45,6 +49,14 @@ class MapSiteTest {
         assertFalse(o.has("layers"), "not drawn yet");
         assertFalse(o.get("explored").getAsBoolean());
         assertFalse(o.has("thumb"));
+        assertEquals(4096, a.getAsJsonObject("bytes").get("generated").getAsLong());
+        assertEquals(900, a.getAsJsonObject("bytes").get("explored").getAsLong());
+        assertEquals(0, o.getAsJsonObject("bytes").get("explored").getAsLong(), "nothing written reads 0");
+        MapSite.manifest(root, List.of(new MapSite.Entry("the_void", null, null)));
+        JsonObject v = JsonParser.parseString(Files.readString(root.resolve(MapSite.MANIFEST))).getAsJsonObject()
+                .getAsJsonArray("dimensions").get(0).getAsJsonObject();
+        assertFalse(v.get("explored").getAsBoolean(), "an explored layer of no tiles is not offered");
+        assertEquals(0, v.getAsJsonObject("bytes").get("explored").getAsLong());
     }
 
     @Test

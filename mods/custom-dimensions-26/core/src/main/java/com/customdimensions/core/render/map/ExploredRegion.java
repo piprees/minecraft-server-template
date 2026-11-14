@@ -74,6 +74,28 @@ public final class ExploredRegion {
         }
     }
 
+    /** Whether each chunk owns its cells whole, so that {@link #clearChunk} takes one chunk out. */
+    public boolean chunkCells() {
+        return 16 % step == 0;
+    }
+
+    /** Empties chunk {@code (cx, cz)}'s cells; only when {@link #chunkCells()}. */
+    public void clearChunk(int cx, int cz) {
+        if (!chunkCells()) throw new IllegalStateException("cells of " + step + " blocks span chunks");
+        int per = 16 / step;
+        for (int z = 0; z < per; z++) {
+            for (int x = 0; x < per; x++) {
+                int cell = (cz * per + z) * side + cx * per + x;
+                r[cell] = 0;
+                g[cell] = 0;
+                b[cell] = 0;
+                h[cell] = 0;
+                columns[cell] = 0;
+                water[cell] = 0;
+            }
+        }
+    }
+
     public boolean filled(int cell) {
         return columns[cell] > 0;
     }

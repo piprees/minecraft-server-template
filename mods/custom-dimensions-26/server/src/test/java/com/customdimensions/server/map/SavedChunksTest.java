@@ -171,6 +171,68 @@ class SavedChunksTest {
         }
     }
 
+    /** A region file holding each tag at its chunk index, written at the time (seconds) given for it. */
+    static void region(Path file, java.util.Map<Integer, CompoundTag> tags, java.util.Map<Integer, Integer> written) throws Exception {
+        java.util.List<byte[]> bodies = new java.util.ArrayList<>();
+        int sectors = 2;
+        ByteBuffer header = ByteBuffer.allocate(8192);
+        for (var e : new java.util.TreeMap<>(tags).entrySet()) {
+            ByteArrayOutputStream body = new ByteArrayOutputStream();
+            try (DataOutputStream out = new DataOutputStream(new DeflaterOutputStream(body))) {
+                NbtIo.write(e.getValue(), out);
+            }
+            byte[] data = body.toByteArray();
+            int n = Math.ceilDiv(data.length + 5, 4096);
+            ByteBuffer chunk = ByteBuffer.allocate(n * 4096);
+            chunk.putInt(data.length + 1);
+            chunk.put((byte) 2);
+            chunk.put(data);
+            bodies.add(chunk.array());
+            header.putInt(e.getKey() * 4, sectors << 8 | n);
+            header.putInt(4096 + e.getKey() * 4, written.getOrDefault(e.getKey(), 1));
+            sectors += n;
+        }
+        ByteArrayOutputStream all = new ByteArrayOutputStream();
+        all.write(header.array());
+        for (byte[] b : bodies) all.write(b);
+        Files.write(file, all.toByteArray());
+    }
+
+    @Test
+    void aRewrittenRegionReadsOnlyTheChunksWrittenSince(@TempDir Path dir) throws Exception {
+        Path regions = Files.createDirectories(dir.resolve("region"));
+        Path file = regions.resolve("r.0.0.mca");
+        CompoundTag a = chunk("minecraft:full");
+        CompoundTag b = chunk("minecraft:full");
+        region(file, java.util.Map.of(0, a, 5, b), java.util.Map.of(0, 100, 5, 100));
+        Path out = dir.resolve("out");
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            ExploredExport.Result first = ExploredExport.run("test", null, regions, RESOLVER, 1024, out, pool, false);
+            assertEquals(2, first.chunks());
+            region(file, java.util.Map.of(0, a, 5, b), java.util.Map.of(0, 100, 5, 160));
+            Files.setLastModifiedTime(file, FileTime.fromMillis(System.currentTimeMillis() + 5000));
+            ExploredExport.Result second = ExploredExport.run("test", null, regions, RESOLVER, 1024, out, pool, false);
+            assertFalse(second.skipped());
+            assertEquals(1, second.regionsRead());
+            assertEquals(1, second.chunks(), "only the chunk the server wrote again is read");
+            assertEquals(1, second.chunksKept());
+            assertEquals(first.tiles(), second.tiles(), "the kept chunk is still drawn");
+            java.awt.image.BufferedImage tile = javax.imageio.ImageIO.read(out.resolve("explored/1/1/1.png").toFile());
+            assertTrue(tile.getRGB(0, 0) >>> 24 > 0, "chunk 0,0 is drawn from its cached cells");
+            assertTrue(tile.getRGB(5 * 16 / 4, 0) >>> 24 > 0, "chunk 5,0 is drawn from its new read");
+            region(file, java.util.Map.of(5, b), java.util.Map.of(5, 160));
+            Files.setLastModifiedTime(file, FileTime.fromMillis(System.currentTimeMillis() + 10000));
+            ExploredExport.Result third = ExploredExport.run("test", null, regions, RESOLVER, 1024, out, pool, false);
+            assertEquals(1, third.chunks(), "a region that lost a chunk is read whole");
+            assertEquals(0, third.chunksKept());
+            tile = javax.imageio.ImageIO.read(out.resolve("explored/1/1/1.png").toFile());
+            assertEquals(0, tile.getRGB(0, 0) >>> 24, "the chunk the region lost is no longer drawn");
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
     private static void assertArrayEquals(byte[] a, byte[] b) {
         org.junit.jupiter.api.Assertions.assertArrayEquals(a, b, "the region file is unchanged");
     }

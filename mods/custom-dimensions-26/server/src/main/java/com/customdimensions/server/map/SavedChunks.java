@@ -56,6 +56,27 @@ public final class SavedChunks {
         return out;
     }
 
+    /** A region file's header: each chunk's location entry (0 when absent) and when it was last written, in seconds. */
+    public record Header(int[] locations, long[] written) {}
+
+    /** The 8 KiB header of {@code region}: its location table and its timestamp table. */
+    public static Header header(Path region) throws IOException {
+        int[] locations = new int[1024];
+        long[] written = new long[1024];
+        try (FileChannel ch = FileChannel.open(region, StandardOpenOption.READ)) {
+            ByteBuffer table = ByteBuffer.allocate(2 * TABLE);
+            while (table.hasRemaining() && ch.read(table, table.position()) > 0) {
+                // read until the header is full or the file ends
+            }
+            int filled = table.position();
+            for (int i = 0; i < 1024; i++) {
+                if ((i + 1) * 4 <= filled) locations[i] = table.getInt(i * 4);
+                if (TABLE + (i + 1) * 4 <= filled) written[i] = Integer.toUnsignedLong(table.getInt(TABLE + i * 4));
+            }
+        }
+        return new Header(locations, written);
+    }
+
     /** Chunk {@code pos}'s saved tag: through {@code level}'s storage when it is open, else from {@code region} read-only. */
     public static Optional<CompoundTag> read(ServerLevel level, Path region, ChunkPos pos) {
         try {
