@@ -29,15 +29,16 @@ Paste this as the summary when the session is compacted or handed off. Before ac
 - the_violet_spire is night-only.
 - End: a denser dungeons group (about 57 cities), and elytra at 8% a chest in End dungeon chests.
 
-## Owner's roadmap decisions (all nine ticked in the doc, no comments; read as yes to the fuller option)
-1. **Content:** the switch waits for content (blocks, items, creatures). CONFIRM in one line when next asking the owner a question.
-2. **Waiting mods:** build our own YUNG's-style overhauls, mega-dungeons and the Discord chat bridge now. Which wins if a mod ships later: CONFIRM.
-3. **Cut mods:** all come back as our own (Chipped, Macaw's Roofs, Universal Sawmill, Amendments, Creeper Overhaul, Guard Villagers, Dungeons Reborn, 3D Placeable Food, Fabric Seasons, BlueMap sign markers).
+## Owner's roadmap decisions
+Before asking the owner anything, look for the answer in `docs/design/rebuild-26/decisions.md`, the mod register, `HANDOFF.md` and the owner's notes. Never re-litigate a settled decision.
+1. **Content:** settled by RB-22. Our own blocks, items and creatures come after launch, through Polymer, in shippable slices. The switch follows phases 0–2.
+2. **Waiting mods:** build our own YUNG's-style overhauls, mega-dungeons and the Discord chat bridge now. If an author ships later, raise it then.
+3. **Cut mods stay cut,** as the register decided: Chipped, Macaw's Roofs, Universal Sawmill, Amendments, Creeper Overhaul, Guard Villagers, Dungeons Reborn, 3D Placeable Food, BlueMap sign markers. The owner never meant to replace mods like Chipped; do not rebuild them.
 4. **Seasons:** server-side seasons (crops, snow, temperature).
 5. **Better Combat:** accept losing it.
 6. **Biomes:** about 60 more of our own.
 7. **Resource pack:** the server resource pack is required on join.
-8. **Mods:** add the ten mods now available, through the dependency checklist.
+8. **Mods:** add the ten mods now available, through the dependency checklist (Friends & Foes with its Polymer patch, Explorify, DeCubed Dungeons, Repurposed Structures, Trek, Hopo Better Mineshaft, Server-Side Waystones, Sit!, Ender Dragon Destroys End Island, Chunky Border).
 9. **Portal ambience:** bring it back.
 
 ## State (log time in HANDOFF.md)
