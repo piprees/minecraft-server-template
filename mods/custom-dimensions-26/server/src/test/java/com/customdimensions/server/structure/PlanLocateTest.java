@@ -62,7 +62,7 @@ class PlanLocateTest {
         var far = new StructurePlacements.Fixed(10, 0);
         var near = new StructurePlacements.Fixed(3, 4);
         var behind = new StructurePlacements.Fixed(-6, -6);
-        List<PlanLocate.Candidate> out = PlanLocate.candidates(scans(far, near, behind), new BlockPos(8, 64, 8), 100, Double.MAX_VALUE);
+        List<PlanLocate.Candidate> out = PlanLocate.candidates(scans(far, near, behind), new BlockPos(8, 64, 8), 100, Double.MAX_VALUE, p -> true);
         assertEquals(List.of(new ChunkPos(3, 4), new ChunkPos(-6, -6), new ChunkPos(10, 0)), chunks(out));
         assertTrue(out.get(0).placement() == near);
     }
@@ -72,7 +72,7 @@ class PlanLocateTest {
         var edge = new StructurePlacements.Fixed(PlanLocate.FIXED_SPACING, 0);
         var past = new StructurePlacements.Fixed(PlanLocate.FIXED_SPACING + 1, 0);
         assertEquals(List.of(new ChunkPos(PlanLocate.FIXED_SPACING, 0)),
-                chunks(PlanLocate.candidates(scans(edge, past), BlockPos.ZERO, 1, Double.MAX_VALUE)));
+                chunks(PlanLocate.candidates(scans(edge, past), BlockPos.ZERO, 1, Double.MAX_VALUE, p -> true)));
     }
 
     @Test
@@ -80,7 +80,7 @@ class PlanLocateTest {
         var a = new StructurePlacements.Fixed(2, 0);
         var b = new StructurePlacements.Fixed(5, 0);
         double vanilla = BlockPos.ZERO.distSqr(new BlockPos(64, 0, 0));
-        assertEquals(List.of(new ChunkPos(2, 0)), chunks(PlanLocate.candidates(scans(a, b), BlockPos.ZERO, 100, vanilla)));
+        assertEquals(List.of(new ChunkPos(2, 0)), chunks(PlanLocate.candidates(scans(a, b), BlockPos.ZERO, 100, vanilla, p -> true)));
     }
 
     @Test
@@ -91,7 +91,7 @@ class PlanLocateTest {
         BlockPos origin = new BlockPos(200, 64, -150);
         int radius = 4;
         long bound = (long) radius * index.spacing();
-        List<PlanLocate.Candidate> out = PlanLocate.candidates(scans(noise), origin, radius, Double.MAX_VALUE);
+        List<PlanLocate.Candidate> out = PlanLocate.candidates(scans(noise), origin, radius, Double.MAX_VALUE, p -> true);
         long inside = index.positions().stream().filter(p -> Math.max(Math.abs(p.x() - (origin.getX() >> 4)),
                 Math.abs(p.z() - (origin.getZ() >> 4))) <= bound).count();
         assertEquals(inside, out.size());
@@ -99,5 +99,28 @@ class PlanLocateTest {
         for (int i = 1; i < out.size(); i++) assertTrue(out.get(i - 1).distSqr() <= out.get(i).distSqr());
         double nearest = index.positions().stream().mapToDouble(p -> origin.distSqr(new BlockPos(p.x() * 16, 0, p.z() * 16))).min().orElseThrow();
         assertEquals(nearest, out.getFirst().distSqr());
+    }
+
+    @Test
+    void sitesOutsideTheWorldBorderAreNeverAnswered() {
+        net.minecraft.world.level.border.WorldBorder border = new net.minecraft.world.level.border.WorldBorder();
+        border.setCenter(0, 0);
+        border.setSize(1024);
+        var inside = new StructurePlacements.Fixed(10, 0);
+        var outside = new StructurePlacements.Fixed(40, 0);
+        assertEquals(List.of(new ChunkPos(10, 0)),
+                chunks(PlanLocate.candidates(scans(inside, outside), BlockPos.ZERO, 100, Double.MAX_VALUE, border::isWithinBounds)));
+    }
+
+    @Test
+    void vanillasAnswerOutsideTheWorldBorderIsDropped() {
+        net.minecraft.world.level.border.WorldBorder border = new net.minecraft.world.level.border.WorldBorder();
+        border.setCenter(0, 0);
+        border.setSize(1024);
+        var past = com.mojang.datafixers.util.Pair.of(new BlockPos(-6144, 0, -1280), (Holder<Structure>) null);
+        var near = com.mojang.datafixers.util.Pair.of(new BlockPos(100, 0, -200), (Holder<Structure>) null);
+        assertNull(PlanLocate.inside(border, past));
+        assertTrue(PlanLocate.inside(border, near) == near);
+        assertNull(PlanLocate.inside(border, null));
     }
 }
