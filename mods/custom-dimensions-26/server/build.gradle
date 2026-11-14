@@ -165,6 +165,8 @@ loom {
 			// -PfastBenchLod=<detail>[,<detail>...]: instead of rendering, compares the LOD generator's coarse shortcut at each
 			// detail level with whole columns (LodBench), one line per case and level in summary.txt.
 			vmArg "-Dcustomdimensions.fastbench.lod=${project.findProperty('fastBenchLod') ?: ''}"
+			// -PfastBenchRegions=<dir>: with a map case, also draws the explored layer from <dir>/<slug>/region/*.mca.
+			vmArg "-Dcustomdimensions.fastbench.regions=${project.findProperty('fastBenchRegions') ?: ''}"
 			vmArg "-Dcustomdimensions.definitions=${project.findProperty('definitions') ?: file('../definitions').canonicalPath}"
 			vmArg "-Dcustomdimensions.bridges=${project.findProperty('bridges') ?: file('../bridges').canonicalPath}"
 			if (project.hasProperty('fastBenchJvm')) {

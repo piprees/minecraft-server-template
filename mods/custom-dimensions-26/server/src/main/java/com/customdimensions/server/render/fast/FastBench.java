@@ -74,6 +74,8 @@ public final class FastBench {
     public static final String WAVE = "wave";
     /** The step that runs the web map's generated export ({@link MapExport}) instead, twice: the second finds its fingerprint and skips. */
     public static final String MAP = "map";
+    /** With {@link #MAP}: a folder holding {@code <slug>/region/}, whose saved chunks the explored layer is drawn from. */
+    public static final String REGIONS_PROPERTY = "customdimensions.fastbench.regions";
 
     /** One dimension to render; a step of 0 is a wave. */
     public record Case(String slug, long seed, int radius, int step, int threads) {}
@@ -156,7 +158,7 @@ public final class FastBench {
                 try {
                     if (c.step() == -1) {
                         Sampler sampler = Sampler.of(c.slug(), stem.generator(), type.minY(), type.height(), c.seed(), "argument", access);
-                        Path dir = out.resolve("map").resolve(c.slug());
+                        Path dir = com.customdimensions.server.map.MapSite.dimension(out.resolve("map"), c.slug());
                         for (int i = 1; i <= 2; i++) {
                             MapExport.Result r = MapExport.run(sampler, c.radius(), pool, c.threads(), dir, null, false);
                             String line = String.format(Locale.ROOT, "%s map %d: radius %d t%d %s in %d ms, %d columns, %d tiles, %d bytes, "
@@ -165,6 +167,22 @@ public final class FastBench {
                                     r.layers().size(), r.layers().stream().map(MapExport.Layer::id).toList(), r.markers(), r.timings());
                             CustomDimensions.LOG.info("fast bench: {}", line);
                             summary.add(line);
+                        }
+                        String regions = System.getProperty(REGIONS_PROPERTY, "");
+                        Path regionDir = regions.isBlank() ? null : Path.of(regions).resolve(c.slug()).resolve("region");
+                        if (regionDir != null && Files.isDirectory(regionDir)) {
+                            var colours = new com.customdimensions.server.map.MapColours(access);
+                            for (int i = 1; i <= 2; i++) {
+                                var e = com.customdimensions.server.map.ExploredExport.run(c.slug(), null, regionDir, colours, c.radius(), dir,
+                                        pool, false);
+                                String line = String.format(Locale.ROOT, "%s explored %d: %s, %d regions (%d read), %d chunks (%d unfinished, "
+                                                + "%d unreadable), read %d ms at %d columns/s, %d tiles, %d bytes, %d ms", c.slug(), i,
+                                        e.skipped() ? "skipped (no region changed)" : "exported", e.regions(), e.regionsRead(), e.chunks(),
+                                        e.chunksUnfinished(), e.chunksUnreadable(), e.readMillis(), e.columnsPerSecond(), e.tiles(),
+                                        e.bytes(), e.millis());
+                                CustomDimensions.LOG.info("fast bench: {}", line);
+                                summary.add(line);
+                            }
                         }
                         continue;
                     }
@@ -206,7 +224,29 @@ public final class FastBench {
                 }
             }
         }
+        if (cases.stream().anyMatch(c -> c.step() == -1)) site(out.resolve("map"));
         Files.write(out.resolve("summary.txt"), summary);
+    }
+
+    /**
+     * The map bench's site: the viewer shell and a manifest of every
+     * definition under {@code customdimensions.definitions}, so the viewer can
+     * be served from {@code root} by any static server.
+     */
+    static void site(Path root) throws java.io.IOException {
+        List<com.customdimensions.server.map.MapSite.Entry> entries = new ArrayList<>();
+        String defs = System.getProperty("customdimensions.definitions", "");
+        if (!defs.isBlank() && Files.isDirectory(Path.of(defs))) {
+            try (var files = Files.list(Path.of(defs))) {
+                for (Path f : files.sorted().toList()) {
+                    String name = f.getFileName().toString();
+                    if (!name.endsWith(".json") || name.equals("settings.json")) continue;
+                    entries.add(new com.customdimensions.server.map.MapSite.Entry(name.substring(0, name.length() - 5), null, null));
+                }
+            }
+        }
+        com.customdimensions.server.map.MapSite.shell(root);
+        com.customdimensions.server.map.MapSite.manifest(root, entries);
     }
 
     /** The wave bench of one case: lines for the summary. */
