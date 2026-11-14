@@ -145,7 +145,7 @@ Story gaps:
 Story gaps:
 
 1. **Guide posts on the passes** (the_highland_crossing, the_frozen_hearth and seven others): the lanterns that stand in for explorify's guide posts are not signposts. explorify ([explorify.md](explorify.md)), else a `column` with signs.
-2. **Keeps on the peaks** (the_amplified_reaches, the_needlefall): a keep that stands on a summit, not in a valley. Placement, not a new kind: `seat: ground` with a high `min` height on the keep's want.
+2. **Keeps on the peaks** (the_amplified_reaches, the_needlefall): a keep that stands on a summit, not in a valley. Placement, not a new kind; how a want prefers height is a question in the [README](README.md).
 3. **The quarantine wall** (the_wailing_narrows): a wall across the chasms that did not hold. `wall` with `breaches`.
 
 ## Villages and camps

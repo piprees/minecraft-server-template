@@ -63,8 +63,8 @@ Every element is drawn by one structure piece of ours (`customdimensions:set_pie
 | `fall` | `liquid` (`lava`, `water`), `drop`, `width`, `pool` (radius at the base) | A source at the top of a `wall` seat and a pool at its foot; the curtain is the liquid's own flow |
 | `wall` | `length`, `height`, `thickness`, `towers` (every n blocks), `breaches` (count), `palette` | A curtain wall that follows the ground between two ends, towers on it, gaps broken through |
 | `scatter` | `count`, `radius`, `items` (weighted elements), `spacing` | Many small elements over an area: skulls, bones, rubble, carts, small templates, graves |
-| `line` | `from`, `to` (offsets or `"ground"`/`"roof"`), `style` (`chain`, `pipe`, `bars`, `bridge`), `sag` | A run of blocks between two anchors: hanging chains, pipelines on trestles, a rope bridge |
-| `column` | `height`, `radius`, `taper`, `style` (`chimney`, `pillar`, `spire`, `stack`), `top` (an element) | A vertical: a smoking chimney (campfire under it), a stack of pearls in an end-stone cradle, a ruined pillar |
+| `line` | `from`, `to` (offsets or `"ground"`/`"roof"`), `style` (`chain`, `pipe`, `bars`, `bridge`, `rail`), `sag` | A run of blocks between two anchors: hanging chains, pipelines on trestles, a rope bridge, a rail gallery |
+| `column` | `height`, `radius`, `taper`, `style` (`chimney`, `pillar`, `spire`, `stack`, `cage`), `top` (an element) | A vertical: a smoking chimney (campfire under it), a stack of pearls in an end-stone cradle, a ruined pillar, a birdcage of bars |
 | `field` | `radius`, `edge` (noise), `cover` palette (top block), `over` (block on top: fire, snow layer, sculk vein) | A surface treatment: soul-fire field, ash drift, sculk scar, petal carpet |
 | `crown` | `find` (`tops`: local maxima over `rise`), `radius`, `growth` palette | Growth on high points round the origin: amethyst and crystals on spire tops |
 | `platform` | `width`, `depth`, `rail`, `stairs` (down to the seat below), `palette` | A terrace, ledge or landing that always exists: an overlook above a pit |
