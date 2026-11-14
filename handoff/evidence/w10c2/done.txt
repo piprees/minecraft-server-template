@@ -1,1 +1,1 @@
-w10c2c: steps 1-2 done (K10 lane fixture fix dd79fc19; F4 lane test fixes, nether heights 84.4% written up); next step 3 wave
+w10c2c: steps 1-3 done; next step 4 (c1 run: K10 fields on buried/boneyard/ember/sanctum/blackstone + full surveys of the other six roofed)
