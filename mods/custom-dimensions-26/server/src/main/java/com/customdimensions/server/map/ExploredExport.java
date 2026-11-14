@@ -54,7 +54,7 @@ public final class ExploredExport {
     public record Result(String dimension, boolean skipped, int regions, int regionsRead, long chunks, long chunksUnreadable,
                          long chunksUnfinished, long readMillis, long columnsPerSecond, long tiles, long bytes, long millis) {}
 
-    public static Result run(String dimension, ServerLevel level, Path regionDir, MapColours colours, int radius, Path out,
+    public static Result run(String dimension, ServerLevel level, Path regionDir, ExploredChunk.Resolver colours, int radius, Path out,
                              ExecutorService pool, boolean force) throws IOException {
         long started = System.nanoTime();
         MapTiles plan = MapTiles.of(radius);
