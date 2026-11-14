@@ -241,8 +241,9 @@ public final class Sampler {
     /**
      * Whether {@code structure} starts at {@code chunk} under this seed as the
      * level's generation starts it: the structure's own generation point and
-     * checks, its biomes there unless the control bypasses them, and the
-     * dimension's zone shuns.
+     * checks, its biomes there unless the control bypasses them, the
+     * dimension's zone shuns, and an underground structure's ground
+     * ({@link com.customdimensions.server.structure.UndergroundGround}).
      */
     public boolean starts(Holder<Structure> structure, ChunkPos chunk) {
         return footprint(structure, chunk) != null;
@@ -278,7 +279,10 @@ public final class Sampler {
                 StructureRuntime.ground(generator, c.groundAt(structure.value(), chunk)), generator.getBiomeSource(),
                 random.createClimateSampler(SamplerContext.builder().enableCaches().build()), random, templates,
                 c.state().getLevelSeed(), chunk, 0, heights, valid);
-        return start.isValid() ? start.getBoundingBox() : null;
+        if (!start.isValid()) return null;
+        boolean pinned = c.groundAt(structure.value(), chunk) != null;
+        return pinned || !com.customdimensions.server.structure.UndergroundGround.floats(structure.value(), start.getBoundingBox(),
+                generator, random, heights) ? start.getBoundingBox() : null;
     }
 
     public RegistryAccess registryAccess() {

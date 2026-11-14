@@ -1,6 +1,7 @@
 package com.customdimensions.server.mixin;
 
 import com.customdimensions.server.structure.StructureRuntime;
+import com.customdimensions.server.structure.UndergroundGround;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.core.Holder;
@@ -22,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.function.Predicate;
 
-/** A forced start or a want generates in its own chunk whatever the biome there, a forced start with a {@code y} on ground at that height; a structure a zone shuns does not start inside it; every other start keeps vanilla's check. */
+/** A forced start or a want generates in its own chunk whatever the biome there, a forced start with a {@code y} on ground at that height; a structure a zone shuns does not start inside it; an underground structure does not start over the void ({@link UndergroundGround}); every other start keeps vanilla's check. */
 @Mixin(ChunkGenerator.class)
 abstract class StructureBiomeBypassMixin {
     @WrapOperation(method = "tryGenerateStructure",
@@ -41,6 +42,9 @@ abstract class StructureBiomeBypassMixin {
         if (ground != null && !start.isValid()) {
             com.customdimensions.server.CustomDimensions.LOG.warn("{}: forced {} at chunk {} did not start on ground at y {}: "
                     + "its own rules refuse that height", level.identifier(), holder.getRegisteredName(), chunk, ground);
+        }
+        if (ground == null && start.isValid() && UndergroundGround.floats(structure, start.getBoundingBox(), generator, random, height)) {
+            return StructureStart.INVALID_START;
         }
         return start;
     }

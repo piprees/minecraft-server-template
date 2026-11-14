@@ -4,7 +4,9 @@ import com.customdimensions.core.structure.ZoneStructureRules;
 import com.customdimensions.core.structure.StructureSites;
 import com.customdimensions.server.level.LevelManager;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -111,6 +113,8 @@ public final class StructureSelfTest {
             List<ChunkPos> all = new ArrayList<>(fixedChunks);
             shunSample.stream().filter(c -> !all.contains(c)).forEach(all::add);
             long beforeAdaptation = StructureAdaptation.overridden();
+            lines.add(guard("structures mixin StructureCheckBypassMixin", () -> fastCheckLine(level, state, applied)));
+            lines.add(guard("structures mixin ChunkGeneratorLocateMixin", () -> locateFixedLine(level, applied)));
             return load(level, all).handle((chunks, error) -> {
                 if (error != null) {
                     lines.add("FAIL structures generation: " + cause(error));
@@ -307,6 +311,7 @@ public final class StructureSelfTest {
         return manager.activate(slug).thenApply(LevelManager.Activation::level).thenAccept(level -> {
             ChunkGeneratorStructureState state = level.getChunkSource().getGeneratorState();
             StructureRuntime.Applied applied = StructureRuntime.applied(level.dimension().identifier().toString()).orElseThrow();
+            if (slug.equals("selftest_density_dense")) lines.add(guard("structures locate noise sites", () -> locateNoiseLine(level, state)));
             if (!applied.groupSites().isEmpty()) {
                 candidates.put(slug.substring("selftest_density_".length()),
                         (long) applied.groupSites().values().stream().mapToInt(Integer::intValue).sum());
@@ -323,6 +328,81 @@ public final class StructureSelfTest {
             lines.add("FAIL structures density " + slug + ": " + cause(error));
             return null;
         });
+    }
+
+    /** Each forced start or want whose chunk's biome refuses it is still predicted by the search's fast check. */
+    private String fastCheckLine(ServerLevel level, ChunkGeneratorStructureState state, StructureRuntime.Applied applied) {
+        List<String> refused = new ArrayList<>();
+        List<String> unpredicted = new ArrayList<>();
+        for (StructureRuntime.Placed p : applied.placed()) {
+            if (p.matched()) continue;
+            refused.add(p.structure());
+            Holder<Structure> holder = holder(level, p.structure());
+            ChunkPos chunk = new ChunkPos(p.chunkX(), p.chunkZ());
+            var placement = state.getPlacementsForStructure(holder).stream().filter(pl -> pl instanceof StructurePlacements.Fixed f
+                    && f.chunkX() == p.chunkX() && f.chunkZ() == p.chunkZ()).findFirst().orElse(null);
+            if (placement == null || level.structureManager().checkStructurePresence(chunk, holder.value(), placement, false)
+                    == net.minecraft.world.level.levelgen.structure.StructureCheckResult.START_NOT_PRESENT) {
+                unpredicted.add(p.structure() + " at " + p.chunkX() + "," + p.chunkZ());
+            }
+        }
+        String detail = (refused.size() - unpredicted.size()) + " of " + refused.size() + " start(s) whose chunk's biome refuses them predicted "
+                + refused + (unpredicted.isEmpty() ? "" : "; not predicted " + unpredicted);
+        return !refused.isEmpty() && unpredicted.isEmpty() ? "PASS " + detail : "FAIL " + detail;
+    }
+
+    /** {@code locate}'s search, from each forced start's and want's own chunk, answers that chunk. */
+    private String locateFixedLine(ServerLevel level, StructureRuntime.Applied applied) {
+        List<String> missed = new ArrayList<>();
+        for (StructureRuntime.Placed p : applied.placed()) {
+            BlockPos origin = new BlockPos(p.chunkX() * 16 + 8, 64, p.chunkZ() * 16 + 8);
+            var found = level.getChunkSource().getGenerator().findNearestMapStructure(level,
+                    net.minecraft.core.HolderSet.direct(holder(level, p.structure())), origin, 100, false);
+            if (found == null || SectionPos.blockToSectionCoord(found.getFirst().getX()) != p.chunkX()
+                    || SectionPos.blockToSectionCoord(found.getFirst().getZ()) != p.chunkZ()) {
+                missed.add(p.structure() + " at " + p.chunkX() + "," + p.chunkZ() + " answered " + (found == null ? "nothing" : found.getFirst()));
+            }
+        }
+        String detail = (applied.placed().size() - missed.size()) + " of " + applied.placed().size() + " forced start(s) and want(s) located at their chunk"
+                + (missed.isEmpty() ? "" : "; missed " + missed);
+        return !applied.placed().isEmpty() && missed.isEmpty() ? "PASS " + detail : "FAIL " + detail;
+    }
+
+    /**
+     * A noise group's structures, searched from the origin as {@code locate}
+     * searches (radius 100) and as an explorer map does (radius 50, taking a
+     * reference): each answers one of the group's sites, and a second map's
+     * search skips the start the first took.
+     */
+    private String locateNoiseLine(ServerLevel level, ChunkGeneratorStructureState state) {
+        for (Holder<StructureSet> set : state.possibleStructureSets()) {
+            if (!(set.value().placement() instanceof StructurePlacements.Noise noise) || noise.sites().isEmpty()) continue;
+            var wanted = net.minecraft.core.HolderSet.direct(set.value().structures().stream()
+                    .map(StructureSet.StructureSelectionEntry::structure).distinct().toList());
+            var generator = level.getChunkSource().getGenerator();
+            var located = generator.findNearestMapStructure(level, wanted, BlockPos.ZERO, 100, false);
+            var map1 = generator.findNearestMapStructure(level, wanted, BlockPos.ZERO, 50, true);
+            var map2 = generator.findNearestMapStructure(level, wanted, BlockPos.ZERO, 50, true);
+            List<String> problems = new ArrayList<>();
+            for (var r : java.util.Arrays.asList(located, map1, map2)) {
+                if (r == null) {
+                    problems.add("a search answered nothing");
+                } else if (!noise.keys().contains(ChunkPos.pack(SectionPos.blockToSectionCoord(r.getFirst().getX()),
+                        SectionPos.blockToSectionCoord(r.getFirst().getZ())))) {
+                    problems.add(r.getFirst() + " is not one of the group's sites");
+                }
+            }
+            if (map1 != null && map2 != null && map1.getFirst().equals(map2.getFirst())) problems.add("the second map took the first map's start");
+            String detail = "group " + noise.group() + " (" + noise.sites().size() + " sites): locate " + where(located) + ", maps "
+                    + where(map1) + " and " + where(map2) + (problems.isEmpty() ? "" : "; " + problems);
+            return (problems.isEmpty() ? "PASS " : "FAIL ") + detail;
+        }
+        return "FAIL no noise group places here";
+    }
+
+    private static String where(com.mojang.datafixers.util.Pair<BlockPos, Holder<Structure>> r) {
+        return r == null ? "nothing" : r.getSecond().getRegisteredName() + " at " + r.getFirst().getX() + "," + r.getFirst().getZ()
+                + String.format(" (%.0f blocks)", Math.sqrt(r.getFirst().distSqr(BlockPos.ZERO)));
     }
 
     private String densityLine() {
@@ -349,6 +429,11 @@ public final class StructureSelfTest {
                 .ifPresent(set -> set.forEach(h -> out.add(h.value())));
         out.add(structure(level, "minecraft:pillager_outpost"));
         return out;
+    }
+
+    private static Holder<Structure> holder(ServerLevel level, String id) {
+        return level.registryAccess().lookupOrThrow(Registries.STRUCTURE)
+                .getOrThrow(ResourceKey.create(Registries.STRUCTURE, Identifier.parse(id)));
     }
 
     private static Structure structure(ServerLevel level, String id) {
