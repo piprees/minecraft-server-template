@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # maps-prove.sh: one bounded boot (under 10 minutes) for the explorer maps where players meet them. Seed 20261022,
 # CI's server.properties, a copy of definitions/. In the overworld: the world border's size; locate of
-# minecraft:mansion from 0,0 and from the middle of each quadrant, and whether each mansion found stands in a
-# biome of #minecraft:has_structure/woodland_mansion at its chunk centre; minecraft:shipwreck located from three points, and above each (y 200, forceloaded) a chest that takes
+# minecraft:mansion from 0,0 and from the middle of each quadrant, and for each mansion found whether its chunk
+# centre is in #minecraft:has_structure/woodland_mansion at y 63 to 130 and at the world surface (whose height a
+# marker reads), and the nearest such biome from y 80; minecraft:shipwreck located from three points, and above each (y 200, forceloaded) a chest that takes
 # minecraft:chests/shipwreck_map twice, as a shipwreck's map chest rolls it (treasure tag, radius 50, no reference).
 # A minecraft:map with minecraft:map_id in a chest is a found buried treasure; none means the search failed there.
 # With ELYTRA set: the End city nearest 0,1200 located and minecraft:chests/end_city_treasure rolled 100 times at a
@@ -66,9 +67,21 @@ done
 printf '%s' "${MANSIONS:-}" | tr ';' '\n' | sort -u | while read -r mx mz; do
   [ -n "$mx" ] || continue
   say "execute in minecraft:overworld run forceload add $mx $mz"
-  sleep 10
-  say "execute in minecraft:overworld positioned $((mx + 8)) 0 $((mz + 8)) positioned over world_surface if biome ~ ~ ~ #minecraft:has_structure/woodland_mansion"
+  sleep 20
+  cx=$((mx + 8))
+  cz=$((mz + 8))
+  for y in 63 70 80 90 100 110 120 130; do
+    say "execute in minecraft:overworld positioned $cx $y $cz if biome ~ ~ ~ #minecraft:has_structure/woodland_mansion"
+    sleep 1
+  done
+  say "execute in minecraft:overworld positioned $cx 0 $cz positioned over world_surface if biome ~ ~ ~ #minecraft:has_structure/woodland_mansion"
+  sleep 1
+  say "execute in minecraft:overworld positioned $cx 0 $cz positioned over world_surface run summon marker ~ ~ ~ {Tags:[\"k13m\"]}"
+  say "execute in minecraft:overworld run data get entity @e[tag=k13m,limit=1] Pos"
   sleep 2
+  say "execute in minecraft:overworld run kill @e[tag=k13m]"
+  say "execute in minecraft:overworld positioned $cx 80 $cz run locate biome #minecraft:has_structure/woodland_mansion"
+  sleep 15
   say "execute in minecraft:overworld run forceload remove $mx $mz"
 done
 [ "${ONLY:-}" = mansion ] || for from in "0 0" "1500 -1500" "-2000 1000"; do
@@ -156,7 +169,7 @@ rolls() {
     rolls "end_city@$cx,$cz" minecraft:the_end "$cx" "$cz" minecraft:chests/end_city_treasure minecraft:end_city
   fi
 fi
-grep -E "world border|The nearest|Could not find|Test passed|Test failed|Starts in overworld|Could not count|has the following block data" "$LOG" | cut -c1-4000 > "$OUT/prove.log"
+grep -E "world border|The nearest|Could not find|Test passed|Test failed|entity data|biome|Starts in overworld|Could not count|has the following block data" "$LOG" | cut -c1-4000 > "$OUT/prove.log"
 say "stop"
 wait "$PID"
 touch "$OUT/done"
