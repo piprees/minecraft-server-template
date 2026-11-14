@@ -13,22 +13,20 @@
       "floorHeight": 80,
       "floorRelief": 8,
       "ceilingGap": 26,
-      "roughness": 0.25,
-      "chasms": 0.16,
+      "roughness": 0.5,
+      "chasms": 0.22,
       "chasmDepth": 62
     }
   },
   "biomes": [
-    "adventure:quartz_flats",
     "minecraft:soul_sand_valley",
     "minecraft:basalt_deltas"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:quartz_flats": 12,
-      "minecraft:soul_sand_valley": 52,
-      "minecraft:basalt_deltas": 36
+      "minecraft:soul_sand_valley": 58,
+      "minecraft:basalt_deltas": 42
     },
     "places": {
       "at": {
@@ -72,6 +70,32 @@
     ],
     "terrainAdaptation": {
       "mns:bridge_1": "pedestal"
+    },
+    "mode": "allow",
+    "list": [
+      "mns:bridge_1",
+      "mns:bridge_2",
+      "mns:bridge_3",
+      "mns:bridge_4",
+      "mns:bridge_5",
+      "mns:bridge_6",
+      "mns:mega_fortress",
+      "mns:giant_skull",
+      "mns:large_blackstone_pillars"
+    ],
+    "wants": {
+      "mns:bridge_1": {
+        "min": 0,
+        "max": 150
+      },
+      "mns:large_blackstone_pillars": {
+        "min": 450,
+        "max": 650
+      },
+      "mns:giant_skull": {
+        "min": 100,
+        "max": 600
+      }
     }
   },
   "portals": [

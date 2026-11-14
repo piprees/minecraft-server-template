@@ -17,10 +17,10 @@
       "underside": 50,
       "spread": 10,
       "flatness": 0.5,
-      "spires": 0.2,
+      "spires": 0.3,
       "spireHeight": 100,
-      "spireThickness": 0.75,
-      "spireTaper": 0.4
+      "spireThickness": 1.1,
+      "spireTaper": 0.25
     },
     "scales": {
       "climate": 4
@@ -35,19 +35,19 @@
     "adventure:wisteria_grove",
     "adventure:lavender_fields",
     "adventure:sky_highlands",
-    "minecraft:cherry_grove",
     "adventure:umbrella_jungle",
-    "adventure:chorus_forest"
+    "adventure:chorus_forest",
+    "adventure:crystal_hollows"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:wisteria_grove": 30,
+      "adventure:wisteria_grove": 40,
       "adventure:lavender_fields": 30,
       "adventure:sky_highlands": 15,
-      "minecraft:cherry_grove": 10,
       "adventure:umbrella_jungle": 10,
-      "adventure:chorus_forest": 5
+      "adventure:chorus_forest": 5,
+      "adventure:crystal_hollows": 12
     },
     "over": "land",
     "places": {
@@ -57,16 +57,19 @@
           "adventure:lavender_fields"
         ],
         "skylands": [
-          "adventure:sky_highlands",
-          "minecraft:cherry_grove"
+          "adventure:sky_highlands"
         ],
         "endward": [
           "adventure:umbrella_jungle",
-          "adventure:chorus_forest"
+          "adventure:chorus_forest",
+          "adventure:crystal_hollows"
         ]
       },
       "arrangement": "bands",
       "direction": 90
+    },
+    "roles": {
+      "adventure:crystal_hollows": "land"
     }
   },
   "materials": {
@@ -81,6 +84,11 @@
         "cliffs": "minecraft:amethyst_block"
       },
       "adventure:wisteria_grove": {
+        "cliffs": "minecraft:amethyst_block"
+      },
+      "adventure:crystal_hollows": {
+        "top": "minecraft:amethyst_block",
+        "filler": "minecraft:calcite",
         "cliffs": "minecraft:amethyst_block"
       }
     }
@@ -110,7 +118,8 @@
   "atmosphere": {
     "skyColor": "#6B4B9B",
     "fogColor": "#3A2352",
-    "ambientLight": 0.25
+    "ambientLight": 0.25,
+    "fixedTime": 18000
   },
   "borders": {
     "player": 683,
@@ -146,6 +155,33 @@
     },
     "noise": {
       "landmarks": "dense"
+    },
+    "mode": "allow",
+    "list": [
+      "mss:large_tower",
+      "mss:small_tower",
+      "mes:enderwatch_tower",
+      "mes:mystical_archway",
+      "ddd:dddtowers",
+      "nova_structures:shrine_tower"
+    ],
+    "wants": {
+      "ati_structures:fortified_temple": {
+        "min": 450,
+        "max": 650
+      },
+      "mss:castle_ruin": {
+        "min": 450,
+        "max": 650
+      },
+      "ddd:wizard_tower": {
+        "min": 150,
+        "max": 500
+      },
+      "nova_structures:shrine_tower": {
+        "min": 100,
+        "max": 500
+      }
     }
   },
   "portals": [

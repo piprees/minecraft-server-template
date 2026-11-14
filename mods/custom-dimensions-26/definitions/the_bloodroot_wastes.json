@@ -96,5 +96,33 @@
   },
   "liquids": {
     "seaLevel": 24
+  },
+  "structures": {
+    "mode": "allow",
+    "list": [
+      "mns:crimson_forge",
+      "mns:crimson_lava_well",
+      "mns:medium_crimson_well",
+      "mns:medium_crimson_fungus",
+      "mns:mega_fortress"
+    ],
+    "wants": {
+      "mns:crimson_lava_well": {
+        "min": 0,
+        "max": 200
+      },
+      "mns:medium_crimson_fungus": {
+        "min": 0,
+        "max": 200
+      },
+      "nova_structures:piglin_camp": {
+        "min": 100,
+        "max": 800
+      },
+      "nova_structures:piglin_camp_collony": {
+        "min": 100,
+        "max": 900
+      }
+    }
   }
 }

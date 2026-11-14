@@ -15,5 +15,7 @@ Source: 1.21.1 paradise_lost type; biomes amethyst_canyon, windswept_spires, cry
 Must NOT appear: cherry_grove (nothing asks for it; it came from skylands_spring by conversion) — removed; mineshafts, villages, monuments, overworld dungeons; snow peaks; daylight.
 Remove: cherry_grove from the biome list and the skylands place (sky_highlands keeps the skylands).
 
+Danger and reward (RB-39): calm: "arcane but not hostile"; danger low, reward middling-high from the towers and temples (playerLuck lifts loot). 1.21.1 difficulty block: {"mobMultiplier": 1.0, "playerLuck": 1.6}.
+
 ## Structures (places plan, docs/design/rebuild-26/places/dimensions.md)
 Follows the places plan: aurel tower mss:large_tower forced (60,60); mes:mystical_archway forced (-300,180) and spread; mes:enderwatch_tower; ddd:wizard_tower; nova shrine_tower; the relic temple and palace ruin near the border as ati fortified_temple and mss castle_ruin (wants 450-650). Crowned spires and birdcages: set pieces, waiting on the places kit (the crowned spires are approached in terrain: crystal_hollows tops and flatter spire tops). This replaces the card's earlier drop of the temples.

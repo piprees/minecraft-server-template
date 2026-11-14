@@ -10,11 +10,11 @@
   "terrain": {
     "base": "roofed",
     "params": {
-      "floorHeight": 33,
+      "floorHeight": 36,
       "floorRelief": 8,
       "ceilingGap": 80,
-      "roughness": 0.05,
-      "flats": 0.5
+      "roughness": 0,
+      "flats": 0.65
     },
     "scales": {
       "climate": 1.5
@@ -62,6 +62,34 @@
     "terrainAdaptation": {
       "mns:crimson_forge": "platform_skirt",
       "mns:bridge_1": "platform_skirt"
+    },
+    "mode": "allow",
+    "list": [
+      "mns:bridge_1",
+      "mns:mega_fortress",
+      "mns:crimson_lava_well"
+    ],
+    "wants": {
+      "mns:crimson_lava_well": {
+        "min": 0,
+        "max": 200
+      },
+      "mns:crimson_forge": {
+        "min": 700,
+        "max": 1000
+      },
+      "nova_structures:piglin_outstation": {
+        "min": 200,
+        "max": 900
+      },
+      "mns:mega_fortress": {
+        "min": 200,
+        "max": 900
+      },
+      "mns:bridge_1": {
+        "min": 100,
+        "max": 700
+      }
     }
   },
   "portals": [
@@ -98,6 +126,26 @@
     "shuns": [
       "towns_and_towers:exclusives/village_piglin",
       "mvs:large_warped_tower"
+    ]
+  },
+  "materials": {
+    "biomes": {
+      "adventure:magma_land": {
+        "top": "minecraft:blackstone",
+        "beaches": "minecraft:magma_block",
+        "cliffs": "minecraft:obsidian"
+      }
+    }
+  },
+  "ores": {
+    "remove": [
+      "adventure:biome/magma_land/magma_fires",
+      "adventure:biome/ash_barrens/ash_heaps",
+      "adventure:biome/ash_barrens/basalt_stumps",
+      "minecraft:small_basalt_columns",
+      "minecraft:large_basalt_columns",
+      "minecraft:basalt_blobs",
+      "minecraft:blackstone_blobs"
     ]
   }
 }

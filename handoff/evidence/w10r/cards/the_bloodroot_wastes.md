@@ -11,5 +11,7 @@ Source: 1.21.1 nether; biomes crimson_forest, weeping_valley, inverted_forest, n
 Must NOT appear: warped structures, quartz, End or overworld structures.
 Remove: nothing in the biomes; weights spread so the crimson kin each hold a region.
 
+Danger and reward (RB-39): middling danger among survivors; modest reward, "the grandeur is gone". 1.21.1 difficulty block: {"mobMultiplier": 1.5, "playerLuck": 1.4}.
+
 ## Structures (places plan, docs/design/rebuild-26/places/dimensions.md)
 Follows the places plan: mns crimson_forge; crimson wells (mns crimson_lava_well, medium_crimson_well) and mns medium_crimson_fungus near spawn; mns mega_fortress; nova piglin_camp and piglin_camp_collony wanted. Workshops and the pipeline: set pieces, waiting on the places kit.

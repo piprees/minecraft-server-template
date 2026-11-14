@@ -49,5 +49,155 @@
       "monolith": "spread"
     },
     "shuns": []
+  },
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [1194, 369],
+      "radius": 260,
+      "blend": 48,
+      "edgeJitter": 90,
+      "biomes": [
+        "adventure:chorus_forest"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [277, 1219],
+      "radius": 260,
+      "blend": 48,
+      "edgeJitter": 90,
+      "biomes": [
+        "adventure:glowing_grasslands"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [-917, 849],
+      "radius": 260,
+      "blend": 48,
+      "edgeJitter": 90,
+      "biomes": [
+        "adventure:foggy_mushroomland"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [-1194, -369],
+      "radius": 260,
+      "blend": 48,
+      "edgeJitter": 90,
+      "biomes": [
+        "adventure:lantern_woods"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [-277, -1219],
+      "radius": 260,
+      "blend": 48,
+      "edgeJitter": 90,
+      "biomes": [
+        "adventure:sulphur_springs"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [917, -849],
+      "radius": 260,
+      "blend": 48,
+      "edgeJitter": 90,
+      "biomes": [
+        "adventure:megalake"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [1194, 1280],
+      "radius": 300,
+      "blend": 48,
+      "edgeJitter": 90,
+      "biomes": [
+        "adventure:lantern_woods"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [-511, 1674],
+      "radius": 300,
+      "blend": 48,
+      "edgeJitter": 90,
+      "biomes": [
+        "adventure:sulphur_springs"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [-1705, 394],
+      "radius": 300,
+      "blend": 48,
+      "edgeJitter": 90,
+      "biomes": [
+        "adventure:megalake"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [-1194, -1280],
+      "radius": 300,
+      "blend": 48,
+      "edgeJitter": 90,
+      "biomes": [
+        "adventure:chorus_forest"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [511, -1674],
+      "radius": 300,
+      "blend": 48,
+      "edgeJitter": 90,
+      "biomes": [
+        "adventure:glowing_grasslands"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [1705, -394],
+      "radius": 300,
+      "blend": 48,
+      "edgeJitter": 90,
+      "biomes": [
+        "adventure:foggy_mushroomland"
+      ]
+    }
+  ],
+  "structures": {
+    "mode": "allow",
+    "list": [
+      "minecraft:end_cities",
+      "mes:phantom_citadel",
+      "mes:enderkeep_courtyard",
+      "mes:monolith",
+      "mes:enderskog",
+      "mes:enderbloom_grove",
+      "mes:placid_prairie",
+      "mes:ender_spire",
+      "mes:mystical_archway",
+      "nova_structures:end_lighthouses",
+      "nova_structures:end_castle",
+      "mes:astral_meteorite",
+      "mes:mega_ship"
+    ],
+    "wants": {
+      "minecraft:end_city": {
+        "min": 900,
+        "max": 1500
+      },
+      "mes:phantom_citadel": {
+        "min": 900,
+        "max": 1500
+      }
+    }
   }
 }

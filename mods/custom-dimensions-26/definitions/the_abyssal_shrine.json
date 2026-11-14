@@ -13,8 +13,8 @@
     "layout": {
       "type": "ring",
       "centre": [0, 0],
-      "radius": 360,
-      "falloff": 140,
+      "radius": 410,
+      "falloff": 120,
       "strength": 0.9,
       "warp": {
         "blocks": 72,
@@ -24,8 +24,11 @@
     "params": {
       "hollowDepth": 40,
       "ringLakes": 0,
-      "gaps": 0.15,
-      "islandShare": 0.02
+      "gaps": 0,
+      "islandShare": 0.02,
+      "hollowApron": 40,
+      "hollowJitter": 40,
+      "coverage": 0.55
     }
   },
   "biomes": [
@@ -68,13 +71,32 @@
       "dungeons": "dense",
       "maritime": "dense"
     },
+    "mode": "allow",
+    "list": [
+      "minecraft:ocean_monuments"
+    ],
     "force": [
       {
-        "structure": "nova_structures:trial_dungeon",
-        "x": 180,
-        "z": -140
+        "structure": "minecraft:monument",
+        "x": 0,
+        "z": 0,
+        "radius": 160
       }
-    ]
+    ],
+    "wants": {
+      "ati_structures:underwater_dungeon": {
+        "min": 0,
+        "max": 300
+      },
+      "mss:castle_ruin": {
+        "min": 150,
+        "max": 450
+      },
+      "ati_structures:warden_monument": {
+        "min": 350,
+        "max": 500
+      }
+    }
   },
   "portals": [
     {

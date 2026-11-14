@@ -23,12 +23,12 @@
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "minecraft:nether_wastes": 28,
+      "minecraft:nether_wastes": 31,
       "minecraft:crimson_forest": 25,
       "minecraft:warped_forest": 15,
       "minecraft:soul_sand_valley": 15,
       "minecraft:basalt_deltas": 10,
-      "adventure:quartz_flats": 8
+      "adventure:quartz_flats": 5
     },
     "places": {}
   },
@@ -72,5 +72,29 @@
       "nether_bridge": "spread"
     },
     "shuns": []
+  },
+  "structures": {
+    "mode": "allow",
+    "list": [
+      "minecraft:nether_complexes",
+      "mns:mega_fortress",
+      "mns:bridge_1",
+      "mns:bridge_2",
+      "mns:bridge_3",
+      "mns:bridge_4",
+      "mns:bridge_5",
+      "mns:bridge_6",
+      "minecraft:nether_fossils"
+    ],
+    "wants": {
+      "towns_and_towers:exclusives/village_piglin": {
+        "min": 200,
+        "max": 900
+      },
+      "nova_structures:sealing_halls": {
+        "min": 700,
+        "max": 1000
+      }
+    }
   }
 }

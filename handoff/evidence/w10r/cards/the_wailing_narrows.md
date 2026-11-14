@@ -14,5 +14,7 @@ Source: 1.21.1 nether; biomes soul_sand_valley, basalt_deltas, quartz_flats; fog
 Must NOT appear: quartz flats, bastions, piglin villages, crimson fungi, anything inviting.
 Remove: quartz_flats.
 
+Danger and reward (RB-39): high danger, poor reward: a quarantine hell-hole nobody settles; the fortress is the only prize. 1.21.1 difficulty block: {"mobMultiplier": 2.5, "playerLuck": 2.0, "depthScaling": {"enabled": true, "startY": 80, "endY": 0, "minMultiplier": 1.5, "maxMultiplier": 3.5}}.
+
 ## Structures (places plan, docs/design/rebuild-26/places/dimensions.md)
 Follows the places plan: mns bridge_1 to 6 with bridge_1 near spawn; mns mega_fortress; mns giant_skull; mns large_blackstone_pillars near the border; the 1.21.1 forced ancient_city kept (the plan keeps it: this replaces the card's earlier removal). Quarantine wall, zombie camps, hanging chains: set pieces, waiting on the places kit. Zombies: kit gap (a dimension spawn list), not faked with biomes, so nether_wastes is not added.

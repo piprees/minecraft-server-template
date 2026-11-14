@@ -12,5 +12,7 @@ Source: 1.21.1 nether; biomes gravel_desert, poor_nether_grasslands, nether_wast
 
 Sky and light: vanilla Nether. Must NOT appear: anything at the landing.
 
+Danger and reward (RB-39): high danger, highest Nether reward: "gold in every wall, treasure in every ruin. Greed pays and costs." 1.21.1 difficulty block: {"mobMultiplier": 2.5, "playerLuck": 3.0, "depthScaling": {"enabled": true, "startY": 64, "endY": -10, "minMultiplier": 1.0, "maxMultiplier": 1.6}}.
+
 ## Structures (places plan, docs/design/rebuild-26/places/dimensions.md)
 Follows the places plan: the nine 1.21.1 forces kept (bastion, mega fortress, nether keep as the forbidden castle, two crimson forges, trial chambers, piglin donjon as the palace, ati dark_keep, nova undead_crypt); nova sealing_halls, mns large_blackstone_walls, mns nether_tower near the border (450-650); clearSpawnRadius 120. The ledge, the climb down and gold falls: set pieces, waiting on the places kit (the ledge is approached in terrain). This replaces the card's earlier removal of the trial chambers.

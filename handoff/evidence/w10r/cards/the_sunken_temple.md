@@ -15,5 +15,7 @@ Sky and light: vanilla day (no 1.21.1 environment). Mobs: guardians, drowned (fr
 Must NOT appear: mineshafts, villages, pillager outposts, trial dungeons (nova trial_dungeon: not a temple), mansions.
 Remove: roll want trial_dungeon.
 
+Danger and reward (RB-39): mild danger, temple loot is the draw: "temple-hunting"; easy to roam (mobs 0.8), rich in temples and monuments (luck high). 1.21.1 difficulty block: {"mobMultiplier": 0.8, "playerLuck": 1.6}.
+
 ## Structures (places plan, docs/design/rebuild-26/places/dimensions.md)
 Follows the places plan: mtr:ocean_temple forced in a basin near spawn (500,0 within 400) and a second wanted 1200-2000 out; monuments set and one wanted 300-1200; ati sinking_temple and underwater_dungeon wanted; nova conduit ruins; mss large_tower near spawn, small_tower spread, castle_ruin near the border. Half-drowned shore ruins: set piece, waiting on the places kit. This replaces the card's earlier drop of the towers and castle ruin.
