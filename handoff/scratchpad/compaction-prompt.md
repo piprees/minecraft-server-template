@@ -29,6 +29,17 @@ Paste this as the summary when the session is compacted or handed off. Before ac
 - the_violet_spire is night-only.
 - End: a denser dungeons group (about 57 cities), and elytra at 8% a chest in End dungeon chests.
 
+## Owner's roadmap decisions (all nine ticked in the doc, no comments; read as yes to the fuller option)
+1. **Content:** the switch waits for content (blocks, items, creatures). CONFIRM in one line when next asking the owner a question.
+2. **Waiting mods:** build our own YUNG's-style overhauls, mega-dungeons and the Discord chat bridge now. Which wins if a mod ships later: CONFIRM.
+3. **Cut mods:** all come back as our own (Chipped, Macaw's Roofs, Universal Sawmill, Amendments, Creeper Overhaul, Guard Villagers, Dungeons Reborn, 3D Placeable Food, Fabric Seasons, BlueMap sign markers).
+4. **Seasons:** server-side seasons (crops, snow, temperature).
+5. **Better Combat:** accept losing it.
+6. **Biomes:** about 60 more of our own.
+7. **Resource pack:** the server resource pack is required on join.
+8. **Mods:** add the ten mods now available, through the dependency checklist.
+9. **Portal ambience:** bring it back.
+
 ## State (log time in HANDOFF.md)
 - **Roadmap doc:** "Adventure pack on 26.3: parity roadmap", https://claude.ai/artifact/Ezk5Wt4Wr1tApDUqsRhG8A (Claude Docs project 7156bec1-4a57-4666-b2d9-0b149b0ec53b).
   - The owner's decisions are a checklist in it. Read the doc, with its ticks and comments, before planning.
