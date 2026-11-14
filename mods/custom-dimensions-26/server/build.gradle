@@ -149,7 +149,7 @@ loom {
 	}
 }
 
-// runFastBench -PfastBench=<slug>:<seed>:<radius>:<step>:<threads>[,...] [-PfastBenchOut=<dir>] [-PfastBenchJvm='<flags>']:
+// runFastBench -PfastBench=<slug>:<seed>:<radius>:<step|wave|map>:<threads>[,...] [-PfastBenchOut=<dir>] [-PfastBenchJvm='<flags>']:
 // the headless fast render benchmark (FastBench): loads the registries and the compiled pack, renders, exits. No world or network.
 loom {
 	runs {

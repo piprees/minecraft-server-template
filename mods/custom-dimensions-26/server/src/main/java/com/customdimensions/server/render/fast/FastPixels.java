@@ -19,8 +19,12 @@ public final class FastPixels {
     final short[] top;
     final short[] topBlock;
     final byte[] topDepth;
+    /** The topmost run's own top block, under any fluid over it. */
+    final short[] topGround;
     final short[] floorBlock;
     final byte[] floorDepth;
+    /** The surface run's own top block, under any fluid over it. */
+    final short[] floorGround;
     final short[] cutTop;
     final short[] cutBlock;
     final byte[] runs;
@@ -34,8 +38,10 @@ public final class FastPixels {
         top = filled(n, NO_Y);
         topBlock = filled(n, NONE);
         topDepth = new byte[n];
+        topGround = filled(n, NONE);
         floorBlock = filled(n, NONE);
         floorDepth = new byte[n];
+        floorGround = filled(n, NONE);
         cutTop = filled(n, NO_Y);
         cutBlock = filled(n, NONE);
         runs = new byte[n];

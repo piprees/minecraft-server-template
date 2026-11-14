@@ -125,10 +125,16 @@ public final class FastRender {
      * run list each on or off; the fixed heights to slice; a pre-scan to
      * reuse (null to make one); and {@code floorFirst}, which scans a roofed
      * world from its floor to under its roof ({@link ScanWindow#FLOOR}) and
-     * draws the floor in place of the roof.
+     * draws the floor in place of the roof; {@code images} off paints and
+     * writes no layer, for a caller that draws its own from the pixels.
      */
     record Options(String base, boolean compare, boolean structures, boolean runs, List<SliceChoice.Slice> slices,
-                   Prescan prescan, boolean floorFirst) {
+                   Prescan prescan, boolean floorFirst, boolean images) {
+        Options(String base, boolean compare, boolean structures, boolean runs, List<SliceChoice.Slice> slices, Prescan prescan,
+                boolean floorFirst) {
+            this(base, compare, structures, runs, slices, prescan, floorFirst, true);
+        }
+
         static Options full() {
             return new Options(null, true, true, true, List.of(), null, false);
         }
@@ -136,7 +142,8 @@ public final class FastRender {
 
     /** A render's result with what it drew, for a wave's sheet and a bench's comparisons. */
     record Rendered(Result result, ColumnSamples samples, FastPixels pixels, FastSlices slices, Map<String, int[]> rgb,
-                    Map<String, Path> images, int[] colours, Prescan prescan, String windowMode, Map<String, Long> timings) {}
+                    Map<String, Path> images, int[] colours, Prescan prescan, String windowMode, Map<String, Long> timings,
+                    List<BlockState> blocks, List<FastLayers.Footprint> footprints) {}
 
     /** Renders {@code grid} for {@code sampler} on {@code pool} into {@code dir}. */
     public static Result run(Sampler sampler, RenderGrid grid, ExecutorService pool, int threads, Path dir, RenderJob job,
@@ -234,10 +241,11 @@ public final class FastRender {
             long columns = grid.columns();
             int roofed = pixels.roofedCount();
             boolean roofLayers = !floorFirst && roofed >= LAYER_SHARE * columns;
-            int[] floor = roofLayers || floorFirst ? FastLayers.floor(pixels, colours, samples) : null;
-            int[] map = floorFirst ? floor : FastLayers.map(pixels, colours);
+            int[] floor = options.images() && (roofLayers || floorFirst) ? FastLayers.floor(pixels, colours, samples) : null;
+            int[] map = !options.images() ? null : floorFirst ? floor : FastLayers.map(pixels, colours);
             List<CompletableFuture<Void>> writes = new ArrayList<>();
             java.util.function.BiConsumer<String, java.util.function.Supplier<int[]>> layer = (name, paint) -> {
+                if (!options.images()) return;
                 synchronized (rgb) {
                     rgb.put(name, null);
                     images.put(name, dir.resolve(base + "-" + name + ".png"));
@@ -268,7 +276,7 @@ public final class FastRender {
             if (samples.hasZones()) layer.accept("zones", () -> RenderLayers.ZONES.paint(samples));
             layer.accept("hillshade", () -> FastLayers.hillshade(samples));
             List<Integer> tiers = new ArrayList<>();
-            for (int tier = 0; tier < FastPixels.TIERS && !floorFirst; tier++) {
+            for (int tier = 0; tier < FastPixels.TIERS && !floorFirst && options.images(); tier++) {
                 if (pixels.withRun(tier + 1) < LAYER_SHARE * columns) break;
                 tiers.add(tier + 1);
                 int index = tier;
@@ -314,7 +322,8 @@ public final class FastRender {
             Files.move(tmp, sidecar, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
             Result result = new Result(sampler.dimension(), sampler.seed(), grid, sidecar, sampleMs, total, rate, speedup,
                     comparison.heightsWithinOne(), comparison.biomesEqual(), samples.biomeCounts().size(), threads);
-            return new Rendered(result, samples, pixels, slices, rgb, images, colours, pre, window.mode(), timings);
+            return new Rendered(result, samples, pixels, slices, rgb, images, colours, pre, window.mode(), timings, palette.states(),
+                    List.copyOf(footprints));
         } finally {
             for (ColumnModel m : made) m.close();
         }
@@ -484,10 +493,12 @@ public final class FastRender {
         if (n == 0) return;
         p.top[i] = (short) r.top(0);
         p.topBlock[i] = face(palette, d, 0);
+        p.topGround[i] = palette.index(d.top(0));
         p.topDepth[i] = depth(d, r, 0);
         int floor = surfaceRun == -2 ? 0 : surfaceRun;
         if (floor >= 0) {
             p.floorBlock[i] = face(palette, d, floor);
+            p.floorGround[i] = palette.index(d.top(floor));
             p.floorDepth[i] = depth(d, r, floor);
         }
         for (int t = 0; t < FastPixels.TIERS && t + 1 < n; t++) {
@@ -911,6 +922,10 @@ public final class FastRender {
                     return (short) (states.size() - 1);
                 });
             }
+        }
+
+        synchronized List<BlockState> states() {
+            return List.copyOf(states);
         }
 
         synchronized int[] colours() {

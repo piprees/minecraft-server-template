@@ -72,6 +72,8 @@ public final class FastBench {
     public static final String FINAL_SIDE_PROPERTY = "customdimensions.fastbench.finalside";
     /** The step a case gives to ask for a wave. */
     public static final String WAVE = "wave";
+    /** The step that runs the web map's generated export ({@link MapExport}) instead, twice: the second finds its fingerprint and skips. */
+    public static final String MAP = "map";
 
     /** One dimension to render; a step of 0 is a wave. */
     public record Case(String slug, long seed, int radius, int step, int threads) {}
@@ -120,7 +122,7 @@ public final class FastBench {
         for (String one : spec.split(",")) {
             String[] p = one.trim().split(":");
             if (p.length != 5) throw new IllegalArgumentException("a case is slug:seed:radius:step:threads, not " + one);
-            int step = WAVE.equals(p[3]) ? 0 : Integer.parseInt(p[3]);
+            int step = WAVE.equals(p[3]) ? 0 : MAP.equals(p[3]) ? -1 : Integer.parseInt(p[3]);
             out.add(new Case(p[0], Long.parseLong(p[1]), Integer.parseInt(p[2]), step, Integer.parseInt(p[4])));
         }
         return out;
@@ -152,6 +154,20 @@ public final class FastBench {
                 }
                 ExecutorService pool = Executors.newFixedThreadPool(c.threads());
                 try {
+                    if (c.step() == -1) {
+                        Sampler sampler = Sampler.of(c.slug(), stem.generator(), type.minY(), type.height(), c.seed(), "argument", access);
+                        Path dir = out.resolve("map").resolve(c.slug());
+                        for (int i = 1; i <= 2; i++) {
+                            MapExport.Result r = MapExport.run(sampler, c.radius(), pool, c.threads(), dir, null, false);
+                            String line = String.format(Locale.ROOT, "%s map %d: radius %d t%d %s in %d ms, %d columns, %d tiles, %d bytes, "
+                                            + "%d layers %s, %d markers, timings %s", c.slug(), i, c.radius(), c.threads(),
+                                    r.skipped() ? "skipped (fingerprint)" : "exported", r.millis(), r.columns(), r.tiles(), r.bytes(),
+                                    r.layers().size(), r.layers().stream().map(MapExport.Layer::id).toList(), r.markers(), r.timings());
+                            CustomDimensions.LOG.info("fast bench: {}", line);
+                            summary.add(line);
+                        }
+                        continue;
+                    }
                     if (c.step() == 0) {
                         Sampler sampler = Sampler.of(c.slug(), stem.generator(), type.minY(), type.height(), c.seed(), "argument", access);
                         List<String> lines = wave(c, sampler, pool, out);
