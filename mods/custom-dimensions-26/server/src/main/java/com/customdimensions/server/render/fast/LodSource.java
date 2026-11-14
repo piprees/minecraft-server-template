@@ -40,7 +40,9 @@ import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
  * dropped after, and ground cut off at a surface window's floor is carried
  * down to the noise floor. Which shortcut applies
  * follows from the pre-scan's runs, never from the level's name. Structures,
- * features (trees) and carvers are not in the runs.
+ * features (trees) and carvers are not in the runs. In a level with aquifers
+ * the fluid picker fills only the open space over an unroofed column's
+ * topmost run; under a roof or a run the space is a cave and stays open.
  */
 public final class LodSource implements AutoCloseable {
     /** Columns a side of one request: a Distant Horizons data source. */
@@ -182,11 +184,12 @@ public final class LodSource implements AutoCloseable {
                         int gx = (surfaceTop[Math.min(i + 1, n - 1) + n * j] - surfaceTop[Math.max(i - 1, 0) + n * j]) / step;
                         int gz = (surfaceTop[i + n * Math.min(j + 1, n - 1)] - surfaceTop[i + n * Math.max(j - 1, 0)]) / step;
                         materials.column(bx, bz, gx, gz);
-                        RunDress<BlockState> d = RunDress.of(r, bx, bz, lo, hi, materials, fluids, fallback, true);
+                        boolean roofed = r.roofed(hi) || scan != null && scan.unroofed()[c];
+                        RunDress<BlockState> d = RunDress.of(r, bx, bz, lo, hi, materials, fluids, fallback, true,
+                                RunDress.openRuns(r.count(), model.aquifers(), roofed));
                         List<Holder<Biome>> biomes = new ArrayList<>(Math.max(1, r.count()));
                         for (int k = 0; k < r.count(); k++) biomes.add(model.biome(bx, r.top(k) + 1, bz));
                         if (r.count() == 0) biomes.add(model.biome(bx, seaLevel, bz));
-                        boolean roofed = r.roofed(hi) || scan != null && scan.unroofed()[c];
                         out[(tx + i) + WIDTH * (tz + j)] = new Column(r, d, biomes, roofed);
                     }
                 }

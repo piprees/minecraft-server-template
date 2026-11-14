@@ -746,16 +746,25 @@ window kept. In the Nether no height is open in more than 55 % of floored
 columns, so it scans whole columns and drops the roof.
 
 Not drawn: structures, trees and other features, and carvers' caves, which
-come after the noise stage; an aquifer's local water tables (the global fluid
-picker's sea and lava levels are drawn). Where a player or Chunky has made
-chunks, DH builds those LODs from the chunks as they load.
+come after the noise stage; an aquifer's local water tables. The global fluid
+picker's sea and lava levels are drawn over an unroofed column's topmost run,
+and under a roof or a run only in a level without aquifers, whose noise stage
+fills every open space below them; with aquifers that space is a cave and
+stays open (`RunDress.openRuns`). Where a player or Chunky has made chunks, DH
+builds those LODs from the chunks as they load.
 
 `./gradlew :server:runFastBench -PfastBench=<slug>:<seed>:<reach>:<step>:<threads>[,...] -PfastBenchLod=<detail>[,...]`
 measures each case's `LodSource` headless instead of rendering (`LodBench`):
 the pre-scan's shape and rule, each coarse level's shortcut against whole
 columns (heights within one block and exact, runs kept, runs per column), and
 one request per level answered end to end with every column checked as DH
-checks one (no gap, no empty segment, down to the floor). `runServer -Pdh`
+checks one (no gap, no empty segment, down to the floor) and the columns
+holding fluid under ground counted. `-PfastBenchLodColumns='<x>:<z>[;...]'`
+also prints those columns' full-detail runs beside the generator's own noise
+column (`getBaseColumn`). The self-test's comparison with real chunks reads a
+chunk's ground without trees and huge fungi, and with the noise column's block
+where a carver or a digging feature opened it (`ChunkGround`); its TSV keeps
+the chunk's surface as it stands and the runs dug. `runServer -Pdh`
 also has DH check every column the generator gives it
 (`-Dcustomdimensions.dh.validate=true`).
 

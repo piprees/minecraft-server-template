@@ -1596,6 +1596,78 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t280"></a>
+### T280 — A real chunk's carver caves read as ground in the LOD check
+- **Symptom:** `lod vs chunks` on a roofed level misses by tens of blocks while the LOD column equals the generator's `getBaseColumn` there: the real surface inside the roof (114 and 118 against LOD floors of 22 and 66), inside a column the noise holds solid (110 against 128), or at the bedrock under a cut floor (4 against 29).
+- **Cause:** carvers cut caves after the noise stage, anywhere from y 0 to the top (`nether_cave` in every Nether biome). The check's surface reading (`Sampler.surface`) takes the first open block under a roof's top as its underside, so a cave in the roof reads as the floor under it, and a cut through a floor (air or lava) drops it to the bedrock. The LOD draws no carvers.
+- **Fix:** the check reads the chunk's ground with the noise column's block wherever the chunk is open and the noise solid (`ChunkGround`); its line counts the columns read so, and the TSV keeps `chunkHeight` and the `dug` runs. Bisect a miss with `runFastBench -PfastBenchLod=0 -PfastBenchLodColumns='<x>:<z>'`: an LOD equal to the noise column clears the generator.
+
+<a id="t279"></a>
+### T279 — The LOD self-test needs empty Distant Horizons databases
+- **Symptom:** `lod pregen <slug>` reports 0 full-detail requests served.
+- **Cause:** DH skips every section it already holds, from earlier boots or from real chunks it imported.
+- **Fix:** delete `DistantHorizons*.sqlite*` under the run's world before the boot; the LOD lane script does.
+
+<a id="t278"></a>
+### T278 — A fixed start height under a roof is not exact, and a min()-capped metric hides it
+- **Symptom:** a roofed level's coarse LODs miss floors while the shortcut's comparison scores well.
+- **Cause:** in the Nether the best single start height is open in only 55 % of the pre-scan's floored columns. Compared against min(floor, start + 1), a cut at a useless height (35) scores 67 %.
+- **Fix:** compare against the floor under the roof. A fixed start is taken only when it is open in at least 90 % of floored pre-scan columns (`LodSource.ROOF_START_SHARE`); otherwise whole columns are scanned and the roof dropped.
+
+<a id="t277"></a>
+### T277 — A base world's LOD generator is bound in `DhApiLevelLoadEvent`, before `SERVER_STARTED`
+- **Symptom:** a base world's LODs come from DH's own generator, or its LOD reach is wrong.
+- **Cause:** DH loads the base worlds' levels before `SERVER_STARTED`, when `LevelManager` does not exist yet; a binding made later misses them, and a reach read at binding has no borders.
+- **Fix:** bind every level in a `DhApiLevelLoadEvent` handler (`DhLodGenerators.register`) and read the reach lazily, on the first coarse request (`LodSource.reach`).
+
+<a id="t276"></a>
+### T276 — LODs marked `LIGHT` are final to Distant Horizons
+- **Symptom:** after a worldgen or definition change, distant terrain still shows the old shape.
+- **Cause:** the generator marks every column `LIGHT`, and DH never asks again for a section it holds so.
+- **Fix:** delete the level's `DistantHorizons*.sqlite*` together with the world wipe ([D2](#d2)), and remove its `.dhpregen-<id>-complete` marker.
+
+<a id="t275"></a>
+### T275 — With aquifers, the global fluid picker floods every cave
+- **Symptom:** a slice, a map or a coarse LOD shows water in every cave or floor dip below sea level of a level with aquifers.
+- **Cause:** aquifers give caves their own local water tables; the global fluid picker knows only the sea and lava levels, so asked under ground it fills every open space below them. A level without aquifers (no `aquifers` in its noise settings) is filled that way by its own noise stage, so its water is real.
+- **Fix:** in a level with aquifers, draw open space under a roof or a run as a cave; the picker applies only under open sky or in a level without aquifers (slices: `FastRender.slice`; LODs: `RunDress.openRuns`).
+
+<a id="t274"></a>
+### T274 — Solid coverage per height smears a sky world's tiers into one band
+- **Symptom:** tier detection on an island world finds one band where there are several.
+- **Cause:** solid coverage per height sums islands of every thickness, filling the gaps between tiers.
+- **Fix:** count run middles per height and split at a dip to 0.85 of the peaks either side (`SliceChoice.VALLEY`). That 0.85 is tuned on one sky world (`the_aviary`) and may not hold for others.
+
+<a id="t273"></a>
+### T273 — A slice at `sea_level` shows open sky over every sea
+- **Symptom:** a fixed-height slice at sea level draws sky over every ocean.
+- **Cause:** the sea's top fluid block is at sea level − 1.
+- **Fix:** slice at sea level − 1.
+
+<a id="t272"></a>
+### T272 — A floor-first scan started under the roof's thickness cuts tall floors
+- **Symptom:** a roofed world scanned from the floor (`ScanWindow.FLOOR`) loses the tops of its tall floors: started at y 26 under a median floor of 64, it kept 23 %.
+- **Cause:** a fixed start under the roof's thickness lies inside the highest floors.
+- **Fix:** start over the floors' 0.99 quantile, read a column solid down to the noise floor as solid to the noise top, and take the floor-first scan only when the pre-scan's own columns agree with whole columns in at least 95 %.
+
+<a id="t271"></a>
+### T271 — A roofed world's depth is measured from floorHeight, not the floor
+- **Symptom:** a `climate.depth` box meant for "under the battlefield" takes the deep floors of chasms and pits first (deep_dark from 0.15: 14.8% of the surface, 3.8% of the caves), or nearly nothing.
+- **Cause:** `RoofedTerrain`'s router depth is `(floorHeight − y) / 128`; a chasm floor and the rock under a shallow floor read the same depth.
+- **Fix:** `biomeLayout.belowFloor` (biome to blocks, 4–256): points that many blocks under the actual floor read depth from 1.5 up (`RoofedTerrain.BAND`), a range no floor reaches on either preset, so the bound biome holds the underground under every place and none of the open floor. Router values keep `BAND_EDGE` (0.0005) off a band's edge: a value exactly on two touching boxes' shared edge is a nearest-distance tie.
+
+<a id="t270"></a>
+### T270 — Above the Nether's bedrock roof is open air
+- **Symptom:** on a roofed dimension the survey's vista summit sat at y 128 and pick-shots put the far camera at 140, over the roof; surface landmark cameras stood at y 128 (the_blackstone_keep: 2 of 21).
+- **Cause:** the nether-type dimension is 256 high with 128 logical; a column solid from floor to roof has its "surface" at the roof's top, and the air above the bedrock gives it a clear eye.
+- **Fix:** the coarse sample keeps each column's roof (`ColumnSamples.roof`); under a ceiling the vista is the highest floor with `Landforms.OPEN_UNDER_ROOF` (16) or more blocks open under its roof, and a surface camera needs a roof over it (an open one first).
+
+<a id="t269"></a>
+### T269 — A biome's own fog and sky replace the dimension's
+- **Symptom:** a dimension's `atmosphere.fogColor`/`skyColor` shows only where a biome sets none: on the nether preset (no fog in vanilla's Nether type) or over a library biome with its own fog, frames read the biome's colour (the_obsidian_sanctum over `withered_forest`: mean luma 58.7 against 16.9 wanted).
+- **Cause:** the game applies the dimension type's attributes, then the biome's (positional), then the type's timelines in list order (`EnvironmentAttributeSystem`: static layers, then dynamic). A biome attribute is an override.
+- **Fix:** `atmosphere.overBiomes: true` writes the colours as `<ns>:atmosphere/<slug>`, a constant `override` track each, first in the type's `timelines`; the day's `multiply` tracks still darken them. Never write per-dimension biome copies for this: a copied biome loses its id's tags, structure biome checks and palettes.
+
 <a id="t268"></a>
 ### T268 — A heart's warp is held to its room
 - **Symptom:** a definition whose `biomeLayout.places.warp` is larger than a heart allows is refused naming the heart; or a heart's edge wanders less than `terrain.climateWarp` or the default warp would suggest.
@@ -1616,8 +1688,8 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
 
 <a id="t265"></a>
 ### T265 — 26.3's batch density path is slower than the point path
-- **Symptom:** a render or bench through `sampleVolume` runs slower than one sampling column by column, or two runs of `/customdim fastrender` disagree on the speed-up by 1.5–3×; an exact render differs from the game's in the last float bit.
-- **Cause:** an `InterpolatedFunction` given a volume whose step is not its cell samples every block, and `LerpFunction` samples both its sides at every point (old_blended_noise's two 16-octave limit noises included). Vanilla fills a cell's blocks with its lerps and a running sum that starts at the volume's lowest block, so a window that does not start on a cell row rounds differently. The sidecar reference rate swings between runs on a shared thread pool.
+- **Symptom:** a render or bench through `sampleVolume` runs slower than one sampling column by column, or two runs of `/customdim fastrender` disagree on the speed-up by 1.5–3×, or two identical headless benches disagree by 1.5–2×; an exact render differs from the game's in the last float bit.
+- **Cause:** an `InterpolatedFunction` given a volume whose step is not its cell samples every block, and `LerpFunction` samples both its sides at every point (old_blended_noise's two 16-octave limit noises included). Vanilla fills a cell's blocks with its lerps and a running sum that starts at the volume's lowest block, so a window that does not start on a cell row rounds differently. The sidecar reference rate swings between runs on a shared thread pool, and headless bench timings swing between runs while a server shares the machine (load about 7 on 4 cores).
 - **Fix:** where a render needs exact values, sample the cell corners and fill the blocks with vanilla's lerps and running sum from a window that starts on a cell row. Compare speeds within one run, or against `runFastBench`'s dense reference.
 
 <a id="t264"></a>

@@ -19,6 +19,8 @@ import net.minecraft.world.level.block.state.BlockState;
  */
 final class LodBench {
     static final String PROPERTY = "customdimensions.fastbench.lod";
+    /** {@code x:z[;x:z...]}: columns whose full-detail LOD runs are printed beside the generator's own noise column. */
+    static final String COLUMNS_PROPERTY = "customdimensions.fastbench.lod.columns";
     /** Tiles a side the comparison spreads over the reach. */
     static final int TILES = 8;
 
@@ -32,6 +34,13 @@ final class LodBench {
             out.add(String.format(Locale.ROOT, "%s lod shape: %s, window %d..%d, pre-scan %d columns every %d blocks (%d roofed, %d floating) "
                             + "in %d ms; %s", slug, shape.mode(), shape.from(), shape.to(), shape.columns(), shape.spacing(), shape.roofed(),
                     shape.floating(), (System.nanoTime() - t) / 1_000_000, shape.rule()));
+            String at = System.getProperty(COLUMNS_PROPERTY, "");
+            if (!at.isBlank()) {
+                for (String xz : at.split(";")) {
+                    String[] p = xz.trim().split(":");
+                    out.add(column(slug, sampler, source, Integer.parseInt(p[0].trim()), Integer.parseInt(p[1].trim())));
+                }
+            }
             for (String d : details.split(",")) {
                 int detail = Integer.parseInt(d.trim());
                 if (!LodSource.fine(detail)) {
@@ -47,7 +56,39 @@ final class LodBench {
         return out;
     }
 
-    /** One request at {@code detail} from the origin, end to end, with its segments checked. */
+    /**
+     * The full-detail LOD column at {@code (x, z)} beside the generator's noise
+     * column there: the LOD's runs and surface, the noise column's runs of one
+     * block (top down) and surface, as {@code Sampler.surface} reads each.
+     */
+    static String column(String slug, Sampler sampler, LodSource source, int x, int z) {
+        LodSource.Column c = source.columns(x, z, 0)[0];
+        ColumnRuns r = c.runs();
+        StringBuilder runs = new StringBuilder();
+        for (int k = 0; k < r.count(); k++) runs.append(k == 0 ? "" : ", ").append(r.top(k)).append("..").append(r.bottom(k));
+        var noise = sampler.noiseColumn(x, z);
+        int top = sampler.noiseTop();
+        int minY = sampler.minY();
+        StringBuilder blocks = new StringBuilder();
+        int y = top;
+        while (y >= minY) {
+            BlockState b = noise.getBlock(y);
+            int from = y;
+            while (y >= minY && noise.getBlock(y) == b) y--;
+            blocks.append(blocks.isEmpty() ? "" : ", ").append(from).append("..").append(y + 1).append(' ')
+                    .append(b.getBlock().builtInRegistryHolder().key().identifier().getPath());
+        }
+        int lodSurface = r.surface(source.noiseTop(), source.minY());
+        int noiseSurface = Sampler.surface(noise::getBlock, top, minY).height();
+        return String.format(Locale.ROOT, "%s lod column %d %d: lod surface %d, runs [%s]%s; noise surface %d, blocks [%s]", slug, x, z,
+                lodSurface, runs, c.roofed() ? " roofed" : "", noiseSurface, blocks);
+    }
+
+    /**
+     * One request at {@code detail} from the origin, end to end, with its
+     * segments checked, and the columns holding fluid in open space under a
+     * run or a roof (a cave's fluid, which only a level without aquifers has).
+     */
     static String request(String slug, LodSource source, int detail) {
         long t = System.nanoTime();
         LodSource.Column[] columns = source.columns(0, 0, detail);
@@ -56,7 +97,14 @@ final class LodBench {
         int bad = 0;
         String firstBad = null;
         int levelTop = Integer.MIN_VALUE;
+        int caveFluid = 0;
         for (LodSource.Column c : columns) {
+            for (int k = c.roofed() ? 0 : 1; k < c.runs().count(); k++) {
+                if (c.dress().fluid(k) != null) {
+                    caveFluid++;
+                    break;
+                }
+            }
             List<LodColumn.Segment<BlockState, Holder<Biome>>> s = source.segments(c);
             String problem = check(s, source.minY());
             if (problem != null && bad++ == 0) firstBad = problem;
@@ -65,9 +113,9 @@ final class LodBench {
             for (var seg : s) if (!seg.block().isAir() && seg.block().getFluidState().isEmpty()) solid++;
         }
         return String.format(Locale.ROOT, "%s lod request detail %d: %d columns, %.2f segments and %.2f solid segments per column, "
-                        + "%d columns malformed%s, %d ms", slug, detail, columns.length, (double) segments / columns.length,
-                (double) solid / columns.length, bad, firstBad == null ? "" : " (first: " + firstBad + ")",
-                (System.nanoTime() - t) / 1_000_000);
+                        + "%d columns malformed%s, %d with fluid under ground, %d ms", slug, detail, columns.length,
+                (double) segments / columns.length, (double) solid / columns.length, bad, firstBad == null ? "" : " (first: " + firstBad + ")",
+                caveFluid, (System.nanoTime() - t) / 1_000_000);
     }
 
     /** Null when the segments are as DH takes a column, else what is wrong. */

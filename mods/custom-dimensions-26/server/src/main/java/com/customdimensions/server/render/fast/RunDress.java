@@ -49,13 +49,24 @@ public final class RunDress<T> {
      */
     public static <T> RunDress<T> of(ColumnRuns runs, int x, int z, int lo, int hi, Materials<T> materials, Fluids<T> fluids,
                                      T fallback, boolean undersides) {
+        return of(runs, x, z, lo, hi, materials, fluids, fallback, undersides, runs.count());
+    }
+
+    /**
+     * As {@link #of(ColumnRuns, int, int, int, int, Materials, Fluids, Object, boolean)},
+     * with the fluid picker filling only the open space over the first
+     * {@code openRuns} runs ({@link #openRuns}); the space over the others
+     * stays open.
+     */
+    public static <T> RunDress<T> of(ColumnRuns runs, int x, int z, int lo, int hi, Materials<T> materials, Fluids<T> fluids,
+                                     T fallback, boolean undersides, int openRuns) {
         RunDress<T> d = new RunDress<>(runs.count());
         for (int i = 0; i < runs.count(); i++) {
             int top = runs.top(i);
             int bottom = runs.bottom(i);
             int gapTop = i == 0 ? hi : runs.bottom(i - 1) - 1;
             int water = Integer.MIN_VALUE;
-            if (top + 1 <= gapTop) {
+            if (i < openRuns && top + 1 <= gapTop) {
                 Fluid<T> f = fluids.at(x, top + 1, z);
                 if (f != null) {
                     d.fluids[i] = f.state();
@@ -71,6 +82,16 @@ public final class RunDress<T> {
             }
         }
         return d;
+    }
+
+    /**
+     * How many of a column's {@code count} runs, from the top, take the fluid
+     * picker's fluid over them: all in a level without aquifers; with
+     * aquifers only the topmost of an unroofed column, as the open space under
+     * a roof or a run is a cave whose local water the picker does not know.
+     */
+    public static int openRuns(int count, boolean aquifers, boolean roofed) {
+        return !aquifers ? count : roofed ? 0 : Math.min(1, count);
     }
 
     @SuppressWarnings("unchecked")

@@ -28,6 +28,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.NoiseColumn;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 /**
@@ -38,10 +39,13 @@ import net.minecraft.world.level.chunk.LevelChunk;
  * pre-generates a {@value #PREGEN_CHUNKS}-chunk radius with {@code /dh pregen}
  * as {@code idle-tasks.sh} does and counts the requests the generator served,
  * then reads DH's stored LOD columns on a grid and generates the real chunks
- * there: surface heights (trees left out), the block under the surface and the
- * biome at it, compared. Every column is written to
- * {@code lod-check-<slug>.tsv} in the server directory. Runs on its own
- * thread, the game's work handed to the server thread.
+ * there: surface heights, the block under the surface and the biome at it,
+ * compared. The chunk's ground leaves out trees and reads the level's noise
+ * column where a carver or a digging feature opened it ({@link ChunkGround}),
+ * as the LOD draws neither. Every column is written to
+ * {@code lod-check-<slug>.tsv} in the server directory, with the chunk's
+ * surface as it stands and the runs it lost after the noise stage. Runs on
+ * its own thread, the game's work handed to the server thread.
  */
 final class DhLodSelfTest {
     static final String DIMENSIONS_PROPERTY = "customdimensions.selftest.lod";
@@ -157,13 +161,16 @@ final class DhLodSelfTest {
                                             LodSource source) throws IOException {
         int minY = level.getMinY();
         int top = source.noiseTop();
-        StringBuilder tsv = new StringBuilder("x\tz\tlodHeight\trealHeight\tlodBlock\trealBlock\tlodBiome\trealBiome\n");
+        StringBuilder tsv = new StringBuilder("x\tz\tlodHeight\trealHeight\tlodBlock\trealBlock\tlodBiome\trealBiome\tchunkHeight\tdug\n");
         int n = 0;
         int heights = 0;
         int blocks = 0;
         int biomes = 0;
         int missing = 0;
         int surfaced = 0;
+        int dugInto = 0;
+        var generator = level.getChunkSource().getGenerator();
+        var randomState = level.getChunkSource().randomState();
         int radius = PREGEN_CHUNKS * 16 - 72;
         int step = 2 * radius / 5;
         IDhApiTerrainDataCache cache = DhApi.Delayed.terrainRepo.createSoftCache();
@@ -198,12 +205,17 @@ final class DhLodSelfTest {
                 int bx = x;
                 int bz = z;
                 LevelChunk chunk = server.submit(() -> level.getChunk(bx >> 4, bz >> 4)).join();
-                IntFunction<BlockState> realBlock = y -> {
+                NoiseColumn noise = server.submit(() -> generator.getBaseColumn(bx, bz, level, randomState)).join();
+                IntFunction<BlockState> chunkBlock = y -> {
                     BlockState s = chunk.getBlockState(new BlockPos(bx, y, bz));
                     return tree(s) ? Blocks.AIR.defaultBlockState() : s;
                 };
+                IntFunction<BlockState> realBlock = ChunkGround.of(chunkBlock, noise::getBlock, Sampler::solid);
                 int lodHeight = Sampler.surface(lodBlock, top, minY).height();
                 int realHeight = Sampler.surface(realBlock, top, minY).height();
+                int chunkHeight = Sampler.surface(chunkBlock, top, minY).height();
+                String dug = ChunkGround.dug(chunkBlock, noise::getBlock, Sampler::solid, top, Math.max(minY, Math.min(realHeight, chunkHeight) - 1));
+                if (chunkHeight != realHeight) dugInto++;
                 String lodTop = name(lodBlock.apply(lodHeight - 1));
                 String realTop = name(realBlock.apply(realHeight - 1));
                 String lodBiome = biomeAt(points, lodHeight - 1);
@@ -215,7 +227,8 @@ final class DhLodSelfTest {
                     if (lodBiome.equals(realBiome)) biomes++;
                 }
                 tsv.append(x).append('\t').append(z).append('\t').append(lodHeight).append('\t').append(realHeight).append('\t')
-                        .append(lodTop).append('\t').append(realTop).append('\t').append(lodBiome).append('\t').append(realBiome).append('\n');
+                        .append(lodTop).append('\t').append(realTop).append('\t').append(lodBiome).append('\t').append(realBiome).append('\t')
+                        .append(chunkHeight).append('\t').append(dug).append('\n');
             }
         }
         Path file = Path.of("lod-check-" + slug + ".tsv");
@@ -224,8 +237,9 @@ final class DhLodSelfTest {
         boolean ok = missing == 0 && heights / d >= HEIGHTS_BAR && blocks / d >= BLOCKS_BAR && biomes / ds >= BIOMES_BAR;
         CustomDimensions.LOG.info("lod check {}: {} columns -> {}", slug, n, file.toAbsolutePath());
         return (ok ? "PASS" : "FAIL") + String.format(Locale.ROOT, " lod vs chunks %s: %d columns, %d without LOD data, heights within 1 %.1f%%, "
-                        + "block under the surface %.1f%%, biome %.1f%% of %d columns with a surface (bars %.0f/%.0f/%.0f%%) -> %s", slug, n, missing, heights * 100 / d,
-                blocks * 100 / d, biomes * 100 / ds, surfaced, HEIGHTS_BAR * 100, BLOCKS_BAR * 100, BIOMES_BAR * 100, file.toAbsolutePath());
+                        + "block under the surface %.1f%%, biome %.1f%% of %d columns with a surface (bars %.0f/%.0f/%.0f%%); "
+                        + "%d columns' surface read through blocks a carver or feature dug after the noise stage -> %s", slug, n, missing, heights * 100 / d,
+                blocks * 100 / d, biomes * 100 / ds, surfaced, HEIGHTS_BAR * 100, BLOCKS_BAR * 100, BIOMES_BAR * 100, dugInto, file.toAbsolutePath());
     }
 
     /** A tree's or a huge fungus's block, which the noise does not draw: logs, stems, leaves, wart blocks and shroomlight. */
