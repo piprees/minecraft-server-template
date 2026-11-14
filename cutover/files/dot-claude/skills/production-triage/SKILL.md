@@ -71,7 +71,7 @@ ssh ... 'docker exec mc ps -ax -o stat,comm | grep java'    # state starts with 
 | RCON times out, container shows healthy | `docker exec mc ps -ax -o stat,comm \| grep java` | `T*` = paused, normal. `S*`/`R*` = busy or wedged — see Crash-loop / known issues |
 | Server won't start / crash loop | `docker inspect mc --format 'RestartCount={{.RestartCount}}'` | See Crash-loop triage below — check `docker logs mc`, **not** `data/logs/latest.log` |
 | Slash commands (`/mc`, `/register`) missing | `docker logs discord-sync --tail 50 \| grep -i "slash"` | Check `[commands] enabled` in the _live_ `data/config/Discord-Integration.toml` — see [references/known-issues.md](references/known-issues.md) |
-| Map (map.DOMAIN) down | `docker logs unmined-render --tail 30` | `./scripts/map-render.sh status`, then `./scripts/map-render.sh render` to force a pass |
+| Map (map.DOMAIN) stale or empty | `./ops map status` (`data/map-web/.export-finished`) | `./ops map render` exports now; `docker logs mc --tail 200` for `web map` lines |
 | Backups look wrong (count/size) | `docker logs mc-backup --tail 50` | Cross-check the restic hostname retention trap — see [references/known-issues.md](references/known-issues.md) |
 | TPS bad / lag reports | `docker exec -i mc rcon-cli "tick query"` (spark on 26.3 uploads its health report rather than answering RCON) | `spark profiler start` … 30-60s … `spark profiler stop` |
 | Players locked out ("not whitelisted" despite the role) | `docker exec -i mc rcon-cli "whitelist list"` | A dead deploy can leave the whitelist cleared — restore via RCON or re-run deploy |
@@ -101,7 +101,7 @@ ls data/crash-reports/ 2>/dev/null       # tick-loop crashes land here (local ch
 
 ## Container inventory (cloud profile)
 
-`doctor.sh` checks all of these by name — if you're checking by hand, this is the list: `mc`, `mc-backup`, `uptime-kuma`, `nav-proxy`, `cloudflared`, `pack-web`, `mod-checker`, `discord-sync`, `idle-tasks`. `unmined-render` and `kuma-init` also run but aren't in doctor's per-container loop (`kuma-init` is one-shot; `unmined-render`'s health is judged by its own logs — see the symptom table above).
+`doctor.sh` checks all of these by name — if you're checking by hand, this is the list: `mc`, `mc-backup`, `uptime-kuma`, `nav-proxy`, `cloudflared`, `pack-web`, `mod-checker`, `discord-sync`, `idle-tasks`. `kuma-init` also runs but isn't in doctor's per-container loop (it is one-shot).
 
 ## Traps
 
@@ -109,7 +109,7 @@ ls data/crash-reports/ 2>/dev/null       # tick-loop crashes land here (local ch
 
 2. **`Timed out waiting for world statistics` alone is not proof of the c2me wedge.** It also fires through legitimately heavy boots (mass dimension creation can run 10+ minutes). Confirm with `Error upgrading chunk` / `DungeonZombie` counts in the log, and whether the log has stopped advancing at all. Full detail: [references/known-issues.md](references/known-issues.md).
 
-3. **The map has no RCON interface and no live link to mc.** It is rendered by the `unmined-render` sidecar (`scripts/map-render.sh`) into static tiles that nav-proxy serves off a bind mount, so it stays up while mc restarts or autopauses. Renders are incremental — a near-silent pass usually means nothing changed. Diagnose with `docker logs unmined-render`; force a pass with `./scripts/map-render.sh render` (this restarts the sidecar — a restart triggers an immediate render pass).
+3. **The map is files the mod writes, served without mc.** `customdim map export` draws every dimension into `data/map-web/` (idle-tasks sends it after pre-generation, every `MAP_INTERVAL`), and nav-proxy serves that folder off a bind mount, so the map stays up while mc restarts or autopauses. A dimension unchanged since the last export is skipped. Diagnose with `./ops map status` and the `web map` lines in `docker logs mc`.
 
 4. **Kuma monitors deleted in the UI reappear.** `config/uptime-kuma/kuma-config.json` is authoritative; `kuma-init` re-syncs it on every deploy.
 

@@ -149,7 +149,7 @@ loom {
 	}
 }
 
-// runFastBench -PfastBench=<slug>:<seed>:<radius>:<step>:<threads>[,...] [-PfastBenchOut=<dir>] [-PfastBenchJvm='<flags>']:
+// runFastBench -PfastBench=<slug>:<seed>:<radius>:<step|wave|map>:<threads>[,...] [-PfastBenchOut=<dir>] [-PfastBenchJvm='<flags>']:
 // the headless fast render benchmark (FastBench): loads the registries and the compiled pack, renders, exits. No world or network.
 loom {
 	runs {
@@ -167,6 +167,8 @@ loom {
 			vmArg "-Dcustomdimensions.fastbench.lod=${project.findProperty('fastBenchLod') ?: ''}"
 			// -PfastBenchLodColumns='<x>:<z>[;<x>:<z>...]': with -PfastBenchLod, also prints those columns' full-detail LOD runs beside the noise column.
 			vmArg "-Dcustomdimensions.fastbench.lod.columns=${project.findProperty('fastBenchLodColumns') ?: ''}"
+			// -PfastBenchRegions=<dir>: with a map case, also draws the explored layer from <dir>/<slug>/region/*.mca.
+			vmArg "-Dcustomdimensions.fastbench.regions=${project.findProperty('fastBenchRegions') ?: ''}"
 			vmArg "-Dcustomdimensions.definitions=${project.findProperty('definitions') ?: file('../definitions').canonicalPath}"
 			vmArg "-Dcustomdimensions.bridges=${project.findProperty('bridges') ?: file('../bridges').canonicalPath}"
 			if (project.hasProperty('fastBenchJvm')) {

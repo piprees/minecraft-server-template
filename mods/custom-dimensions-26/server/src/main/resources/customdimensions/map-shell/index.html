@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>World Map</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+    <button id="sidebar-toggle" type="button" aria-expanded="true"
+        aria-controls="sidebar" title="Toggle dimension list">
+        <span aria-hidden="true">&#9776;</span>
+        <span class="visually-hidden">Toggle dimension list</span>
+    </button>
+
+    <aside id="sidebar" aria-label="Dimensions">
+        <h2>Dimensions</h2>
+        <p id="sidebar-hint">Every world, drawn from its generator; explored ground is drawn from the saved world over it.</p>
+        <nav aria-label="Dimension maps"><ul id="dim-list"></ul></nav>
+    </aside>
+
+    <div id="view">
+        <div id="map" aria-label="World map" tabindex="0">
+            <div id="tiles-base" class="tiles"></div>
+            <div id="tiles-explored" class="tiles"></div>
+            <div id="markers"></div>
+        </div>
+
+        <div id="controls">
+            <button type="button" id="zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
+            <button type="button" id="zoom-out" title="Zoom out" aria-label="Zoom out">&minus;</button>
+        </div>
+
+        <button type="button" id="layers-toggle" aria-expanded="false" aria-controls="layers">Layers</button>
+        <section id="layers" aria-label="Map layers" hidden>
+            <fieldset id="base-layers"><legend>Map</legend></fieldset>
+            <fieldset id="overlays">
+                <legend>Over it</legend>
+                <label><input type="checkbox" id="show-explored" checked> Explored</label>
+                <label><input type="checkbox" id="show-markers"> Structures</label>
+            </fieldset>
+            <div id="legend" hidden></div>
+        </section>
+
+        <p id="coords" aria-hidden="true"></p>
+        <p id="marker-label" hidden></p>
+
+        <div id="map-empty" hidden>
+            <h1>No maps yet</h1>
+            <p>The map is drawn after the server has pre-generated its worlds.</p>
+        </div>
+    </div>
+
+    <p id="map-status" class="visually-hidden" aria-live="polite"></p>
+
+    <script src="/app.js"></script>
+</body>
+</html>

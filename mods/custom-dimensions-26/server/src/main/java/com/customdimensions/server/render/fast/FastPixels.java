@@ -19,14 +19,20 @@ public final class FastPixels {
     final short[] top;
     final short[] topBlock;
     final byte[] topDepth;
+    /** The topmost run's own top block, under any fluid over it. */
+    final short[] topGround;
     final short[] floorBlock;
     final byte[] floorDepth;
+    /** The surface run's own top block, under any fluid over it. */
+    final short[] floorGround;
     final short[] cutTop;
     final short[] cutBlock;
     final byte[] runs;
     final boolean[] roofed;
     final short[][] tierTop = new short[TIERS][];
     final short[][] tierBlock = new short[TIERS][];
+    /** Each tier run's own top block, under any fluid over it. */
+    final short[][] tierGround = new short[TIERS][];
 
     public FastPixels(int side) {
         this.side = side;
@@ -34,8 +40,10 @@ public final class FastPixels {
         top = filled(n, NO_Y);
         topBlock = filled(n, NONE);
         topDepth = new byte[n];
+        topGround = filled(n, NONE);
         floorBlock = filled(n, NONE);
         floorDepth = new byte[n];
+        floorGround = filled(n, NONE);
         cutTop = filled(n, NO_Y);
         cutBlock = filled(n, NONE);
         runs = new byte[n];
@@ -43,6 +51,7 @@ public final class FastPixels {
         for (int t = 0; t < TIERS; t++) {
             tierTop[t] = filled(n, NO_Y);
             tierBlock[t] = filled(n, NONE);
+            tierGround[t] = filled(n, NONE);
         }
     }
 

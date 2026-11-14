@@ -9,7 +9,7 @@
 # Pre-generation runs in two stages per dimension, in queue order:
 #   1. Chunky, out to the dimension's borders.generation — real chunks, so no
 #      generation stutter where players actually go, and region files for
-#      unmined-render to draw the map from.
+#      the web map's explored layer.
 #   2. Distant Horizons `/dh pregen`, out to the larger of the dimension's
 #      player and generation borders — LOD only, and what a player sees past
 #      the Chunky radius. The mod answers DH's generation requests from the
@@ -25,8 +25,8 @@
 # borders are the whole cost control — there is no separate cap. A lazy
 # dimension is opened with `customdim activate` before each stage starts in it.
 #
-# Only visited dimensions are pre-generated, detected the same way
-# unmined-render detects them: a region directory holding an .mca over 8k.
+# Only visited dimensions are pre-generated, detected by a region directory
+# holding an .mca over 8k.
 # A dimension nobody has entered has no region files and costs nothing.
 #
 # Completion is tracked by per-dimension marker files that persist across
@@ -45,11 +45,27 @@
 # RCON poll against a paused server wakes it. RCON timing out while the JVM
 # runs means BUSY, not paused — state is kept and the poll retried.
 #
+# The web map (map.DOMAIN) is exported by the mod: once pre-generation has
+# nothing left to do, and at most every MAP_INTERVAL, an idle pass sends
+# `customdim map export all`, holds .skip-pause-map while it runs, and drops
+# it when the mod stamps /data/map-web/.export-finished (or after
+# MAP_EXPORT_MAX_MINUTES). An export started elsewhere (`./ops map render`,
+# `/mc map-refresh`) touches .map-export-started and .skip-pause-map the same
+# way, and this loop clears it the same way. The export redraws each dimension's generated
+# layers only when its fingerprint changed and its explored layer only from
+# region files changed since the last export. The command goes out over the
+# same RCON poll the idle timer uses, only while the server is awake and
+# empty; nothing here wakes a paused server for it.
+#
 # Usage: no arguments. Configured entirely by environment:
 #   PREGEN_BORDER_RADIUS blocks, default 8192. Last-resort border, used only
 #                        when neither the definition nor settings.json's
 #                        defaults.borders gives one.
 #   DH_PREGEN            "true"/"false", default true. The stage-2 switch.
+#   MAP_INTERVAL         sleep(1) syntax (30m, 6h, 1d), default 6h; 0 turns
+#                        the web map export off.
+#   MAP_EXPORT_MAX_MINUTES  minutes after which a running export stops
+#                        holding autopause off, default 360.
 #   IDLE_GRACE           minutes of empty server before maintenance starts.
 #   POLL_INTERVAL        seconds between polls.
 #   DEPLOY_STALE_MINUTES age at which a deploy sentinel is treated as dead.
@@ -84,6 +100,7 @@ SETTINGS_FILE="$DIM_DIR/settings.json"
 SKIP_PAUSE_FILE="/data/.skip-pause"
 SKIP_PAUSE_OWN="/data/.skip-pause-idle"
 SKIP_PAUSE_OTHER="/data/.skip-pause-deploying"
+SKIP_PAUSE_MAP="/data/.skip-pause-map"
 # While .skip-pause-deploying exists, idle-tasks goes fully dormant — no
 # RCON, no pre-gen, no maintenance. A deploy owns the server (restarts,
 # dimension setup, config sync); idle work would race it. deploy.sh
@@ -183,7 +200,7 @@ enable_skip_pause() {
 disable_skip_pause() {
   if [[ -f "$SKIP_PAUSE_OWN" ]]; then
     rm -f "$SKIP_PAUSE_OWN"
-    if [[ ! -f "$SKIP_PAUSE_OTHER" ]]; then
+    if [[ ! -f "$SKIP_PAUSE_OTHER" && ! -f "$SKIP_PAUSE_MAP" ]]; then
       rm -f "$SKIP_PAUSE_FILE"
       echo "  Removed .skip-pause-idle (autopause re-enabled)"
     else
@@ -198,9 +215,6 @@ run_idle_tasks() {
   echo "  Saving world..."
   rcon "save-all flush"
   sleep 5
-
-  # No map trigger needed: unmined-render renders on its own interval and
-  # only re-renders regions whose files changed.
 
   echo "  Requesting garbage collection..."
   rcon "spark gc" || true
@@ -274,8 +288,7 @@ lod_reach_for() {
   echo "$value"
 }
 
-# True when a player has been here: the same test unmined-render uses to
-# decide a dimension is worth drawing.
+# True when a player has been here: a region file over 8k.
 visited() {
   # -print -quit, never `| head` under pipefail (TROUBLESHOOTING.md#t47).
   [[ -n "$(find "$1" -maxdepth 1 -name '*.mca' -size +8k -print -quit 2> /dev/null)" ]]
@@ -428,7 +441,7 @@ check_pregen_complete() {
   esac
   pregen_active=false
 
-  # Newly pre-generated chunks are picked up by the next unmined-render pass.
+  # Newly pre-generated chunks reach the map's explored layer on its next export.
   start_pregen
   if [[ "$pregen_active" != true ]]; then
     echo "[$(date '+%H:%M:%S')] Every visited dimension is pre-generated"
@@ -437,11 +450,74 @@ check_pregen_complete() {
   fi
 }
 
+# --- The web map ----------------------------------------------------------------
+
+MAP_INTERVAL="${MAP_INTERVAL:-6h}"
+MAP_EXPORT_MAX_MINUTES="${MAP_EXPORT_MAX_MINUTES:-360}"
+MAP_STARTED="/data/.map-export-started"
+MAP_FINISHED="/data/map-web/.export-finished"
+
+# MAP_INTERVAL in seconds: a number with an optional s, m, h or d; 0 is off.
+map_interval_seconds() {
+  local v="$MAP_INTERVAL" n unit
+  n="${v%[smhd]}"
+  unit="${v#"$n"}"
+  [[ "$n" =~ ^[0-9]+$ ]] || n=21600 unit=s
+  case "$unit" in
+    m) echo $((n * 60)) ;;
+    h) echo $((n * 3600)) ;;
+    d) echo $((n * 86400)) ;;
+    *) echo "$n" ;;
+  esac
+}
+
+file_age_seconds() {
+  local mtime
+  mtime=$(stat -c %Y "$1" 2> /dev/null || stat -f %m "$1" 2> /dev/null || echo 0)
+  echo $(($(date +%s) - mtime))
+}
+
+map_export_due() {
+  local every
+  every=$(map_interval_seconds)
+  [[ "$every" -gt 0 ]] || return 1
+  [[ ! -f "$SKIP_PAUSE_MAP" && "$pregen_active" != true ]] || return 1
+  [[ -f "$MAP_STARTED" ]] || return 0
+  [[ $(file_age_seconds "$MAP_STARTED") -ge $every ]]
+}
+
+start_map_export() {
+  echo "[$(date '+%H:%M:%S')] Exporting the web map"
+  touch "$MAP_STARTED"
+  touch "$SKIP_PAUSE_MAP"
+  touch "$SKIP_PAUSE_FILE"
+  rcon "customdim map export all" > /dev/null 2>&1 || finish_map_export "the export command was not accepted"
+}
+
+finish_map_export() {
+  echo "[$(date '+%H:%M:%S')] Web map export: $1"
+  rm -f "$SKIP_PAUSE_MAP"
+  if [[ ! -f "$SKIP_PAUSE_OWN" && ! -f "$SKIP_PAUSE_OTHER" ]]; then
+    rm -f "$SKIP_PAUSE_FILE"
+  fi
+}
+
+# An export is running while .skip-pause-map exists, whoever started it.
+check_map_export() {
+  [[ -f "$SKIP_PAUSE_MAP" ]] || return 0
+  if [[ -f "$MAP_FINISHED" && "$MAP_FINISHED" -nt "$MAP_STARTED" ]]; then
+    finish_map_export "finished ($(head -c 200 "$MAP_FINISHED" 2> /dev/null || echo "no summary"))"
+  elif [[ $(file_age_seconds "$MAP_STARTED") -ge $((MAP_EXPORT_MAX_MINUTES * 60)) ]]; then
+    finish_map_export "still running after ${MAP_EXPORT_MAX_MINUTES} min; autopause allowed again"
+  fi
+}
+
 # --- Main loop ----------------------------------------------------------------
 
 cleanup() {
   exit_pregen_mode
   disable_skip_pause
+  rm -f "$SKIP_PAUSE_MAP"
 }
 trap cleanup EXIT
 
@@ -451,6 +527,7 @@ echo "  Default generation border from settings.json: ${DEFAULT_BORDER}"
 echo "  Chunky radius: each dimension's borders.generation"
 echo "  DH LOD pre-generation: ${DH_PREGEN} (to the larger of each dimension's player and generation borders)"
 echo "  Dimensions are pre-generated once a player has visited them."
+echo "  Web map export: every ${MAP_INTERVAL} once pre-generation is done (0 = off)"
 
 empty_since=""
 rcon_failures=0
@@ -548,6 +625,9 @@ while true; do
     fi
 
     check_pregen_complete
+    if [[ "$tasks_done" == true ]] && map_export_due; then
+      start_map_export
+    fi
   else
     if [[ -n "$empty_since" ]]; then
       echo "[$(date '+%H:%M:%S')] Player joined - cancelling idle timer"
@@ -557,5 +637,6 @@ while true; do
     tasks_done=false
   fi
 
+  check_map_export
   sleep "$POLL_INTERVAL"
 done

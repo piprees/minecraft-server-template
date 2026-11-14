@@ -427,6 +427,7 @@ files byte for byte.
 | `audit` | Writes `<world>/customdimensions/audit.md`: definitions compiled afresh against the pack (stale, missing, in the pack with no definition), level folders with no definition, portal links to unknown dimensions, frame blocks and igniters the server lacks, Bedrock height warnings, skipped biomes and unsupported fields, and the firewall's allowed mods, unreviewed bridges, switched-off structure sets and biome removals |
 | `catalogue` | Writes `../.seed-rolling/catalogue/registries.json` beside the game directory for `scripts/extract-registries.py`: biomes, biome tags, structures, structure sets (placement as the game's codec writes it), blocks, items, features, placed features, entity types, and every tag of those registries with its members |
 | `render <dimension> [seed] [radius] [step] [centreX centreZ]` | Draws the dimension top-down from the `Sampler` into `renders/<dimension>/` under the game directory, off the server thread, without generating chunks ([below](#rendering)). One render at a time |
+| `map export <dimension>\|all [generated\|explored\|force]` | The web map behind map.DOMAIN into `map-web/` under the game directory, one dimension at a time off the server thread: generated layers (skipped while their fingerprint holds; `force` redraws them) and the explored layer (only region files changed since the last export), then the viewer shell and the manifest ([below](#the-web-map)). Shares the one render job |
 | `roll <dimension> [count]` | Scores `count` seeds (default 100, at most 500) from the `Sampler` off the server thread, renders the best ten and writes the contact sheet `renders/<dimension>/index.html` ([below](#rolling)). Refused for a dimension whose region folder holds chunks. Shares the one render job |
 | `pick <dimension> <seed>`, `pick <dimension> rank <n>` | Writes the seed, or the last roll's rank `n`, into the dimension's definition file; it applies after the next restart. Refused for a dimension whose region folder holds chunks |
 | `survey <dimension> [patches] [size]` | Samples real chunks (24 patches of 3x3 chunks by default, at most 96 of 8x8, plus adaptive ones) and writes a dossier to `customdim-survey/<dimension>/` under the game directory, `placeness` included ([placeness.md](../../docs/design/rebuild-26/placeness.md)); `1 1` is the fast placeness-only form. A lazy level opens for it and closes after. Shares the one render job |
@@ -691,6 +692,76 @@ keep their floor within one block (`fast.cut.floorAgreement`);
 | `pass<N>-s<stride>-sheet.png` | The contact sheet: the map (the floor, roof off, for a roofed world), biome, hillshade, tiers, slices and structures at 384 pixels each, and a legend of slice colours and the 24 biomes with most pixels |
 | `pass<N>-s<stride>.json` | The pass's sidecar, as a fast render's, with `fast.slices` (rows sampled and read from runs, solid share and biome-differs share per height) and `fast.floorFirst` |
 | `wave.json` | Rewritten after each pass: radius and its rule, noise range, sea level, the pre-scan (spacing, roofed and floating shares, median surface, roof underside and thickness, floor window top and agreement, bands, solid columns and run middles per height), the slices and why, each pass's stride, side, times (`timings` splits terrain, slice rows and slice columns) and files, and the biome legend |
+
+### The web map
+
+`/customdim map export` writes map.DOMAIN's files (`map/`, `server/.../map/`;
+the image half in `core/.../render/map/`). The idle task sends
+`customdim map export all` once pre-generation has nothing left to do, at most
+every `MAP_INTERVAL` (6 hours), and nginx serves the folder as it stands.
+
+**Tiles.** Each dimension covers the larger of its player and generation
+borders. Zoom 0 holds the whole border in one 256-pixel tile; each zoom halves
+the blocks per pixel down to 4 (`MapTiles`; 8 past a 16,384-block border).
+Pixel `i` of zoom `z` is the block `-radius + i * blocksPerPixel[z]`, so a
+coarse pixel is a fine pixel's column: the finest image is drawn once and the
+coarser zooms are halved from it (`TilePyramid`: the alpha-weighted mean of
+each 2 × 2 block, the north-west pixel for biomes). A tile with nothing in it
+is not written.
+
+**Generated layers** (`MapExport`). The fast renderer draws the border at the
+finest scale in pieces of 1024 pixels with 4 of margin, after one pre-scan
+that also picks the cuts (`SliceChoice`), without painting its own images.
+Layers: `roofless` (the floor under a roof, first on a world roofed over 2 %
+of its columns, its terrain then named Roof), `terrain`, `biomes`, a
+`cut-<name>` per fixed height, and a `tier-<n>` per sky band (the highest run
+whose top lies in the band). Structure starts, with their structure control
+applied, go to `markers.json`. The tiles are staged and swapped in whole; the
+fingerprint (`MapFingerprint`: the format, the palette, the seed, the radius,
+the generator and its noise settings as their codecs write them) skips an
+unchanged dimension.
+
+**Colour.** `core/.../map-palette.json`, written by
+`scripts/map-palette.py` from the 26.3 client jar, holds each vanilla block's
+alpha-weighted mean colour of its highest upward face texture and that
+texture's opacity, which blocks the client tints, and the grass, foliage and
+dry-foliage colormaps as 33 × 33 samples; no texture is copied. A block the
+palette does not name takes its map colour. A tinted block takes its biome's
+tint (`BiomeTint`: the override, else the colormap at the biome's temperature
+and downfall, read through `Biome.NETWORK_CODEC`; dark forest's modifier; the
+mean of swamp's two). Water hides a quarter of what is under it per block and
+darkens towards 0.65 of its colour at 24 blocks; ice, glass and leaves lie
+over what is under them by their opacity. Relief is Lambert light from the
+north-west at 45 degrees on the slope in blocks per block, so it reads the
+same at every zoom (`MapShade`).
+
+**Explored layer** (`ExploredExport`, `SavedChunks`). Every finished saved
+chunk inside the border, drawn with the same palette, tints, water and relief
+and cut into `explored/<z>/<x>/<y>.png` at the same zooms, transparent where
+nothing is saved; each pixel is the mean of its 4 × 4 columns. Which chunks a
+region file holds comes from its location table through a read-only channel.
+A chunk of an open level is read through the level's own storage
+(`ChunkMap.read`, which queues on the storage's IO worker, serves a chunk
+waiting to be saved from memory and is safe from any thread); a level that is
+not open is read from the region file, read-only, with vanilla's
+`RegionFileVersion`. Nothing is loaded into the world or written. A region is
+read again only when its file's modification time changed; its cells are
+cached in `.cache/explored/`. A chunk that cannot be read is skipped and its
+region retried next time.
+
+| File in `map-web/` | What it holds |
+| --- | --- |
+| `index.html`, `app.js`, `app.css` | The viewer, copied from the jar (`map-shell/`) when they differ: every dimension in the sidebar with its thumbnail, one map with a layer switcher, the explored layer over it (on by default), structures as markers, a legend for biomes and cuts |
+| `manifest.json` | Every dimension, drawn or not: `slug, name, description, spawn, background, renderedAt, exploredAt, version, thumb, thumbVersion, layers, explored` |
+| `maps/<slug>/layers.json` | Radius, tile size, zooms, blocks per pixel and side per zoom, the layers (`id, kind, name, y, bottom, top, path`), the cuts and why, the biome and cut legends, the fingerprint and the export's times and sizes |
+| `maps/<slug>/tiles/<layer>/<z>/<x>/<y>.png`, `thumb.png`, `markers.json` | The generated tiles, the first layer's zoom 0, the structure starts |
+| `maps/<slug>/explored/<z>/<x>/<y>.png`, `explored.json` | The explored tiles and their index by zoom, the regions and chunks read and columns per second |
+| `.export-finished` | Stamped when an export ends, with a one-line summary: the idle task's sign to let autopause back |
+
+`./gradlew :server:runFastBench -PfastBench=<slug>:<seed>:<radius>:map:<threads>`
+runs the generated export headless (twice: the second skips by fingerprint),
+with `-PfastBenchRegions=<dir>` also the explored layer from
+`<dir>/<slug>/region/`, and writes a servable site to `<out>/map/`.
 
 ### Distant Horizons LODs
 
