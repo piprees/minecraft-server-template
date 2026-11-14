@@ -1,0 +1,23 @@
+{
+ "slug": "the_catalyst_maw",
+ "targets": [
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 10,
+   "from": "place kind deliberately chaotic: bleeding, but not noise"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": "<=",
+   "value": 30,
+   "from": "place kind deliberately chaotic: no one biome holds the maw"
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": ">=",
+   "value": 8,
+   "from": "place kind deliberately chaotic: many realms bleeding in"
+  }
+ ]
+}

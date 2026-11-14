@@ -1,0 +1,35 @@
+{
+ "slug": "the_shattered_skies",
+ "targets": [
+  {
+   "key": "placeness.places.islands.dominantPlacePercent",
+   "op": ">=",
+   "value": 55,
+   "from": "place kind meeting: each island mostly one garden place"
+  },
+  {
+   "key": "placeness.places.landRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of place specks"
+  },
+  {
+   "key": "placeness.places.byPlace.sakura.landPercent",
+   "op": ">=",
+   "value": 15,
+   "from": "\"sakura and skylands adrift\": sakura leads the gardens"
+  },
+  {
+   "key": "placeness.places.byPlace.skylands.landPercent",
+   "op": ">=",
+   "value": 10,
+   "from": "\"sakura and skylands\": the skylands are a place of their own"
+  },
+  {
+   "key": "placeness.places.byPlace.lavender.landPercent",
+   "op": ">=",
+   "value": 5,
+   "from": "\"sakura, blooming valley, meadow, lavender\": the smallest garden still a place"
+  }
+ ]
+}

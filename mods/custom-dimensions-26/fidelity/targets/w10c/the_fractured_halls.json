@@ -1,0 +1,29 @@
+{
+ "slug": "the_fractured_halls",
+ "targets": [
+  {
+   "key": "placeness.places.islands.dominantPlacePercent",
+   "op": ">=",
+   "value": 55,
+   "from": "place kind meeting: each island mostly one of the ridges, groves or shadowlands"
+  },
+  {
+   "key": "placeness.places.landRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of place specks"
+  },
+  {
+   "key": "placeness.places.byPlace.crystal_ridges.landPercent",
+   "op": ">=",
+   "value": 25,
+   "from": "\"Mostly: broken crystal ridges\""
+  },
+  {
+   "key": "placeness.places.byPlace.groves.landPercent",
+   "op": ">=",
+   "value": 12,
+   "from": "\"moonlight groves have taken the sheltered ground between the ridges\""
+  }
+ ]
+}

@@ -1,0 +1,23 @@
+{
+ "slug": "the_glacial_drift",
+ "targets": [
+  {
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind one frozen place: each island mostly one tundra biome"
+  },
+  {
+   "key": "placeness.landBiomeRegions.biomesPercent.minecraft:ice_spikes + placeness.landBiomeRegions.biomesPercent.minecraft:frozen_peaks + placeness.landBiomeRegions.biomesPercent.minecraft:snowy_slopes + placeness.landBiomeRegions.biomesPercent.adventure:windswept_isles + placeness.landBiomeRegions.biomesPercent.minecraft:snowy_taiga + placeness.landBiomeRegions.biomesPercent.adventure:highland_fells + placeness.landBiomeRegions.biomesPercent.minecraft:jagged_peaks",
+   "op": ">=",
+   "value": 85,
+   "from": "\"frozen paradise islands\": the frozen biomes are the place"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind one place: no scatter of biome specks"
+  }
+ ]
+}

@@ -1,0 +1,41 @@
+{
+ "slug": "the_burning_archipelago",
+ "targets": [
+  {
+   "key": "placeness.places.islands.dominantPlacePercent",
+   "op": ">=",
+   "value": 55,
+   "from": "place kind meeting: each island mostly one Nether place"
+  },
+  {
+   "key": "placeness.places.landRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of place specks"
+  },
+  {
+   "key": "placeness.places.byPlace.crimson.landPercent",
+   "op": ">=",
+   "value": 12,
+   "from": "\"the piglins and endermen fought across these straits\": crimson is a place"
+  },
+  {
+   "key": "placeness.places.byPlace.warped.landPercent",
+   "op": ">=",
+   "value": 8,
+   "from": "warped is a place across the strait from crimson"
+  },
+  {
+   "key": "placeness.places.byPlace.deltas.landPercent",
+   "op": ">=",
+   "value": 12,
+   "from": "\"islands that still smoulder\": the deltas are a place"
+  },
+  {
+   "key": "placeness.places.byPlace.wastes.landPercent",
+   "op": ">=",
+   "value": 10,
+   "from": "the wastes are a place"
+  }
+ ]
+}

@@ -1,0 +1,23 @@
+{
+ "slug": "the_end_citadel",
+ "targets": [
+  {
+   "key": "placeness.landBiomeRegions.biomesPercent.minecraft:end_highlands",
+   "op": ">=",
+   "value": 40,
+   "from": "place kind one place, \"broad end-stone highlands carrying cities\": highlands lead the land"
+  },
+  {
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind one place: each island mostly one End biome"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind one place: no scatter of biome specks"
+  }
+ ]
+}

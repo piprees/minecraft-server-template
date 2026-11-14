@@ -1,0 +1,23 @@
+{
+ "slug": "the_blighted_maw",
+ "targets": [
+  {
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 55,
+   "from": "place kind one place: each island mostly one toxic biome"
+  },
+  {
+   "key": "placeness.landBiomeRegions.biomesPercent.adventure:mycotoxic_undergrowth + placeness.landBiomeRegions.biomesPercent.minecraft:soul_sand_valley + placeness.landBiomeRegions.biomesPercent.adventure:withered_forest",
+   "op": ">=",
+   "value": 50,
+   "from": "\"toxic Nether islands\": the toxic heap, soul sand and withered groves lead"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind one place: no scatter of biome specks"
+  }
+ ]
+}

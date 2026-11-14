@@ -1,0 +1,23 @@
+{
+ "slug": "the_starwell",
+ "targets": [
+  {
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 70,
+   "from": "place kind one small place: each island one biome"
+  },
+  {
+   "key": "placeness.landBiomeRegions.biomesPercent.minecraft:snowy_plains + placeness.landBiomeRegions.biomesPercent.adventure:alpha_grove + placeness.landBiomeRegions.biomesPercent.adventure:windswept_isles",
+   "op": ">=",
+   "value": 70,
+   "from": "\"a few silvered islands\": pale snow and alpha islands, not a desert"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind one place: no scatter of biome specks"
+  }
+ ]
+}

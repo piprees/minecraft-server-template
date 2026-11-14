@@ -1,0 +1,23 @@
+{
+ "slug": "the_crumbling_reaches",
+ "targets": [
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 10,
+   "from": "place kind deliberately broken: rubble, but not noise"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": "<=",
+   "value": 30,
+   "from": "place kind deliberately broken: no one region holds the reaches"
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": ">=",
+   "value": 6,
+   "from": "place kind deliberately broken: many pieces"
+  }
+ ]
+}
