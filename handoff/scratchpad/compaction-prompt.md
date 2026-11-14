@@ -32,6 +32,7 @@ Paste this as the summary when the session is compacted or handed off. Before ac
 - **Portal lore (RB-40):** portal recipes are never explained outright. Some buried treasure and endgame dungeon chests carry books about a portal and what lies beyond, or items arranged in the chest to show the frame's shape, block and igniter, generated from each dimension's `portal` definition. Package LR1, after DL1's loot work.
 - **Broken portals (RB-41):** some treasure maps lead to half-finished portals: a partial frame, an igniter precursor, a study (enchanting table, bookshelves, notes that stop short), ground part-transformed when the target's `portal.aura` is on; placed where the target dimension would plausibly reach through (biome, height, depth). Never the exact recipe.
 - **Deep time (RB-42):** structures and set pieces are placed as linked stories (shared faction, materials, banners, loot, placed near one another), with restraint: most terrain carries nothing, so a find means something. Feeds the set-pieces kit (SP2–SP7) and LR1.
+- **Never named (RB-43):** in-game text never names a faction, dimension, epoch or person; it only alludes. Prefer no words at all (banners, materials, item arrangements, remains, part-built frames); where words are needed, few and fragmentary.
 
 ## Owner's roadmap decisions
 Before asking the owner anything, look for the answer in `docs/design/rebuild-26/decisions.md`, the mod register, `HANDOFF.md` and the owner's notes. Never re-litigate a settled decision.

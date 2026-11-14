@@ -160,5 +160,9 @@ A broken-portal site is a `gate` set piece left by someone who got close: a part
 Why: it rewards exploring with progress towards a new dimension, and leaves the last step to the player.
 
 **RB-42 — The world is ancient, and its places are connected.**
-Structures and set pieces are placed as linked stories, not single features: a broken portal with a camp beside it and a grave on the hill; a battlefield whose banners match a ruined keep a valley away; a dungeon whose loot names the city it was carried from. Restraint is part of it: most fields, cliffs and seas have nothing, so that a find means something. Links are config (shared themes, factions, materials and loot between nearby places), and in game they read as one history older than anyone remembers.
+Structures and set pieces are placed as linked stories, not single features: a broken portal with a camp beside it and a grave on the hill; a battlefield whose banners match a ruined keep a valley away; a dungeon whose loot was plainly carried from a city that still stands. Restraint is part of it: most fields, cliffs and seas have nothing, so that a find means something. Links are config (shared themes, factions, materials and loot between nearby places), and in game they read as one history older than anyone remembers.
 Why: a place feels real when it implies what happened there and what came before; scatter feels like decoration.
+
+**RB-43 — Nothing in the world names its history.**
+No book, sign, map, item name or lore line names a faction, a dimension, an epoch or a person; it alludes, and leaves the rest unsaid. Where an object can tell it without words (a banner pattern, a material, an arrangement of items, remains in their gear, a part-built frame), no words are used. Where words are needed (a portal study's notes), they are few, fragmentary and in the voice of someone who never understood it either.
+Why: mystery is the point; a name settles what the player should be left to wonder about.
