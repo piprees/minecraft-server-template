@@ -105,6 +105,14 @@ class UndergroundGroundTest {
     }
 
     @Test
+    void aBoxReachingBelowTheLevelsFloorStandsOnIt() {
+        BoundingBox box = new BoundingBox(-30, OVERWORLD_HEIGHT.getMinY() - 16, -30, 30, OVERWORLD_HEIGHT.getMinY() + 10, 30);
+        assertTrue(UndergroundGround.grounded(box, overworld, overworldRandom, OVERWORLD_HEIGHT));
+        BoundingBox voidBox = new BoundingBox(580, END_HEIGHT.getMinY() - 16, -20, 620, 20, 20);
+        assertFalse(UndergroundGround.grounded(voidBox, end, endRandom, END_HEIGHT), "the End's void ring has nothing at its floor");
+    }
+
+    @Test
     void theOverworldHasAFloorEverywhere() {
         for (int[] c : new int[][] {{0, 0}, {5000, -3000}, {-12000, 700}}) {
             BoundingBox box = new BoundingBox(c[0] - 30, -50, c[1] - 30, c[0] + 30, -30, c[1] + 30);
