@@ -73,5 +73,6 @@ Paste this as the summary when the session is compacted or handed off. Before ac
 - **Owner contact:**
   - Ask the owner for reviews and decisions with the question tool.
   - Ask before any look-and-feel choice.
+  - The owner cannot open repository files: anything they must read goes in the conversation or in an artifact.
   - Write British English, in plain-text formats.
   - Keep messages to the owner short.
