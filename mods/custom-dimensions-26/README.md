@@ -76,7 +76,7 @@ scripts/vanilla-boot-check.sh                 # boot that pack on vanilla, no mo
 | Structure control, every dimension ([below](#structure-control)) | `data/customdimensions/structure_control/<slug>.json` |
 | The End's terrain without its central island | `data/adventure/worldgen/density_function/end_without_central_island/{islands,sloped_cheese}.json` |
 | Fixed time of day | `data/adventure/timeline/fixed_time/<timeline>_<tick>.json` |
-| The dimension's sky and fog over its biomes' (`atmosphere.overBiomes`): one constant `override` track per colour, first in the dimension type's `timelines`, so it lands after every biome's own and before the day's darkening | `data/adventure/timeline/atmosphere/<slug>.json` |
+| The dimension's sky and fog over its biomes' (`atmosphere.overBiomes`, on by default when it sets `skyColor` or `fogColor`): one constant `override` track per colour, first in the dimension type's `timelines`, so it lands after every biome's own and before the day's darkening | `data/adventure/timeline/atmosphere/<slug>.json` |
 | Day length (`atmosphere.dayLength` or the settings' default), shared by every dimension on one length: its clock, made the dimension type's `default_clock`, and each whole-day timeline warped to it | `data/adventure/world_clock/day_length/<day>_<night>.json`, `data/adventure/timeline/day_length/<timeline>_<day>_<night>.json` (ticks) |
 | Base worlds, loaded at start | `data/minecraft/dimension/{overworld,the_nether,the_end}.json`, `data/adventure/dimension/the_aviary.json` |
 | Every other dimension, opened lazily by the runtime | `data/customdimensions/lazy_dimension/<slug>.json` |

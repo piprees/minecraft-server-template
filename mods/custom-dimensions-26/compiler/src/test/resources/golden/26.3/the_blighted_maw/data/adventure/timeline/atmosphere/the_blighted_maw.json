@@ -1,0 +1,23 @@
+{
+  "clock": "minecraft:the_end",
+  "tracks": {
+    "minecraft:visual/fog_color": {
+      "keyframes": [
+        {
+          "ticks": 0,
+          "value": "#3b1b1b"
+        }
+      ],
+      "modifier": "override"
+    },
+    "minecraft:visual/sky_color": {
+      "keyframes": [
+        {
+          "ticks": 0,
+          "value": "#000000"
+        }
+      ],
+      "modifier": "override"
+    }
+  }
+}

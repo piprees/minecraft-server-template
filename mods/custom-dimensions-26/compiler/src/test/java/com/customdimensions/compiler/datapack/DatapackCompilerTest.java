@@ -147,12 +147,34 @@ class DatapackCompilerTest {
     }
 
     @Test
-    void withoutOverBiomesAListedBiomesOwnFogWins() {
+    void aFogColourHoldsOverTheBiomesByDefault() {
         DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"nether\"}, "
                 + "\"biomes\": [\"adventure:withered_forest\"], \"atmosphere\": {\"fogColor\": \"#1B0B2B\"}");
+        assertEquals("#1b0b2b", layered(out, "t", "adventure:withered_forest", "minecraft:visual/fog_color"));
+        assertTrue(out.files().containsKey("data/adventure/timeline/atmosphere/t.json"));
+        assertEquals("adventure:atmosphere/t", type(out, "t").getAsJsonArray("timelines").get(0).getAsString());
+    }
+
+    @Test
+    void aSkyColourHoldsOverTheBiomesByDefault() {
+        DatapackCompiler.Output out = Fixtures.compile("t", OVERWORLD + ", \"biomes\": [\"minecraft:plains\"], "
+                + "\"atmosphere\": {\"skyColor\": \"#102030\"}");
+        assertEquals("#102030", layered(out, "t", "minecraft:plains", "minecraft:visual/sky_color"));
+    }
+
+    @Test
+    void overBiomesFalseLetsAListedBiomesOwnFogWin() {
+        DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"nether\"}, "
+                + "\"biomes\": [\"adventure:withered_forest\"], \"atmosphere\": {\"fogColor\": \"#1B0B2B\", \"overBiomes\": false}");
         assertEquals("#55606c", layered(out, "t", "adventure:withered_forest", "minecraft:visual/fog_color"));
         assertFalse(out.files().containsKey("data/adventure/timeline/atmosphere/t.json"));
         assertEquals("#minecraft:in_nether", type(out, "t").get("timelines").getAsString());
+    }
+
+    @Test
+    void withoutItsOwnColoursADimensionAddsNoAtmosphereTimeline() {
+        DatapackCompiler.Output out = Fixtures.compile("t", OVERWORLD + ", \"atmosphere\": {\"effects\": \"minecraft:the_end\"}");
+        assertFalse(out.files().containsKey("data/adventure/timeline/atmosphere/t.json"));
     }
 
     @Test

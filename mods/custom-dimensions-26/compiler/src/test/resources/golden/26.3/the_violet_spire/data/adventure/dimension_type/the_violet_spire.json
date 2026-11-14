@@ -10,6 +10,7 @@
     },
     "default_clock": "adventure:day_length/54000_18000",
     "timelines": [
+      "adventure:atmosphere/the_violet_spire",
       "adventure:day_length/villager_schedule_54000_18000",
       "adventure:day_length/day_54000_18000",
       "adventure:day_length/moon_54000_18000",

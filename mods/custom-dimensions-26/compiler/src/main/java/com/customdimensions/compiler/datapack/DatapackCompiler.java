@@ -467,8 +467,15 @@ public final class DatapackCompiler {
             if (d != null) applyDayLength(type, d, entry);
         }
         applyRules(type, def.rules());
-        if (a != null && Boolean.TRUE.equals(a.overBiomes())) applyOverBiomes(slug, type, entry);
+        if (overBiomes(a)) applyOverBiomes(slug, type, entry);
         return type;
+    }
+
+    /** Whether the dimension's colours hold over its biomes': as {@code atmosphere.overBiomes} says, else when it sets a sky or fog colour. */
+    static boolean overBiomes(Atmosphere a) {
+        if (a == null) return false;
+        if (a.overBiomes() != null) return a.overBiomes();
+        return a.skyColor() != null || a.fogColor() != null;
     }
 
     /** The environment attributes {@code atmosphere.overBiomes} holds over the biomes. */
