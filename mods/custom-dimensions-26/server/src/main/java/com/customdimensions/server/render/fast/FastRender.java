@@ -76,6 +76,26 @@ public final class FastRender {
     public static final int COMPARE_SPACING = 64;
     /** A roof, cut or tier layer is drawn when at least this share of columns has one. */
     public static final double LAYER_SHARE = 0.02;
+
+    /**
+     * Whether the tier layers (each column's lower runs) are drawn: on a
+     * roofed world (the runs under its roof) or one with sky bands (its
+     * islands' tiers). A world open to the sky with no sky band has only cave
+     * roofs and overhangs below its surface, which its cave slices show; the
+     * web map's tiers follow the same rule ({@link MapExport}).
+     */
+    static boolean tiersShown(boolean roofed, List<SliceChoice.Slice> slices) {
+        return roofed || slices.stream().anyMatch(s -> s.name().startsWith("sky-"));
+    }
+
+    /** The sampler's planned places as markers; none for a sampler with no level (a bench) or no structure control. */
+    static List<FastLayers.Marker> markers(Sampler sampler) {
+        try {
+            return sampler.planned().stream().map(p -> new FastLayers.Marker(p.kind(), p.structure(), p.x(), p.z())).toList();
+        } catch (RuntimeException e) {
+            return List.of();
+        }
+    }
     public static final String KIND = "fastrender";
     /** The run list's magic number, "CDR1". */
     public static final int RUNS_MAGIC = 0x43445231;
@@ -243,6 +263,8 @@ public final class FastRender {
             boolean roofLayers = !floorFirst && roofed >= LAYER_SHARE * columns;
             int[] floor = options.images() && (roofLayers || floorFirst) ? FastLayers.floor(pixels, colours, samples) : null;
             int[] map = !options.images() ? null : floorFirst ? floor : FastLayers.map(pixels, colours);
+            boolean bareMap = map != null && FastLayers.bare(map);
+            List<FastLayers.Marker> planned = options.images() && (bareMap || options.structures()) ? markers(sampler) : List.of();
             List<CompletableFuture<Void>> writes = new ArrayList<>();
             java.util.function.BiConsumer<String, java.util.function.Supplier<int[]>> layer = (name, paint) -> {
                 if (!options.images()) return;
@@ -265,7 +287,7 @@ public final class FastRender {
             if (floorFirst) {
                 layer.accept("roofoff", () -> floor);
             } else {
-                layer.accept("map", () -> map);
+                layer.accept("map", () -> bareMap ? FastLayers.markers(map, grid, planned) : map);
                 if (roofLayers) {
                     layer.accept("roofoff", () -> floor);
                     layer.accept("cut", () -> FastLayers.cut(pixels, colours, pre.cutY()));
@@ -276,7 +298,8 @@ public final class FastRender {
             if (samples.hasZones()) layer.accept("zones", () -> RenderLayers.ZONES.paint(samples));
             layer.accept("hillshade", () -> FastLayers.hillshade(samples));
             List<Integer> tiers = new ArrayList<>();
-            for (int tier = 0; tier < FastPixels.TIERS && !floorFirst && options.images(); tier++) {
+            boolean tierLayers = !floorFirst && options.images() && tiersShown(roofLayers, slices.slices);
+            for (int tier = 0; tier < FastPixels.TIERS && tierLayers; tier++) {
                 if (pixels.withRun(tier + 1) < LAYER_SHARE * columns) break;
                 tiers.add(tier + 1);
                 int index = tier;
@@ -293,7 +316,7 @@ public final class FastRender {
                 }
             }
             if (options.structures()) {
-                layer.accept("structures", () -> FastLayers.structures(roofLayers ? floor : map, grid, footprints));
+                layer.accept("structures", () -> FastLayers.structures(roofLayers ? floor : map, grid, footprints, planned));
             }
             CompletableFuture.allOf(writes.toArray(CompletableFuture[]::new)).join();
             timings.put("images", (System.nanoTime() - t) / 1_000_000);
@@ -309,6 +332,23 @@ public final class FastRender {
                     RenderJob.SURFACE, RenderJob.BIOME_Y, timings, threads);
             JsonObject root = RenderFiles.sidecar(samples, meta, images);
             root.addProperty("kind", KIND);
+            if (!planned.isEmpty()) {
+                JsonObject plan = new JsonObject();
+                plan.addProperty("rule", "the places the structure plan names (forced starts, wants, the spawn), drawn on the structures panel "
+                        + "where no footprint holds them and on a map with no ground; a square in the structure's colour, the spawn a white diamond");
+                JsonArray list = new JsonArray();
+                for (FastLayers.Marker m : planned) {
+                    JsonObject o = new JsonObject();
+                    o.addProperty("kind", m.kind());
+                    o.addProperty("structure", m.structure());
+                    o.addProperty("x", m.x());
+                    o.addProperty("z", m.z());
+                    list.add(o);
+                }
+                plan.add("places", list);
+                plan.addProperty("drawnOnMap", bareMap);
+                root.add("planned", plan);
+            }
             long rate = columns * 1000 / sampleMs;
             double speedup = comparison.referenceRate() <= 0 ? 0 : (double) rate / comparison.referenceRate();
             JsonObject fast = fastBlock(grid, threads, lo, hi, cell, mode, counts, pixels, roofLayers, roofed, tiers, pre, window, palette,

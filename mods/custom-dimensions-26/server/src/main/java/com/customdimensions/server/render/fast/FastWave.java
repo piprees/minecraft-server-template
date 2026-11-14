@@ -127,16 +127,20 @@ public final class FastWave {
         }
     }
 
+    /** The layers a sheet shows, in the render's order: a roofed world's opens on its floor, its roof map left out. */
+    static List<String> sheetLayers(List<String> drawn) {
+        return drawn.stream().filter(n -> !NOT_ON_SHEET.contains(n) && !(n.equals("map") && drawn.contains("roofoff"))).toList();
+    }
+
     private static void sheet(Path out, Sampler sampler, WavePlan plan, WavePlan.Pass p, FastRender.Rendered r,
                               List<SliceChoice.Slice> slices, Map<String, Integer> counts, long millis) throws IOException {
         int side = r.samples().grid().side();
         List<ContactSheet.Panel> panels = new ArrayList<>();
         Map<String, Integer> sliceY = new HashMap<>();
         for (SliceChoice.Slice s : slices) sliceY.put("slice-" + s.name(), s.y());
-        for (Map.Entry<String, int[]> e : r.rgb().entrySet()) {
-            String name = e.getKey();
-            if (NOT_ON_SHEET.contains(name) || e.getValue() == null) continue;
-            if (name.equals("map") && r.rgb().containsKey("roofoff")) continue;
+        List<String> drawn = r.rgb().entrySet().stream().filter(e -> e.getValue() != null).map(Map.Entry::getKey).toList();
+        for (String name : sheetLayers(drawn)) {
+            Map.Entry<String, int[]> e = Map.entry(name, r.rgb().get(name));
             String title = name;
             for (Map.Entry<String, Integer> s : sliceY.entrySet()) {
                 if (name.startsWith(s.getKey())) title = name + " y " + s.getValue();

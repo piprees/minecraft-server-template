@@ -14,7 +14,7 @@
  *                                  -radius + i * blocksPerPixel[z]; north is up.
  *   /maps/<slug>/<path>/<z>/<x>/<y>.png   a layer's tile; a missing tile is transparent.
  *   /maps/<slug>/explored.json   { path, index: { z: ["x/y", ...] } }: the explored tiles.
- *   /maps/<slug>/markers.json    { structures: [ { type, name, x, z, box } ] }
+ *   /maps/<slug>/markers.json    { structures: [ { type, name, x, z, box } ], planned: [ { kind, type, name, x, z } ] }
  */
 (function () {
   'use strict';
@@ -400,7 +400,7 @@
         showExplored.disabled = true;
       }
       buildLayers(info, dim.slug);
-      buildMarkers(got[2].structures || []);
+      buildMarkers((got[2].structures || []).concat(got[2].planned || []));
       view.fit();
       if (dim.spawn && dim.spawn.length === 3) {
         view.cx = dim.spawn[0];

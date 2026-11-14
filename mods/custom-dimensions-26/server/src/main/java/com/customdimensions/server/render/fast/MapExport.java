@@ -54,7 +54,9 @@ import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
  * and drawn as the thumbnail, with the terrain named Roof), a
  * {@code cut-<name>} per fixed height {@link SliceChoice} picks, and a
  * {@code tier-<n>} per sky band (the highest run whose top lies in it).
- * Structure starts go to {@value #MARKERS}. Writes {@value #LAYERS},
+ * Structure starts go to {@value #MARKERS}, with the places the structure
+ * plan names that no start holds; a world with no ground at zoom 0 gets a
+ * plain thumbnail with its name and those places. Writes {@value #LAYERS},
  * {@value #THUMB} and {@code tiles/<layer>/<z>/<x>/<y>.png} under the
  * dimension's folder; the tiles are staged and swapped in whole. Skipped when
  * the fingerprint in {@code .cache/generated.fingerprint} still matches.
@@ -175,11 +177,12 @@ public final class MapExport {
         t = System.nanoTime();
         List<JsonObject> markers = markers(sampler, radius, pool);
         timings.put("structures", ms(t));
-        writeJson(out.resolve(MARKERS), markersJson(markers));
-        if (zoomZero[0] != null) {
-            int s0 = plan.side(0);
-            MapImages.png(out.resolve(THUMB), s0, s0, MapImages.crop(zoomZero[0], MapTiles.TILE, s0, s0));
-        }
+        List<FastLayers.Marker> planned = FastRender.markers(sampler);
+        writeJson(out.resolve(MARKERS), markersJson(markers, planned));
+        int s0 = plan.side(0);
+        int[] thumb = zoomZero[0] == null ? null : MapImages.crop(zoomZero[0], MapTiles.TILE, s0, s0);
+        if (thumb == null || transparent(thumb)) thumb = plainThumb(com.customdimensions.server.map.MapSite.name(sampler.dimension()), plan, planned);
+        MapImages.png(out.resolve(THUMB), s0, s0, thumb);
         long millis = (System.nanoTime() - started) / 1_000_000;
         timings.put("total", millis);
         writeJson(out.resolve(LAYERS), layersJson(sampler, plan, layers, slices, biomeCounts, fp, millis, columns, tiles, bytes.get(),
@@ -372,6 +375,44 @@ public final class MapExport {
         return sorted;
     }
 
+    /** The backdrop of a thumbnail for a world with no ground. */
+    static final int PLAIN = 0x1B1D22;
+
+    /** Whether every pixel of an ARGB image is transparent. */
+    static boolean transparent(int[] argb) {
+        for (int p : argb) if (p >>> 24 != 0) return false;
+        return true;
+    }
+
+    /**
+     * The thumbnail of a world with no ground at zoom 0: a plain tile with the
+     * dimension's name, a frame at the border and the planned places
+     * ({@link FastLayers#markers}), so its card is never empty.
+     */
+    static int[] plainThumb(String name, MapTiles plan, List<FastLayers.Marker> planned) {
+        int s0 = plan.side(0);
+        int bpp = plan.blocksPerPixel(0);
+        int half = Math.ceilDiv(s0 * bpp, 2);
+        RenderGrid grid = RenderGrid.wide(-plan.radius() + half, -plan.radius() + half, half, bpp);
+        int side = grid.side();
+        int[] rgb = new int[side * side];
+        java.util.Arrays.fill(rgb, PLAIN);
+        int edge = Math.min(side - 1, Math.ceilDiv(2 * plan.radius(), bpp) - 1);
+        for (int i = 0; i <= edge; i++) {
+            rgb[i] = 0x50545C;
+            rgb[edge * side + i] = 0x50545C;
+            rgb[i * side] = 0x50545C;
+            rgb[i * side + edge] = 0x50545C;
+        }
+        rgb = FastLayers.markers(rgb, grid, planned);
+        com.customdimensions.core.render.TinyFont.draw(rgb, side, side, 6, 6, name, com.customdimensions.core.render.ContactSheet.TEXT, 1);
+        int[] out = new int[s0 * s0];
+        for (int y = 0; y < s0; y++) {
+            for (int x = 0; x < s0; x++) out[y * s0 + x] = 0xFF000000 | (x < side && y < side ? rgb[y * side + x] : PLAIN);
+        }
+        return out;
+    }
+
     /** {@code minecraft:village_plains} reads "Village Plains". */
     public static String structureName(String id) {
         return title(id.substring(id.indexOf(':') + 1).replace('/', ' '));
@@ -387,7 +428,7 @@ public final class MapExport {
         return out.toString();
     }
 
-    private static JsonObject markersJson(List<JsonObject> markers) {
+    static JsonObject markersJson(List<JsonObject> markers, List<FastLayers.Marker> planned) {
         JsonObject root = new JsonObject();
         JsonArray list = new JsonArray();
         String error = null;
@@ -396,9 +437,26 @@ public final class MapExport {
             else list.add(m);
         }
         root.addProperty("rule", "structure starts within the border, from the dimension's own structure state (its structure control "
-                + "applied); x and z the centre of the start's bounding box");
+                + "applied); x and z the centre of the start's bounding box. planned: the places the structure plan names (forced "
+                + "starts, wants, the spawn) that no start's box holds, at the centre of their chunk");
         if (error != null) root.addProperty("error", error);
         root.add("structures", list);
+        JsonArray plan = new JsonArray();
+        for (FastLayers.Marker p : planned) {
+            boolean held = markers.stream().filter(m -> m.has("box")).anyMatch(m -> {
+                JsonArray b = m.getAsJsonArray("box");
+                return p.x() >= b.get(0).getAsInt() && p.z() >= b.get(1).getAsInt() && p.x() <= b.get(2).getAsInt() && p.z() <= b.get(3).getAsInt();
+            });
+            if (held) continue;
+            JsonObject o = new JsonObject();
+            o.addProperty("kind", p.kind());
+            o.addProperty("type", p.structure());
+            o.addProperty("name", "spawn".equals(p.kind()) ? "Spawn" : structureName(p.structure()));
+            o.addProperty("x", p.x());
+            o.addProperty("z", p.z());
+            plan.add(o);
+        }
+        root.add("planned", plan);
         return root;
     }
 
