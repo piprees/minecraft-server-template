@@ -1,0 +1,26 @@
+the_underdark map 1: radius 4096 t3 exported in 64911 ms, 4260096 columns, 595 tiles, 11508231 bytes, 7 layers [terrain, biomes, roofless, cut-ceiling, cut-caves, cut-sea-level, cut-deep-caves], 1 markers, timings {prescan=872, pieces=63111, pyramid=530, structures=354, total=64911}
+the_underdark map 2: radius 4096 t3 skipped (fingerprint) in 1 ms, 0 columns, 0 tiles, 0 bytes, 0 layers [], 0 markers, timings {}
+the_aviary map 1: radius 4096 t3 exported in 136017 ms, 4260096 columns, 510 tiles, 10795285 bytes, 6 layers [terrain, biomes, cut-sky-1, cut-sky-2, tier-1, tier-2], 1 markers, timings {prescan=840, pieces=133585, pyramid=599, structures=976, total=136017}
+the_aviary map 2: radius 4096 t3 skipped (fingerprint) in 1 ms, 0 columns, 0 tiles, 0 bytes, 0 layers [], 0 markers, timings {}
+overworld map 1: radius 8192 t3 exported in 512821 ms, 17040384 columns, 1705 tiles, 40785311 bytes, 5 layers [terrain, biomes, cut-sea-level, cut-caves, cut-deep-caves], 1 markers, timings {prescan=1152, pieces=507487, pyramid=1812, structures=2328, total=512821}
+overworld map 2: radius 8192 t3 skipped (fingerprint) in 1 ms, 0 columns, 0 tiles, 0 bytes, 0 layers [], 0 markers, timings {}
+the_underdark map 1: radius 4096 t3 exported in 78210 ms, 4260096 columns, 595 tiles, 11508231 bytes, 7 layers [roofless, terrain, biomes, cut-ceiling, cut-caves, cut-sea-level, cut-deep-caves], 1 markers, timings {prescan=714, pieces=76183, pyramid=631, structures=496, total=78210}
+the_underdark map 2: radius 4096 t3 skipped (fingerprint) in 2 ms, 0 columns, 0 tiles, 0 bytes, 0 layers [], 0 markers, timings {}
+the_aviary map 1: radius 4096 t3 skipped (fingerprint) in 0 ms, 0 columns, 0 tiles, 0 bytes, 0 layers [], 0 markers, timings {}
+the_aviary map 2: radius 4096 t3 skipped (fingerprint) in 0 ms, 0 columns, 0 tiles, 0 bytes, 0 layers [], 0 markers, timings {}
+the_aviary explored 1: exported, 16 regions (16 read), 32 chunks (5952 unfinished, 0 unreadable), read 488 ms at 16786 columns/s, 0 tiles, 0 bytes, 730 ms
+the_aviary explored 2: skipped (no region changed), 16 regions (0 read), 0 chunks (0 unfinished, 0 unreadable), read 0 ms at 0 columns/s, 0 tiles, 0 bytes, 0 ms
+overworld map 1: radius 8192 t3 exported in 516760 ms, 17040384 columns, 1705 tiles, 42360327 bytes, 5 layers [terrain, biomes, cut-sea-level, cut-caves, cut-deep-caves], 1 markers, timings {prescan=1828, pieces=509439, pyramid=2264, structures=3185, total=516760}
+overworld map 2: radius 8192 t3 skipped (fingerprint) in 5 ms, 0 columns, 0 tiles, 0 bytes, 0 layers [], 0 markers, timings {}
+overworld explored 1: exported, 16 regions (16 read), 57 chunks (6027 unfinished, 0 unreadable), read 414 ms at 35246 columns/s, 0 tiles, 0 bytes, 586 ms
+overworld explored 2: skipped (no region changed), 16 regions (0 read), 0 chunks (0 unfinished, 0 unreadable), read 0 ms at 0 columns/s, 0 tiles, 0 bytes, 1 ms
+the_underdark map 1: radius 4096 t3 skipped (fingerprint) in 21 ms, 0 columns, 0 tiles, 0 bytes, 0 layers [], 0 markers, timings {}
+the_underdark map 2: radius 4096 t3 skipped (fingerprint) in 3 ms, 0 columns, 0 tiles, 0 bytes, 0 layers [], 0 markers, timings {}
+the_aviary map 1: radius 4096 t3 skipped (fingerprint) in 2 ms, 0 columns, 0 tiles, 0 bytes, 0 layers [], 0 markers, timings {}
+the_aviary map 2: radius 4096 t3 skipped (fingerprint) in 1 ms, 0 columns, 0 tiles, 0 bytes, 0 layers [], 0 markers, timings {}
+the_aviary explored 1: exported, 16 regions (16 read), 32 chunks (5952 unfinished, 0 unreadable), read 524 ms at 15633 columns/s, 13 tiles, 6577 bytes, 1008 ms
+the_aviary explored 2: skipped (no region changed), 16 regions (0 read), 0 chunks (0 unfinished, 0 unreadable), read 0 ms at 0 columns/s, 0 tiles, 0 bytes, 1 ms
+overworld map 1: radius 8192 t3 skipped (fingerprint) in 2 ms, 0 columns, 0 tiles, 0 bytes, 0 layers [], 0 markers, timings {}
+overworld map 2: radius 8192 t3 skipped (fingerprint) in 0 ms, 0 columns, 0 tiles, 0 bytes, 0 layers [], 0 markers, timings {}
+overworld explored 1: exported, 16 regions (16 read), 57 chunks (6027 unfinished, 0 unreadable), read 395 ms at 36941 columns/s, 17 tiles, 10990 bytes, 761 ms
+overworld explored 2: skipped (no region changed), 16 regions (0 read), 0 chunks (0 unfinished, 0 unreadable), read 0 ms at 0 columns/s, 0 tiles, 0 bytes, 0 ms

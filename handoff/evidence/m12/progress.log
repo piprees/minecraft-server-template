@@ -10,3 +10,7 @@
 00:38 — bench b2: the_underdark r4096 65 s 4.26M cols 595 tiles 11.5 MB (7 layers); the_aviary r4096 136 s 510 tiles 10.8 MB (tiers 1-2 separate); fingerprint skip 1 ms; lane script handoff/evidence/m12/map-lane.sh committed ab95f2ac
 00:40 — retirement step 7b (edits.py webmap + apply.sh + not-automated rows) committed a2b1f757; clean-clone apply.sh --no-network rc 0, compose config valid, publish matrix without unmined-render
 00:43 — viewer interim screenshots fine (no console errors, no horizontal scroll at 390); roofed worlds now open on Roofless (underdark terrain is a uniform roof); cuts named 'Cut: X'; README section committed 750c911f
+00:43 — quick gate exit 0 (/tmp/claude-0/m12/quick.log)
+00:46 — b2 overworld r8192: 513 s, 17.0M columns, 1705 tiles, 40.8 MB, 5 layers; skip 1 ms
+00:59 — BUG: real 26.3 chunks save block palettes as state strings, compound reader read all as air (0 explored tiles); fixed + test; rerunning explored
+01:02 — b3 explored on real chunks: overworld 57 full chunks of 6084 (rest unfinished), 36.9k columns/s, 17 tiles; aviary 32 full (all air), 13 tiles; screenshots at 390/1280 no console errors, no horizontal scroll, 82 cards; empty state hides controls

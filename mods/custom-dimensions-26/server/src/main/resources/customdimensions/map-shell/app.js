@@ -213,6 +213,14 @@
 
   function hide() { this.style.visibility = 'hidden'; }
 
+  function showEmpty(title, text) {
+    emptyEl.hidden = false;
+    document.getElementById('controls').hidden = true;
+    layersToggle.hidden = true;
+    if (title) emptyEl.querySelector('h1').textContent = title;
+    if (text) emptyEl.querySelector('p').textContent = text;
+  }
+
   // --- Input ----------------------------------------------------------------
   var drag = null;
   var pointers = {};
@@ -289,11 +297,11 @@
   getJson('/manifest.json')
     .then(function (m) {
       var dims = (m && m.dimensions) || [];
-      if (!dims.length) { emptyEl.hidden = false; return; }
+      if (!dims.length) { showEmpty(); return; }
       buildSidebar(dims);
       loadDimension(dims);
     })
-    .catch(function () { emptyEl.hidden = false; });
+    .catch(function () { showEmpty(); });
 
   function buildSidebar(dims) {
     var current = slugFromPath() || dims[0].slug;
@@ -352,9 +360,7 @@
     var dim = null;
     for (var i = 0; i < dims.length; i++) if (dims[i].slug === (slug || dims[0].slug)) dim = dims[i];
     if (!dim || !dim.layers) {
-      emptyEl.hidden = false;
-      emptyEl.querySelector('h1').textContent = dim ? dim.name : 'Unknown world';
-      emptyEl.querySelector('p').textContent = dim ? 'This world has not been drawn yet.' : 'No world goes by that name.';
+      showEmpty(dim ? dim.name : 'Unknown world', dim ? 'This world has not been drawn yet.' : 'No world goes by that name.');
       return;
     }
     document.title = dim.name + ' — World Map';

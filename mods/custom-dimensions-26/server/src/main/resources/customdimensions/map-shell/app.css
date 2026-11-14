@@ -156,7 +156,7 @@ body.sidebar-closed #view { left: 0; }
   background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px;
   padding: .6rem .7rem; font-size: .8rem;
 }
-#layers[hidden] { display: none; }
+#layers[hidden], #controls[hidden], #layers-toggle[hidden] { display: none; }
 #layers fieldset { border: 0; margin: 0 0 .6rem; padding: 0; display: flex; flex-direction: column; gap: .3rem; }
 #layers legend, #legend h3 {
   font-size: .68rem; text-transform: uppercase; letter-spacing: .5px;
