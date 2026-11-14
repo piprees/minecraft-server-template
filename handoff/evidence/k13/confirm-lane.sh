@@ -5,10 +5,10 @@
 #   1. the boot's structure control lines for the_end, the overworld and the_snowbound_isle;
 #   2. locate: minecraft:end_city in the_end from three points and minecraft:trial_chambers in the overworld from three
 #      (each answer, its time, and whether it answered at all: before k13 the End answered "Could not find" at once);
-#   3. explorer maps at the overworld spawn: minecraft:chests/shipwreck_map inserted into a chest twice and spawned as
-#      items once (every item listed), then a blank map in each of six chest slots given an inline exploration_map
-#      modifier: the shipwreck's (treasure tag, radius 50, no reference), the same at radius 100, buried_treasure by
-#      id, and the cartographer trades' (ocean monument, trial chambers, woodland mansion; radius 100, reference);
+#   3. explorer maps into a chest at 0 200 0 in the overworld: minecraft:chests/shipwreck_map twice, then a blank map
+#      in each of four slots given an inline exploration_map modifier: the shipwreck's (treasure tag, radius 50, no
+#      reference) and the cartographer trades' (ocean monument, buried trial chambers, woodland mansion; radius 100,
+#      reference); maps-diag.sh splits the shipwreck's search by radius, id or tag, and reference;
 #   4. K12's elytra rolls: minecraft:chests/end_city_treasure 100 times inside each End city step 2 located, at a
 #      point a location_check predicate places inside a city piece (StructureLoot reads getStructureWithPieceAt);
 #   5. the End's starts: `customdim starts the_end`, every confirmed start inside its border by structure;
@@ -19,7 +19,7 @@
 # Each wait is bounded. Results -> /tmp/claude-0/k13/lane/<tag>/: server.log, driver.log, structure-control.log,
 # locate.tsv (dimension, structure, from, answer, seconds), map.log, loot.tsv, end-count.log, sky.log, fog.log.
 # What to read: locate.tsv (every row answers a position; End cities near the sites K12 counted); map.log (each
-# chest slot a map with minecraft:map_id and a map_decorations target; an empty or missing slot is a failed search);
+# slot a map with minecraft:map_id and a map_decorations target; a blank minecraft:map is a failed search);
 # loot.tsv (the city's in-piece point, then about 8 elytra per 100 rolls); end-count.log (minecraft:end_city about
 # 57 inside the 4096 border, with or without MODS: Moog's sets keep their own grids, T297); sky.log (refusal lines
 # present; every located start's surface y over its chunk is an island top, far above the start's own floor, never
@@ -93,7 +93,7 @@ rolls() {
   say "execute in $dim run kill @e[tag=k13in]"
   for dx in -40 -32 -24 -16 -8 0 8 16 24 32 40; do
     for dz in -40 -32 -24 -16 -8 0 8 16 24 32 40; do
-      say "execute in $dim positioned $((x + dx)) 0 $((z + dz)) positioned over world_surface positioned ~ ~-2 ~ if predicate {condition:\"minecraft:location_check\",predicate:{structures:\"$structure\"}} run summon marker ~ ~ ~ {Tags:[\"k13in\"]}"
+      say "execute in $dim positioned $((x + dx)) 0 $((z + dz)) positioned over world_surface positioned ~ ~-2 ~ if predicate {type:\"minecraft:location_check\",predicate:{structures:\"$structure\"}} run summon marker ~ ~ ~ {Tags:[\"k13in\"]}"
     done
   done
   say "execute in $dim store result score #inside k13 if entity @e[tag=k13in]"
@@ -157,45 +157,39 @@ for from in "0 0" "1500 1500" "-1500 -800"; do
 done
 [ -n "${MODS:-}" ] && located mes:phantom_citadel minecraft:the_end 0 1200 > /dev/null
 
-# 3. explorer maps
+# 3. explorer maps: a chest in the air at 0 200 0 (no item entities; a failed search's map is discarded to an
+# empty stack, which `loot spawn` still counts and whose entity vanishes at once)
+AT="execute in minecraft:overworld positioned 0 200 0"
 say "execute in minecraft:overworld run forceload add 0 0"
 sleep 20
-say "execute in minecraft:overworld positioned 0 0 0 positioned over world_surface run setblock ~ ~ ~ minecraft:chest"
-say "execute in minecraft:overworld positioned 0 0 0 positioned over world_surface positioned ~ ~-1 ~ run setblock ~ ~ ~ minecraft:stone"
+say "execute in minecraft:overworld run setblock 0 200 0 minecraft:chest"
 sleep 2
-CHEST="execute in minecraft:overworld positioned 0 0 0 positioned over world_surface positioned ~ ~-1 ~"
 mapstart=$(wc -l < "$LOG")
-for n in 1 2; do
-  say "$CHEST run loot insert ~ ~ ~ loot minecraft:chests/shipwreck_map"
-  sleep 15
-done
-say "$CHEST run data get block ~ ~ ~ Items"
-sleep 5
-say "$CHEST run data merge block ~ ~ ~ {Items:[]}"
+say "$AT run loot insert 0 200 0 loot minecraft:chests/shipwreck_map"
+sleep 15
+say "$AT run loot insert 0 200 0 loot minecraft:chests/shipwreck_map"
+sleep 15
+say "$AT run data get block 0 200 0 Items"
+sleep 3
+say "$AT run data merge block 0 200 0 {Items:[]}"
 n=0
 for modifier in \
   'destination:"#minecraft:on_treasure_maps",decoration:"minecraft:red_x",zoom:1b,skip_existing_chunks:false' \
-  'destination:"#minecraft:on_treasure_maps",decoration:"minecraft:red_x",zoom:1b,skip_existing_chunks:false,search_radius:100' \
-  'destination:"minecraft:buried_treasure",decoration:"minecraft:red_x",zoom:1b,skip_existing_chunks:false' \
   'destination:"#minecraft:on_ocean_monument_maps",decoration:"minecraft:monument",search_radius:100' \
-  'destination:"#minecraft:on_trial_chambers_maps",decoration:"minecraft:trial_chambers",search_radius:100' \
-  'destination:"#minecraft:on_woodland_explorer_maps",decoration:"minecraft:mansion",search_radius:100'; do
-  say "$CHEST run item replace block ~ ~ ~ container.$n with minecraft:map"
-  say "$CHEST run item modify block ~ ~ ~ container.$n {type:\"minecraft:exploration_map\",$modifier}"
-  sleep 15
+  'destination:"#minecraft:on_buried_trial_chambers_maps",decoration:"minecraft:trial_chambers",search_radius:100' \
+  'destination:"#minecraft:on_woodland_mansion_maps",decoration:"minecraft:mansion",search_radius:100'; do
+  say "$AT run item replace block 0 200 0 container.$n with minecraft:map"
+  say "$AT run item modify block 0 200 0 container.$n {type:\"minecraft:exploration_map\",$modifier}"
+  sleep 20
+  say "$AT run data get block 0 200 0 Items[{Slot:${n}b}]"
+  sleep 3
   n=$((n + 1))
 done
-say "$CHEST run data get block ~ ~ ~ Items"
-sleep 5
-say "execute in minecraft:overworld run kill @e[type=item,x=0,y=0,z=0,distance=..512]"
-say "execute in minecraft:overworld positioned 0 0 0 positioned over world_surface run loot spawn ~ ~2 ~ loot minecraft:chests/shipwreck_map"
-sleep 20
-say "execute in minecraft:overworld positioned 0 0 0 as @e[type=item,distance=..512] run data get entity @s Item"
-sleep 5
 {
-  echo "chest after two shipwreck_map inserts, then after six modified maps (slots 0-5), then every spawned item:"
-  tail -n +"$((mapstart + 1))" "$LOG" | grep -E "has the following (block|entity) data|Dropped|Inserted|Applied|Could not|Unknown|Error|error" | cut -c1-1500
+  echo "chest after two shipwreck_map inserts, then slots 0-3 (shipwreck's modifier, monument, trial chambers and mansion trades):"
+  tail -n +"$((mapstart + 1))" "$LOG" | grep -E "has the following|Could not|Failed|Unknown|rror" | cut -c1-1500
 } > "$OUT/map.log"
+say "execute in minecraft:overworld run setblock 0 200 0 minecraft:air"
 say "execute in minecraft:overworld run forceload remove 0 0"
 
 # 4. elytra rolls inside each located End city
