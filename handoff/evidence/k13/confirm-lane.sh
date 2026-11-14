@@ -107,10 +107,10 @@ rolls() {
     before=$(grep -c "has the following entity data" "$LOG")
     say "execute in $dim positioned $x 0 $z run data get entity @e[tag=k13in,limit=1,sort=nearest] Pos"
     await "has the following entity data" 15 "point $label" "$before" "$(date +%s)"
-    label="$label in-piece $(grep "has the following entity data" "$LOG" | tail -1 | grep -oE '\[[^]]*\]')"
+    label="$label in-piece $(grep "has the following entity data" "$LOG" | tail -1 | sed 's/.*entity data: //')"
     say "execute in $dim run kill @e[type=item,x=$x,y=0,z=$z,distance=..512]"
     for _ in $(seq 1 100); do
-      say "execute in $dim positioned $x 0 $z as @e[tag=k13in,limit=1,sort=nearest] at @s run loot spawn ~ ~ ~ loot $table"
+      say "execute in $dim positioned $x 0 $z at @e[tag=k13in,limit=1,sort=nearest] run loot spawn ~ ~ ~ loot $table"
     done
     sleep 5
     say "execute in $dim positioned $x 0 $z store result score #elytra k13 if entity @e[type=item,distance=..512,nbt={Item:{id:\"minecraft:elytra\"}}]"
