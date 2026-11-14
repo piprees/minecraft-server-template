@@ -8,24 +8,40 @@
     "preset": "end",
     "endIsland": false
   },
+  "terrain": {
+    "base": "end",
+    "params": {
+      "coverage": -0.04,
+      "islandHeight": 24,
+      "peaks": 0.3
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 0],
+      "radius": 8000,
+      "falloff": 16,
+      "strength": 1.0
+    }
+  },
   "biomes": [
-    "minecraft:end_barrens",
-    "minecraft:small_end_islands",
-    "adventure:ice_starfield",
+    "minecraft:end_highlands",
     "minecraft:end_midlands",
+    "adventure:sheared_highlands",
     "minecraft:the_end",
-    "minecraft:end_highlands"
+    "minecraft:end_barrens",
+    "minecraft:small_end_islands"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "minecraft:end_barrens": 5.8,
-      "minecraft:small_end_islands": 4.1,
-      "adventure:ice_starfield": 4.3,
-      "minecraft:end_midlands": 9.8,
-      "minecraft:the_end": 9.7,
-      "minecraft:end_highlands": 10.1
-    }
+      "minecraft:end_highlands": 40,
+      "minecraft:end_midlands": 18,
+      "adventure:sheared_highlands": 12,
+      "minecraft:the_end": 12,
+      "minecraft:end_barrens": 10,
+      "minecraft:small_end_islands": 8
+    },
+    "over": "land"
   },
   "borders": {
     "player": 4096,
@@ -42,6 +58,14 @@
     },
     "exclude": [
       "mes:ruined_pillar"
+    ],
+    "force": [
+      {
+        "structure": "minecraft:end_city",
+        "x": -204,
+        "z": 0,
+        "exclusive": false
+      }
     ]
   },
   "portals": [
@@ -68,11 +92,6 @@
       }
     }
   ],
-  "exitPortal": {
-    "enabled": true,
-    "pos": "spawn",
-    "target": "bed"
-  },
   "exits": {
     "death": {
       "action": "respawnAt",
@@ -100,5 +119,10 @@
       "ruined_pillar",
       "mes:endscraps"
     ]
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
   }
 }

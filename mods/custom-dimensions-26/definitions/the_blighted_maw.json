@@ -5,24 +5,42 @@
   "spawn": [0, 46, 0],
   "generator": {
     "type": "noise",
-    "preset": "end"
+    "preset": "end",
+    "endIsland": false
+  },
+  "terrain": {
+    "base": "end",
+    "params": {
+      "coverage": 0.12
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 0],
+      "radius": 200,
+      "falloff": 300,
+      "strength": 0.8
+    },
+    "scales": {
+      "climate": 2
+    }
   },
   "biomes": [
-    "adventure:ash_barrens",
+    "adventure:mycotoxic_undergrowth",
     "minecraft:soul_sand_valley",
     "adventure:withered_forest",
-    "minecraft:nether_wastes",
-    "adventure:mycotoxic_undergrowth"
+    "adventure:ash_barrens",
+    "minecraft:nether_wastes"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:ash_barrens": 1,
-      "minecraft:soul_sand_valley": 2.8,
-      "adventure:withered_forest": 1.9,
-      "minecraft:nether_wastes": 1.5,
-      "adventure:mycotoxic_undergrowth": 3.4
-    }
+      "adventure:mycotoxic_undergrowth": 30,
+      "minecraft:soul_sand_valley": 25,
+      "adventure:withered_forest": 20,
+      "adventure:ash_barrens": 15,
+      "minecraft:nether_wastes": 10
+    },
+    "over": "land"
   },
   "liquids": {
     "seaLevel": -60,

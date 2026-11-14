@@ -11,12 +11,12 @@
     "base": "floating_islands",
     "setting": "extreme",
     "params": {
-      "size": 3,
-      "coverage": 0.38,
+      "size": 2,
+      "coverage": 0.32,
       "thickness": 16,
       "underside": 80,
-      "spread": 20,
-      "flatness": 0.6,
+      "spread": 10,
+      "flatness": 1.0,
       "tiers": 2,
       "tierSpacing": 64,
       "tierGap": 20,
@@ -43,7 +43,6 @@
     "adventure:cloud_reef",
     "adventure:windswept_isles",
     "minecraft:snowy_slopes",
-    "minecraft:dark_forest",
     "adventure:hanging_gardens"
   ],
   "biomeLayout": {
@@ -60,8 +59,7 @@
       "minecraft:birch_forest": 5,
       "adventure:cloud_reef": 5,
       "adventure:windswept_isles": 5,
-      "minecraft:snowy_slopes": 5,
-      "minecraft:dark_forest": 5
+      "minecraft:snowy_slopes": 5
     },
     "over": "land",
     "roles": {
@@ -89,8 +87,7 @@
         ],
         "woods": [
           "minecraft:forest",
-          "minecraft:birch_forest",
-          "minecraft:dark_forest"
+          "minecraft:birch_forest"
         ]
       },
       "neighbours": [

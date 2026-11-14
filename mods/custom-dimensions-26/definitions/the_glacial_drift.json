@@ -7,37 +7,51 @@
     "type": "noise",
     "preset": "floating_islands"
   },
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "coverage": 0.3,
+      "spread": 40,
+      "size": 1.8,
+      "flatness": 0.4
+    },
+    "scales": {
+      "climate": 3
+    }
+  },
   "biomes": [
     "minecraft:ice_spikes",
-    "adventure:windswept_isles",
     "minecraft:frozen_peaks",
-    "minecraft:jagged_peaks",
     "minecraft:snowy_slopes",
+    "adventure:windswept_isles",
     "minecraft:snowy_taiga",
-    "minecraft:end_barrens",
     "adventure:highland_fells",
+    "minecraft:jagged_peaks",
+    "minecraft:end_barrens",
     "adventure:golden_skygrove"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "minecraft:ice_spikes": 9.9,
-      "adventure:windswept_isles": 17.5,
-      "minecraft:frozen_peaks": 19,
-      "minecraft:jagged_peaks": 5.1,
-      "minecraft:snowy_slopes": 6.6,
-      "minecraft:snowy_taiga": 8,
-      "minecraft:end_barrens": 8.5,
-      "adventure:highland_fells": 12.2,
-      "adventure:golden_skygrove": 7.8
-    }
+      "minecraft:ice_spikes": 18,
+      "minecraft:frozen_peaks": 18,
+      "minecraft:snowy_slopes": 14,
+      "adventure:windswept_isles": 14,
+      "minecraft:snowy_taiga": 12,
+      "adventure:highland_fells": 10,
+      "minecraft:jagged_peaks": 5,
+      "minecraft:end_barrens": 4,
+      "adventure:golden_skygrove": 1.5
+    },
+    "over": "land"
   },
   "liquids": {
     "seaLevel": -64,
     "defaultFluid": "minecraft:water"
   },
   "materials": {
-    "defaultBlock": "minecraft:stone"
+    "defaultBlock": "minecraft:stone",
+    "cliffs": "minecraft:packed_ice"
   },
   "atmosphere": {
     "skyColor": "#BFD8E8",

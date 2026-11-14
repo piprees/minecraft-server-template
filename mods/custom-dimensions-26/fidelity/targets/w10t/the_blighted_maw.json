@@ -37,8 +37,14 @@
   {
    "key": "surface.biomesPercent.adventure:mycotoxic_undergrowth + surface.biomesPercent.minecraft:soul_sand_valley + surface.biomesPercent.adventure:withered_forest",
    "op": ">=",
-   "value": 25,
-   "from": "1.21.1 toxic_heap, soul_sand_valley, withered_forest"
+   "value": 0.25,
+   "from": "1.21.1 toxic_heap, soul_sand_valley, withered_forest (restated per land column: the old form counted void columns, which a world over a void cannot fill)",
+   "per": "vertical.layerColumnsPercent.surface",
+   "was": {
+    "key": "surface.biomesPercent.adventure:mycotoxic_undergrowth + surface.biomesPercent.minecraft:soul_sand_valley + surface.biomesPercent.adventure:withered_forest",
+    "op": ">=",
+    "value": 25
+   }
   },
   {
    "key": "atmosphere.definitionAtmosphere.ambientLight?",

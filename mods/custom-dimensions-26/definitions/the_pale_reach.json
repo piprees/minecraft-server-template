@@ -7,35 +7,51 @@
     "type": "noise",
     "preset": "floating_islands"
   },
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "coverage": 0.25,
+      "size": 0.8
+    },
+    "scales": {
+      "climate": 4
+    }
+  },
   "biomes": [
-    "minecraft:ice_spikes",
-    "adventure:windswept_isles",
-    "minecraft:snowy_plains",
-    "minecraft:frozen_peaks",
-    "minecraft:jagged_peaks",
+    "adventure:chalk_cliffs",
     "minecraft:snowy_slopes",
-    "minecraft:end_barrens",
-    "adventure:chalk_cliffs"
+    "minecraft:ice_spikes",
+    "minecraft:frozen_peaks",
+    "minecraft:snowy_plains",
+    "adventure:windswept_isles",
+    "minecraft:jagged_peaks",
+    "minecraft:end_barrens"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "minecraft:ice_spikes": 1,
-      "adventure:windswept_isles": 1,
-      "minecraft:snowy_plains": 1,
-      "minecraft:frozen_peaks": 1,
-      "minecraft:jagged_peaks": 4,
-      "minecraft:snowy_slopes": 23.1,
-      "minecraft:end_barrens": 12.7,
-      "adventure:chalk_cliffs": 49.4
-    }
+      "adventure:chalk_cliffs": 30,
+      "minecraft:snowy_slopes": 20,
+      "minecraft:ice_spikes": 12,
+      "minecraft:frozen_peaks": 12,
+      "minecraft:snowy_plains": 8,
+      "adventure:windswept_isles": 8,
+      "minecraft:jagged_peaks": 5,
+      "minecraft:end_barrens": 5
+    },
+    "over": "land"
   },
   "liquids": {
     "seaLevel": -64,
     "defaultFluid": "minecraft:water"
   },
   "materials": {
-    "defaultBlock": "minecraft:stone"
+    "defaultBlock": "minecraft:stone",
+    "biomes": {
+      "adventure:chalk_cliffs": {
+        "top": "minecraft:calcite"
+      }
+    }
   },
   "zones": [
     {

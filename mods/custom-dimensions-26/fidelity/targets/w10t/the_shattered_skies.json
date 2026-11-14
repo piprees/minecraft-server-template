@@ -13,44 +13,83 @@
   {
    "key": "surface.biomesPercent.minecraft:cherry_grove + surface.biomesPercent.adventure:magnolia_woodland",
    "op": ">=",
-   "value": 12,
-   "from": "\"sakura\"; 1.21.1 sakura_valley, sakura_grove, cherry_grove"
+   "value": 0.12,
+   "from": "\"sakura\"; 1.21.1 sakura_valley, sakura_grove, cherry_grove (restated per land column: the old form counted void columns, which a world over a void cannot fill)",
+   "per": "vertical.layerColumnsPercent.surface",
+   "was": {
+    "key": "surface.biomesPercent.minecraft:cherry_grove + surface.biomesPercent.adventure:magnolia_woodland",
+    "op": ">=",
+    "value": 12
+   }
   },
   {
    "key": "surface.biomesPercent.minecraft:plains + surface.biomesPercent.minecraft:meadow + surface.biomesPercent.minecraft:flower_forest + surface.biomesPercent.minecraft:sunflower_plains + surface.biomesPercent.minecraft:forest + surface.biomesPercent.minecraft:birch_forest + surface.biomesPercent.minecraft:cherry_grove + surface.biomesPercent.adventure:lavender_fields + surface.biomesPercent.adventure:sky_highlands",
    "op": ">=",
-   "value": 55,
-   "from": "\"Floating garden islands\"; 1.21.1 lists plains, forest, birch, meadow, flower forest, cherry, blooming and lavender valleys"
+   "value": 0.55,
+   "from": "\"Floating garden islands\"; 1.21.1 lists plains, forest, birch, meadow, flower forest, cherry, blooming and lavender valleys (restated per land column: the old form counted void columns, which a world over a void cannot fill)",
+   "per": "vertical.layerColumnsPercent.surface",
+   "was": {
+    "key": "surface.biomesPercent.minecraft:plains + surface.biomesPercent.minecraft:meadow + surface.biomesPercent.minecraft:flower_forest + surface.biomesPercent.minecraft:sunflower_plains + surface.biomesPercent.minecraft:forest + surface.biomesPercent.minecraft:birch_forest + surface.biomesPercent.minecraft:cherry_grove + surface.biomesPercent.adventure:lavender_fields + surface.biomesPercent.adventure:sky_highlands",
+    "op": ">=",
+    "value": 55
+   }
   },
   {
    "key": "surface.groundBlocksPercent.minecraft:sand",
    "op": "<=",
-   "value": 4,
-   "from": "\"garden islands\": no desert"
+   "value": 0.04,
+   "from": "\"garden islands\": no desert (restated per land column: the old form counted void columns, which a world over a void cannot fill)",
+   "per": "vertical.layerColumnsPercent.surface",
+   "was": {
+    "key": "surface.groundBlocksPercent.minecraft:sand",
+    "op": "<=",
+    "value": 4
+   }
   },
   {
    "key": "surface.groundPlantsPercent.flower",
    "op": ">=",
-   "value": 4,
-   "from": "\"garden\""
+   "value": 0.04,
+   "from": "\"garden\" (restated per land column: the old form counted void columns, which a world over a void cannot fill)",
+   "per": "vertical.layerColumnsPercent.surface",
+   "was": {
+    "key": "surface.groundPlantsPercent.flower",
+    "op": ">=",
+    "value": 4
+   }
   },
   {
-   "key": "placeness.landBiomeRegions.top3Percent",
+   "key": "placeness.places.islands.dominantPlacePercent",
    "op": ">=",
-   "value": 60,
-   "from": "place kind meeting (garden islands): the largest three regions hold most of the land"
+   "value": 55,
+   "was": {
+    "key": "placeness.landBiomeRegions.top3Percent",
+    "op": ">=",
+    "value": 60
+   },
+   "from": "restated: on islands the top three regions are the three largest islands; a meeting reads as each island in one place"
   },
   {
-   "key": "placeness.landBiomeRegions.major",
+   "key": "placeness.places.count",
    "op": "<=",
    "value": 8,
-   "from": "place kind meeting: a few places, not many"
+   "was": {
+    "key": "placeness.landBiomeRegions.major",
+    "op": "<=",
+    "value": 8
+   },
+   "from": "restated: on islands every island of 1% of the land is a major region; the meeting is at most this many places"
   },
   {
-   "key": "placeness.landBiomeRegions.specksPercent",
-   "op": "<=",
-   "value": 5,
-   "from": "place kind meeting: no scatter of biome specks"
+   "key": "placeness.places.islands.dominantPlacePercent",
+   "op": ">=",
+   "value": 75,
+   "from": "restated: on islands every islet under 1 ha is a speck whatever its place (kit gap: no speck measure inside islands); a meeting judged by place: at most a quarter of each island outside its own place",
+   "was": {
+    "key": "placeness.landBiomeRegions.specksPercent",
+    "op": "<=",
+    "value": 5
+   }
   }
  ]
 }

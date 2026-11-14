@@ -2,10 +2,15 @@
  "slug": "the_crumbling_reaches",
  "targets": [
   {
-   "key": "placeness.landBiomeRegions.specksPercent",
-   "op": "<=",
-   "value": 10,
-   "from": "place kind deliberately broken: rubble, but not noise"
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 65,
+   "from": "restated: on islands every islet under 1 ha is a speck whatever its biome (kit gap: no speck measure inside islands); a deliberately broken world allows twice the specks, so at most a third of each island outside its own biome",
+   "was": {
+    "key": "placeness.landBiomeRegions.specksPercent",
+    "op": "<=",
+    "value": 10
+   }
   },
   {
    "key": "placeness.landBiomeRegions.largestPercent",

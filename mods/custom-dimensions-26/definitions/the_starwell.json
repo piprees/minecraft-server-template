@@ -7,20 +7,34 @@
     "type": "noise",
     "preset": "floating_islands"
   },
+  "terrain": {
+    "base": "floating_islands",
+    "setting": "gentle",
+    "params": {
+      "coverage": 0.16,
+      "size": 1.0,
+      "spread": 30,
+      "thickness": 8
+    },
+    "scales": {
+      "climate": 3
+    }
+  },
   "biomes": [
-    "adventure:windswept_isles",
     "minecraft:snowy_plains",
     "adventure:alpha_grove",
+    "adventure:windswept_isles",
     "adventure:desert_oasis"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:windswept_isles": 1,
-      "minecraft:snowy_plains": 18.8,
-      "adventure:alpha_grove": 1,
-      "adventure:desert_oasis": 68.4
-    }
+      "minecraft:snowy_plains": 35,
+      "adventure:alpha_grove": 25,
+      "adventure:windswept_isles": 25,
+      "adventure:desert_oasis": 5
+    },
+    "over": "land"
   },
   "liquids": {
     "seaLevel": -64
@@ -34,6 +48,7 @@
       "centre": [168, -140],
       "radius": 72,
       "blend": 20,
+      "edgeJitter": 24,
       "biomes": [
         "adventure:umbral_wastes"
       ]
@@ -107,11 +122,6 @@
       }
     }
   ],
-  "exitPortal": {
-    "enabled": true,
-    "pos": "spawn",
-    "target": "bed"
-  },
   "exits": {
     "void": {
       "target": "origin",
@@ -126,5 +136,10 @@
       "adventure:windswept_isles",
       "adventure:alpha_grove"
     ]
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
   }
 }

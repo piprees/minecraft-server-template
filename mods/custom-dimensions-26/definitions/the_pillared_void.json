@@ -5,25 +5,41 @@
   "spawn": [204, 44, 0],
   "generator": {
     "type": "noise",
-    "preset": "end",
-    "endIsland": false
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "spires",
+    "floor": "islands",
+    "params": {
+      "coverage": 0.03,
+      "spireHeight": 150,
+      "landHeight": 30,
+      "thickness": 0.8,
+      "taper": 0.05
+    }
   },
   "biomes": [
     "minecraft:end_barrens",
-    "minecraft:small_end_islands",
-    "adventure:ice_starfield",
     "minecraft:the_end",
-    "minecraft:end_highlands"
+    "minecraft:small_end_islands",
+    "minecraft:end_highlands",
+    "adventure:sheared_highlands"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "minecraft:end_barrens": 8.3,
-      "minecraft:small_end_islands": 10.1,
-      "adventure:ice_starfield": 14,
-      "minecraft:the_end": 3.2,
-      "minecraft:end_highlands": 6.8
-    }
+      "minecraft:end_barrens": 40,
+      "minecraft:the_end": 20,
+      "minecraft:small_end_islands": 12,
+      "minecraft:end_highlands": 14,
+      "adventure:sheared_highlands": 14
+    },
+    "over": "land"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:end_stone",
+    "top": "minecraft:end_stone",
+    "filler": "minecraft:end_stone"
   },
   "atmosphere": {
     "skyColor": "#0B0B14",

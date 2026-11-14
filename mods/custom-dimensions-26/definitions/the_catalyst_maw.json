@@ -8,45 +8,72 @@
     "preset": "end"
   },
   "terrain": {
-    "base": null
+    "base": "end",
+    "params": {
+      "coverage": 0.05
+    },
+    "scales": {
+      "climate": 2
+    }
   },
   "biomes": [
-    "adventure:umbral_wastes",
-    "adventure:ash_barrens",
-    "minecraft:soul_sand_valley",
-    "adventure:blackstone_basin",
     "minecraft:deep_dark",
+    "adventure:umbral_wastes",
+    "minecraft:dark_forest",
+    "minecraft:mangrove_swamp",
+    "minecraft:soul_sand_valley",
+    "adventure:ash_barrens",
+    "minecraft:end_highlands",
+    "minecraft:end_midlands",
     "minecraft:pale_garden",
+    "minecraft:old_growth_birch_forest",
+    "adventure:blackstone_basin",
     "adventure:withered_forest",
     "adventure:mycotoxic_undergrowth",
     "minecraft:nether_wastes",
-    "minecraft:end_midlands",
-    "minecraft:old_growth_birch_forest",
-    "minecraft:end_highlands",
     "minecraft:basalt_deltas",
-    "minecraft:stony_peaks",
-    "minecraft:dark_forest",
-    "minecraft:mangrove_swamp"
+    "minecraft:stony_peaks"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:umbral_wastes": 4.4,
-      "adventure:ash_barrens": 3.9,
-      "minecraft:soul_sand_valley": 5.5,
-      "adventure:blackstone_basin": 2.3,
-      "minecraft:deep_dark": 1.8,
-      "minecraft:pale_garden": 2,
-      "adventure:withered_forest": 2.3,
-      "adventure:mycotoxic_undergrowth": 1.8,
-      "minecraft:nether_wastes": 1.3,
-      "minecraft:end_midlands": 1.7,
-      "minecraft:old_growth_birch_forest": 1.4,
-      "minecraft:end_highlands": 1.2,
-      "minecraft:basalt_deltas": 4.5,
-      "minecraft:stony_peaks": 2.5,
-      "minecraft:dark_forest": 2.3,
-      "minecraft:mangrove_swamp": 2.8
+      "minecraft:deep_dark": 14,
+      "adventure:umbral_wastes": 10,
+      "minecraft:dark_forest": 10,
+      "minecraft:mangrove_swamp": 7,
+      "minecraft:soul_sand_valley": 7,
+      "adventure:ash_barrens": 6,
+      "minecraft:end_highlands": 6,
+      "minecraft:end_midlands": 4,
+      "minecraft:pale_garden": 5,
+      "minecraft:old_growth_birch_forest": 4,
+      "adventure:blackstone_basin": 4,
+      "adventure:withered_forest": 4,
+      "adventure:mycotoxic_undergrowth": 4,
+      "minecraft:nether_wastes": 3,
+      "minecraft:basalt_deltas": 4,
+      "minecraft:stony_peaks": 3
+    },
+    "over": "land"
+  },
+  "materials": {
+    "biomes": {
+      "minecraft:dark_forest": {
+        "top": "minecraft:grass_block",
+        "filler": "minecraft:dirt"
+      },
+      "minecraft:mangrove_swamp": {
+        "top": "minecraft:mud",
+        "filler": "minecraft:mud"
+      },
+      "minecraft:pale_garden": {
+        "top": "minecraft:grass_block",
+        "filler": "minecraft:dirt"
+      },
+      "minecraft:old_growth_birch_forest": {
+        "top": "minecraft:grass_block",
+        "filler": "minecraft:dirt"
+      }
     }
   },
   "zones": [
@@ -55,6 +82,7 @@
       "centre": [1180, -860],
       "radius": 200,
       "blend": 40,
+      "edgeJitter": 48,
       "biomes": [
         "minecraft:deep_dark"
       ]

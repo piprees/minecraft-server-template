@@ -11,22 +11,39 @@
    "from": "\"skylands ... on the updrafts between plateaus\": open sky between the masses"
   },
   {
-   "key": "landforms.sharesPercent.plateaus + landforms.sharesPercent.plains",
+   "key": "terrain.slopes.flatUnder15Percent",
    "op": ">=",
-   "value": 35,
-   "from": "\"between plateaus\": flat-topped islands"
+   "value": 50,
+   "from": "\"between plateaus\": flat-topped land (restated: the landform classifier puts a mass narrower than its 256-block window in islands whatever its top, so plateaus and plains read 14-31% of land on every variant; half the land columns under 15 degrees is the flat top)",
+   "was": {
+    "key": "landforms.sharesPercent.plateaus + landforms.sharesPercent.plains",
+    "op": ">=",
+    "value": 35
+   }
   },
   {
    "key": "surface.biomesPercent.adventure:wisteria_grove",
    "op": ">=",
-   "value": 8,
-   "from": "\"Wisteria drifts on the updrafts\""
+   "value": 0.08,
+   "from": "\"Wisteria drifts on the updrafts\" (restated per land column: the old form counted void columns, which a world over a void cannot fill)",
+   "per": "vertical.layerColumnsPercent.surface",
+   "was": {
+    "key": "surface.biomesPercent.adventure:wisteria_grove",
+    "op": ">=",
+    "value": 8
+   }
   },
   {
    "key": "surface.biomesPercent.adventure:sky_highlands + surface.biomesPercent.adventure:golden_skygrove + surface.biomesPercent.minecraft:forest + surface.biomesPercent.minecraft:flower_forest + surface.biomesPercent.minecraft:meadow + surface.biomesPercent.minecraft:cherry_grove + surface.biomesPercent.adventure:wisteria_grove",
    "op": ">=",
-   "value": 50,
-   "from": "1.21.1 spawnFilter highlands, highlands_forest, wisteria_woods: skyland groves"
+   "value": 0.5,
+   "from": "1.21.1 spawnFilter highlands, highlands_forest, wisteria_woods: skyland groves (restated per land column: the old form counted void columns, which a world over a void cannot fill)",
+   "per": "vertical.layerColumnsPercent.surface",
+   "was": {
+    "key": "surface.biomesPercent.adventure:sky_highlands + surface.biomesPercent.adventure:golden_skygrove + surface.biomesPercent.minecraft:forest + surface.biomesPercent.minecraft:flower_forest + surface.biomesPercent.minecraft:meadow + surface.biomesPercent.minecraft:cherry_grove + surface.biomesPercent.adventure:wisteria_grove",
+    "op": ">=",
+    "value": 50
+   }
   },
   {
    "key": "vegetation.treesPerHectareByLayer.surface",
@@ -50,16 +67,26 @@
    "from": "\"skylands\": some islands stacked above others"
   },
   {
-   "key": "placeness.landBiomeRegions.top3Percent",
+   "key": "placeness.places.islands.dominantPlacePercent",
    "op": ">=",
-   "value": 60,
-   "from": "place kind meeting: plateaus and groves in a few large regions"
+   "value": 55,
+   "was": {
+    "key": "placeness.landBiomeRegions.top3Percent",
+    "op": ">=",
+    "value": 60
+   },
+   "from": "restated: on islands the top three regions are the three largest islands; a meeting reads as each island in one place"
   },
   {
-   "key": "placeness.landBiomeRegions.specksPercent",
-   "op": "<=",
-   "value": 5,
-   "from": "place kind meeting"
+   "key": "placeness.places.islands.dominantPlacePercent",
+   "op": ">=",
+   "value": 75,
+   "from": "restated: on islands every islet under 1 ha is a speck whatever its place (kit gap: no speck measure inside islands); a meeting judged by place: at most a quarter of each island outside its own place",
+   "was": {
+    "key": "placeness.landBiomeRegions.specksPercent",
+    "op": "<=",
+    "value": 5
+   }
   }
  ]
 }

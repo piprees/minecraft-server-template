@@ -8,28 +8,45 @@
     "preset": "end",
     "endIsland": false
   },
+  "terrain": {
+    "base": "end",
+    "params": {
+      "coverage": -0.03,
+      "peaks": 1.0,
+      "peakWidth": 0.05,
+      "islandHeight": 40
+    },
+    "scales": {
+      "climate": 2
+    }
+  },
   "biomes": [
     "adventure:umbral_wastes",
+    "adventure:sheared_highlands",
     "minecraft:end_barrens",
-    "adventure:ice_starfield",
     "minecraft:small_end_islands",
-    "minecraft:end_midlands",
     "minecraft:end_highlands",
+    "minecraft:end_midlands",
     "minecraft:basalt_deltas",
-    "minecraft:stony_peaks"
+    "minecraft:stony_peaks",
+    "adventure:painted_mountains",
+    "adventure:ice_starfield"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:umbral_wastes": 5.7,
-      "minecraft:end_barrens": 3.4,
-      "adventure:ice_starfield": 2.2,
-      "minecraft:small_end_islands": 3,
-      "minecraft:end_midlands": 4.6,
-      "minecraft:end_highlands": 7.3,
-      "minecraft:basalt_deltas": 3.5,
-      "minecraft:stony_peaks": 6.3
-    }
+      "adventure:umbral_wastes": 28,
+      "adventure:sheared_highlands": 18,
+      "minecraft:end_barrens": 10,
+      "minecraft:small_end_islands": 10,
+      "minecraft:end_highlands": 8,
+      "minecraft:end_midlands": 5,
+      "minecraft:basalt_deltas": 9,
+      "minecraft:stony_peaks": 8,
+      "adventure:painted_mountains": 6,
+      "adventure:ice_starfield": 4
+    },
+    "over": "land"
   },
   "atmosphere": {
     "skyColor": "#0B0B14",

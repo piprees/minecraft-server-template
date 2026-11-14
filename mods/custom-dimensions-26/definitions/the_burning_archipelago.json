@@ -8,37 +8,78 @@
     "preset": "end",
     "endIsland": false
   },
+  "terrain": {
+    "base": "end",
+    "params": {
+      "coverage": 0.04
+    },
+    "scales": {
+      "climate": 2
+    }
+  },
   "biomes": [
-    "adventure:gravel_desert",
-    "adventure:ash_barrens",
-    "adventure:windswept_isles",
-    "minecraft:soul_sand_valley",
-    "minecraft:warped_forest",
-    "adventure:withered_forest",
-    "adventure:mycotoxic_undergrowth",
-    "minecraft:end_barrens",
-    "minecraft:nether_wastes",
     "minecraft:crimson_forest",
-    "adventure:magma_land",
+    "adventure:withered_forest",
+    "adventure:nether_jungle",
+    "minecraft:warped_forest",
+    "adventure:mycotoxic_undergrowth",
+    "minecraft:soul_sand_valley",
     "minecraft:basalt_deltas",
-    "adventure:nether_jungle"
+    "adventure:magma_land",
+    "minecraft:nether_wastes",
+    "adventure:ash_barrens",
+    "adventure:gravel_desert",
+    "adventure:windswept_isles",
+    "minecraft:end_barrens"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:gravel_desert": 5.5,
-      "adventure:ash_barrens": 4.4,
-      "adventure:windswept_isles": 2.9,
-      "minecraft:soul_sand_valley": 1.3,
-      "minecraft:warped_forest": 2.4,
-      "adventure:withered_forest": 1.2,
-      "adventure:mycotoxic_undergrowth": 1.4,
-      "minecraft:end_barrens": 1.9,
-      "minecraft:nether_wastes": 3.1,
-      "minecraft:crimson_forest": 3.7,
-      "adventure:magma_land": 5.6,
-      "minecraft:basalt_deltas": 4.9,
-      "adventure:nether_jungle": 2.7
+      "minecraft:crimson_forest": 16,
+      "adventure:withered_forest": 7,
+      "adventure:nether_jungle": 5,
+      "minecraft:warped_forest": 12,
+      "adventure:mycotoxic_undergrowth": 4,
+      "minecraft:soul_sand_valley": 4,
+      "minecraft:basalt_deltas": 14,
+      "adventure:magma_land": 13,
+      "minecraft:nether_wastes": 10,
+      "adventure:ash_barrens": 6,
+      "adventure:gravel_desert": 4,
+      "adventure:windswept_isles": 3,
+      "minecraft:end_barrens": 2
+    },
+    "over": "land",
+    "places": {
+      "groups": {
+        "crimson": [
+          "minecraft:crimson_forest",
+          "adventure:withered_forest",
+          "adventure:nether_jungle"
+        ],
+        "warped": [
+          "minecraft:warped_forest",
+          "adventure:mycotoxic_undergrowth",
+          "minecraft:soul_sand_valley"
+        ],
+        "deltas": [
+          "minecraft:basalt_deltas",
+          "adventure:magma_land"
+        ],
+        "wastes": [
+          "minecraft:nether_wastes",
+          "adventure:ash_barrens",
+          "adventure:gravel_desert",
+          "adventure:windswept_isles",
+          "minecraft:end_barrens"
+        ]
+      },
+      "neighbours": [
+        [
+          "crimson",
+          "warped"
+        ]
+      ]
     }
   },
   "liquids": {

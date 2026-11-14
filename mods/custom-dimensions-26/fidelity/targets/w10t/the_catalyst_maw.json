@@ -4,8 +4,14 @@
   {
    "key": "surface.groundBlocksPercent.minecraft:sculk + surface.topBlocksPercent.minecraft:sculk_vein",
    "op": ">=",
-   "value": 5,
-   "from": "\"The sculk ... escaped here\", \"The catalyst is still feeding\""
+   "value": 0.05,
+   "from": "\"The sculk ... escaped here\", \"The catalyst is still feeding\" (restated per land column: the old form counted void columns, which a world over a void cannot fill)",
+   "per": "vertical.layerColumnsPercent.surface",
+   "was": {
+    "key": "surface.groundBlocksPercent.minecraft:sculk + surface.topBlocksPercent.minecraft:sculk_vein",
+    "op": ">=",
+    "value": 5
+   }
   },
   {
    "key": "surface.groundBlocksPercent.minecraft:end_stone",
@@ -41,10 +47,15 @@
    "from": "\"oppressive\"; 1.21.1 ambientLight 0.06"
   },
   {
-   "key": "placeness.landBiomeRegions.specksPercent",
-   "op": "<=",
-   "value": 10,
-   "from": "place kind broken (\"oppressive and chaotic\"): broken by design, but not a speckle"
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 65,
+   "from": "restated: on islands every islet under 1 ha is a speck whatever its biome (kit gap: no speck measure inside islands); a deliberately broken world allows twice the specks, so at most a third of each island outside its own biome",
+   "was": {
+    "key": "placeness.landBiomeRegions.specksPercent",
+    "op": "<=",
+    "value": 10
+   }
   }
  ]
 }

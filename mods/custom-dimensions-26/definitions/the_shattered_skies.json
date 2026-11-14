@@ -7,41 +7,84 @@
     "type": "noise",
     "preset": "floating_islands"
   },
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "coverage": 0.2,
+      "spread": 40,
+      "size": 2.2,
+      "flatness": 0.3
+    }
+  },
   "biomes": [
+    "minecraft:cherry_grove",
+    "adventure:magnolia_woodland",
     "minecraft:flower_forest",
-    "adventure:windswept_isles",
-    "minecraft:snowy_slopes",
-    "adventure:alpine_meadow",
     "minecraft:sunflower_plains",
+    "minecraft:meadow",
     "minecraft:plains",
-    "minecraft:forest",
-    "minecraft:birch_forest",
+    "adventure:alpine_meadow",
     "adventure:lavender_fields",
     "adventure:sky_highlands",
-    "minecraft:meadow",
-    "minecraft:cherry_grove",
-    "adventure:desert_oasis",
+    "minecraft:forest",
+    "minecraft:birch_forest",
     "adventure:golden_skygrove",
+    "adventure:windswept_isles",
+    "minecraft:snowy_slopes",
+    "adventure:desert_oasis",
     "adventure:hanging_gardens"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "minecraft:flower_forest": 4.6,
-      "adventure:windswept_isles": 5.4,
-      "minecraft:snowy_slopes": 4.4,
-      "adventure:alpine_meadow": 2.9,
-      "minecraft:sunflower_plains": 2.1,
-      "minecraft:plains": 4.9,
-      "minecraft:forest": 6.7,
-      "minecraft:birch_forest": 4.9,
-      "adventure:lavender_fields": 4.1,
-      "adventure:sky_highlands": 7.4,
-      "minecraft:meadow": 7,
-      "minecraft:cherry_grove": 6,
-      "adventure:desert_oasis": 11.9,
-      "adventure:golden_skygrove": 15.5,
-      "adventure:hanging_gardens": 8
+      "minecraft:cherry_grove": 20,
+      "adventure:magnolia_woodland": 6,
+      "minecraft:flower_forest": 12,
+      "minecraft:sunflower_plains": 7,
+      "minecraft:meadow": 11,
+      "minecraft:plains": 7,
+      "adventure:alpine_meadow": 4,
+      "adventure:lavender_fields": 10,
+      "adventure:sky_highlands": 8,
+      "minecraft:forest": 6,
+      "minecraft:birch_forest": 3,
+      "adventure:golden_skygrove": 3,
+      "adventure:windswept_isles": 3,
+      "minecraft:snowy_slopes": 2,
+      "adventure:desert_oasis": 2
+    },
+    "over": "land",
+    "roles": {
+      "adventure:hanging_gardens": "underside"
+    },
+    "places": {
+      "groups": {
+        "sakura": [
+          "minecraft:cherry_grove",
+          "adventure:magnolia_woodland"
+        ],
+        "blooming_valley": [
+          "minecraft:flower_forest",
+          "minecraft:sunflower_plains"
+        ],
+        "meadows": [
+          "minecraft:meadow",
+          "minecraft:plains",
+          "adventure:alpine_meadow"
+        ],
+        "lavender": [
+          "adventure:lavender_fields"
+        ],
+        "skylands": [
+          "adventure:sky_highlands",
+          "minecraft:forest",
+          "minecraft:birch_forest",
+          "adventure:golden_skygrove",
+          "adventure:windswept_isles",
+          "minecraft:snowy_slopes",
+          "adventure:desert_oasis"
+        ]
+      }
     }
   },
   "liquids": {
