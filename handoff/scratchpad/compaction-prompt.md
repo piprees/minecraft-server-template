@@ -53,6 +53,7 @@ Before asking the owner anything, look for the answer in `docs/design/rebuild-26
   - The owner's decisions are a checklist in it. Read the doc, with its ticks and comments, before planning.
   - Parity is about 55% overall (method and 91 features in `docs/design/rebuild-26/parity-audit/`).
   - About 74 packages remain, in phases 0–4.
+- **Lore design:** `docs/design/rebuild-26/lore/` (canon, stories, placement; gaps G1–G21 for SP2–SP4, DL1, LR1). Owner doc: https://claude.ai/artifact/8QuWi7skvFjdwDCFmSpqaf (Claude Docs project 3c06706b-4c73-4b7c-90cd-fae777e99cc8); read its comments with the docs connector.
 - **Places plan:** `docs/design/rebuild-26/places/` (P1, merged), waiting for the owner's review.
   - Packages in order: PL0 (wire kept structures and stand-ins, server lane, no code), SP1 (places in the tools), EX (explorify dep-review), SP2–SP4 (set-pieces kit), SP5–SP7 (places per batch).
   - PL0 and SP1 can start before the kit.
