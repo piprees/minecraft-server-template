@@ -7,6 +7,20 @@
     "type": "noise",
     "preset": "nether"
   },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 48,
+      "floorRelief": 14,
+      "ceilingGap": 50,
+      "roughness": 0.35,
+      "chasms": 0.03,
+      "chasmDepth": 30
+    },
+    "scales": {
+      "climate": 1.6
+    }
+  },
   "biomes": [
     "minecraft:soul_sand_valley",
     "adventure:ash_barrens",
@@ -16,22 +30,17 @@
     "minecraft:basalt_deltas",
     "adventure:blackstone_basin",
     "adventure:mycotoxic_undergrowth",
-    {
-      "id": "minecraft:deep_dark",
-      "climate": {
-        "depth": [0.25, 1]
-      }
-    }
+    "minecraft:deep_dark"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "minecraft:soul_sand_valley": 54,
-      "adventure:ash_barrens": 16,
-      "adventure:gravel_desert": 10,
-      "adventure:withered_forest": 3,
+      "minecraft:soul_sand_valley": 53,
+      "adventure:ash_barrens": 11,
+      "adventure:gravel_desert": 9,
+      "adventure:withered_forest": 4,
       "adventure:quartz_flats": 5,
-      "minecraft:basalt_deltas": 4,
+      "minecraft:basalt_deltas": 10,
       "adventure:blackstone_basin": 3,
       "adventure:mycotoxic_undergrowth": 3
     },
@@ -52,11 +61,28 @@
         ]
       },
       "arrangement": "core"
+    },
+    "belowFloor": {
+      "minecraft:deep_dark": 16
+    }
+  },
+  "liquids": {
+    "seaLevel": 20
+  },
+  "materials": {
+    "biomes": {
+      "minecraft:soul_sand_valley": {
+        "cliffs": "minecraft:bone_block"
+      },
+      "adventure:gravel_desert": {
+        "top": "minecraft:bone_block"
+      }
     }
   },
   "atmosphere": {
     "fogColor": "#D8C8A0",
-    "ambientLight": 0.08
+    "ambientLight": 0.08,
+    "overBiomes": true
   },
   "borders": {
     "player": 1024,
@@ -147,32 +173,5 @@
       "crimson_forge",
       "mvs:large_warped_tower"
     ]
-  },
-  "terrain": {
-    "base": "roofed",
-    "params": {
-      "floorHeight": 48,
-      "floorRelief": 14,
-      "ceilingGap": 50,
-      "roughness": 0.35,
-      "chasms": 0.03,
-      "chasmDepth": 30
-    },
-    "scales": {
-      "climate": 1.6
-    }
-  },
-  "liquids": {
-    "seaLevel": 20
-  },
-  "materials": {
-    "biomes": {
-      "minecraft:soul_sand_valley": {
-        "cliffs": "minecraft:bone_block"
-      },
-      "adventure:gravel_desert": {
-        "top": "minecraft:bone_block"
-      }
-    }
   }
 }

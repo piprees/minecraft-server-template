@@ -7,6 +7,19 @@
     "type": "noise",
     "preset": "nether"
   },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 44,
+      "floorRelief": 8,
+      "ceilingGap": 64,
+      "roughness": 0.1,
+      "flats": 0.2
+    },
+    "scales": {
+      "climate": 2
+    }
+  },
   "biomes": [
     "adventure:nether_grasslands",
     "adventure:sulphur_springs",
@@ -18,24 +31,19 @@
     "adventure:mycotoxic_undergrowth",
     "minecraft:nether_wastes",
     "adventure:gravel_desert",
-    {
-      "id": "minecraft:sulfur_caves",
-      "climate": {
-        "depth": [0.2, 1]
-      }
-    }
+    "minecraft:sulfur_caves"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:nether_grasslands": 52,
+      "adventure:nether_grasslands": 51,
       "adventure:sulphur_springs": 17,
       "adventure:quartz_flats": 4,
       "adventure:magma_land": 3,
       "minecraft:crimson_forest": 8,
       "adventure:nether_jungle": 4,
       "adventure:crimson_pinewood": 4,
-      "adventure:mycotoxic_undergrowth": 2,
+      "adventure:mycotoxic_undergrowth": 3,
       "minecraft:nether_wastes": 3,
       "adventure:gravel_desert": 3
     },
@@ -58,11 +66,18 @@
         ]
       },
       "arrangement": "core"
+    },
+    "belowFloor": {
+      "minecraft:sulfur_caves": 16
     }
+  },
+  "liquids": {
+    "seaLevel": 22
   },
   "atmosphere": {
     "fogColor": "#E8A05A",
-    "ambientLight": 0.25
+    "ambientLight": 0.25,
+    "overBiomes": true
   },
   "rules": {
     "bedsWork": true
@@ -124,21 +139,5 @@
       "nova_structures:sealing_halls",
       "nova_structures:nether_keep"
     ]
-  },
-  "terrain": {
-    "base": "roofed",
-    "params": {
-      "floorHeight": 44,
-      "floorRelief": 8,
-      "ceilingGap": 64,
-      "roughness": 0.15,
-      "flats": 0.2
-    },
-    "scales": {
-      "climate": 2
-    }
-  },
-  "liquids": {
-    "seaLevel": 22
   }
 }
