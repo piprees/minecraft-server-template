@@ -178,6 +178,42 @@ public final class StructureRuntime {
         }
     }
 
+    /** A place the level's plan names: a forced start, a want, or the spawn; {@code x}, {@code z} in blocks. */
+    public record Planned(String kind, String structure, int x, int z, boolean registered) {}
+
+    /**
+     * What the level's structure plan places, whether or not the structure
+     * starts there: each forced start at its chosen chunk's centre (at its
+     * definition's x, z when the registry lacks the structure), each want at
+     * its chunk's centre, and the spawn. Empty when the pack has no control
+     * for the level.
+     */
+    public static List<Planned> planned(ResourceKey<Level> levelKey, Controlled c) {
+        StructureSpec spec = levelKey == null ? null : specs.get(levelKey.identifier().toString());
+        if (spec == null) return List.of();
+        return planned(spec, c == null || c.applied() == null ? List.of() : c.applied().placed());
+    }
+
+    /** As above, from the spec and what its control placed. */
+    public static List<Planned> planned(StructureSpec spec, List<Placed> placed) {
+        List<Planned> out = new ArrayList<>();
+        List<Placed> left = new ArrayList<>(placed);
+        for (StructureSpec.Force f : spec.force()) {
+            Placed p = left.stream().filter(q -> q.kind().equals("force") && q.structure().equals(f.structure())).findFirst().orElse(null);
+            if (p != null) {
+                left.remove(p);
+                out.add(new Planned("force", f.structure(), p.chunkX() * 16 + 8, p.chunkZ() * 16 + 8, true));
+            } else {
+                out.add(new Planned("force", f.structure(), f.x(), f.z(), false));
+            }
+        }
+        for (Placed p : left) {
+            if (p.kind().equals("want")) out.add(new Planned("want", p.structure(), p.chunkX() * 16 + 8, p.chunkZ() * 16 + 8, true));
+        }
+        out.add(new Planned("spawn", "spawn", spec.spawnChunkX() * 16 + 8, spec.spawnChunkZ() * 16 + 8, true));
+        return out;
+    }
+
     /** The level's structure state with its control applied and recorded for the level; the state itself when the pack has none for it. */
     public static ChunkGeneratorStructureState apply(ResourceKey<Level> levelKey, net.minecraft.core.RegistryAccess registries,
                                                      ChunkGenerator generator, ChunkGeneratorStructureState original) {
@@ -343,8 +379,13 @@ public final class StructureRuntime {
                 (int) pool.getValue().stream().map(e -> e.structure().value()).distinct().count())).toList();
         for (int i = 0; i < filled.size(); i++) {
             String group = filled.get(i).getKey();
-            groupSites.put(group, indexes.get(i).size());
-            out.add(Holder.direct(new StructureSet(filled.get(i).getValue(), new StructurePlacements.Noise(group, indexes.get(i)))));
+            NoiseFieldIndex index = indexes.get(i);
+            List<Structure> pooled = filled.get(i).getValue().stream().map(e -> e.structure().value()).distinct().toList();
+            List<com.customdimensions.core.ChunkPos> sites = StructureSites.settle(index.positions(),
+                    StructureSites.seed(original.getLevelSeed(), "settle:" + group), index.exclusion() * 8,
+                    (cx, cz) -> anyBiomeAt(pooled, sampler, cx, cz, seaLevel));
+            groupSites.put(group, sites.size());
+            out.add(Holder.direct(new StructureSet(filled.get(i).getValue(), new StructurePlacements.Noise(group, index, sites))));
         }
 
         long indexedAt = System.nanoTime();
@@ -451,6 +492,17 @@ public final class StructureRuntime {
     private static boolean hasBiomeIn(Structure structure, BiomeSource biomes) {
         HolderSet<net.minecraft.world.level.biome.Biome> allowed = structure.biomes();
         return biomes.possibleBiomes().stream().anyMatch(allowed::contains);
+    }
+
+    /** Whether any of {@code structures} has its biome at the chunk's centre, near sea level: three biome reads, whatever their number. */
+    private static boolean anyBiomeAt(List<Structure> structures, BiomeResolver sampler, int cx, int cz, int seaLevel) {
+        int qx = QuartPos.fromBlock(cx * 16 + 8);
+        int qz = QuartPos.fromBlock(cz * 16 + 8);
+        for (int dy : new int[] {0, 24, -24}) {
+            Holder<net.minecraft.world.level.biome.Biome> here = sampler.getNoiseBiome(qx, QuartPos.fromBlock(seaLevel + dy), qz);
+            for (Structure s : structures) if (s.biomes().contains(here)) return true;
+        }
+        return false;
     }
 
     /** The structure's biome at the chunk's centre, near sea level. */

@@ -233,6 +233,11 @@ public final class Sampler {
         return c;
     }
 
+    /** The places the dimension's structure plan names under this seed: forced starts, wants and the spawn. */
+    public List<StructureRuntime.Planned> planned() {
+        return levelKey == null ? List.of() : StructureRuntime.planned(levelKey, control());
+    }
+
     /**
      * Whether {@code structure} starts at {@code chunk} under this seed as the
      * level's generation starts it: the structure's own generation point and

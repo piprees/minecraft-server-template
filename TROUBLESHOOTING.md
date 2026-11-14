@@ -1596,6 +1596,84 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t293"></a>
+### T293 — `FastRender.render` with a job needs a progress callback
+- **Symptom:** a web map export fails some dimensions with a `NullPointerException` from `RenderJob.advance`, at about a quarter of the dimension.
+- **Cause:** with a non-null job, `RenderJob.advance` calls the progress callback each time the job crosses a quarter.
+- **Fix:** pass a callback whenever a job is passed, a no-op when nothing listens (`MapExport` passes `p -> {}`).
+
+<a id="t292"></a>
+### T292 — The shot builder falls back to an older rig's frame of the same name
+- **Symptom:** a terrain shot shows a camera or a definition that is not the newest rig's.
+- **Cause:** when a pick is rejected in the newest rig, the shot builder takes the frame of the same name from an older rig, which may have a different camera or definition.
+- **Fix:** after a definition change, drop that dimension's names from the older rigs' frames before building shots.
+
+<a id="t291"></a>
+### T291 — A roofed vista with headroom can still be a closed pocket
+- **Symptom:** a roofed far view shows a wall close up (4 of 8 in one review), though its spot has 16 or more blocks of headroom.
+- **Cause:** headroom is measured straight up; a pocket under a roof can be tall and still closed along the look direction.
+- **Fix:** a vista needs open distance along the look direction, not headroom alone; check the frame before taking a roofed far view as a vista.
+
+<a id="t290"></a>
+### T290 — Distant Horizons returns no data straight after `/dh pregen` reports not running
+- **Symptom:** a read of DH's terrain repository finds no columns for an area DH has just pre-generated.
+- **Cause:** the store is written after the pre-generation task reports it is no longer running.
+- **Fix:** wait for a probe column to come back before reading, and pass a soft cache.
+
+<a id="t289"></a>
+### T289 — Basalt deltas counts as dry floor in a lava sea
+- **Symptom:** a measure of floors above the sea finds dry floor carrying the sea biome.
+- **Cause:** basalt deltas grows basalt columns out of a lava sea, and the columns are floors above it.
+- **Fix:** fixtures use a feature-free sea biome (`ROOFED_SEA_BIOME`).
+
+<a id="t288"></a>
+### T288 — A lane boot's self-test is killed by the watchdog after 60 s
+- **Symptom:** a lane script's server dies a minute into a long self-test or export, with the watchdog's stack dump.
+- **Cause:** a long tick trips the watchdog's default `max-tick-time`.
+- **Fix:** a lane script that boots a self-test writes CI's `server.properties`, with `max-tick-time=-1`.
+
+<a id="t287"></a>
+### T287 — The block picker's fluid is false only in aquifer levels
+- **Symptom:** a cave under a roof or another run reads as water on the map where the chunks hold air.
+- **Cause:** in an aquifer level the caves hold local water tables the global fluid picker does not know. In a level without aquifers (the_underdark's noise settings) floor dips really fill to sea level, and vanilla's `getBaseColumn` and the chunks agree.
+- **Fix:** the picker's fluid under a roof or a run is hidden only where aquifers are on (`RunDress.openRuns`, `MapExport.pickerFluidShown`).
+
+<a id="t286"></a>
+### T286 — 26.3 saves a block-state palette as state strings
+- **Symptom:** a saved-chunk reader sees every block of a 26.3 chunk as air.
+- **Cause:** 26.3 saves a section's block-state palette as state strings (`minecraft:oak_stairs[waterlogged=true]`), not compounds of `Name` and `Properties`.
+- **Fix:** read both forms (`SavedChunks.block`).
+
+<a id="t285"></a>
+### T285 — A roofed world seen from above is its roof
+- **Symptom:** a roofed world's map and thumbnail are a grey lid that carries nothing.
+- **Cause:** from above, a roofed world shows its roof.
+- **Fix:** the map opens on the floor (the Roofless layer, listed first and drawn as the thumbnail; the terrain is named Roof), and a wave's sheet leads with the roof-off floor.
+
+<a id="t284"></a>
+### T284 — 26.x model textures may be objects
+- **Symptom:** a block's texture is not found when its model is read.
+- **Cause:** a 26.x model's texture may be an object (`{"sprite": …}`), not a string.
+- **Fix:** read both forms.
+
+<a id="t283"></a>
+### T283 — A model's `tintindex` does not say what the client tints
+- **Symptom:** cherry or pale oak leaves are drawn green on the map; a fluid's colour is missing.
+- **Cause:** cherry and pale oak leaves carry a `tintindex` and are drawn untinted; fluids have no elements.
+- **Fix:** tint only the listed blocks.
+
+<a id="t282"></a>
+### T282 — A server's biome grass and foliage colours are unusable
+- **Symptom:** every biome's grass and foliage come out the same colour on the server.
+- **Cause:** the colormaps behind `Biome`'s grass and foliage colours are filled by the client's resource reload.
+- **Fix:** the map carries its own colormap samples.
+
+<a id="t281"></a>
+### T281 — `Biome.ClimateSettings` is private in 26.3
+- **Symptom:** an accessor mixin returning `Biome.ClimateSettings` does not compile.
+- **Cause:** the record is private in 26.3.
+- **Fix:** read temperature and downfall through `Biome.NETWORK_CODEC`.
+
 <a id="t280"></a>
 ### T280 — A real chunk's carver caves read as ground in the LOD check
 - **Symptom:** `lod vs chunks` on a roofed level misses by tens of blocks while the LOD column equals the generator's `getBaseColumn` there: the real surface inside the roof (114 and 118 against LOD floors of 22 and 66), inside a column the noise holds solid (110 against 128), or at the bedrock under a cut floor (4 against 29).

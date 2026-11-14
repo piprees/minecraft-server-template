@@ -77,7 +77,7 @@ public final class MapSite {
         JsonObject out = new JsonObject();
         out.addProperty("kind", "customdimensions-map");
         out.addProperty("rule", "every dimension, exported or not; layers names maps/<slug>/layers.json once its generated tiles exist, "
-                + "explored is true once its explored tiles exist");
+                + "explored is true once it has explored tiles; bytes the PNG bytes each layer wrote, 0 for none");
         out.add("dimensions", list);
         Files.createDirectories(root);
         Path file = root.resolve(MANIFEST);
@@ -105,9 +105,14 @@ public final class MapSite {
             o.addProperty("renderedAt", rendered);
             o.addProperty("layers", base + "layers.json");
         }
-        o.addProperty("explored", explored > 0 && Files.isDirectory(dir.resolve(ExploredExport.DIR)));
+        long exploredTiles = read(dir.resolve(ExploredExport.JSON), "tiles");
+        o.addProperty("explored", explored > 0 && exploredTiles > 0 && Files.isDirectory(dir.resolve(ExploredExport.DIR)));
         if (explored > 0) o.addProperty("exploredAt", explored);
         o.addProperty("version", Math.max(rendered, explored));
+        JsonObject bytes = new JsonObject();
+        bytes.addProperty("generated", read(dir.resolve("layers.json"), "stats", "bytes"));
+        bytes.addProperty("explored", read(dir.resolve(ExploredExport.JSON), "bytes"));
+        o.add("bytes", bytes);
         Path thumb = dir.resolve("thumb.png");
         if (Files.isRegularFile(thumb)) {
             o.addProperty("thumb", base + "thumb.png");
@@ -118,11 +123,13 @@ public final class MapSite {
         return o;
     }
 
-    private static long read(Path json, String key) {
+    /** The number at {@code path} in a JSON file; 0 when the file or the key is missing. */
+    private static long read(Path json, String... path) {
         try {
             if (!Files.isRegularFile(json)) return 0;
-            JsonElement v = JsonParser.parseString(Files.readString(json)).getAsJsonObject().get(key);
-            return v == null ? 0 : v.getAsLong();
+            JsonElement v = JsonParser.parseString(Files.readString(json));
+            for (String key : path) v = v != null && v.isJsonObject() ? v.getAsJsonObject().get(key) : null;
+            return v == null || !v.isJsonPrimitive() ? 0 : v.getAsLong();
         } catch (IOException | RuntimeException ex) {
             return 0;
         }

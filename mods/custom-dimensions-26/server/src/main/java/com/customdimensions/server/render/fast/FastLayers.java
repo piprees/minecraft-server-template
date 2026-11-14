@@ -148,6 +148,65 @@ public final class FastLayers {
         return out;
     }
 
+    /** A place the plan names, in blocks: a forced start or a want ({@code structure} its id), or the spawn. */
+    public record Marker(String kind, String structure, int x, int z) {}
+
+    /** A marker's half side on the image: {@value #MARKER_BLOCKS} blocks, at least {@value #MARKER_PIXELS} pixels. */
+    static final int MARKER_BLOCKS = 24;
+    static final int MARKER_PIXELS = 3;
+
+    /** {@code base} at half brightness with each footprint outlined, and each marker no footprint holds drawn over it. */
+    public static int[] structures(int[] base, RenderGrid grid, List<Footprint> footprints, List<Marker> markers) {
+        int[] out = structures(base, grid, footprints);
+        List<Marker> loose = markers.stream().filter(m -> footprints.stream()
+                .noneMatch(f -> m.x() >= f.minX() && m.x() <= f.maxX() && m.z() >= f.minZ() && m.z() <= f.maxZ())).toList();
+        return markers(out, grid, loose);
+    }
+
+    /**
+     * {@code base} with each marker drawn: a square outline in the
+     * structure's colour round a white cross, the spawn a white diamond.
+     */
+    public static int[] markers(int[] base, RenderGrid grid, List<Marker> markers) {
+        int side = grid.side();
+        int[] out = base.clone();
+        int ox = grid.centreX() - grid.radius();
+        int oz = grid.centreZ() - grid.radius();
+        int half = Math.max(MARKER_PIXELS, MARKER_BLOCKS / grid.step());
+        for (Marker m : markers) {
+            int cx = Math.floorDiv(m.x() - ox, grid.step());
+            int cz = Math.floorDiv(m.z() - oz, grid.step());
+            if ("spawn".equals(m.kind())) {
+                for (int d = -half; d <= half; d++) {
+                    int w = half - Math.abs(d);
+                    plot(out, side, cx - w, cz + d, 0xFFFFFF);
+                    plot(out, side, cx + w, cz + d, 0xFFFFFF);
+                }
+                continue;
+            }
+            int colour = colour(m.structure());
+            for (int d = -half; d <= half; d++) {
+                for (int t = 0; t < 2; t++) {
+                    plot(out, side, cx + d, cz - half + t, colour);
+                    plot(out, side, cx + d, cz + half - t, colour);
+                    plot(out, side, cx - half + t, cz + d, colour);
+                    plot(out, side, cx + half - t, cz + d, colour);
+                }
+            }
+            for (int d = -half / 2; d <= half / 2; d++) {
+                plot(out, side, cx + d, cz, 0xFFFFFF);
+                plot(out, side, cx, cz + d, 0xFFFFFF);
+            }
+        }
+        return out;
+    }
+
+    /** Whether an image holds nothing but {@link #EMPTY}: a world with no ground in view. */
+    public static boolean bare(int[] rgb) {
+        for (int p : rgb) if ((p & 0xFFFFFF) != EMPTY) return false;
+        return true;
+    }
+
     private static void plot(int[] out, int side, int x, int z, int colour) {
         if (x >= 0 && z >= 0 && x < side && z < side) out[z * side + x] = colour;
     }
