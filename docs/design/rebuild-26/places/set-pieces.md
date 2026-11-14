@@ -198,3 +198,8 @@ As SP5. Acceptance adds: End-island pieces seat only on island ground; the_canva
 ### SP7 — Places for Batches 5 and 6 and the 21 terrain picks (41 dimensions)
 
 As SP5, with the shared library pieces reused rather than redrawn.
+
+## Deep-time links (RB-41, RB-42)
+
+- **Portal studies.** A `gate` with `state: attempt` gains a `study` (enchanting table, bookshelves, lectern with notes that stop short), a partial frame of the target dimension's frame block, an igniter precursor in a chest, and, when the target's `portal.aura` is on, the ground around it part-transformed into the target's blocks. Its placement reads the target dimension (biome, height, depth). Some treasure maps name it as their destination. It never carries the full recipe.
+- **Linked places.** A set piece or structure may name a `story` it belongs to; places in one story share faction, materials, banners and loot, and are placed near one another (a camp by the broken portal, a grave above the battlefield, the keep whose banners match). Most terrain carries nothing; a story is rare by design.

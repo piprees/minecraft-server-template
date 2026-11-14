@@ -154,3 +154,11 @@ Why: players explore a lot and settle later than in vanilla, so loot from explor
 **RB-40 — Portal recipes are found, not told.**
 How to open a dimension's portal is never explained outright. Clues are loot: some buried treasure and endgame dungeon chests carry books describing a portal and what lies beyond it, or items laid out in the chest's slots to show the frame's shape, its block and its igniter. Each clue is generated from the dimension's own `portal` definition, so it stays true when the portal changes.
 Why: finding the way into a new dimension is part of exploring, and it gives treasure and dungeons a reward beyond gear. Books and arranged items need no client mod, so Java, Bedrock and mobile players all read them.
+
+**RB-41 — Some treasure maps lead to a half-finished portal, never to the recipe.**
+A broken-portal site is a `gate` set piece left by someone who got close: a partial frame of the right block in roughly the right shape, a precursor of the igniter rather than the igniter itself, and a study around it (an enchanting table, bookshelves, a lectern with notes that stop short). When the target dimension's `portal.aura` is on, the ground around the frame is part-transformed into that dimension's blocks. Sites sit where the target dimension would plausibly reach through (its biome, height or depth: a Nether gate deep and hot, a sky gate on a peak), and some treasure maps point to them.
+Why: it rewards exploring with progress towards a new dimension, and leaves the last step to the player.
+
+**RB-42 — The world is ancient, and its places are connected.**
+Structures and set pieces are placed as linked stories, not single features: a broken portal with a camp beside it and a grave on the hill; a battlefield whose banners match a ruined keep a valley away; a dungeon whose loot names the city it was carried from. Restraint is part of it: most fields, cliffs and seas have nothing, so that a find means something. Links are config (shared themes, factions, materials and loot between nearby places), and in game they read as one history older than anyone remembers.
+Why: a place feels real when it implies what happened there and what came before; scatter feels like decoration.
