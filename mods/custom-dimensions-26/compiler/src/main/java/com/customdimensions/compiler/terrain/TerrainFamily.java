@@ -938,7 +938,8 @@ public enum TerrainFamily {
      * {@link #HOLLOW_CREST} blocks inside, its shore {@link #HOLLOW_SHORE} and its heart {@link #HOLLOW_HEART}, so
      * {@link #basinIslands} lays the hollow's rim, shore and basin as it lays any lake mass's; null without one.
      * {@code hollowJitter} moves the distance by the lakes noise, so the edge wanders; {@code hollowApron} holds the
-     * rim's crest from the edge out that many blocks, ground at the rim's height joining the ring.
+     * rim's crest from the edge out that many blocks, ground at the rim's height joining the ring; it ends within a block,
+     * so no seam opens where the ring's islands, held off inside any lake mass, take over from it.
      */
     private static JsonElement hollowLake(Ctx ctx, double edge, double crestEnd, double shore, double heart, double sl) {
         if (ctx.p("hollowDepth") <= 0) return null;
@@ -951,7 +952,7 @@ public enum TerrainFamily {
         if (apron > 0) {
             double risen = edge + 0.08 * sl;
             return spline(d, r - HOLLOW_HEART, heart, r - HOLLOW_SHORE, shore, r - HOLLOW_CREST, crestEnd, r, risen,
-                    r + apron, risen, r + apron + HOLLOW_OUTSIDE, edge - 0.2 * sl);
+                    r + apron, risen, r + apron + 1, edge - 0.2 * sl);
         }
         return spline(d, r - HOLLOW_HEART, heart, r - HOLLOW_SHORE, shore, r - HOLLOW_CREST, crestEnd, r, edge,
                 r + HOLLOW_OUTSIDE, edge - 0.2 * sl);
