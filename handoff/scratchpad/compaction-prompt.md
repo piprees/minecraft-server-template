@@ -36,6 +36,8 @@ Paste this as the summary when the session is compacted or handed off. Before ac
 - **Lived in (RB-44):** players arrive in the far future of it all; remnants survive, wear down or morph. Not narrative-led, not dramatic: small signs of use and time everywhere, grand ruins rarely. Established Minecraft lore and the spirit of Minecraft Dungeons inspire, alluded to, never reproduced. Players' own stories come first.
 - **Fits its setting (RB-45):** every structure, ours or a mod's, sits on its ground, on a site its builders would choose, of fitting materials (mod structures re-skinned per dimension where needed), weathered to its age, scaled to the dimension, with an approach. One that cannot fit is not placed there. The blind reviewer scores it.
 
+- **Description against forced places:** the_canvas keeps only the small oak house; the_glacial_drift has no places; the_tidepools has the wreck only. Definitions change in their batch rework.
+
 ## Owner's roadmap decisions
 Before asking the owner anything, look for the answer in `docs/design/rebuild-26/decisions.md`, the mod register, `HANDOFF.md` and the owner's notes. Never re-litigate a settled decision.
 1. **Content:** settled by RB-22. Our own blocks, items and creatures come after launch, through Polymer, in shippable slices. The switch follows phases 0–2.

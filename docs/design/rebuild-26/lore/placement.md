@@ -110,11 +110,11 @@ Each small world's way onward is its portal study and its found recipes, never a
 | Most of every world: open fields, most cliffs, most coasts and seas | a find means something only against emptiness (RB-42); no added wreck or treasure at sea beyond vanilla's own and the trails' |
 | The hearth band's ruins | the present is lived in, not ruined; the stone gate is the one old thing |
 | The ground between two trail anchors | stories do not stack |
-| the_canvas | "No history, no ruins, no narrative"; not even the lived-in layer |
+| the_canvas | "No history, no ruins, no narrative": the small oak house alone, no marks, not even the lived-in layer (owner) |
 | the_slatemouth | the void is the place |
 | the_starwell, the_red_monument | fixed, quiet worlds; nothing hunts and nothing is added |
-| the_glacial_drift | "Nothing was ever built": grown things only, no lived-in signs |
-| the_tidepools | one wreck is "the only evidence anyone else was ever here" |
+| the_glacial_drift | "Nothing was ever built": no places at all, tundra and its animals (owner) |
+| the_tidepools | one wreck is "the only evidence anyone else was ever here"; no ruin, tower or added treasure (owner) |
 | the_icebound_rift | the citadel alone |
 | the_chalk_meadows | "nothing sinister for miles": no dungeon, sculk or study; lived-in signs only |
 | the_end's central island | the owner's ruling: classic, unchanged |
