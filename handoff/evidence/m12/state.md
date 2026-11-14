@@ -24,3 +24,5 @@ Trap drafts (from T290):
 - T294 A roofed world seen from above is its roof: open the map on the floor (Roofless).
 - T295 26.3 saves a section's block-state palette as state strings ("minecraft:oak_stairs[waterlogged=true]"), not
   compounds; a compound-only reader sees every block as air.
+
+Round 2 (lead): cave-water rule only in aquifer levels (underdark unchanged, it has none); viewer covers the view at every width; uNmINeD retirement complete in the kit. Commits 8166269a, 8b876393, d82592fb.
