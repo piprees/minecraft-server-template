@@ -554,11 +554,45 @@ edit("docs", "DEPENDENCIES.md",
      "- for a change to `config/modrinth-mods.txt` or `scripts/minecraft-versions.tsv`, `smoke-test.yml` green: the stack boots, the unmodded 26.3 client joins and stays 60 s, and the admin parity check passes (the `smoke` job);")
 edit("docs", "DEPENDENCIES.md", "7. **26.3 list (`config/modrinth-mods-26.3.txt`): vanilla clients join (RB-02).**", "7. **Vanilla clients join (RB-02).**")
 
+# --- webmap: the mod draws map.DOMAIN; the uNmINeD sidecar and its image go ----
+edit("webmap", "docker-compose.yml",
+     "      - ./data/unmined-web:/unmined-web:ro\n",
+     "      - ./data/map-web:/map-web:ro\n")
+edit("webmap", "docker-compose.yml",
+     "      EXCLUDES: unmined-web,", "      EXCLUDES: map-web,", all=True)
+edit("webmap", "docker-compose.yml",
+     '      POLL_INTERVAL: "30"\n      PREGEN_BORDER_RADIUS: "${PREGEN_BORDER_RADIUS:-8192}"\n',
+     '      POLL_INTERVAL: "30"\n      PREGEN_BORDER_RADIUS: "${PREGEN_BORDER_RADIUS:-8192}"\n'
+     '      # The web map export (customdim map export all) after pre-generation; 0 turns it off.\n'
+     '      MAP_INTERVAL: "${MAP_INTERVAL:-6h}"\n')
+edit("webmap", "config/nginx/nav-proxy.conf.template",
+     "# World map — static uNmINeD output (unmined-render sidecar), served\n"
+     "# straight from the /unmined-web bind mount. No upstream: the map is\n",
+     "# World map — static files the mod's `customdim map export` writes into\n"
+     "# data/map-web, served from the /map-web bind mount. No upstream: the map is\n")
+edit("webmap", "config/nginx/nav-proxy.conf.template", "    root /unmined-web;\n", "    root /map-web;\n")
+edit("webmap", "config/nginx/nav-proxy.conf.template",
+     "    # Root shell assets (app.js/app.css/unmined.js) — short cache so shell\n",
+     "    # Root shell assets (app.js/app.css) — short cache so shell\n")
+edit("webmap", ".github/workflows/publish.yml",
+     "modpack-builder, unmined-render]\n", "modpack-builder]\n")
+edit("webmap", "docs/web-surfaces.md",
+     "| map.DOMAIN | uNmINeD viewer shell in `docker/unmined-render/webshell/`; nav + OG injected by `nav-proxy.conf.template` | `unmined-render` sidecar → `data/unmined-web/` | Infra (force-recreates nav-proxy) |",
+     "| map.DOMAIN | Viewer shell in the mod jar (`mods/custom-dimensions-26/server/src/main/resources/customdimensions/map-shell/`), written into `data/map-web/` by each export; nav + OG injected by `nav-proxy.conf.template` | `customdim map export all`, sent by idle-tasks after pre-generation every `MAP_INTERVAL` → `data/map-web/` | Infra (force-recreates nav-proxy) |")
+
 RANGES = [
     ("tests", "scripts/tests/test_minecraft_version.py",
      "# Each 26.3 overlay file: (base file, keys the pinned 26.3 jar no longer reads).\n",
      "def test_platform_updates_moves_the_loader_row_and_compose_together():\n"),
     # (step, path, first line of the block, first line after it)
+    ("webmap", "docker-compose.yml",
+     "  # ==========================================================================\n"
+     "  # unmined-render - Scheduled static map renders (uNmINeD CLI)\n",
+     "  # ==========================================================================\n"
+     "  # nav-proxy - Reverse proxy that injects the site nav bar\n"),
+    ("webmap", ".github/workflows/publish.yml",
+     "          - image: unmined-render\n",
+     "          - image: kuma-init\n"),
     ("tests", "scripts/test-scripts.sh",
      'echo "  Checking biome bands reach their world\'s climate..."\n',
      'echo "  Checking client/server mod parity..."\n'),

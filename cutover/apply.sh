@@ -443,6 +443,11 @@ del scripts/check-band-reach.py scripts/check-band-share.py scripts/check-biome-
 edits tests
 
 # =============================================================================
+step "7b. The web map: the mod's export serves map.DOMAIN; the uNmINeD sidecar and its image go"
+# docker/unmined-render/ stays until its dependants go (not-automated.md).
+edits webmap
+
+# =============================================================================
 step "8. Docs and skills for 26.3"
 edits docs
 # Skill references written for the 1.21.1 mod and its v1 schema; each
