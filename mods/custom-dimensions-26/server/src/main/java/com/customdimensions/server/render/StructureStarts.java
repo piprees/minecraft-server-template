@@ -226,7 +226,7 @@ public final class StructureStarts {
                 }
             }
         } else if (placement instanceof StructurePlacements.Noise noise) {
-            for (com.customdimensions.core.ChunkPos pos : noise.index().positions()) {
+            for (com.customdimensions.core.ChunkPos pos : noise.sites()) {
                 if (pos.x() < minX || pos.x() > maxX || pos.z() < minZ || pos.z() > maxZ) continue;
                 if (placement.isStructureChunk(state, pos.x(), pos.z())) out.add(new ChunkPos(pos.x(), pos.z()));
             }
