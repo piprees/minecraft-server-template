@@ -504,6 +504,7 @@ public final class FastRender {
         for (int t = 0; t < FastPixels.TIERS && t + 1 < n; t++) {
             p.tierTop[t][i] = (short) r.top(t + 1);
             p.tierBlock[t][i] = face(palette, d, t + 1);
+            p.tierGround[t][i] = palette.index(d.top(t + 1));
         }
         int cut = r.runAtOrBelow(cutY);
         if (cut >= 0) {

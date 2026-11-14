@@ -31,6 +31,8 @@ public final class FastPixels {
     final boolean[] roofed;
     final short[][] tierTop = new short[TIERS][];
     final short[][] tierBlock = new short[TIERS][];
+    /** Each tier run's own top block, under any fluid over it. */
+    final short[][] tierGround = new short[TIERS][];
 
     public FastPixels(int side) {
         this.side = side;
@@ -49,6 +51,7 @@ public final class FastPixels {
         for (int t = 0; t < TIERS; t++) {
             tierTop[t] = filled(n, NO_Y);
             tierBlock[t] = filled(n, NONE);
+            tierGround[t] = filled(n, NONE);
         }
     }
 

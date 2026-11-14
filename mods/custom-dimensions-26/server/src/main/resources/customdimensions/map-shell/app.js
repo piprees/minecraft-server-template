@@ -85,20 +85,23 @@
     markers: [], cache: {},
 
     bpp: function () { return this.info.blocksPerPixel[0] / Math.pow(2, this.zoom); },
-    maxZoom: function () { return this.info.maxZoom + OVERZOOM; },
-
-    fit: function () {
+    // The lowest zoom is the one at which the border covers the whole view, so
+    // the map always fills it, at any width.
+    minZoom: function () {
       var w = mapEl.clientWidth || 1;
       var h = mapEl.clientHeight || 1;
-      var span = 2 * this.info.radius;
-      var bpp0 = this.info.blocksPerPixel[0];
-      this.zoom = Math.max(0, Math.log2(bpp0 * Math.min(w, h) / span));
+      return Math.log2(this.info.blocksPerPixel[0] * Math.max(w, h) / (2 * this.info.radius));
+    },
+    maxZoom: function () { return Math.max(this.info.maxZoom + OVERZOOM, this.minZoom()); },
+
+    fit: function () {
+      this.zoom = this.minZoom();
       this.cx = 0;
       this.cz = 0;
     },
 
     setZoom: function (z, px, py) {
-      z = Math.max(0, Math.min(this.maxZoom(), z));
+      z = Math.max(this.minZoom(), Math.min(this.maxZoom(), z));
       var w = mapEl.clientWidth;
       var h = mapEl.clientHeight;
       if (px === undefined) { px = w / 2; py = h / 2; }
@@ -119,10 +122,14 @@
       this.render();
     },
 
+    // Keeps the view inside the border: the centre stays half a view from each edge.
     clamp: function () {
       var r = this.info.radius;
-      this.cx = Math.max(-r, Math.min(r, this.cx));
-      this.cz = Math.max(-r, Math.min(r, this.cz));
+      var b = this.bpp();
+      var hx = Math.min(r, mapEl.clientWidth / 2 * b);
+      var hz = Math.min(r, mapEl.clientHeight / 2 * b);
+      this.cx = Math.max(-r + hx, Math.min(r - hx, this.cx));
+      this.cz = Math.max(-r + hz, Math.min(r - hz, this.cz));
     },
 
     toBlock: function (px, py) {
@@ -281,7 +288,14 @@
   });
   document.getElementById('zoom-in').addEventListener('click', function () { view.setZoom(Math.round(view.zoom) + 1); });
   document.getElementById('zoom-out').addEventListener('click', function () { view.setZoom(Math.round(view.zoom) - 1); });
-  window.addEventListener('resize', function () { view.render(); });
+  function refit() {
+    if (!view.ready) return;
+    if (view.zoom < view.minZoom()) view.zoom = view.minZoom();
+    view.clamp();
+    view.render();
+  }
+  window.addEventListener('resize', refit);
+  document.getElementById('view').addEventListener('transitionend', refit);
   showExplored.addEventListener('change', function () { store('mapExplored', showExplored.checked ? '1' : '0'); view.render(); });
   showMarkers.addEventListener('change', function () { store('mapMarkers', showMarkers.checked ? '1' : '0'); view.render(); });
 
@@ -388,7 +402,7 @@
       buildLayers(info, dim.slug);
       buildMarkers(got[2].structures || []);
       view.fit();
-      if (dim.spawn && dim.spawn.length === 3 && view.zoom < 1) {
+      if (dim.spawn && dim.spawn.length === 3) {
         view.cx = dim.spawn[0];
         view.cz = dim.spawn[2];
         view.clamp();

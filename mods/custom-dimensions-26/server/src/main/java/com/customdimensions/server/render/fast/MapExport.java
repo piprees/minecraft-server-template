@@ -137,6 +137,7 @@ public final class MapExport {
         }
 
         MapColours colours = new MapColours(sampler.registryAccess());
+        boolean aquifers = aquifers(sampler);
         Map<String, Long> biomeCounts = new HashMap<>();
         int side = plan.side(plan.maxZoom());
         long columns = 0;
@@ -153,7 +154,7 @@ public final class MapExport {
                 FastRender.Options options = new FastRender.Options("map", false, false, false, slices, pre, false, false);
                 FastRender.Rendered r = FastRender.render(sampler, grid, pool, threads, work, job, null, System.nanoTime(), options);
                 columns += grid.columns();
-                Piece piece = new Piece(r, colours, s, w, h, finest);
+                Piece piece = new Piece(r, colours, s, w, h, finest, aquifers);
                 for (Layer layer : layers) pyramids.get(layer.id()).piece(px0, py0, w, h, piece.paint(layer, slices, bands, biomeCounts));
             }
         }
@@ -190,10 +191,10 @@ public final class MapExport {
     }
 
     /** One piece's pixels and the colours of its palette, painting each layer's inner {@code w × h}. */
-    private record Piece(FastRender.Rendered r, MapColours colours, int s, int w, int h, int finest, MapPalette.Entry[] entries,
-                         int[] plain) {
-        Piece(FastRender.Rendered r, MapColours colours, int s, int w, int h, int finest) {
-            this(r, colours, s, w, h, finest, entries(r.blocks(), colours), plainColours(r.blocks(), colours));
+    private record Piece(FastRender.Rendered r, MapColours colours, int s, int w, int h, int finest, boolean aquifers,
+                         MapPalette.Entry[] entries, int[] plain) {
+        Piece(FastRender.Rendered r, MapColours colours, int s, int w, int h, int finest, boolean aquifers) {
+            this(r, colours, s, w, h, finest, aquifers, entries(r.blocks(), colours), plainColours(r.blocks(), colours));
         }
 
         private static MapPalette.Entry[] entries(List<BlockState> blocks, MapColours colours) {
@@ -237,16 +238,11 @@ public final class MapExport {
                         heights[i] = MapShade.NO_HEIGHT;
                         continue;
                     }
-                    BiomeTint tint = tint(px, py);
                     int depth = depths[i] & 0xFF;
-                    MapPalette.Entry e = entries[b];
-                    if (depth > 0) {
-                        flat[i] = true;
-                        int under = ground[i] >= 0 ? MapPalette.colour(entries[ground[i]], tint) : 0;
-                        rgb[i] = e.tint() == MapPalette.Tint.WATER ? MapShade.water(MapPalette.colour(e, tint), under, depth) : MapPalette.colour(e, tint);
-                    } else {
-                        rgb[i] = MapPalette.colour(e, tint);
-                    }
+                    boolean covered = floor && r.pixels().roofed[i];
+                    boolean fluid = depth > 0 && pickerFluidShown(aquifers, covered);
+                    rgb[i] = surfaceColour(entries[b], ground[i] >= 0 ? entries[ground[i]] : null, fluid ? depth : 0, tint(px, py));
+                    flat[i] = fluid;
                     heights[i] = y;
                 }
             }
@@ -295,7 +291,9 @@ public final class MapExport {
                         short b = run == 0 ? p.topBlock[i] : p.tierBlock[run - 1][i];
                         if (top == FastPixels.NO_Y || b < 0) break;
                         if (bandOf(bands, top) != band) continue;
-                        rgb[i] = MapPalette.colour(entries[b], tint(px, py));
+                        short g = run == 0 ? p.topGround[i] : p.tierGround[run - 1][i];
+                        boolean fluid = b != g && pickerFluidShown(aquifers, run > 0);
+                        rgb[i] = MapPalette.colour(entries[fluid || g < 0 ? b : g], tint(px, py));
                         heights[i] = top;
                         break;
                     }
@@ -309,6 +307,28 @@ public final class MapExport {
             for (int y = 0; y < h; y++) System.arraycopy(full, (y + MARGIN) * s + MARGIN, out, y * w, w);
             return out;
         }
+    }
+
+    /**
+     * Whether the global fluid picker's fluid over a run is drawn: always
+     * under open sky; under a roof or another run only in a level without
+     * aquifers, whose caves the picker does fill. An aquifer level's caves
+     * hold local water tables the picker does not know (T-F3d).
+     */
+    static boolean pickerFluidShown(boolean aquifers, boolean covered) {
+        return !covered || !aquifers;
+    }
+
+    /** A run's colour from above: {@code depth} blocks of the face's fluid over its ground, or the face itself when depth is 0. */
+    static int surfaceColour(MapPalette.Entry face, MapPalette.Entry ground, int depth, BiomeTint tint) {
+        if (depth <= 0) return MapPalette.colour(ground != null ? ground : face, tint);
+        int under = ground != null ? MapPalette.colour(ground, tint) : 0;
+        return face.tint() == MapPalette.Tint.WATER ? MapShade.water(MapPalette.colour(face, tint), under, depth) : MapPalette.colour(face, tint);
+    }
+
+    /** Whether {@code sampler}'s level has aquifers; a generator that is not noise based draws its own fluids. */
+    static boolean aquifers(Sampler sampler) {
+        return sampler.generator() instanceof NoiseBasedChunkGenerator noise && noise.generatorSettings().value().aquifers().isPresent();
     }
 
     /** The band (top first) whose bottom is the highest at or under {@code top}; -1 under every band. */

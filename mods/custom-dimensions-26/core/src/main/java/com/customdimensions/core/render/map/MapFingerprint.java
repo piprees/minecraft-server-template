@@ -12,7 +12,7 @@ import java.util.HexFormat;
  */
 public final class MapFingerprint {
     /** Bumped when the tiles' form or drawing changes. */
-    public static final int FORMAT = 1;
+    public static final int FORMAT = 2;
 
     private MapFingerprint() {}
 
