@@ -150,3 +150,7 @@ Rejected: Fantasy's `setGameRule`, which covers lazy levels only and whose deleg
 **RB-39 — Danger and reward rise together: by dimension, and by nearness to high-value structures.**
 Each dimension keeps its base difficulty (`difficulty`), and on top of it a mob grows harder the nearer it spawns to a high-value structure, hardest in and around endgame dungeons. Loot rises with the same curve: buried treasure and structure chests scale with the dimension's difficulty and size. Easy and peaceful dimensions are safe but poor, with weak loot and fewer ores, so players go to the harder and more desolate places for gear and resources.
 Why: players explore a lot and settle later than in vanilla, so loot from exploring is how they get ahead; the 1.21.1 pack drew them outward the same way.
+
+**RB-40 — Portal recipes are found, not told.**
+How to open a dimension's portal is never explained outright. Clues are loot: some buried treasure and endgame dungeon chests carry books describing a portal and what lies beyond it, or items laid out in the chest's slots to show the frame's shape, its block and its igniter. Each clue is generated from the dimension's own `portal` definition, so it stays true when the portal changes.
+Why: finding the way into a new dimension is part of exploring, and it gives treasure and dungeons a reward beyond gear. Books and arranged items need no client mod, so Java, Bedrock and mobile players all read them.
