@@ -13,8 +13,8 @@
     "layout": {
       "type": "ring",
       "centre": [0, 0],
-      "radius": 410,
-      "falloff": 120,
+      "radius": 440,
+      "falloff": 110,
       "strength": 0.9,
       "warp": {
         "blocks": 72,
@@ -26,7 +26,7 @@
       "ringLakes": 0,
       "gaps": 0,
       "islandShare": 0.02,
-      "hollowApron": 40,
+      "hollowApron": 32,
       "hollowJitter": 40,
       "coverage": 0.55
     }

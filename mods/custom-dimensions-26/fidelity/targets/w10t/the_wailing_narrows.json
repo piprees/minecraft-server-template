@@ -20,16 +20,16 @@
    "from": "\"quartz spans over the wail\": chasms, not lava lakes"
   },
   {
-   "key": "surface.biomesPercent.minecraft:soul_sand_valley + surface.biomesPercent.minecraft:basalt_deltas + surface.biomesPercent.adventure:quartz_flats",
+   "key": "surface.biomesPercent.minecraft:soul_sand_valley + surface.biomesPercent.minecraft:basalt_deltas",
    "op": ">=",
    "value": 95,
-   "from": "1.21.1 biomes soul_sand_valley, basalt_deltas, quartz_flats"
+   "from": "1.21.1 biomes soul_sand_valley, basalt_deltas (quartz_flats removed by the owner)"
   },
   {
    "key": "surface.biomesPercent.adventure:quartz_flats",
-   "op": ">=",
-   "value": 10,
-   "from": "\"quartz spans\""
+   "op": "<=",
+   "value": 0,
+   "from": "the owner: de-emphasise or remove the quartz biome (removed)"
   },
   {
    "key": "atmosphere.definitionAtmosphere.ambientLight?",

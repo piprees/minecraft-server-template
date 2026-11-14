@@ -14,8 +14,13 @@ public final class FastLayers {
     public static final int CUT_FACE = 0x2A2A2A;
     public static final int EMPTY = 0x000000;
 
-    /** A structure start's bounding box in blocks, for the structures layer. */
-    public record Footprint(String structure, int minX, int minZ, int maxX, int maxZ) {}
+    /** A structure start's bounding box in blocks, for the structures layer and the sidecar's list of starts. */
+    public record Footprint(String structure, int minX, int minZ, int maxX, int maxZ, int minY, int maxY) {
+        /** A footprint whose heights are not known (0 to 0). */
+        public Footprint(String structure, int minX, int minZ, int maxX, int maxZ) {
+            this(structure, minX, minZ, maxX, maxZ, 0, 0);
+        }
+    }
 
     private FastLayers() {}
 

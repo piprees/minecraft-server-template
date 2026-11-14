@@ -132,21 +132,12 @@
   "structures": {
     "force": [
       {
-        "structure": "mss:large_tower",
-        "x": 60,
-        "z": 60,
-        "exclusive": false
-      },
-      {
         "structure": "mes:mystical_archway",
         "x": -300,
         "z": 180,
         "exclusive": false
       }
     ],
-    "terrainAdaptation": {
-      "mss:large_tower": "pedestal"
-    },
     "rarity": {
       "mss:small_tower": "common",
       "mss:large_tower": "common",
@@ -166,10 +157,6 @@
       "nova_structures:shrine_tower"
     ],
     "wants": {
-      "ati_structures:fortified_temple": {
-        "min": 450,
-        "max": 650
-      },
       "mss:castle_ruin": {
         "min": 450,
         "max": 650

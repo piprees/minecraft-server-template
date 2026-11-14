@@ -19,7 +19,11 @@ import net.minecraft.client.Screenshot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * The rig's biome-shots mode, active only when {@code -Dcustomdimensions.rig.biomes}
@@ -54,6 +58,12 @@ import net.minecraft.world.level.levelgen.Heightmap;
  * {@code voidFeature: true} marks a shot whose place is a hole in the world, which may be mostly void but must still hit
  * blocks ({@link FrameGate#VOID_HITS_MIN}).
  *
+ * <p>{@code subject: [minX, minY, minZ, maxX, maxY, maxZ]} names what the shot is of (a structure's bounding box): the
+ * camera faces a third of the way up its centre unless {@code at} says otherwise, {@code y: "open+N"} stands it N blocks
+ * over the floor of the open space that holds the subject's base (under a roof or an island, not on top of it), and
+ * before the frame is taken rays from the eye to nine points of the box are cast: fewer than
+ * {@link SubjectCamera#SEEN_MIN} reaching it rejects the try as {@code subject hidden} and takes the next alternate.
+ *
  * <p>{@code pair: true} takes two frames from the same camera: {@code <name>.png} as a player sees it, without effects,
  * then {@code <name>-nv.png} with night vision ({@link #NV_SETTLE} ticks after the effect). Each frame has its own census
  * and gate result in its {@code .frame.json} ({@code nightVision}, {@code frame}, {@code gate.passed}, {@code gate.reasons});
@@ -72,7 +82,7 @@ public final class BiomeShots {
     /** Ticks between night vision being given and the second frame of a pair. */
     static final int NV_SETTLE = 40;
 
-    record Shot(String dimension, double x, String y, double z, float yaw, float pitch, double[] at, String name, boolean nightVision,
+    record Shot(String dimension, double x, String y, double z, float yaw, float pitch, double[] at, int[] subject, String name, boolean nightVision,
             int radius, int hold, boolean check, boolean empty, boolean voidFeature, boolean pair, List<Shot> alternates) {
     }
 
@@ -146,14 +156,25 @@ public final class BiomeShots {
     }
 
     private static Shot shot(JsonObject o, List<Shot> alternates) {
+        int[] subject = null;
+        if (o.has("subject")) {
+            JsonArray b = o.getAsJsonArray("subject");
+            subject = new int[6];
+            for (int i = 0; i < 6; i++) {
+                subject[i] = b.get(i).getAsInt();
+            }
+        }
         double[] at = null;
         if (o.has("at")) {
             JsonArray a = o.getAsJsonArray("at");
             at = new double[] {a.get(0).getAsDouble(), a.get(1).getAsDouble(), a.get(2).getAsDouble()};
+        } else if (subject != null) {
+            double[] aim = SubjectCamera.aim(subject);
+            at = new double[] {aim[0] - 0.5, aim[1] - 0.5, aim[2] - 0.5};
         }
         return new Shot(o.get("dimension").getAsString(), o.get("x").getAsDouble(), o.get("y").getAsString(),
                 o.get("z").getAsDouble(), o.has("yaw") ? o.get("yaw").getAsFloat() : 0, o.has("pitch") ? o.get("pitch").getAsFloat() : 0,
-                at, o.get("name").getAsString(), o.has("nightVision") && o.get("nightVision").getAsBoolean(),
+                at, subject, o.get("name").getAsString(), o.has("nightVision") && o.get("nightVision").getAsBoolean(),
                 o.has("radius") ? o.get("radius").getAsInt() : RADIUS, o.has("hold") ? o.get("hold").getAsInt() : 0,
                 flag(o, "check"), flag(o, "empty"), flag(o, "voidFeature"), flag(o, "pair"), alternates);
     }
@@ -227,6 +248,11 @@ public final class BiomeShots {
                     return;
                 }
                 double y = y(mc, shot);
+                if (Double.isNaN(y)) {
+                    CompanionClient.LOG.warn("rig: {} has no open space in the camera column at {} {}", shot.name(), shot.x(), shot.z());
+                    reject(shot, List.of(String.format(Locale.ROOT, "no open space at %.1f %.1f", shot.x(), shot.z())));
+                    return;
+                }
                 float yaw = shot.yaw();
                 float pitch = shot.pitch();
                 if (shot.at() != null) {
@@ -276,6 +302,14 @@ public final class BiomeShots {
                             place(mc, shot);
                             go(Phase.WAIT);
                             return;
+                        }
+                        if (shot.subject() != null) {
+                            int seen = seen(mc, shot.subject());
+                            CompanionClient.LOG.info("rig: {} subject seen by {} of 9 rays", shot.name(), seen);
+                            if (seen < SubjectCamera.SEEN_MIN && !shot.check()) {
+                                reject(shot, List.of("subject hidden: " + seen + " of 9 rays reach it"));
+                                return;
+                            }
                         }
                         if (shot.check()) {
                             if (lifted == 0) {
@@ -516,16 +550,46 @@ public final class BiomeShots {
         return colon < 0 ? dimension : dimension.substring(colon + 1);
     }
 
-    /** The feet height: a number, {@code surface[+N]} over the motion-blocking height, or {@code ground[+N]} under trees and plants. */
+    /** Rays from the eye to the subject's {@link SubjectCamera#points} that reach its box. */
+    private static int seen(Minecraft mc, int[] box) {
+        Vec3 eye = mc.player.getEyePosition();
+        int seen = 0;
+        for (double[] p : SubjectCamera.points(box)) {
+            BlockHitResult hit = mc.level.clip(new ClipContext(eye, new Vec3(p[0], p[1], p[2]), ClipContext.Block.COLLIDER,
+                    ClipContext.Fluid.NONE, mc.player));
+            Vec3 at = hit.getLocation();
+            if (SubjectCamera.reaches(hit.getType() == HitResult.Type.MISS ? null : new double[] {at.x, at.y, at.z}, box)) {
+                seen++;
+            }
+        }
+        return seen;
+    }
+
+    /**
+     * The feet height: a number, {@code surface[+N]} over the motion-blocking height, {@code ground[+N]} under trees
+     * and plants, or {@code open[+N]} over the floor of the open space that holds the subject's base (the {@code at}
+     * height without a subject; the surface without either), by {@link SubjectCamera#open}: under a roof or an island
+     * that is the cavern or the air beneath it. NaN when the column has no such space.
+     */
     private static double y(Minecraft mc, Shot shot) {
         String y = shot.y().trim();
-        String base = y.startsWith("surface") ? "surface" : y.startsWith("ground") ? "ground" : null;
+        String base = y.startsWith("surface") ? "surface" : y.startsWith("ground") ? "ground" : y.startsWith("open") ? "open" : null;
         if (base == null) {
             return Double.parseDouble(y);
         }
         double above = y.length() > base.length() ? Double.parseDouble(y.substring(base.length())) : 0;
         int x = (int) Math.floor(shot.x());
         int z = (int) Math.floor(shot.z());
+        if (base.equals("open")) {
+            int start = shot.subject() != null ? shot.subject()[1] : shot.at() != null ? (int) Math.floor(shot.at()[1])
+                    : mc.level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+            int feet = SubjectCamera.open(h -> {
+                pos.set(x, h, z);
+                return !mc.level.getBlockState(pos).getCollisionShape(mc.level, pos).isEmpty();
+            }, start, mc.level.getMinY(), mc.level.getMaxY(), (int) Math.round(above));
+            return feet == Integer.MIN_VALUE ? Double.NaN : feet;
+        }
         int surface = mc.level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
         if (base.equals("ground")) {
             BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, surface - 1, z);

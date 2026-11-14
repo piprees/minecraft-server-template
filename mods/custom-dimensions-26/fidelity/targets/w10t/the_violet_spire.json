@@ -50,22 +50,22 @@
    "from": "\"Arcane but not hostile\"; 1.21.1 ambientLight 0.25"
   },
   {
-   "key": "placeness.landBiomeRegions.top3Percent",
+   "key": "placeness.places.landRegions.top3Percent",
    "op": ">=",
    "value": 60,
-   "from": "place kind meeting (\"two worlds overlapped\"): the largest three regions hold most of the land"
+   "from": "place kind meeting (\"two worlds overlapped\"): the largest three regions hold most of the land; measured by place (the wisteria, skylands and End-ward bands), since one place holds several biomes"
   },
   {
-   "key": "placeness.landBiomeRegions.major",
+   "key": "placeness.places.landRegions.major",
    "op": "<=",
    "value": 8,
-   "from": "place kind meeting: a few places, not many"
+   "from": "place kind meeting: a few places, not many; measured by place (the wisteria, skylands and End-ward bands), since one place holds several biomes"
   },
   {
-   "key": "placeness.landBiomeRegions.specksPercent",
+   "key": "placeness.places.landRegions.specksPercent",
    "op": "<=",
    "value": 5,
-   "from": "place kind meeting: no scatter of biome specks"
+   "from": "place kind meeting: no scatter of biome specks; measured by place (the wisteria, skylands and End-ward bands), since one place holds several biomes"
   }
  ]
 }

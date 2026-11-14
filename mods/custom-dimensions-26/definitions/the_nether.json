@@ -87,10 +87,6 @@
       "minecraft:nether_fossils"
     ],
     "wants": {
-      "towns_and_towers:exclusives/village_piglin": {
-        "min": 200,
-        "max": 900
-      },
       "nova_structures:sealing_halls": {
         "min": 700,
         "max": 1000

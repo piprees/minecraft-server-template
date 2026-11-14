@@ -160,6 +160,26 @@ public final class FastRender {
         }
     }
 
+    /** Each start's structure and bounding box, {@code [minX, minY, minZ, maxX, maxY, maxZ]}, sorted by structure then position. */
+    static JsonArray starts(List<FastLayers.Footprint> footprints) {
+        List<FastLayers.Footprint> sorted;
+        synchronized (footprints) {
+            sorted = new ArrayList<>(footprints);
+        }
+        sorted.sort(java.util.Comparator.comparing(FastLayers.Footprint::structure).thenComparingInt(FastLayers.Footprint::minX)
+                .thenComparingInt(FastLayers.Footprint::minZ));
+        JsonArray out = new JsonArray();
+        for (FastLayers.Footprint f : sorted) {
+            JsonObject o = new JsonObject();
+            o.addProperty("structure", f.structure());
+            JsonArray box = new JsonArray();
+            for (int v : new int[] {f.minX(), f.minY(), f.minZ(), f.maxX(), f.maxY(), f.maxZ()}) box.add(v);
+            o.add("box", box);
+            out.add(o);
+        }
+        return out;
+    }
+
     /** A render's result with what it drew, for a wave's sheet and a bench's comparisons. */
     record Rendered(Result result, ColumnSamples samples, FastPixels pixels, FastSlices slices, Map<String, int[]> rgb,
                     Map<String, Path> images, int[] colours, Prescan prescan, String windowMode, Map<String, Long> timings,
@@ -241,7 +261,8 @@ public final class FastRender {
                 int reach = (int) Math.ceil(grid.radius() * Math.sqrt(2));
                 StructureStarts.find(sampler, sampler.structureState(), id -> true, grid.centreX(), grid.centreZ(), reach, pool,
                         id -> StructureStarts.CAP, id -> reach, null, (start, box) -> {
-                            if (box != null) footprints.add(new FastLayers.Footprint(start.structure(), box.minX(), box.minZ(), box.maxX(), box.maxZ()));
+                            if (box != null) footprints.add(new FastLayers.Footprint(start.structure(), box.minX(), box.minZ(), box.maxX(), box.maxZ(),
+                                    box.minY(), box.maxY()));
                         });
             } catch (RuntimeException e) {
                 structureError = String.valueOf(e);
@@ -931,6 +952,7 @@ public final class FastRender {
             }
         }
         structures.add("legend", legend);
+        structures.add("starts", starts(footprints));
         fast.add("structures", structures);
         JsonObject comparison = new JsonObject();
         comparison.addProperty("spacing", COMPARE_SPACING);
