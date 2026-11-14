@@ -50,7 +50,8 @@ import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
  * the finest pixels, never sampled again. Layers: {@code terrain} (what is
  * seen from above, texture colours and biome tints, water by depth, relief),
  * {@code biomes}, {@code roofless} (the floor under a roof, on a world
- * roofed over {@value FastRender#LAYER_SHARE} of its columns), a
+ * roofed over {@value FastRender#LAYER_SHARE} of its columns, listed first
+ * and drawn as the thumbnail, with the terrain named Roof), a
  * {@code cut-<name>} per fixed height {@link SliceChoice} picks, and a
  * {@code tier-<n>} per sky band (the highest run whose top lies in it).
  * Structure starts go to {@value #MARKERS}. Writes {@value #LAYERS},
@@ -110,10 +111,10 @@ public final class MapExport {
         boolean roofed = pre.profile().roofedShare() >= FastRender.LAYER_SHARE;
 
         List<Layer> layers = new ArrayList<>();
-        layers.add(new Layer("terrain", "terrain", "Terrain", null, null, null, false));
-        layers.add(new Layer("biomes", "biomes", "Biomes", null, null, null, true));
         if (roofed) layers.add(new Layer("roofless", "roofless", "Roofless", null, null, null, false));
-        for (SliceChoice.Slice s : slices) layers.add(new Layer("cut-" + s.name(), "cut", title(s.name()), s.y(), null, null, false));
+        layers.add(new Layer("terrain", "terrain", roofed ? "Roof" : "Terrain", null, null, null, false));
+        layers.add(new Layer("biomes", "biomes", "Biomes", null, null, null, true));
+        for (SliceChoice.Slice s : slices) layers.add(new Layer("cut-" + s.name(), "cut", "Cut: " + title(s.name()), s.y(), null, null, false));
         for (int b = 0; b < bands.size(); b++) {
             SliceChoice.Band band = bands.get(b);
             layers.add(new Layer("tier-" + (b + 1), "tier", "Sky tier " + (b + 1), band.middle(), band.bottom(), band.top(), false));
@@ -123,6 +124,7 @@ public final class MapExport {
         deleteTree(staging);
         AtomicLong bytes = new AtomicLong();
         int[][] zoomZero = new int[1][];
+        String thumbLayer = layers.getFirst().id();
         Map<String, TilePyramid> pyramids = new LinkedHashMap<>();
         for (Layer layer : layers) {
             Path dir = staging.resolve(layer.id());
@@ -130,7 +132,7 @@ public final class MapExport {
                 Path file = dir.resolve(z + "/" + x + "/" + y + ".png");
                 MapImages.png(file, MapTiles.TILE, MapTiles.TILE, argb);
                 bytes.addAndGet(Files.size(file));
-                if (z == 0 && layer.id().equals("terrain")) zoomZero[0] = argb;
+                if (z == 0 && layer.id().equals(thumbLayer)) zoomZero[0] = argb;
             }));
         }
 
