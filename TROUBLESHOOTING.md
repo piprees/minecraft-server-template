@@ -1596,6 +1596,60 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t304"></a>
+### T304 — Only an underground step marks a structure that needs ground under it
+- **Symptom:** on a world of islands over a void, a structure that picks an absolute height hangs below the islands.
+- **Cause:** mineshafts, trial chambers, ancient cities and strongholds choose their height without reading the terrain. `UndergroundGround` refuses a start in an underground step (`UNDERGROUND_STRUCTURES`, `UNDERGROUND_DECORATION`, `STRONGHOLDS`) unless every column at its box's centre and corners has a block other than air at or below the box's floor; a structure in a surface step with an absolute start height is not checked, and a forced start with a `y` is never refused.
+- **Fix:** give a mod's underground structure an underground `step`, or shun it in sky worlds; never widen the rule to surface steps, which would refuse sky structures over the void by design.
+
+<a id="t303"></a>
+### T303 — Vanilla's structure search walks only rings and random spread
+- **Symptom:** `/locate structure`, an explorer map, an eye of ender or a dolphin answers nothing, or a far start, for a structure the plan places.
+- **Cause:** `ChunkGenerator.findNearestMapStructure` searches `ConcentricRingsStructurePlacement` and `RandomSpreadStructurePlacement` only; any other placement is skipped. `PlanLocate` (via `ChunkGeneratorLocateMixin`) walks `StructurePlacements.Noise` sites and `StructurePlacements.Fixed` chunks nearest first, and `StructureCheckBypassMixin` makes the fast check honour the biome bypass and a forced `y`.
+- **Fix:** a new placement type of ours goes into `PlanLocate.sites` and `PlanLocate.spacing`, or the search never sees it.
+
+<a id="t302"></a>
+### T302 — A rig list given by a relative path fails at once
+- **Symptom:** the rig exits with rc 2 immediately, and a script chained on `rig.done` then runs early, against nothing.
+- **Cause:** the rig resolves its list from its own working directory, not the caller's; a relative path names no file there.
+- **Fix:** pass the list by absolute path, and have a chained script check the rig's exit status, not only that `rig.done` exists.
+
+<a id="t301"></a>
+### T301 — `scales.climate` does not visibly enlarge a place's biome blobs
+- **Symptom:** under `biomeLayout.places`, the second axis mixes a place's biomes at the climate noise's own scale; `terrain.scales.climate` 2–4 leaves the blobs about the size they were.
+- **Cause:** not verified. The stretch divides `xz_scale` of each `minecraft:noise` node in temperature and vegetation (`TerrainLibrary.scaled`), but only where `DatapackCompiler` stretches the climate: a climate-only shaping or a terrain on its own router (`TerrainFamily.ownRouter`: roofed, end); the library terrains' compile stretches it separately (`TerrainLibrary.compile`).
+- **Fix:** before tuning `scales.climate` for a places layout, compile the dimension and read its emitted `terrain/<slug>/vegetation.json` (or temperature, whichever is the second axis) for the stretched `xz_scale`.
+
+<a id="t300"></a>
+### T300 — A spawn near the End preset's centre without its island stands over the void
+- **Symptom:** on the End preset with `endIsland: false`, every seed's spawn within about 1,000 blocks of the centre is over the void.
+- **Cause:** the End's outer islands start about 1,000 blocks out; without the central island nothing generates inside that ring.
+- **Fix:** place the spawn past the ring, or lay out islands there. A border-wide radial layout fills the ring but joins the islands into one mass unless its coverage drops by about 0.04.
+
+<a id="t299"></a>
+### T299 — `/customdim survey` takes its size in chunk units
+- **Symptom:** a driver waiting for "Surveyed" hangs until its cap.
+- **Cause:** `/customdim survey <slug> <patches> <size>` takes `size` in chunk units (1–8); a block size such as 96 is refused, and the refusal goes to chat only, not the log.
+- **Fix:** pass a size of 1–8, and have a driver read the command's reply, not only wait for the log line.
+
+<a id="t298"></a>
+### T298 — A forced `y` is the first free height
+- **Symptom:** a forced End city given `y` starts at `y − 1`.
+- **Cause:** `PinnedGround` answers every column as solid below `y` and air from it, so `y` is the first free height: a structure that stands on the ground starts at `y`, and one that sits on the occupied block (an End city) starts at `y − 1`.
+- **Fix:** for a structure that sits on the occupied block, give `y` one above the start height wanted.
+
+<a id="t297"></a>
+### T297 — The End's dungeons pool is shared with the pack's structure mods
+- **Symptom:** with Moog's End Structures installed, the End has about half the End cities a headless count gives (about 30 where 57 were counted).
+- **Cause:** the End dungeons noise group pools every End structure set in its group; Moog's phantom citadel joins it and takes about half the sites by weight. Headless counts (`EndCitiesTest`) see vanilla's registry only.
+- **Fix:** count End cities on a server with the pack's structure jars loaded; weight the pool, or give the citadel its own group, when the cities must hold their count.
+
+<a id="t296"></a>
+### T296 — The survey's End city census counts sites, not cities
+- **Symptom:** the survey reports 338 End cities where 57 start.
+- **Cause:** the census counts End city sites whose biome fits; it does not check terrain, and an End city starts only on ground at y 60 or higher. The roll's own End city count is confirmed starts, capped at 64.
+- **Fix:** read city counts from confirmed starts (the roll, `EndCitiesTest`, or a loaded chunk's starts), never from the census.
+
 <a id="t295"></a>
 ### T295 — The explored layer re-reads whole regions when its finest step does not divide 16
 - **Symptom:** a web map export of a large dimension re-reads every chunk of a region in which one chunk was rewritten, so the explored layer's time does not fall after the first export.
@@ -1756,7 +1810,7 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
 ### T269 — A biome's own fog and sky replace the dimension's
 - **Symptom:** a dimension's `atmosphere.fogColor`/`skyColor` shows only where a biome sets none: on the nether preset (no fog in vanilla's Nether type) or over a library biome with its own fog, frames read the biome's colour (the_obsidian_sanctum over `withered_forest`: mean luma 58.7 against 16.9 wanted).
 - **Cause:** the game applies the dimension type's attributes, then the biome's (positional), then the type's timelines in list order (`EnvironmentAttributeSystem`: static layers, then dynamic). A biome attribute is an override.
-- **Fix:** `atmosphere.overBiomes: true` writes the colours as `<ns>:atmosphere/<slug>`, a constant `override` track each, first in the type's `timelines`; the day's `multiply` tracks still darken them. Never write per-dimension biome copies for this: a copied biome loses its id's tags, structure biome checks and palettes.
+- **Fix:** `atmosphere.overBiomes` (on by default when the dimension sets `skyColor` or `fogColor`; `false` opts out) writes the colours as `<ns>:atmosphere/<slug>`, a constant `override` track each, first in the type's `timelines`; the day's `multiply` tracks still darken them. Never write per-dimension biome copies for this: a copied biome loses its id's tags, structure biome checks and palettes.
 
 <a id="t268"></a>
 ### T268 — A heart's warp is held to its room
