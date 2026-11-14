@@ -1,5 +1,5 @@
 {
-  "clock": "adventure:day_length/54000_18000",
+  "clock": "minecraft:overworld",
   "tracks": {
     "minecraft:visual/fog_color": {
       "keyframes": [

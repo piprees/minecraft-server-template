@@ -10,7 +10,7 @@
                   "left": {
                     "input": {
                       "left": "adventure:places/the_violet_spire/u",
-                      "right": 0.36,
+                      "right": 0.3375,
                       "type": "minecraft:add"
                     },
                     "type": "minecraft:square"
@@ -18,7 +18,7 @@
                   "right": {
                     "input": {
                       "left": "adventure:places/the_violet_spire/v",
-                      "right": -2.20436424E-17,
+                      "right": -2.06659147E-17,
                       "type": "minecraft:add"
                     },
                     "type": "minecraft:square"
@@ -28,7 +28,7 @@
                 "right": 0.0,
                 "type": "minecraft:add"
               },
-              "max": 21.4791821,
+              "max": 21.4625737,
               "min": 0.0,
               "type": "minecraft:clamp"
             },
@@ -50,7 +50,7 @@
                     "left": {
                       "input": {
                         "left": "adventure:places/the_violet_spire/u",
-                        "right": -0.405,
+                        "right": -0.345535714,
                         "type": "minecraft:add"
                       },
                       "type": "minecraft:square"
@@ -58,17 +58,17 @@
                     "right": {
                       "input": {
                         "left": "adventure:places/the_violet_spire/v",
-                        "right": 2.47990977E-17,
+                        "right": 2.11579603E-17,
                         "type": "minecraft:add"
                       },
                       "type": "minecraft:square"
                     },
                     "type": "minecraft:add"
                   },
-                  "right": 0.270481589,
+                  "right": 0.337573661,
                   "type": "minecraft:add"
                 },
-                "max": 21.4791821,
+                "max": 21.4625737,
                 "min": 0.0,
                 "type": "minecraft:clamp"
               },
@@ -95,7 +95,7 @@
                   "left": {
                     "input": {
                       "left": "adventure:places/the_violet_spire/u",
-                      "right": -0.765,
+                      "right": -0.683035714,
                       "type": "minecraft:add"
                     },
                     "type": "minecraft:square"
@@ -103,17 +103,17 @@
                   "right": {
                     "input": {
                       "left": "adventure:places/the_violet_spire/v",
-                      "right": 4.68427401E-17,
+                      "right": 4.18238751E-17,
                       "type": "minecraft:add"
                     },
                     "type": "minecraft:square"
                   },
                   "type": "minecraft:add"
                 },
-                "right": 0.354182123,
+                "right": 0.336652902,
                 "type": "minecraft:add"
               },
-              "max": 21.4791821,
+              "max": 21.4625737,
               "min": 0.0,
               "type": "minecraft:clamp"
             },

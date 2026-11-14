@@ -1,0 +1,21 @@
+{
+  "clock": "minecraft:overworld",
+  "tracks": {
+    "minecraft:gameplay/baby_villager_activity": {
+      "keyframes": [
+        {
+          "ticks": 0,
+          "value": "minecraft:rest"
+        }
+      ]
+    },
+    "minecraft:gameplay/villager_activity": {
+      "keyframes": [
+        {
+          "ticks": 0,
+          "value": "minecraft:rest"
+        }
+      ]
+    }
+  }
+}

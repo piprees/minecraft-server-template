@@ -2,85 +2,105 @@
   "input": {
     "spline": {
       "coordinate": {
-        "input": {
-          "left": {
-            "input": {
-              "left": {
-                "axis": "x",
-                "from_coordinate": -1000000,
-                "from_value": -1000000.0,
-                "tiling": "clamp_to_edge",
-                "to_coordinate": 1000000,
-                "to_value": 1000000.0,
-                "type": "minecraft:gradient"
-              },
-              "right": {
+        "left": {
+          "input": {
+            "left": {
+              "input": {
                 "left": {
-                  "noise": "adventure:terrain/warp_x",
-                  "type": "minecraft:noise",
-                  "xz_scale": 0.5,
-                  "y_scale": 0.0
+                  "axis": "x",
+                  "from_coordinate": -1000000,
+                  "from_value": -1000000.0,
+                  "tiling": "clamp_to_edge",
+                  "to_coordinate": 1000000,
+                  "to_value": 1000000.0,
+                  "type": "minecraft:gradient"
                 },
-                "right": 131.386861,
-                "type": "minecraft:mul"
+                "right": {
+                  "left": {
+                    "noise": "adventure:terrain/warp_x",
+                    "type": "minecraft:noise",
+                    "xz_scale": 0.5,
+                    "y_scale": 0.0
+                  },
+                  "right": 131.386861,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:add"
               },
-              "type": "minecraft:add"
+              "type": "minecraft:square"
             },
-            "type": "minecraft:square"
-          },
-          "right": {
-            "input": {
-              "left": {
-                "axis": "z",
-                "from_coordinate": -1000000,
-                "from_value": -1000000.0,
-                "tiling": "clamp_to_edge",
-                "to_coordinate": 1000000,
-                "to_value": 1000000.0,
-                "type": "minecraft:gradient"
-              },
-              "right": {
+            "right": {
+              "input": {
                 "left": {
-                  "noise": "adventure:terrain/warp_z",
-                  "type": "minecraft:noise",
-                  "xz_scale": 0.5,
-                  "y_scale": 0.0
+                  "axis": "z",
+                  "from_coordinate": -1000000,
+                  "from_value": -1000000.0,
+                  "tiling": "clamp_to_edge",
+                  "to_coordinate": 1000000,
+                  "to_value": 1000000.0,
+                  "type": "minecraft:gradient"
                 },
-                "right": 131.386861,
-                "type": "minecraft:mul"
+                "right": {
+                  "left": {
+                    "noise": "adventure:terrain/warp_z",
+                    "type": "minecraft:noise",
+                    "xz_scale": 0.5,
+                    "y_scale": 0.0
+                  },
+                  "right": 131.386861,
+                  "type": "minecraft:mul"
+                },
+                "type": "minecraft:add"
               },
-              "type": "minecraft:add"
+              "type": "minecraft:square"
             },
-            "type": "minecraft:square"
+            "type": "minecraft:add"
           },
-          "type": "minecraft:add"
+          "type": "minecraft:sqrt"
         },
-        "type": "minecraft:sqrt"
+        "right": {
+          "left": {
+            "noise": "adventure:terrain/lakes",
+            "shift_x": "minecraft:shift_x",
+            "shift_z": "minecraft:shift_z",
+            "type": "minecraft:noise",
+            "xz_scale": 0.5,
+            "y_scale": 0.0
+          },
+          "right": 136.054422,
+          "type": "minecraft:mul"
+        },
+        "type": "minecraft:sub"
       },
       "points": [
         {
           "derivative": 0.0,
-          "location": 226.0,
+          "location": 286.0,
           "value": 0.16071595
         },
         {
           "derivative": 0.0,
-          "location": 266.0,
+          "location": 326.0,
           "value": 0.01959595
         },
         {
           "derivative": 0.0,
-          "location": 280.0,
+          "location": 340.0,
           "value": -0.015684048
         },
         {
           "derivative": 0.0,
-          "location": 290.0,
-          "value": -0.07448405
+          "location": 350.0,
+          "value": -0.05096405
         },
         {
           "derivative": 0.0,
-          "location": 298.0,
+          "location": 390.0,
+          "value": -0.05096405
+        },
+        {
+          "derivative": 0.0,
+          "location": 391.0,
           "value": -0.13328405
         }
       ]
