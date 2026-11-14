@@ -49,12 +49,12 @@ public final class UndergroundGround {
         return underground(structure) && !grounded(box, generator, random, height);
     }
 
-    /** Whether every column at the box's centre and corners has a block other than air at or below the box's floor. */
+    /** Whether every column at the box's centre and corners has a block other than air at or below the box's floor; a box reaching below the level's floor stands on it. */
     public static boolean grounded(BoundingBox box, ChunkGenerator generator, RandomState random, LevelHeightAccessor height) {
         int[][] columns = {
                 {(box.minX() + box.maxX()) >> 1, (box.minZ() + box.maxZ()) >> 1},
                 {box.minX(), box.minZ()}, {box.maxX(), box.minZ()}, {box.minX(), box.maxZ()}, {box.maxX(), box.maxZ()}};
-        int floor = Math.min(box.minY(), height.getMaxY());
+        int floor = Math.max(height.getMinY(), Math.min(box.minY(), height.getMaxY()));
         for (int[] c : columns) {
             if (!groundBelow(generator.getBaseColumn(c[0], c[1], height, random), height.getMinY(), floor)) {
                 return false;
