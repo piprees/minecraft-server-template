@@ -14,7 +14,8 @@
 # level.dat itself — so there is never a lingering WorldGenSettings.dimensions
 # registry entry outliving the world it describes (the D3 boot-wedge trap
 # doesn't apply here: level.dat and the world dirs it references die together).
-# Separately: uNmINeD map renders (maps/, index.html, manifest.json), the
+# Separately: the web map (data/map-web: tiles, manifest and the export's
+# fingerprint and region caches in each dimension's .cache/), the
 # idle-tasks pre-generation markers (data/.chunky-*complete and
 # data/.dhpregen-*complete: kept, they would mark the new world's dimensions
 # as already generated) + Chunky task state + .skip-pause,
@@ -28,7 +29,7 @@
 # leave portals resolving into a world at coordinates that meant something
 # else, and drift reported against a world that no longer exists. The mod
 # writes both fresh on the next boot. Deletion runs under sudo (sidecars
-# write as root, so DEPLOY_USER cannot remove data/unmined-web) and is
+# write as root, so DEPLOY_USER cannot remove data/map-web) and is
 # verified afterwards rather than assumed. Also wipes the old world's bot
 # and webhook messages from the Discord channels (DISCORD_CHANNEL_ID +
 # DISCORD_CHAT_CHANNEL_ID when distinct) via discord-cleanup.sh — fire and
@@ -167,7 +168,7 @@ echo "   2. Back up data/ to a cold tar.gz on the droplet"
 fi
 echo "   3. Delete data/world/ (every dimension's terrain, player data, DH cache,"
 echo "      POI, ledger, and level.dat, in one sweep)"
-echo "   4. Delete uNmINeD map renders (data/unmined-web: maps/, index.html, manifest.json)"
+echo "   4. Delete the web map (data/map-web, its caches included)"
 echo "   5. Delete all Chunky markers, task state, and .skip-pause"
 echo "   6. Delete dynamic-data-pack-cache and the per-dimension deploy-setup markers"
 echo "   6b. Delete portal links and dimension fingerprints for the old world"
@@ -320,7 +321,7 @@ echo "==> Creating tar.gz backup on the droplet: ${BACKUP_PATH}"
 # not abort the reset after the containers have already stopped.
 TAR_STATUS=0
 ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && mkdir -p backups && tar czf ${BACKUP_PATH} \
-  --exclude='data/unmined-web' \
+  --exclude='data/map-web' \
   --exclude='data/mods' \
   --exclude='data/libraries' \
   --exclude='data/versions' \
@@ -351,7 +352,7 @@ fi
 echo ""
 echo "==> Deleting world and player data on the droplet..."
 
-# sudo: sidecars write as root inside their containers, so data/unmined-web is
+# sudo: mc writes as root inside its container, so data/map-web is
 # root-owned and DEPLOY_USER cannot remove it. Statements are separated by ';'
 # not '&&' — chaining meant one Permission denied skipped every later deletion
 # and, under set -e, aborted the reset with the world already gone and the
@@ -364,7 +365,8 @@ echo "==> Deleting world and player data on the droplet..."
 # here is a genuinely separate top-level path.
 ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR}; \
   sudo rm -rf data/world/; \
-  sudo rm -rf data/unmined-web/maps/ data/unmined-web/index.html data/unmined-web/manifest.json; \
+  sudo rm -rf data/map-web/; \
+  sudo rm -f  data/.map-export-started data/.skip-pause-map; \
   sudo rm -f  data/.chunky-*complete data/.dhpregen-*complete; \
   sudo rm -f  data/.skip-pause; \
   sudo rm -rf data/config/chunky/tasks/; \
@@ -374,7 +376,7 @@ ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR}; \
 
 # Verify rather than trust: a partial delete leaves the old world in place and
 # the new seed would silently generate nothing.
-LEFTOVERS="$(ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && ls -d data/world data/unmined-web/maps data/unmined-web/manifest.json data/config/chunky/tasks data/dynamic-data-pack-cache data/.dimension-setup 2>/dev/null" || true)"
+LEFTOVERS="$(ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && ls -d data/world data/map-web data/config/chunky/tasks data/dynamic-data-pack-cache data/.dimension-setup 2>/dev/null" || true)"
 if [[ -n "$LEFTOVERS" ]]; then
   echo "ERROR: these paths survived deletion:"
   echo "$LEFTOVERS" | sed 's/^/         /'
@@ -384,7 +386,7 @@ if [[ -n "$LEFTOVERS" ]]; then
 fi
 
 echo "  Deleted: data/world/ (every dimension's terrain, player data, DH cache, POI, ledger, level.dat)"
-echo "  Deleted: uNmINeD map renders and manifest (regenerated on the next render pass)"
+echo "  Deleted: the web map and its caches (redrawn by the next export)"
 echo "  Deleted: Chunky markers, task state, .skip-pause"
 echo "  Deleted: dynamic-data-pack-cache"
 echo "  Deleted: per-dimension deploy-setup markers (deploy.sh will re-run 'customdim load' for all of them)"

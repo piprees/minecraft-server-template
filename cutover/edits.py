@@ -580,11 +580,102 @@ edit("webmap", "docs/web-surfaces.md",
      "| map.DOMAIN | uNmINeD viewer shell in `docker/unmined-render/webshell/`; nav + OG injected by `nav-proxy.conf.template` | `unmined-render` sidecar → `data/unmined-web/` | Infra (force-recreates nav-proxy) |",
      "| map.DOMAIN | Viewer shell in the mod jar (`mods/custom-dimensions-26/server/src/main/resources/customdimensions/map-shell/`), written into `data/map-web/` by each export; nav + OG injected by `nav-proxy.conf.template` | `customdim map export all`, sent by idle-tasks after pre-generation every `MAP_INTERVAL` → `data/map-web/` | Infra (force-recreates nav-proxy) |")
 
+edit("webmap", 'scripts/doctor.sh',
+     'check data/unmined-web and data/world first',
+     'check data/world and data/map-web first')
+edit("webmap", 'scripts/doctor.sh',
+     'du -sh data/world data/unmined-web backups',
+     'du -sh data/world data/map-web backups')
+edit("webmap", 'scripts/doctor.sh',
+     'discord-sync idle-tasks unmined-render; do',
+     'discord-sync idle-tasks; do')
+edit("webmap", 'scripts/infra-deploy.sh',
+     '  unmined-render nav-proxy pack-web',
+     '  nav-proxy pack-web')
+edit("webmap", 'scripts/live-stats.sh',
+     'du -sh data/world data/unmined-web',
+     'du -sh data/world data/map-web')
+edit("webmap", 'scripts/clean-dev-state.sh',
+     '      echo "data/unmined-web/maps"\n      echo "data/unmined-web/index.html"\n      echo "data/unmined-web/manifest.json"\n',
+     '      echo "data/map-web"\n')
+edit("webmap", 'examples/consumer/dev',
+     '      "$CONSUMER_DIR/data/unmined-web/maps" \\\n      "$CONSUMER_DIR/data/unmined-web/index.html" \\\n      "$CONSUMER_DIR/data/unmined-web/manifest.json" \\\n',
+     '      "$CONSUMER_DIR/data/map-web" \\\n')
+edit("webmap", 'examples/consumer/dev',
+     'LEFT=$(ls -d "$CONSUMER_DIR/data/world" "$CONSUMER_DIR/data/unmined-web/maps" \\\n      "$CONSUMER_DIR/data/unmined-web/manifest.json" "$CONSUMER_DIR/data/dynamic-data-pack-cache" \\\n',
+     'LEFT=$(ls -d "$CONSUMER_DIR/data/world" "$CONSUMER_DIR/data/map-web" \\\n      "$CONSUMER_DIR/data/dynamic-data-pack-cache" \\\n')
+edit("webmap", 'examples/consumer/ops',
+     '  map render                  Force a map render pass now (uNmINeD)\n  map status|threads <n>      Render progress / thread count\n',
+     "  map render [dim] [what]     Export the web map now (customdim map export)\n  map status                  The last export's summary and the map's size\n")
+edit("webmap", 'examples/consumer/commands.json',
+     '"description": "Map sidecar: status, force re-render, threads"',
+     '"description": "Web map: status, export now"')
+edit("webmap", 'examples/consumer/README.md',
+     '| `map.DOMAIN` (world map) | rendered by the `unmined-render` sidecar | Static output; only the nav bar and viewer shell are ours |',
+     "| `map.DOMAIN` (world map) | drawn by the mod's `customdim map export` into `data/map-web/` | Static output; the nav bar is injected, the viewer ships in the mod |")
+edit("webmap", 'config/cloudflared/config.yml',
+     '  # uNmINeD static world map (via nav-proxy for nav bar injection)\n',
+     '  # The static world map the mod exports (via nav-proxy for nav bar injection)\n')
+edit("webmap", 'scripts/cloudflare-setup.sh',
+     '  # uNmINeD static world map (via nav-proxy for nav bar injection)\n',
+     '  # The static world map the mod exports (via nav-proxy for nav bar injection)\n')
+edit("webmap", 'README.md',
+     '│  unmined-render (static maps)',
+     '│  map export (in mc, by idle) ')
+edit("webmap", 'README.md',
+     '| `unmined-render` | ghcr.io/.../unmined-render | both | Scheduled static uNmINeD map renders into `data/unmined-web/`, served at map.DOMAIN/unmined/ (off until `UNMINED_INTERVAL` is set) |\n',
+     '')
+edit("webmap", 'README.md',
+     '| `map-render.sh` | Mac | Drive the unmined-render sidecar: status, force a render pass |',
+     "| `map-render.sh` | Mac | The web map: the last export's summary, or `customdim map export` now over RCON |")
+edit("webmap", 'README.md',
+     "| `gen-unmined-blocktags.py` | Regenerate the map renderer's modded block tags from the block catalogue (`--check` in CI) |\n",
+     '')
+edit("webmap", 'CONTRIBUTING.md',
+     'registry dump), `blocktags`. `mise tasks` lists them.',
+     'registry dump). `mise tasks` lists them.')
+edit("webmap", 'DEPENDENCIES.md',
+     " `unmined-render` is on a numeric Debian tag (`debian:12.x-slim`) so Dependabot proposes its point releases; it installs `libicu72`, Debian 12's ICU package, so a Debian 13 PR fails its build until a human swaps in Debian 13's package (`libicu76`) on the PR.",
+     '')
+edit("webmap", '.env.example',
+     '# --- Static map renders (uNmINeD — this IS map.DOMAIN) --------------------------\n# The unmined-render sidecar renders every world + visited custom dimension\n# to static webp tile maps in ./data/unmined-web; nav-proxy serves them as\n# map.DOMAIN (per-dimension URLs, long edge-cache with ?v= busting). Renders are incremental and clamped to borders.generation /\n# PREGEN_BORDER_RADIUS. Interval uses sleep(1) syntax; 0 disables.\n# UNMINED_INTERVAL=6h\n# Zoom-out levels in the web viewer (default 6).\n# UNMINED_ZOOMOUT=6\n',
+     "# --- The web map (this IS map.DOMAIN) --------------------------------------------\n# idle-tasks sends `customdim map export all` once pre-generation is done, at\n# most this often: every dimension's generated layers (redrawn only when the\n# dimension changed) and the explored layer from saved chunks, into\n# ./data/map-web, which nav-proxy serves. sleep(1) syntax; 0 disables.\n# MAP_INTERVAL=6h\n")
+edit("webmap", 'COMMANDS.md',
+     "### World map (uNmINeD)\n\nThe map is rendered by the `unmined-render` sidecar into static tiles — no server mod, no RCON commands, no player positions. It renders on `UNMINED_INTERVAL` and only re-renders regions whose files changed. Manage it with Docker, or `./ops map ...` from your Mac:\n\n| Task                            | Command                                                  |\n| ------------------------------- | -------------------------------------------------------- |\n| Render status + recent activity | `docker logs unmined-render --tail 15`                   |\n| Container state                 | `docker inspect unmined-render --format '{{.State.Status}}'` |\n| Force a render pass now         | `./ops map render` (restarts the container, which renders immediately) |\n| Purge one map's tiles           | delete `data/unmined-web/maps/<name>/`, then force a pass |\n",
+     "### World map\n\nThe mod draws the map: `customdim map export` writes every dimension's generated layers and the explored layer from saved chunks into `data/map-web/`, which nav-proxy serves. idle-tasks sends `customdim map export all` once pre-generation is done, at most every `MAP_INTERVAL` (6h). A dimension's generated layers are redrawn only when it changed, the explored layer only from region files changed since the last export. No player positions.\n\n| Task | Command |\n| --- | --- |\n| The last export's summary | `./ops map status` (`data/map-web/.export-finished`) |\n| Export now | `./ops map render [dimension\\|all] [generated\\|explored\\|force]`, or `customdim map export all` over RCON |\n| Redraw one dimension's generated layers | `customdim map export <dimension> force` |\n")
+edit("webmap", 'COMMANDS.md',
+     '# Map render status (the renderer is a sidecar container, no RCON)\ndocker logs unmined-render --tail 15\n\n# Force a render pass now\ndocker restart unmined-render\n',
+     '# The last web map export\ncat data/map-web/.export-finished\n\n# Export the web map now\ndocker exec -i mc rcon-cli "customdim map export all"\n')
+edit("webmap", 'COMMANDS.md',
+     '| `/mc map-refresh` | Restart the map renderer (re-scans all maps) | 5 min cooldown |',
+     '| `/mc map-refresh` | Export the web map now (`customdim map export all`) | 5 min cooldown |')
+edit("webmap", 'scripts/discord-sync.py',
+     'def get_map_render_status() -> list[str]:\n    """Status lines for the unmined-render sidecar container.\n\n    uNmINeD renders on an interval (no RCON interface); the container\'s\n    state and last pass summary from the logs are the observable status.\n    """\n    try:\n        result = subprocess.run(\n            ["docker", "inspect", "unmined-render", "--format", "{{.State.Status}}"],\n            capture_output=True, text=True, timeout=5,\n        )\n        if result.returncode != 0:\n            return ["    (renderer not found)"]\n        state = result.stdout.strip() or "unknown"\n        lines = [f"    renderer: {state}"]\n        logs = subprocess.run(\n            ["docker", "logs", "unmined-render", "--tail", "50"],\n            capture_output=True, text=True, timeout=5,\n        )\n        passes = re.findall(r"pass complete: (\\d+) map\\(s\\) considered", logs.stdout + logs.stderr)\n        if passes:\n            lines.append(f"    last pass: {passes[-1]} map(s)")\n        return lines\n    except Exception:\n        return ["    (unavailable)"]\n',
+     'MAP_FINISHED = Path("/data/map-web/.export-finished")\nMAP_STARTED = Path("/data/.map-export-started")\n\n\ndef get_map_render_status() -> list[str]:\n    """Status lines for the web map: the last export\'s one-line summary and when it ended.\n\n    The mod stamps data/map-web/.export-finished at the end of every\n    `customdim map export`; an export started after it is still running.\n    """\n    try:\n        if not MAP_FINISHED.exists():\n            return ["    no export yet"]\n        ended = datetime.fromtimestamp(MAP_FINISHED.stat().st_mtime, tz=timezone.utc)\n        lines = [f"    last export: {MAP_FINISHED.read_text().strip()[:120]} ({ended:%Y-%m-%d %H:%M} UTC)"]\n        if MAP_STARTED.exists() and MAP_STARTED.stat().st_mtime > MAP_FINISHED.stat().st_mtime:\n            lines.append("    an export is running")\n        return lines\n    except Exception:\n        return ["    (unavailable)"]\n')
+edit("webmap", 'scripts/discord-sync.py',
+     '    # Map render status (unmined-render sidecar - queried via Docker, not RCON)\n',
+     '    # Web map status (read from data/map-web, not RCON)\n')
+edit("webmap", 'scripts/discord-sync.py',
+     '@mc_group.command(name="map-refresh", description="Restart the map renderer (5 min cooldown)")',
+     '@mc_group.command(name="map-refresh", description="Export the web map now (5 min cooldown)")')
+edit("webmap", 'scripts/discord-sync.py',
+     '    # The renderer runs a pass on startup, then sleeps UNMINED_INTERVAL, so a\n    # restart is how you force an immediate pass. Renders are incremental.\n    await interaction.response.send_message("Map renderer restarting - a render pass starts immediately.", ephemeral=True)\n    await asyncio.to_thread(\n        subprocess.run, ["docker", "restart", "unmined-render"],\n        capture_output=True, timeout=60,\n    )\n    await audit(interaction, "restarted the map renderer")\n',
+     '    # The export runs in the mod off the server thread; .skip-pause-map keeps\n    # autopause off until the mod stamps .export-finished, and idle-tasks then\n    # clears it. Unchanged dimensions and regions are skipped.\n    await interaction.response.send_message("Web map export started - unchanged worlds are skipped.", ephemeral=True)\n    for marker in (MAP_STARTED, Path("/data/.skip-pause-map"), Path("/data/.skip-pause")):\n        marker.touch()\n    await asyncio.to_thread(rcon_command, "customdim map export all")\n    await audit(interaction, "started a web map export")\n')
+edit("webmap", 'scripts/test-scripts.sh',
+     '  + BLOCKTAG_ERRORS + OPEN_WATER_ERRORS\n  + CLIENT_PARITY_ERRORS',
+     '  + OPEN_WATER_ERRORS\n  + CLIENT_PARITY_ERRORS')
+
 RANGES = [
     ("tests", "scripts/tests/test_minecraft_version.py",
      "# Each 26.3 overlay file: (base file, keys the pinned 26.3 jar no longer reads).\n",
      "def test_platform_updates_moves_the_loader_row_and_compose_together():\n"),
     # (step, path, first line of the block, first line after it)
+    ("webmap", 'scripts/test-scripts.sh',
+     'echo "  Checking uNmINeD block tags are up to date..."\n',
+     'echo "  Checking the open-water guard datapack is up to date..."\n'),
+    ("webmap", 'mise.toml',
+     '[tasks.blocktags]\n',
+     '[tasks.water-guard]\n'),
     ("webmap", "docker-compose.yml",
      "  # ==========================================================================\n"
      "  # unmined-render - Scheduled static map renders (uNmINeD CLI)\n",

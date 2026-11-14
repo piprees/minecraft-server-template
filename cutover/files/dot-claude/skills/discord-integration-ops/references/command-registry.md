@@ -52,14 +52,14 @@ All require the `Admin` Discord role. All except pure read/status calls are audi
 
 | Command | Syntax | Notes |
 | --- | --- | --- |
-| `status` | `/mc status` | TPS/MSPT (via `tick query`), uptime, last backup time, online players + coordinates, Chunky pre-gen progress per dimension, uNmINeD render status, full registration roster |
+| `status` | `/mc status` | TPS/MSPT (via `tick query`), uptime, last backup time, online players + coordinates, Chunky pre-gen progress per dimension, the last web map export, full registration roster |
 | `say` | `/mc say <message>` | Broadcast to in-game chat, max 200 chars after sanitisation (strips non-printable chars, leading `/`, defangs `@everyone`/`@here`) |
 | `whisper` | `/mc whisper <player> <message>` | Private in-game message; reports if the player isn't online |
 | `weather` | `/mc weather <clear\|rain\|thunder>` | Dropdown choice, not free text |
 | `tempban` | `/mc tempban <player> [minutes=10]` | 1-1440 min, confirmation button, auto-pardons on expiry via a persisted timer (`/data/discord-pending-actions.json`) that survives bot restarts |
 | `pardon` | `/mc pardon <player>` | Cancels any pending auto-pardon timer too |
 | `restart` | `/mc restart` | 10 min cooldown, confirmation button, 30s in-game countdown, kicks, saves, `docker restart mc` then the web sidecars, polls RCON for up to 5 min |
-| `map-refresh` | `/mc map-refresh` | 5 min cooldown; `docker restart unmined-render` (a restart triggers an immediate render pass) |
+| `map-refresh` | `/mc map-refresh` | 5 min cooldown; `customdim map export all` over RCON, with `.skip-pause-map` held until the mod stamps `data/map-web/.export-finished` |
 | `heal` / `feed` / `extinguish` | `/mc <cmd> <player>` | Player must be online |
 | `fly` / `invuln` | `/mc <cmd> <player> <on\|off>` | Dropdown toggle, player must be online |
 | `kill` | `/mc kill <player>` | Confirmation button |

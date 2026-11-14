@@ -49,7 +49,9 @@
 # nothing left to do, and at most every MAP_INTERVAL, an idle pass sends
 # `customdim map export all`, holds .skip-pause-map while it runs, and drops
 # it when the mod stamps /data/map-web/.export-finished (or after
-# MAP_EXPORT_MAX_MINUTES). The export redraws each dimension's generated
+# MAP_EXPORT_MAX_MINUTES). An export started elsewhere (`./ops map render`,
+# `/mc map-refresh`) touches .map-export-started and .skip-pause-map the same
+# way, and this loop clears it the same way. The export redraws each dimension's generated
 # layers only when its fingerprint changed and its explored layer only from
 # region files changed since the last export. The command goes out over the
 # same RCON poll the idle timer uses, only while the server is awake and
@@ -286,8 +288,7 @@ lod_reach_for() {
   echo "$value"
 }
 
-# True when a player has been here: the same test unmined-render uses to
-# decide a dimension is worth drawing.
+# True when a player has been here: a region file over 8k.
 visited() {
   # -print -quit, never `| head` under pipefail (TROUBLESHOOTING.md#t47).
   [[ -n "$(find "$1" -maxdepth 1 -name '*.mca' -size +8k -print -quit 2> /dev/null)" ]]
@@ -440,7 +441,7 @@ check_pregen_complete() {
   esac
   pregen_active=false
 
-  # Newly pre-generated chunks are picked up by the next unmined-render pass.
+  # Newly pre-generated chunks reach the map's explored layer on its next export.
   start_pregen
   if [[ "$pregen_active" != true ]]; then
     echo "[$(date '+%H:%M:%S')] Every visited dimension is pre-generated"
@@ -455,7 +456,6 @@ MAP_INTERVAL="${MAP_INTERVAL:-6h}"
 MAP_EXPORT_MAX_MINUTES="${MAP_EXPORT_MAX_MINUTES:-360}"
 MAP_STARTED="/data/.map-export-started"
 MAP_FINISHED="/data/map-web/.export-finished"
-map_export_active=false
 
 # MAP_INTERVAL in seconds: a number with an optional s, m, h or d; 0 is off.
 map_interval_seconds() {
@@ -481,7 +481,7 @@ map_export_due() {
   local every
   every=$(map_interval_seconds)
   [[ "$every" -gt 0 ]] || return 1
-  [[ "$map_export_active" != true && "$pregen_active" != true ]] || return 1
+  [[ ! -f "$SKIP_PAUSE_MAP" && "$pregen_active" != true ]] || return 1
   [[ -f "$MAP_STARTED" ]] || return 0
   [[ $(file_age_seconds "$MAP_STARTED") -ge $every ]]
 }
@@ -491,24 +491,20 @@ start_map_export() {
   touch "$MAP_STARTED"
   touch "$SKIP_PAUSE_MAP"
   touch "$SKIP_PAUSE_FILE"
-  if rcon "customdim map export all" > /dev/null 2>&1; then
-    map_export_active=true
-  else
-    finish_map_export "the export command was not accepted"
-  fi
+  rcon "customdim map export all" > /dev/null 2>&1 || finish_map_export "the export command was not accepted"
 }
 
 finish_map_export() {
   echo "[$(date '+%H:%M:%S')] Web map export: $1"
-  map_export_active=false
   rm -f "$SKIP_PAUSE_MAP"
   if [[ ! -f "$SKIP_PAUSE_OWN" && ! -f "$SKIP_PAUSE_OTHER" ]]; then
     rm -f "$SKIP_PAUSE_FILE"
   fi
 }
 
+# An export is running while .skip-pause-map exists, whoever started it.
 check_map_export() {
-  [[ "$map_export_active" == true ]] || return 0
+  [[ -f "$SKIP_PAUSE_MAP" ]] || return 0
   if [[ -f "$MAP_FINISHED" && "$MAP_FINISHED" -nt "$MAP_STARTED" ]]; then
     finish_map_export "finished ($(head -c 200 "$MAP_FINISHED" 2> /dev/null || echo "no summary"))"
   elif [[ $(file_age_seconds "$MAP_STARTED") -ge $((MAP_EXPORT_MAX_MINUTES * 60)) ]]; then

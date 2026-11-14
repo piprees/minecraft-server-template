@@ -397,8 +397,8 @@ if [[ -d mods/custom-dimensions-26/bridges ]] || ! grep -qs '"schemaVersion"' "$
   done
   [[ ! -f "$CD/settings.json" ]] || move "$CD/settings.json" "mods/custom-dimensions-26/definitions/v1/settings.json"
   # The 1.21.1 set and the data only the 1.21.1 mod and its tools read.
-  # extractors/ stays: gen-unmined-blocktags.py and gen-open-water-guard.py
-  # read it (it is never synced to data/config).
+  # extractors/ stays: gen-open-water-guard.py reads it (it is never synced
+  # to data/config).
   del "$CD/dimensions" "$CD/display-names.json" "$CD/climate-axes.json" \
     "$CD/structure-groups.json" "$CD/structure-sizes.json" "$CD/structure-type-defaults.json" \
     "$CD/grids-41"
@@ -443,8 +443,8 @@ del scripts/check-band-reach.py scripts/check-band-share.py scripts/check-biome-
 edits tests
 
 # =============================================================================
-step "7b. The web map: the mod's export serves map.DOMAIN; the uNmINeD sidecar and its image go"
-# docker/unmined-render/ stays until its dependants go (not-automated.md).
+step "7b. The web map: the mod's export serves map.DOMAIN; the uNmINeD sidecar, its image and its tools go"
+del docker/unmined-render scripts/gen-unmined-blocktags.py
 edits webmap
 
 # =============================================================================

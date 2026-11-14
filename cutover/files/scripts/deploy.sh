@@ -120,7 +120,7 @@ suspend_autopause() {
   docker exec mc sh -c 'touch /data/.skip-pause-deploying /data/.skip-pause' 2> /dev/null || true
 }
 resume_autopause() {
-  docker exec mc sh -c 'rm -f /data/.skip-pause-deploying; [ -e /data/.skip-pause-idle ] || rm -f /data/.skip-pause' 2> /dev/null || true
+  docker exec mc sh -c 'rm -f /data/.skip-pause-deploying; [ -e /data/.skip-pause-idle ] || [ -e /data/.skip-pause-map ] || rm -f /data/.skip-pause' 2> /dev/null || true
 }
 # Before anything is touched: a concurrent deploy, infra deploy or harden run
 # gives SSH timeouts, broken healthchecks and half-applied config.
@@ -766,7 +766,7 @@ pause_backups
 # manual deploy.sh over SSH is the one path that skips kuma-init.
 # shellcheck disable=SC2086
 $COMPOSE_CMD --profile cloud up -d --force-recreate --no-deps \
-  unmined-render nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks 2> /dev/null || true
+  nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks 2> /dev/null || true
 
 
 # =============================================================================
@@ -836,7 +836,7 @@ pause_backups
 # World borders are mod-owned: the custom-dimensions mod sets each level's
 # vanilla border to 2 x borders.player round 0,0 (settings.json's default
 # where a definition names none). Tooling bounds come from
-# borders.generation: the unmined-render sidecar and idle-tasks read the
+# borders.generation: idle-tasks and the mod's map export read the
 # definitions directly.
 echo "  World borders: mod-owned (borders.player in config/custom-dimensions/dimensions/)"
 
@@ -851,8 +851,8 @@ except Exception:
 
 # --- Activate the base worlds (so Chunky can pre-generate them) ---------------
 # The base worlds load with the server, but a dimension writes no region files
-# until a chunk is loaded in it, and unmined-render and idle-tasks both key off
-# region files (D8), so each base world needs one chunk generated once. The
+# until a chunk is loaded in it, and idle-tasks and the map's explored layer key
+# off region files (D8), so each base world needs one chunk generated once. The
 # lazy dimensions are not touched: each opens on first entry.
 #
 # ONE AT A TIME, and only where region files are absent. `forceload add`
@@ -872,7 +872,7 @@ ACTIVATION_ATTEMPTS="${ACTIVATION_ATTEMPTS:-30}"
 ACTIVATION_STALL_LIMIT="${ACTIVATION_STALL_LIMIT:-3}"
 
 # True when a dimension already carries real region files — the same test
-# idle-tasks.sh's visited() and unmined-render use to call it worth drawing.
+# idle-tasks.sh's visited() uses to call it worth pre-generating.
 dim_has_region() {
   # -print -quit, never `| head` under pipefail (TROUBLESHOOTING.md#t47).
   [[ -n "$(find "$1" -maxdepth 1 -name '*.mca' -size +8k -print -quit 2> /dev/null)" ]]
@@ -984,21 +984,6 @@ echo ""
 echo "==> Enforcing game rules..."
 restore_game_rules
 echo "  Game rules set (quiet-boot mode off)"
-
-# --- Re-render the map now the dimensions exist -------------------------------
-# The sidecar block above recreates unmined-render before any dimension work,
-# and the container renders once on start — so on a fresh world it draws the
-# overworld alone, then sleeps for UNMINED_INTERVAL (6h) with the nether, end
-# and the_aviary missing from the map. Restarting it here re-runs render_all
-# against the world the activation block just generated. Never fatal: a map a
-# few hours stale is not worth failing a deploy over.
-if docker ps --format '{{.Names}}' | grep -qx unmined-render; then
-  if timeout 60 docker restart unmined-render > /dev/null 2>&1; then
-    echo "  Map render re-triggered (dimensions now on disk)"
-  else
-    warn "could not restart unmined-render; the map redraws on its next pass"
-  fi
-fi
 
 # Re-enable DH distant generation (disabled at step 8c to keep its worldgen
 # threads from competing with dimension activation and Chunky pregen).

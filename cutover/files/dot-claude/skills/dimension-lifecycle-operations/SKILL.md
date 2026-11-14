@@ -49,7 +49,7 @@ Reset it as above without step 5, then delete its definition file from `config/c
 
 ## The map
 
-`unmined-render` draws a dimension once it has region files ([D8](../../../TROUBLESHOOTING.md#d8)); a lazy level nobody has entered has none. `./ops map render` forces a pass.
+The web map draws every dimension from its generator; its explored layer adds a dimension's saved chunks once it has region files ([D8](../../../TROUBLESHOOTING.md#d8)). `./ops map render` exports now.
 
 ## Traps
 

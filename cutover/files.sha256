@@ -52,3 +52,4 @@ ae96cbe6d3f9954b7dc3ffc6fd6dc33163fe28eb6a973471717a19bde8adc333 .claude/skills/
 new scripts/migrate-to-26.sh
 new scripts/tests/test_migrate_to_26.py
 new docs/migrate-to-26.md
+e30578c667d047af91befa34fafd2402fa1e9d8749033df73e65368a613d52d6 scripts/map-render.sh
