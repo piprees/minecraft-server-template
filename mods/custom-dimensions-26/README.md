@@ -930,9 +930,11 @@ compiler's `StructuresCompiler`, which writes the compile report's
 
 | Piece | What it does |
 | --- | --- |
-| `StructureRuntime` | Loads the files at SERVER_STARTING; rebuilds a level's structure state from the one vanilla made: filters, shuns, replacements, spacing, density, noise groups (`NoiseFieldIndex`, built in parallel), forced starts and wants; keeps the per-level biome bypass and terrain adjustments |
+| `StructureRuntime` | Loads the files at SERVER_STARTING; rebuilds a level's structure state from the one vanilla made: filters, shuns, replacements, spacing, density, noise groups (`NoiseFieldIndex`, built in parallel, its exclusion widened to the group's repetition ceiling, then settled onto a pooled structure's biome), forced starts and wants; keeps the per-level biome bypass, terrain adjustments, forced ground heights and each structure's group |
 | `ChunkMapStructuresMixin` | Hands the state to `StructureRuntime` as `ChunkMap` builds it, so it composes with the firewall's `StructureStateMixin` |
-| `StructureBiomeBypassMixin` | A forced or wanted structure skips the biome check in its own chunk; an included set wherever its grid places it |
+| `StructureBiomeBypassMixin` | A forced or wanted structure skips the biome check in its own chunk; an included set wherever its grid places it; a forced start with a `y` generates against `PinnedGround` and a refusal is logged |
+| `PinnedGround` | The level's generator as a forced start with a `y` sees it: first free height `y`, stone below, air above |
+| `StructureLoot` | Fabric's `LootTableEvents.MODIFY_DROPS`: container loot rolled inside a piece of a structure a level's `loot` rule names gains the rule's item at its chance (`core/.../structure/LootRules`), once per loot context |
 | `BeardifierAdaptationMixin` | The Beardifier reads the dimension's terrain adjustment for each structure |
 | `StructurePlacements` | The runtime-only placements: one chunk, and a noise group's sites |
 | `StructureReflection` | The private members of the structure state, spreading placements and the structure manager it reads, resolved by name |

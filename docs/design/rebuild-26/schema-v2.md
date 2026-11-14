@@ -78,7 +78,7 @@ switch (RB-35). At the switch the v2 set moves to
 
 ## Structures
 
-What each field does at run time: [worldgen.md § Structure control](worldgen.md#structure-control). Structure ids or `#tags` for `force`, `wants`, `shuns`, `replace` and `terrainAdaptation` (which also takes a group); structure set ids for `list`, `exclude`, `include`, `rarity` and `spacing`. Any other key is refused.
+What each field does at run time: [worldgen.md § Structure control](worldgen.md#structure-control). Structure ids or `#tags` for `force`, `wants`, `shuns`, `replace` and `terrainAdaptation` (which also takes a group); structure set ids for `list`, `exclude`, `include`, `rarity` and `spacing`; ids, `#tags` or groups for `loot` targets. Any other key is refused.
 
 | Field | Meaning |
 | --- | --- |
@@ -90,10 +90,12 @@ What each field does at run time: [worldgen.md § Structure control](worldgen.md
 | `mode`, `list` | `allow` or `reject` the sets in `list`; `none` places no organic set |
 | `exclude`, `include` | Sets dropped; sets placed where no biome suits them |
 | `spacing` | Per set, `{spacing, separation}` in chunks for its own grid |
-| `force` | `{structure, x, z, radius?, exclusive?, y?}`: a start at that block's chunk, or within `radius` blocks; `exclusive` (default true) removes its organic copies; `y` is reported and not applied |
+| `force` | `{structure, x, z, radius?, exclusive?, y?}`: a start at that block's chunk, or within `radius` blocks; `exclusive` (default true) removes its organic copies; `y` is the height the start finds its ground at |
 | `wants` | Per id, tag or short name, `{min, max}` blocks from spawn where one start is guaranteed |
 | `shuns` | Per id, tag or short name, `{}`: never placed here |
 | `replace` | Per structure, the structure placed in its stead |
+| `repetition` | Per group, the ceiling on copies of one structure (at least 1); the world type's, else 6 |
+| `loot` | `[{item, chance, structures}]`: container loot inside a piece of a named structure gains `item` at `chance` (0–1]; replaces the world type's rules, `[]` for none |
 | `terrainAdaptation` | Per structure, tag or group: `none`, `beard_thin`, `beard_box`, `bury`, `encapsulate`, or the kernels `pedestal`, `platform_skirt`, `ground_blend` (as vanilla), `moat`, `drain` (reported) |
 
 ## Materials, liquids and ores

@@ -1596,6 +1596,18 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t295"></a>
+### T295 — The explored layer re-reads whole regions when its finest step does not divide 16
+- **Symptom:** a web map export of a large dimension re-reads every chunk of a region in which one chunk was rewritten, so the explored layer's time does not fall after the first export.
+- **Cause:** `ExploredRegion` keeps per-chunk cells only when 16 is divisible by the step (`ExploredRegion.chunkCells`); the finest step grows with the border, and past 16 a cell spans chunks, so `ExploredExport` drops the cached region and renders it whole.
+- **Fix:** read `chunkCells()` before expecting an incremental export; a border that pushes the finest step past 16 exports its explored layer region by region every time.
+
+<a id="t294"></a>
+### T294 — A noise group places at its settled sites, not at its index's positions
+- **Symptom:** a count or a parity check of a group's sites built from `NoiseFieldIndex` disagrees with the starts the level makes, most on worlds of islands in a void.
+- **Cause:** `StructureRuntime` settles the index's positions onto a chunk where a pooled structure's biome is (`StructureSites.settle`, within half the exclusion), and the placement it installs, `StructurePlacements.Noise`, answers `isStructureChunk` from those settled sites. `NoiseFieldIndex.positions()`, `isPlacement` and `startFor`, and `StructurePlacements.Noise(group, index)`, are the unsettled field.
+- **Fix:** read a group's sites from `StructurePlacements.Noise.sites()` or the placement's `isStructureChunk` (the census and the fast renderer do), or compute them with `StructureRuntime.settled`; use the index alone only for the field before settling.
+
 <a id="t293"></a>
 ### T293 — `FastRender.render` with a job needs a progress callback
 - **Symptom:** a web map export fails some dimensions with a `NullPointerException` from `RenderJob.advance`, at about a quarter of the dimension.

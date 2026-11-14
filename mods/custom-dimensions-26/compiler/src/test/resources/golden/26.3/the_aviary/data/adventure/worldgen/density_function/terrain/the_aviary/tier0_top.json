@@ -11,7 +11,7 @@
             "xz_scale": 1.0,
             "y_scale": 0.0
           },
-          "right": 72.9927007,
+          "right": 36.4963504,
           "type": "minecraft:mul"
         },
         "right": 150.0,
@@ -31,10 +31,10 @@
                           "shift_x": "minecraft:shift_x",
                           "shift_z": "minecraft:shift_z",
                           "type": "minecraft:noise",
-                          "xz_scale": 0.3333333333333333,
+                          "xz_scale": 0.5,
                           "y_scale": 0.0
                         },
-                        "right": -0.0895058708,
+                        "right": -0.137035748,
                         "type": "minecraft:add"
                       },
                       "right": 3.41296928,
@@ -49,7 +49,7 @@
                 "right": 0.0,
                 "type": "minecraft:add"
               },
-              "right": 2.04081633,
+              "right": 6.66666667,
               "type": "minecraft:mul"
             },
             "max": 1.0,

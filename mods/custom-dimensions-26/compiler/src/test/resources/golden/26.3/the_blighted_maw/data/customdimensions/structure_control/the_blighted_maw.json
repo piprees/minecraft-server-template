@@ -15,7 +15,8 @@
       "profile": "dense",
       "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
       "exclusion": 13,
-      "clearSpawnChunks": 0
+      "clearSpawnChunks": 0,
+      "repetition": 350
     },
     "landmarks": {
       "profile": "dense",
@@ -63,5 +64,14 @@
   "replace": {},
   "terrainAdaptation": {
     "mns:crimson_forge": "beard_box"
-  }
+  },
+  "loot": [
+    {
+      "item": "minecraft:elytra",
+      "chance": 0.08,
+      "structures": [
+        "dungeons"
+      ]
+    }
+  ]
 }

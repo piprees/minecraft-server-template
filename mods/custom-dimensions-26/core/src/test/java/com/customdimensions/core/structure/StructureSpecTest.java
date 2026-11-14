@@ -82,7 +82,55 @@ class StructureSpecTest {
         assertEquals(-2, igloo.chunkX());
         assertEquals(2, igloo.chunkZ());
         assertFalse(r.spec().force().get(1).exclusive());
-        assertTrue(r.warnings().stream().anyMatch(w -> w.contains("`y` is not applied")));
+        assertNull(igloo.y());
+        assertEquals(70, r.spec().force().get(1).y());
+        assertTrue(r.warnings().isEmpty(), r.warnings().toString());
+        assertTrue(r.applied().stream().anyMatch(a -> a.contains("minecraft:mansion") && a.contains("ground at y 70")), r.applied().toString());
+    }
+
+    @Test
+    void endTypeDungeonsAreNaturalWithTheirOwnCeilingAndOtherTypesKeepTheShared() {
+        StructureSpec end = StructureSpec.resolve(ctx("end", 1.5), null).spec();
+        assertEquals("dense", end.groups().get("dungeons").profile());
+        assertEquals(350, end.groups().get("dungeons").repetition());
+        for (String other : java.util.List.of("deco", "landmarks", "maritime", "endgame")) {
+            assertEquals(com.customdimensions.core.dimension.NoiseProfile.REPETITION_CEILING, end.groups().get(other).repetition(), other);
+        }
+        StructureSpec overworld = StructureSpec.resolve(ctx("overworld", 1.0), null).spec();
+        overworld.groups().forEach((name, g) -> assertEquals(com.customdimensions.core.dimension.NoiseProfile.REPETITION_CEILING,
+                g.repetition(), name));
+        assertEquals("sparse", overworld.groups().get("dungeons").profile());
+        assertFalse(overworld.toJson().getAsJsonObject("groups").getAsJsonObject("dungeons").has("repetition"));
+        assertEquals(350, end.toJson().getAsJsonObject("groups").getAsJsonObject("dungeons").get("repetition").getAsInt());
+    }
+
+    @Test
+    void repetitionOutranksTheTypeAndWarnsOnAGroupNotPlaced() {
+        StructureSpec.Result r = StructureSpec.resolve(ctx("end", 1.0),
+                JsonParser.parseString("{\"repetition\": {\"dungeons\": 12, \"settlements\": 9, \"nogroup\": 3}}").getAsJsonObject());
+        assertEquals(12, r.spec().groups().get("dungeons").repetition());
+        assertTrue(r.warnings().stream().anyMatch(w -> w.contains("repetition: group `settlements`")), r.warnings().toString());
+        assertTrue(r.warnings().stream().anyMatch(w -> w.contains("`nogroup`")), r.warnings().toString());
+        assertTrue(r.applied().get(0).contains("dungeons=dense/") && r.applied().get(0).contains("/x12"), r.applied().get(0));
+    }
+
+    @Test
+    void endTypeCarriesTheElytraRuleAndADefinitionReplacesIt() {
+        StructureSpec end = StructureSpec.resolve(ctx("end", 1.0), null).spec();
+        assertEquals(1, end.loot().size());
+        assertEquals("minecraft:elytra", end.loot().get(0).item());
+        assertEquals(0.08, end.loot().get(0).chance());
+        assertEquals(java.util.List.of("dungeons"), end.loot().get(0).structures());
+        for (String type : java.util.List.of("overworld", "nether", "nether_islands", "cave", "sky_islands", "void")) {
+            assertTrue(StructureSpec.resolve(ctx(type, 1.0), null).spec().loot().isEmpty(), type);
+        }
+        StructureSpec none = StructureSpec.resolve(ctx("end", 1.0), JsonParser.parseString("{\"loot\": []}").getAsJsonObject()).spec();
+        assertTrue(none.loot().isEmpty());
+        StructureSpec own = resolve("{\"loot\": [{\"item\": \"minecraft:trident\", \"chance\": 0.5, \"structures\": [\"#minecraft:village\", \"loot\"]}]}").spec();
+        assertEquals("minecraft:trident", own.loot().get(0).item());
+        assertEquals(java.util.List.of("#minecraft:village", "loot"), own.loot().get(0).structures());
+        assertEquals(own.toJson(), StructureSpec.fromJson(own.toJson()).toJson());
+        assertFalse(StructureSpec.resolve(ctx("overworld", 1.0), null).spec().toJson().has("loot"));
     }
 
     @Test
@@ -114,7 +162,14 @@ class StructureSpecTest {
                 "{\"force\": [{\"structure\": \"igloo\", \"x\": 0, \"z\": 0}]}", "{\"spacing\": {\"minecraft:villages\": {\"spacing\": 8, \"separation\": 8}}}",
                 "{\"wants\": {\"bastion\": {\"min\": 50, \"max\": 10}}}", "{\"rarity\": {\"minecraft:villages\": \"often\"}}",
                 "{\"noise\": \"loud\"}", "{\"terrainAdaptation\": {\"landmarks\": \"wobble\"}}", "{\"extra\": 1}",
-                "{\"clearSpawnRadius\": -3}", "{\"force\": [{\"structure\": \"minecraft:igloo\", \"x\": 0.5, \"z\": 0}]}"}) {
+                "{\"clearSpawnRadius\": -3}", "{\"force\": [{\"structure\": \"minecraft:igloo\", \"x\": 0.5, \"z\": 0}]}",
+                "{\"repetition\": {\"dungeons\": 0}}", "{\"repetition\": {\"dungeons\": 2.5}}", "{\"loot\": {}}",
+                "{\"loot\": [{\"item\": \"elytra\", \"chance\": 0.1, \"structures\": [\"dungeons\"]}]}",
+                "{\"loot\": [{\"item\": \"minecraft:elytra\", \"chance\": 0, \"structures\": [\"dungeons\"]}]}",
+                "{\"loot\": [{\"item\": \"minecraft:elytra\", \"chance\": 1.5, \"structures\": [\"dungeons\"]}]}",
+                "{\"loot\": [{\"item\": \"minecraft:elytra\", \"chance\": 0.1, \"structures\": []}]}",
+                "{\"loot\": [{\"item\": \"minecraft:elytra\", \"chance\": 0.1, \"structures\": [\"castles\"]}]}",
+                "{\"loot\": [{\"item\": \"minecraft:elytra\", \"chance\": 0.1, \"structures\": [\"dungeons\"], \"rolls\": 2}]}"}) {
             IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> resolve(bad), bad);
             assertTrue(e.getMessage().startsWith("t: structures."), e.getMessage());
         }

@@ -67,15 +67,11 @@
         },
         {
           "biome": "minecraft:forest",
-          "parameters": "sha1:033eeccac7c2ba2049f80fecf2512d3aec25ce45"
+          "parameters": "sha1:69204a86b55520779b60c2a59d6b89b03c135143"
         },
         {
           "biome": "minecraft:birch_forest",
-          "parameters": "sha1:5a4051684bd0830462970ff5ff541d1acf022c8c"
-        },
-        {
-          "biome": "minecraft:dark_forest",
-          "parameters": "sha1:0f1223cdce1066b6d4f680a4ed43c85a5e10d3d3"
+          "parameters": "sha1:067eafb9a2eb9a36227d6a3dce7415be90eaf18a"
         }
       ]
     },

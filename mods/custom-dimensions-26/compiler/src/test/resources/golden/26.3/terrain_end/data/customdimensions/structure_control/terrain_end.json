@@ -12,10 +12,11 @@
       "clearSpawnChunks": 0
     },
     "dungeons": {
-      "profile": "sparse",
+      "profile": "dense",
       "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-      "exclusion": 21,
-      "clearSpawnChunks": 0
+      "exclusion": 13,
+      "clearSpawnChunks": 0,
+      "repetition": 350
     },
     "landmarks": {
       "profile": "sparse",
@@ -46,5 +47,14 @@
   "wants": [],
   "shuns": [],
   "replace": {},
-  "terrainAdaptation": {}
+  "terrainAdaptation": {},
+  "loot": [
+    {
+      "item": "minecraft:elytra",
+      "chance": 0.08,
+      "structures": [
+        "dungeons"
+      ]
+    }
+  ]
 }

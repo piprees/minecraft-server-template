@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.function.Predicate;
 
-/** A forced start or a want generates in its own chunk whatever the biome there; a structure a zone shuns does not start inside it; every other start keeps vanilla's check. */
+/** A forced start or a want generates in its own chunk whatever the biome there, a forced start with a {@code y} on ground at that height; a structure a zone shuns does not start inside it; every other start keeps vanilla's check. */
 @Mixin(ChunkGenerator.class)
 abstract class StructureBiomeBypassMixin {
     @WrapOperation(method = "tryGenerateStructure",
@@ -35,7 +35,13 @@ abstract class StructureBiomeBypassMixin {
             return StructureStart.INVALID_START;
         }
         Predicate<Holder<Biome>> test = StructureRuntime.bypassesBiome(level, structure, chunk) ? b -> true : valid;
-        return original.call(structure, holder, level, registries, generator, biomes, sampler, random, templates, seed, chunk,
-                references, height, test);
+        Integer ground = StructureRuntime.forcedGround(level, structure, chunk);
+        StructureStart start = original.call(structure, holder, level, registries, StructureRuntime.ground(generator, ground), biomes,
+                sampler, random, templates, seed, chunk, references, height, test);
+        if (ground != null && !start.isValid()) {
+            com.customdimensions.server.CustomDimensions.LOG.warn("{}: forced {} at chunk {} did not start on ground at y {}: "
+                    + "its own rules refuse that height", level.identifier(), holder.getRegisteredName(), chunk, ground);
+        }
+        return start;
     }
 }

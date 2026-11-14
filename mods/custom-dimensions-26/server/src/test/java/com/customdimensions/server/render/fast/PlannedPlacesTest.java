@@ -22,7 +22,7 @@ class PlannedPlacesTest {
 
     private static StructureSpec spec(List<StructureSpec.Force> force) {
         return new StructureSpec("adventure:test", "none", false, "density none", 32, 4, -2, Map.of(), "none", List.of(), List.of(),
-                List.of(), Map.of(), Map.of(), force, List.of(), List.of(), Map.of(), Map.of());
+                List.of(), Map.of(), Map.of(), force, List.of(), List.of(), Map.of(), Map.of(), List.of());
     }
 
     @Test

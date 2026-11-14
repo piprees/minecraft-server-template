@@ -46,7 +46,8 @@ public record StructureSpec(
         List<Want> wants,
         List<String> shuns,
         Map<String, String> replace,
-        Map<String, String> terrainAdaptation) {
+        Map<String, String> terrainAdaptation,
+        List<StructureGroupRegistry.LootRule> loot) {
 
     public static final Set<String> DENSITIES = Set.of("dense", "normal", "sparse", "none");
     public static final Set<String> MODES = Set.of("allow", "reject", "none");
@@ -59,10 +60,14 @@ public record StructureSpec(
     /** The 1.21.1 kernels with no vanilla counterpart. */
     public static final Set<String> UNSUPPORTED_ADAPTATIONS = Set.of("moat", "drain");
     public static final Set<String> FIELDS = Set.of("density", "wants", "shuns", "spacing", "mode", "list", "force",
-            "clearSpawnRadius", "terrainAdaptation", "noise", "radial", "rarity", "exclude", "include", "replace");
+            "clearSpawnRadius", "terrainAdaptation", "noise", "radial", "rarity", "exclude", "include", "replace", "repetition",
+            "loot");
 
-    /** One noise group: its profile, radial curve (null is even), exclusion in chunks and cleared spawn disc. */
-    public record Group(String profile, double[] radial, int exclusion, int clearSpawnChunks) {}
+    /**
+     * One noise group: its profile, radial curve (null is even), exclusion in chunks, cleared spawn disc, and its
+     * repetition ceiling, the copies of one structure the group may place before its exclusion widens.
+     */
+    public record Group(String profile, double[] radial, int exclusion, int clearSpawnChunks, int repetition) {}
 
     /** A set's own grid, kept outside the noise groups. */
     public record Spacing(int spacing, int separation) {}
@@ -91,7 +96,7 @@ public record StructureSpec(
     public boolean isEmpty() {
         return "normal".equals(density) && !noise && mode == null && exclude.isEmpty() && include.isEmpty()
                 && rarity.isEmpty() && spacing.isEmpty() && force.isEmpty() && wants.isEmpty() && shuns.isEmpty()
-                && replace.isEmpty() && terrainAdaptation.isEmpty();
+                && replace.isEmpty() && terrainAdaptation.isEmpty() && loot.isEmpty();
     }
 
     // ---- reading a definition ------------------------------------------------------------
@@ -181,7 +186,7 @@ public record StructureSpec(
 
         StructureSpec spec = new StructureSpec(ctx.level(), density, plan.noise, plan.reason, radiusChunks,
                 spawnChunkX, spawnChunkZ, plan.groups, mode, list, exclude, include, rarity, spacing, force, wants,
-                shuns, replace, adaptation);
+                shuns, replace, adaptation, loot(ctx, b));
         describe(spec, applied);
         return new Result(spec, applied, warnings);
     }
@@ -251,6 +256,20 @@ public record StructureSpec(
         String global = noise != null && noise.isJsonPrimitive() && noise.getAsJsonPrimitive().isString()
                 ? noise.getAsString() : "normal".equals(density) ? null : density;
         StructureGroupRegistry.TypeEntry type = defaults.types().get(ctx.worldType());
+        Map<String, Integer> repetition = new LinkedHashMap<>();
+        if (b.has("repetition")) {
+            for (Map.Entry<String, JsonElement> e : object(ctx, b.get("repetition"), "repetition").entrySet()) {
+                int copies = integer(ctx, e.getValue(), "repetition." + e.getKey());
+                if (copies < 1) {
+                    throw bad(ctx, "repetition." + e.getKey(), "must be 1 or more");
+                }
+                if (!StructureGroupRegistry.knownGroups().contains(e.getKey())) {
+                    warnings.add("repetition: `" + e.getKey() + "` is not a group " + StructureGroupRegistry.knownGroups());
+                    continue;
+                }
+                repetition.put(e.getKey(), copies);
+            }
+        }
         Map<String, List<Double>> radialOverrides = new LinkedHashMap<>();
         if (b.has("radial")) {
             for (Map.Entry<String, JsonElement> e : object(ctx, b.get("radial"), "radial").entrySet()) {
@@ -309,11 +328,18 @@ public record StructureSpec(
             }
             int exclusion = Math.max(1, (int) Math.round(gd.exclusion() * profile.exclusionMultiplier()));
             int clear = clearSpawn > 0 && Set.of("dungeons", "endgame").contains(group) ? (clearSpawn + 15) / 16 : 0;
-            out.put(group, new Group(profile.id(), radial, exclusion, clear));
+            int copies = repetition.getOrDefault(group, type != null
+                    ? type.repetition().getOrDefault(group, NoiseProfile.REPETITION_CEILING) : NoiseProfile.REPETITION_CEILING);
+            out.put(group, new Group(profile.id(), radial, exclusion, clear, copies));
         }
         for (String group : radialOverrides.keySet()) {
             if (!out.containsKey(group)) {
                 warnings.add("radial: group `" + group + "` is not placed in this dimension");
+            }
+        }
+        for (String group : repetition.keySet()) {
+            if (!out.containsKey(group)) {
+                warnings.add("repetition: group `" + group + "` is not placed in this dimension");
             }
         }
         if (out.isEmpty()) {
@@ -351,14 +377,54 @@ public record StructureSpec(
                 throw bad(ctx, field + ".radius", "must be 0 or more");
             }
             Integer y = f.has("y") && !f.get("y").isJsonNull() ? integer(ctx, f.get("y"), field + ".y") : null;
-            if (y != null) {
-                warnings.add(field + ": `y` is not applied; the structure finds its own height");
-            }
             boolean exclusive = !f.has("exclusive") || f.get("exclusive").getAsBoolean();
             out.add(new Force(structure, integer(ctx, f.get("x"), field + ".x"), integer(ctx, f.get("z"), field + ".z"),
                     y, radius, exclusive));
         }
         return out;
+    }
+
+    /** The definition's {@code loot} rules, else its world type's. */
+    private static List<StructureGroupRegistry.LootRule> loot(Context ctx, JsonObject b) {
+        if (!b.has("loot")) {
+            StructureGroupRegistry.TypeEntry type = StructureGroupRegistry.defaults().types().get(ctx.worldType());
+            return type == null ? List.of() : type.loot();
+        }
+        if (!b.get("loot").isJsonArray()) {
+            throw bad(ctx, "loot", "must be an array");
+        }
+        List<StructureGroupRegistry.LootRule> out = new ArrayList<>();
+        int i = 0;
+        for (JsonElement e : b.getAsJsonArray("loot")) {
+            String field = "loot[" + i++ + "]";
+            JsonObject l = object(ctx, e, field);
+            for (String key : l.keySet()) {
+                if (!Set.of("item", "chance", "structures").contains(key)) {
+                    throw bad(ctx, field + "." + key, "is not a loot field (item, chance, structures)");
+                }
+            }
+            if (!l.has("item") || !l.get("item").isJsonPrimitive() || !l.get("item").getAsString().contains(":")) {
+                throw bad(ctx, field + ".item", "must be an item id");
+            }
+            double chance = l.has("chance") && l.get("chance").isJsonPrimitive() && l.get("chance").getAsJsonPrimitive().isNumber()
+                    ? l.get("chance").getAsDouble() : -1;
+            if (!(chance > 0 && chance <= 1)) {
+                throw bad(ctx, field + ".chance", "must lie in (0, 1]");
+            }
+            if (!l.has("structures") || !l.get("structures").isJsonArray() || l.getAsJsonArray("structures").isEmpty()) {
+                throw bad(ctx, field + ".structures", "must list structure ids, #tags or groups");
+            }
+            List<String> targets = new ArrayList<>();
+            for (JsonElement t : l.getAsJsonArray("structures")) {
+                String target = t.getAsString();
+                if (!target.contains(":") && !StructureGroupRegistry.knownGroups().contains(target)) {
+                    throw bad(ctx, field + ".structures", "`" + target + "` is neither a structure id, a #tag nor a group");
+                }
+                targets.add(target);
+            }
+            out.add(new StructureGroupRegistry.LootRule(l.get("item").getAsString(), chance, List.copyOf(targets)));
+        }
+        return List.copyOf(out);
     }
 
     private static List<Want> wants(Context ctx, JsonObject b, List<String> warnings) {
@@ -421,7 +487,8 @@ public record StructureSpec(
         s.spacing().forEach((set, sp) -> applied.add("spacing `" + set + "` " + sp.spacing() + "/" + sp.separation()));
         for (Force f : s.force()) {
             applied.add("force `" + f.structure() + "` at " + f.x() + "," + f.z()
-                    + (f.radius() > 0 ? " within " + f.radius() : "") + (f.exclusive() ? ", exclusive" : ""));
+                    + (f.radius() > 0 ? " within " + f.radius() : "") + (f.y() != null ? ", ground at y " + f.y() : "")
+                    + (f.exclusive() ? ", exclusive" : ""));
         }
         for (Want w : s.wants()) {
             applied.add("want `" + w.structure() + "` within " + w.min() + "-" + w.max() + " blocks of spawn");
@@ -431,12 +498,14 @@ public record StructureSpec(
         }
         s.replace().forEach((from, to) -> applied.add("replace `" + from + "` with `" + to + "`"));
         s.terrainAdaptation().forEach((t, k) -> applied.add("terrainAdaptation `" + t + "` " + k));
+        s.loot().forEach(l -> applied.add("loot `" + l.item() + "` at " + l.chance() + " per container in " + l.structures()));
     }
 
     private static String groupsLine(Map<String, Group> groups) {
         List<String> parts = new ArrayList<>();
         groups.forEach((name, g) -> parts.add(name + "=" + g.profile() + "/" + g.exclusion()
-                + (g.clearSpawnChunks() > 0 ? "/clear" + g.clearSpawnChunks() : "")));
+                + (g.clearSpawnChunks() > 0 ? "/clear" + g.clearSpawnChunks() : "")
+                + (g.repetition() != NoiseProfile.REPETITION_CEILING ? "/x" + g.repetition() : "")));
         return String.join(" ", parts);
     }
 
@@ -468,6 +537,9 @@ public record StructureSpec(
             }
             j.addProperty("exclusion", group.exclusion());
             j.addProperty("clearSpawnChunks", group.clearSpawnChunks());
+            if (group.repetition() != NoiseProfile.REPETITION_CEILING) {
+                j.addProperty("repetition", group.repetition());
+            }
             g.add(name, j);
         });
         o.add("groups", g);
@@ -511,6 +583,17 @@ public record StructureSpec(
         o.add("shuns", array(shuns));
         o.add("replace", map(replace));
         o.add("terrainAdaptation", map(terrainAdaptation));
+        if (!loot.isEmpty()) {
+            JsonArray la = new JsonArray();
+            for (StructureGroupRegistry.LootRule l : loot) {
+                JsonObject j = new JsonObject();
+                j.addProperty("item", l.item());
+                j.addProperty("chance", l.chance());
+                j.add("structures", array(l.structures()));
+                la.add(j);
+            }
+            o.add("loot", la);
+        }
         return o;
     }
 
@@ -527,7 +610,8 @@ public record StructureSpec(
                 }
             }
             groups.put(e.getKey(), new Group(j.get("profile").getAsString(), radial, j.get("exclusion").getAsInt(),
-                    j.get("clearSpawnChunks").getAsInt()));
+                    j.get("clearSpawnChunks").getAsInt(),
+                    j.has("repetition") ? j.get("repetition").getAsInt() : NoiseProfile.REPETITION_CEILING));
         }
         Map<String, Spacing> spacing = new LinkedHashMap<>();
         for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("spacing").entrySet()) {
@@ -546,13 +630,21 @@ public record StructureSpec(
             wants.add(new Want(j.get("name").getAsString(), j.get("structure").getAsString(), j.get("min").getAsInt(),
                     j.get("max").getAsInt()));
         }
+        List<StructureGroupRegistry.LootRule> loot = new ArrayList<>();
+        if (o.has("loot")) {
+            for (JsonElement e : o.getAsJsonArray("loot")) {
+                JsonObject j = e.getAsJsonObject();
+                loot.add(new StructureGroupRegistry.LootRule(j.get("item").getAsString(), j.get("chance").getAsDouble(),
+                        list(j, "structures")));
+            }
+        }
         JsonArray spawn = o.getAsJsonArray("spawnChunk");
         return new StructureSpec(o.get("level").getAsString(), o.get("density").getAsString(), o.get("noise").getAsBoolean(),
                 o.has("suppressedReason") ? o.get("suppressedReason").getAsString() : null, o.get("radiusChunks").getAsInt(),
                 spawn.get(0).getAsInt(), spawn.get(1).getAsInt(), groups,
                 o.get("mode").isJsonNull() ? null : o.get("mode").getAsString(), list(o, "list"), list(o, "exclude"),
                 list(o, "include"), stringMap(o.getAsJsonObject("rarity")), spacing, force, wants, list(o, "shuns"),
-                stringMap(o.getAsJsonObject("replace")), stringMap(o.getAsJsonObject("terrainAdaptation")));
+                stringMap(o.getAsJsonObject("replace")), stringMap(o.getAsJsonObject("terrainAdaptation")), loot);
     }
 
     // ---- helpers ----------------------------------------------------------------------------
