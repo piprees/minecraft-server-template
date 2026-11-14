@@ -15,6 +15,7 @@ import com.customdimensions.core.survey.Placeness;
 import com.customdimensions.core.survey.SurfaceGround;
 import com.customdimensions.core.survey.Survey;
 import com.customdimensions.core.survey.SurveyPlan;
+import com.customdimensions.core.survey.TreeRate;
 import com.customdimensions.server.CustomDimensions;
 import com.customdimensions.server.level.LevelManager;
 import com.customdimensions.server.render.RenderJob;
@@ -270,9 +271,9 @@ public final class SurveyJob {
         timings.put("patches", generateMillis - scanMillis);
         timings.put("scanAndAnalyse", scanMillis);
         Survey.Meta meta = new Survey.Meta("adventure:" + slug, Sampler.defaultSeed(server, manager, slug), minY, height, seaLevel, ceiling,
-                atmosphere(server, type, definition), listed(definition), treeBiomes(server),
+                atmosphere(server, type, definition), listed(definition), treeRates(server).keySet(),
                 rockBiomes(server, level, SurfaceGround.groundY(seaLevel, voidNatured(definition))), waterBiomes(server, definition), plan, timings,
-                voidNatured(definition));
+                voidNatured(definition), treeRates(server));
         long t3 = System.nanoTime();
         JsonObject dossier = Survey.dossier(meta, landforms, analysed, checks);
         dossier.addProperty("dimension", level.dimension().identifier().toString());
@@ -713,19 +714,27 @@ public final class SurveyJob {
     }
 
     /** Biomes one of whose placed features is named for trees or a forest. */
-    private static Set<String> treeBiomes(MinecraftServer server) {
-        Set<String> out = new HashSet<>();
-        var biomes = server.registryAccess().lookupOrThrow(Registries.BIOME);
-        biomes.listElements().forEach(holder -> {
+    /**
+     * Biomes whose placed features are named for trees (a path holding "tree" or "forest"), each with the summed
+     * placements a chunk of those features ({@link TreeRate}): a sparse-tree biome is judged on enough land to expect trees.
+     */
+    private static Map<String, Double> treeRates(MinecraftServer server) {
+        Map<String, Double> out = new HashMap<>();
+        RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, server.registryAccess());
+        server.registryAccess().lookupOrThrow(Registries.BIOME).listElements().forEach(holder -> {
+            double rate = 0;
+            boolean named = false;
             for (HolderSet<PlacedFeature> step : holder.value().getGenerationSettings().features()) {
                 for (Holder<PlacedFeature> f : step) {
                     String key = f.unwrapKey().map(k -> k.identifier().getPath()).orElse("");
-                    if (key.contains("tree") || key.contains("forest")) {
-                        out.add(holder.key().identifier().toString());
-                        return;
-                    }
+                    if (!key.contains("tree") && !key.contains("forest")) continue;
+                    named = true;
+                    JsonElement placed = PlacedFeature.DIRECT_CODEC.encodeStart(ops, f.value()).result().orElse(null);
+                    rate += placed != null && placed.isJsonObject() && placed.getAsJsonObject().has("placement")
+                            ? TreeRate.perChunk(placed.getAsJsonObject().getAsJsonArray("placement")) : 1;
                 }
             }
+            if (named) out.put(holder.key().identifier().toString(), rate);
         });
         return out;
     }

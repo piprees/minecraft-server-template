@@ -36,17 +36,27 @@ public final class Survey {
             "minecraft:end_stone");
     public static final int CLOUD_Y = 192;
     public static final int MAX_TYPES = 8;
-    /** Land columns (a quarter hectare) a tree biome must cover before having no trees flags it. */
+    /** Land columns (a quarter hectare) a tree biome must cover at least before having no trees flags it. */
     public static final int TREELESS_COLUMNS = 2500;
+    /** Trees a tree biome's own rate must lead one to expect on its land before having none flags it. */
+    public static final int TREELESS_EXPECTED = 3;
 
     /**
      * What the server knows that the patches do not. {@code rockBiomes}: biomes whose surface rule lays bare rock on
      * open land ({@link SurfaceGround}); {@code waterBiomes}: biomes whose role is the sea or a river; {@code voidNatured}: the
-     * dimension's nature is islands over a void (the end preset, a terrain over a void), so a biome is judged on its land.
+     * dimension's nature is islands over a void (the end preset, a terrain over a void), so a biome is judged on its land;
+     * {@code treeRates}: a tree biome's expected tree placements a chunk from its own placed features ({@link TreeRate}).
      */
     public record Meta(String dimension, long seed, int minY, int height, int seaLevel, boolean ceiling, JsonObject atmosphere,
                        List<String> listedBiomes, Set<String> treeBiomes, Set<String> rockBiomes, Set<String> waterBiomes,
-                       List<SurveyPlan.Patch> plan, Map<String, Long> timings, boolean voidNatured) {
+                       List<SurveyPlan.Patch> plan, Map<String, Long> timings, boolean voidNatured, Map<String, Double> treeRates) {
+
+        public Meta(String dimension, long seed, int minY, int height, int seaLevel, boolean ceiling, JsonObject atmosphere,
+                    List<String> listedBiomes, Set<String> treeBiomes, Set<String> rockBiomes, Set<String> waterBiomes,
+                    List<SurveyPlan.Patch> plan, Map<String, Long> timings, boolean voidNatured) {
+            this(dimension, seed, minY, height, seaLevel, ceiling, atmosphere, listedBiomes, treeBiomes, rockBiomes, waterBiomes, plan, timings,
+                    voidNatured, Map.of());
+        }
 
         public Meta(String dimension, long seed, int minY, int height, int seaLevel, boolean ceiling, JsonObject atmosphere,
                     List<String> listedBiomes, Set<String> treeBiomes, Set<String> rockBiomes, Set<String> waterBiomes,
@@ -59,6 +69,17 @@ public final class Survey {
                     List<String> listedBiomes, Set<String> treeBiomes, List<SurveyPlan.Patch> plan, Map<String, Long> timings) {
             this(dimension, seed, minY, height, seaLevel, ceiling, atmosphere, listedBiomes, treeBiomes, Set.of(), Set.of(), plan, timings);
         }
+    }
+
+    /**
+     * Land columns a tree biome must cover before having no trees flags it: a quarter hectare, or the land on which its
+     * own rate (placements a chunk) leads one to expect {@link #TREELESS_EXPECTED} trees, whichever is more; a biome whose
+     * rate is zero is never flagged, and one without a rate takes the quarter hectare.
+     */
+    static long treelessColumns(Double perChunk) {
+        if (perChunk == null) return TREELESS_COLUMNS;
+        if (perChunk <= 0) return Long.MAX_VALUE;
+        return Math.max(TREELESS_COLUMNS, (long) Math.ceil(TREELESS_EXPECTED * 256 / perChunk));
     }
 
     /** One render-versus-world comparison at a column. */
@@ -512,7 +533,7 @@ public final class Survey {
                 if (a[1] > 0 && a[10] * 2 >= a[1] && !meta.rockBiomes().contains(e.getKey())) flags.add("mostly bare rock");
                 long wet = a[1] + a[2] + a[3];
                 if (wet > 0 && a[11] * 2 >= wet && a[7] * 20 < wet) flags.add("snowing climate but snow cover under 5%");
-                if (meta.treeBiomes().contains(e.getKey()) && a[1] >= TREELESS_COLUMNS && density == 0) {
+                if (meta.treeBiomes().contains(e.getKey()) && a[1] >= treelessColumns(meta.treeRates().get(e.getKey())) && density == 0) {
                     flags.add("features name trees, none on " + Stats.round1(a[1] / 10_000.0) + " ha of land");
                 }
             }

@@ -11,6 +11,7 @@ import com.customdimensions.core.survey.PatchAnalysis.ColumnClass;
 import com.customdimensions.core.survey.PatchAnalysis.Layer;
 import com.customdimensions.core.survey.PatchGrid.BlockInfo;
 import com.customdimensions.core.survey.PatchGrid.Kind;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -471,6 +472,34 @@ class SurveyTest {
         assertTrue(Files.size(dir.resolve("layers/top.png")) > 0);
         assertTrue(Files.exists(dir.resolve("layers/slice_40.png")));
         assertTrue(Files.readString(json).contains("layerMaps"));
+    }
+
+    @Test
+    void aSparseTreeBiomeIsJudgedOnLandEnoughToExpectTrees() {
+        List<PatchAnalysis> patches = new ArrayList<>();
+        for (int i = 0; i < 12; i++) patches.add(analyse(grid(i, false, (x, y, z) -> y < 63 ? STONE : y == 63 ? GRASS_BLOCK : null)));
+        List<SurveyPlan.Patch> plan = patches.stream().map(p -> p.patch).toList();
+        java.util.function.Function<Map<String, Double>, String> flags = rates -> Survey.dossier(new Survey.Meta("adventure:test", 1, 0, 128, 63,
+                        false, new JsonObject(), List.of("minecraft:plains"), Set.of("minecraft:plains"), Set.of(), Set.of(), plan, Map.of("total", 1L),
+                        false, rates), null, patches, List.of())
+                .getAsJsonObject("biomeExpression").getAsJsonObject("biomes").getAsJsonObject("minecraft:plains").getAsJsonArray("flags").toString();
+        assertTrue(flags.apply(Map.of()).contains("features name trees"), "no rate: a quarter hectare is enough");
+        assertTrue(flags.apply(Map.of("minecraft:plains", 2.0)).contains("features name trees"), "a forest's rate expects trees on 0.3 ha");
+        assertEquals("[]", flags.apply(Map.of("minecraft:plains", 0.05)), "plains' rate expects under one tree on 0.3 ha");
+        assertEquals("[]", flags.apply(Map.of("minecraft:plains", 0.0)));
+    }
+
+    @Test
+    void aTreeRateReadsTheVanillaPlacementModifiers() {
+        JsonArray plains = com.google.gson.JsonParser.parseString("[{\"type\":\"minecraft:count\",\"count\":{\"type\":\"minecraft:weighted_list\","
+                + "\"distribution\":[{\"data\":0,\"weight\":19},{\"data\":1,\"weight\":1}]}},{\"type\":\"minecraft:in_square\"}]").getAsJsonArray();
+        assertEquals(0.05, TreeRate.perChunk(plains), 1e-9);
+        JsonArray meadow = com.google.gson.JsonParser.parseString("[{\"type\":\"minecraft:rarity_filter\",\"chance\":100},{\"type\":\"minecraft:count\",\"count\":3}]").getAsJsonArray();
+        assertEquals(0.03, TreeRate.perChunk(meadow), 1e-9);
+        JsonArray forest = com.google.gson.JsonParser.parseString("[{\"type\":\"minecraft:count\",\"count\":{\"type\":\"minecraft:uniform\",\"min_inclusive\":8,"
+                + "\"max_inclusive\":12}},{\"type\":\"minecraft:noise_threshold_count\",\"noise_level\":0,\"below_noise\":1,\"above_noise\":3}]").getAsJsonArray();
+        assertEquals(20.0, TreeRate.perChunk(forest), 1e-9);
+        assertEquals(1.0, TreeRate.perChunk(new JsonArray()), 1e-9);
     }
 
     @Test
