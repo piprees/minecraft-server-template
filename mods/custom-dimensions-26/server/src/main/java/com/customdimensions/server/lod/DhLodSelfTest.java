@@ -5,6 +5,7 @@ import com.customdimensions.server.level.LevelManager;
 import com.customdimensions.server.render.Sampler;
 import com.customdimensions.server.render.fast.LodSource;
 import com.seibel.distanthorizons.api.DhApi;
+import com.seibel.distanthorizons.api.interfaces.data.IDhApiTerrainDataCache;
 import com.seibel.distanthorizons.api.objects.DhApiResult;
 import com.seibel.distanthorizons.api.objects.data.DhApiTerrainDataPoint;
 import java.io.IOException;
@@ -54,6 +55,8 @@ final class DhLodSelfTest {
     static final double SHORTCUT_HEIGHTS_BAR = 0.95;
     static final double SHORTCUT_RUNS_BAR = 0.90;
     static final long PREGEN_TIMEOUT_MS = 900_000;
+    /** How long the comparison waits for the first pre-generated column to reach Distant Horizons' store. */
+    static final long STORE_TIMEOUT_MS = 120_000;
     private static final Pattern DONE = Pattern.compile("(?i)complete|finished|not running|no pregen");
 
     private DhLodSelfTest() {}
@@ -144,6 +147,12 @@ final class DhLodSelfTest {
         return lines;
     }
 
+    /** Whether Distant Horizons' store holds a column at {@code x}, {@code z}: it writes what the generator returns after the pre-generation ends. */
+    private static boolean stored(DhLodGenerators.Bound b, int x, int z, IDhApiTerrainDataCache cache) {
+        DhApiResult<DhApiTerrainDataPoint[]> lod = DhApi.Delayed.terrainRepo.getColumnDataAtBlockPos(b.wrapper(), x, z, cache);
+        return lod.success && lod.payload != null && lod.payload.length > 0;
+    }
+
     private static String compareWithChunks(MinecraftServer server, String slug, ServerLevel level, DhLodGenerators.Bound b,
                                             LodSource source) throws IOException {
         int minY = level.getMinY();
@@ -154,16 +163,27 @@ final class DhLodSelfTest {
         int blocks = 0;
         int biomes = 0;
         int missing = 0;
+        int surfaced = 0;
         int radius = PREGEN_CHUNKS * 16 - 72;
         int step = 2 * radius / 5;
+        IDhApiTerrainDataCache cache = DhApi.Delayed.terrainRepo.createSoftCache();
+        long until = System.currentTimeMillis() + STORE_TIMEOUT_MS;
+        while (!stored(b, -radius, -radius, cache) && System.currentTimeMillis() < until) {
+            try {
+                Thread.sleep(2_000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
         for (int x = -radius; x <= radius; x += step) {
             for (int z = -radius; z <= radius; z += step) {
                 if (Math.abs(x) < 96 && Math.abs(z) < 96) continue;
                 n++;
-                DhApiResult<DhApiTerrainDataPoint[]> lod = DhApi.Delayed.terrainRepo.getColumnDataAtBlockPos(b.wrapper(), x, z, null);
+                DhApiResult<DhApiTerrainDataPoint[]> lod = DhApi.Delayed.terrainRepo.getColumnDataAtBlockPos(b.wrapper(), x, z, cache);
                 if (!lod.success || lod.payload == null || lod.payload.length == 0) {
                     missing++;
-                    tsv.append(x).append('\t').append(z).append("\tnone\n");
+                    tsv.append(x).append('\t').append(z).append("\tnone\t").append(lod.message).append('\n');
                     continue;
                 }
                 DhApiTerrainDataPoint[] points = lod.payload;
@@ -180,7 +200,7 @@ final class DhLodSelfTest {
                 LevelChunk chunk = server.submit(() -> level.getChunk(bx >> 4, bz >> 4)).join();
                 IntFunction<BlockState> realBlock = y -> {
                     BlockState s = chunk.getBlockState(new BlockPos(bx, y, bz));
-                    return s.is(BlockTags.LEAVES) || s.is(BlockTags.LOGS) ? Blocks.AIR.defaultBlockState() : s;
+                    return tree(s) ? Blocks.AIR.defaultBlockState() : s;
                 };
                 int lodHeight = Sampler.surface(lodBlock, top, minY).height();
                 int realHeight = Sampler.surface(realBlock, top, minY).height();
@@ -190,19 +210,27 @@ final class DhLodSelfTest {
                 String realBiome = Sampler.id(level.getBiome(new BlockPos(bx, realHeight, bz)));
                 if (Math.abs(lodHeight - realHeight) <= 1) heights++;
                 if (lodTop.equals(realTop)) blocks++;
-                if (lodBiome.equals(realBiome)) biomes++;
+                if (realHeight > minY) {
+                    surfaced++;
+                    if (lodBiome.equals(realBiome)) biomes++;
+                }
                 tsv.append(x).append('\t').append(z).append('\t').append(lodHeight).append('\t').append(realHeight).append('\t')
                         .append(lodTop).append('\t').append(realTop).append('\t').append(lodBiome).append('\t').append(realBiome).append('\n');
             }
         }
         Path file = Path.of("lod-check-" + slug + ".tsv");
         Files.writeString(file, tsv);
-        double d = Math.max(1, n);
-        boolean ok = missing == 0 && heights / d >= HEIGHTS_BAR && blocks / d >= BLOCKS_BAR && biomes / d >= BIOMES_BAR;
+        double d = Math.max(1, n), ds = Math.max(1, surfaced);
+        boolean ok = missing == 0 && heights / d >= HEIGHTS_BAR && blocks / d >= BLOCKS_BAR && biomes / ds >= BIOMES_BAR;
         CustomDimensions.LOG.info("lod check {}: {} columns -> {}", slug, n, file.toAbsolutePath());
         return (ok ? "PASS" : "FAIL") + String.format(Locale.ROOT, " lod vs chunks %s: %d columns, %d without LOD data, heights within 1 %.1f%%, "
-                        + "block under the surface %.1f%%, biome %.1f%% (bars %.0f/%.0f/%.0f%%) -> %s", slug, n, missing, heights * 100 / d,
-                blocks * 100 / d, biomes * 100 / d, HEIGHTS_BAR * 100, BLOCKS_BAR * 100, BIOMES_BAR * 100, file.toAbsolutePath());
+                        + "block under the surface %.1f%%, biome %.1f%% of %d columns with a surface (bars %.0f/%.0f/%.0f%%) -> %s", slug, n, missing, heights * 100 / d,
+                blocks * 100 / d, biomes * 100 / ds, surfaced, HEIGHTS_BAR * 100, BLOCKS_BAR * 100, BIOMES_BAR * 100, file.toAbsolutePath());
+    }
+
+    /** A tree's or a huge fungus's block, which the noise does not draw: logs, stems, leaves, wart blocks and shroomlight. */
+    private static boolean tree(BlockState s) {
+        return s.is(BlockTags.LEAVES) || s.is(BlockTags.LOGS) || s.is(BlockTags.WART_BLOCKS) || s.is(Blocks.SHROOMLIGHT);
     }
 
     private static String name(BlockState state) {

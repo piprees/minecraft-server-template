@@ -1,1 +1,1 @@
-w10c2c: step 1 done (K10 lane: kit PASS; self-test fixture fix committed); next step 2 F4 lane
+w10c2c: steps 1-2 done (K10 lane fixture fix dd79fc19; F4 lane test fixes, nether heights 84.4% written up); next step 3 wave
