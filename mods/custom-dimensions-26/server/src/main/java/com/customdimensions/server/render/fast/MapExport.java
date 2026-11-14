@@ -152,7 +152,7 @@ public final class MapExport {
                 RenderGrid grid = RenderGrid.wide(plan.block(plan.maxZoom(), px0 - MARGIN) + half, plan.block(plan.maxZoom(), py0 - MARGIN) + half,
                         half, finest);
                 FastRender.Options options = new FastRender.Options("map", false, false, false, slices, pre, false, false);
-                FastRender.Rendered r = FastRender.render(sampler, grid, pool, threads, work, job, null, System.nanoTime(), options);
+                FastRender.Rendered r = FastRender.render(sampler, grid, pool, threads, work, job, p -> {}, System.nanoTime(), options);
                 columns += grid.columns();
                 Piece piece = new Piece(r, colours, s, w, h, finest, aquifers);
                 for (Layer layer : layers) pyramids.get(layer.id()).piece(px0, py0, w, h, piece.paint(layer, slices, bands, biomeCounts));

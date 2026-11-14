@@ -1,1 +1,1 @@
-w10c2c: steps 1-4 done; final folder written; goldens+build running; next final self-test, map lane
+w10c2c: done (steps 1-5, F4b lane, map lane + MapExport fix); report sent
