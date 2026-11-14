@@ -128,7 +128,9 @@ final class MapCommand {
             }
             MapSite.shell(root);
             MapSite.manifest(root, entries(all));
-            return new long[] {dims.size(), failed, (System.nanoTime() - started) / 1_000_000};
+            long millis = (System.nanoTime() - started) / 1_000_000;
+            MapSite.finished(root, dims.size() + " dimensions, " + failed + " failed, " + seconds(millis) + " s");
+            return new long[] {dims.size(), failed, millis};
         }, r -> CustomDimCommands.ok(source, "customdim.map.export.done", "count", String.valueOf(r[0]), "failed", String.valueOf(r[1]),
                 "total", seconds(r[2]), "path", root.toString()),
                 e -> CustomDimCommands.fail(source, "customdim.map.export.failed", "dimension", label, "reason", CustomDimCommands.reason(e)));

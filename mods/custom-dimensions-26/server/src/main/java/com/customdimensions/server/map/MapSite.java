@@ -23,11 +23,12 @@ import javax.imageio.ImageIO;
  * dimension, exported or not, with what the viewer reads:
  * {@code slug, name, description, spawn, background, renderedAt, exploredAt,
  * version, thumb, thumbVersion, layers, explored}. A dimension's files are
- * under {@code maps/<slug>/}.
+ * under {@code maps/<slug>/}; {@value #FINISHED} is stamped when an export ends.
  */
 public final class MapSite {
     public static final String ROOT_PROPERTY = "customdimensions.map.out";
     public static final String MANIFEST = "manifest.json";
+    public static final String FINISHED = ".export-finished";
     public static final String SHELL = "/customdimensions/map-shell/";
     public static final List<String> SHELL_FILES = List.of("index.html", "app.js", "app.css");
 
@@ -39,6 +40,14 @@ public final class MapSite {
     public static Path root(Path serverDir) {
         String set = System.getProperty(ROOT_PROPERTY);
         return set != null && !set.isBlank() ? Path.of(set) : serverDir.resolve("map-web");
+    }
+
+    /** Stamps {@value #FINISHED} with a one-line summary: the idle task's sign that an export ended. */
+    public static void finished(Path root, String summary) throws IOException {
+        Files.createDirectories(root);
+        Path tmp = root.resolve(FINISHED + ".tmp");
+        Files.writeString(tmp, summary + "\n");
+        Files.move(tmp, root.resolve(FINISHED), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
     }
 
     public static Path dimension(Path root, String slug) {
