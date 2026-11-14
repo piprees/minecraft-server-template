@@ -665,6 +665,58 @@ edit("webmap", 'scripts/test-scripts.sh',
      '  + BLOCKTAG_ERRORS + OPEN_WATER_ERRORS\n  + CLIENT_PARITY_ERRORS',
      '  + OPEN_WATER_ERRORS\n  + CLIENT_PARITY_ERRORS')
 
+edit("webmap", 'COMMANDS.md',
+     'Services: `mc`, `unmined-render`, `nav-proxy`,',
+     'Services: `mc`, `nav-proxy`,')
+edit("webmap", 'COMMANDS.md',
+     '### Map rendering\n\nManage the renderer from your Mac. Passes run automatically on `UNMINED_INTERVAL` and are incremental; `render` forces one immediately.\n\n| Command            | Description                                             |\n| ------------------ | -------------------------------------------------------- |\n| `./ops map render` | Force a render pass now (restarts the container)        |\n| `./ops map status` | Container state + recent render activity                |\n| `./ops map threads <n>`  | Manually set render thread count                           |\n\nMap IDs: `world`, `world_the_nether`, `world_the_end`, `paradise_lost`.\n',
+     "### The web map\n\nThe mod exports the map; idle-tasks sends the export after pre-generation, every `MAP_INTERVAL`, and only what changed is redrawn.\n\n| Command | Description |\n| --- | --- |\n| `./ops map status` | The last export's summary, whether one runs, the map's size |\n| `./ops map render [dimension\\|all] [generated\\|explored\\|force]` | `customdim map export` now over RCON (default: all, both layers) |\n\nDimensions are named by slug (`overworld`, `the_nether`, `the_aviary`, ...).\n")
+edit("webmap", '.claude/skills/deploy-pipeline-operations/SKILL.md',
+     '(`unmined-render nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks`)',
+     '(`nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks`)')
+edit("webmap", '.claude/skills/deploy-pipeline-operations/references/deploy-sequence.md',
+     '`unmined-render nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks` (kuma-init',
+     '`nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks` (kuma-init')
+edit("webmap", '.claude/skills/local-stack-testing/SKILL.md',
+     "| Map render config or world data | `unmined-render` renders on its `UNMINED_INTERVAL` schedule and skips dimensions whose region files haven't changed, so nothing appears to happen immediately. With `UNMINED_INTERVAL=0` — the default (`render-loop.sh`, the `UNMINED_INTERVAL` default) — it `exec sleep infinity` and never renders at all (`render-loop.sh`, the disabled branch) | Set `UNMINED_INTERVAL` in `.env`, then `./dev restart unmined-render`: `render_all` runs at the top of the loop, before the sleep (`render-loop.sh`, the daemon loop) |\n",
+     '| Map export or world data | The map is redrawn only by `customdim map export`: idle-tasks sends it after pre-generation every `MAP_INTERVAL`, and a dimension unchanged since the last export is skipped, so nothing appears to happen immediately | `docker exec -i mc rcon-cli "customdim map export <dimension>"` (`force` redraws the generated layers), then reload map.DOMAIN |\n')
+edit("webmap", '.claude/skills/platform-release-management/SKILL.md',
+     'building and pushing all 7 images (`discord-sync`, `kuma-init`, `mod-checker`, `idle-tasks`, `defaults-seed`, `modpack-builder`, `unmined-render`)',
+     'building and pushing all 6 images (`discord-sync`, `kuma-init`, `mod-checker`, `idle-tasks`, `defaults-seed`, `modpack-builder`)')
+edit("webmap", '.claude/skills/web-surface-branding/SKILL.md',
+     '| map.DOMAIN | Static uNmINeD render (`unmined-render` sidecar); served directly by `nav-proxy`, no upstream | `unmined-render` on its own render schedule | Infra (nav/CSS changes only — force-recreates `nav-proxy`) |',
+     '| map.DOMAIN | Static files the mod exports into `data/map-web/` (viewer shell in the mod jar); served directly by `nav-proxy`, no upstream | `customdim map export`, sent by idle-tasks every `MAP_INTERVAL` | Infra for nav changes (force-recreates `nav-proxy`); a mod release for the viewer |')
+edit("webmap", '.claude/skills/web-surface-branding/references/surface-map.md',
+     'tags: [surface-map, nav-proxy, pack-web, kuma, unmined-render, deploy-tier]',
+     'tags: [surface-map, nav-proxy, pack-web, kuma, map-web, deploy-tier]')
+edit("webmap", '.claude/skills/web-surface-branding/references/surface-map.md',
+     '- **What actually serves it:** a **static uNmINeD render**, served directly by `nav-proxy`\'s `map` server block straight from the `./data/unmined-web` bind mount (`root /unmined-web;` — no upstream, no proxy_pass). The comment in `nav-proxy.conf.template` is explicit: "the map is always up, even while mc restarts." The `unmined-render` sidecar re-renders on a schedule (`UNMINED_INTERVAL`) and the web shell (`index.html` inside `data/unmined-web`) handles clean per-dimension URLs.\n',
+     "- **What actually serves it:** static files the mod's `customdim map export` writes into `./data/map-web`, served directly by `nav-proxy`'s `map` server block from that bind mount (`root /map-web;` — no upstream, no proxy_pass). The comment in `nav-proxy.conf.template` is explicit: the map is always up, even while mc restarts. idle-tasks sends the export every `MAP_INTERVAL`; the viewer shell (`index.html`, `app.js`, `app.css`) ships in the mod jar (`map-shell/`) and each export copies it in, and it handles clean per-dimension URLs.\n")
+edit("webmap", '.claude/skills/backup-and-recovery/SKILL.md',
+     'unmined-web, mods, libraries, versions, logs, crash-reports,\n',
+     'map-web, mods, libraries, versions, logs, crash-reports,\n')
+edit("webmap", '.claude/skills/backup-and-recovery/references/world-reset.md',
+     'regenerable-data excludes as the restic sidecar (`unmined-web`, `mods`',
+     'regenerable-data excludes as the restic sidecar (`map-web`, `mods`')
+edit("webmap", '.claude/skills/backup-and-recovery/references/world-reset.md',
+     "   - `data/unmined-web/maps/`, `data/unmined-web/index.html`, and `data/unmined-web/manifest.json` — rendered map tiles and the dimension/spawn manifest the web shell reads (all three re-generated on the next render pass; `manifest.json` is a separate file from `index.html` and lists the old world's dimensions/spawns until overwritten)\n",
+     '   - `data/map-web/` — the web map, its manifest and its export caches (fingerprints, explored-region cells); the next export draws it afresh for the new world\n')
+edit("webmap", '.claude/skills/production-triage/references/known-issues.md',
+     'piston, unmined-render, chunk-corruption]',
+     'piston, web-map, chunk-corruption]')
+edit("webmap", '.claude/skills/production-triage/references/known-issues.md',
+     'The map is rendered by the `unmined-render` sidecar (uNmINeD CLI) into static tiles. There is no RCON interface and no live link to mc — it keeps serving while mc restarts or autopauses. Renders are incremental, so a quiet pass usually means nothing changed rather than something failed. Inspect it with:\n',
+     "The map is static files the mod's `customdim map export` writes into `data/map-web`; nav-proxy serves them, so it keeps serving while mc restarts or autopauses. idle-tasks sends the export after pre-generation, every `MAP_INTERVAL`, and an unchanged dimension is skipped, so a quick export usually means nothing changed rather than something failed. Inspect it with:\n")
+edit("webmap", '.claude/skills/production-triage/references/known-issues.md',
+     'docker logs unmined-render --tail 30\n./scripts/map-render.sh status     # container state + recent render activity\n./scripts/map-render.sh render     # force a pass (restarts the sidecar; a\n                                    # restart triggers an immediate render)\n',
+     "docker logs mc --tail 200 | grep -i 'web map'   # the export's per-dimension lines\n./scripts/map-render.sh status     # the last export's summary, whether one runs\n./scripts/map-render.sh render     # export now (customdim map export all)\n")
+edit("webmap", '.claude/skills/production-triage/references/log-surfaces.md',
+     './scripts/map-render.sh status            # unmined-render container state + recent activity',
+     './scripts/map-render.sh status            # the last web map export, whether one runs')
+edit("webmap", '.claude/skills/local-stack-testing/references/testing-recipes.md',
+     "## 6. Map render config or map data\n\n```bash\ndocker restart unmined-render\n# Give it the boot -r pass to detect changed regions, then check tile mtimes:\ndocker exec unmined-render find /web -name '*.webp' -newer /tmp/marker -mmin -2 | head\n```\n\nDon't wait on the `-u` watcher locally — on macOS Docker its file-change events are unreliable and may never fire. The explicit restart is the only reliable local trigger; trust the watcher only on Linux production.\n",
+     '## 6. The web map\n\n```bash\ndocker exec -i mc rcon-cli "customdim map export overworld"   # add `force` to redraw the generated layers\n# The export runs off the server thread; it is done when this file is newer than the command:\ncat data/map-web/.export-finished\n```\n\nThe local stack has no idle-tasks, so nothing exports on a schedule; send the command after each change you want to see.\n')
+
 RANGES = [
     ("tests", "scripts/tests/test_minecraft_version.py",
      "# Each 26.3 overlay file: (base file, keys the pinned 26.3 jar no longer reads).\n",
