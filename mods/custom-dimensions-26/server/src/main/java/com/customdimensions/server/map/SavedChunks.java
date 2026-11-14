@@ -108,6 +108,22 @@ public final class SavedChunks {
         return status.equals("minecraft:full") || status.equals("full");
     }
 
+    /**
+     * A palette entry's block id, water for a waterlogged state. 26.3 saves a
+     * state as its string form ({@code minecraft:oak_stairs[waterlogged=true,...]});
+     * the older compound ({@code Name}, {@code Properties}) is read too.
+     */
+    static String block(net.minecraft.nbt.Tag entry) {
+        if (entry instanceof CompoundTag state) {
+            boolean wet = "true".equals(state.getCompoundOrEmpty("Properties").getStringOr("waterlogged", ""));
+            return wet ? ExploredChunk.WATER : state.getStringOr("Name", "minecraft:air");
+        }
+        String s = entry.asString().orElse("minecraft:air");
+        int bracket = s.indexOf('[');
+        if (bracket < 0) return s;
+        return s.indexOf("waterlogged=true", bracket) >= 0 ? ExploredChunk.WATER : s.substring(0, bracket);
+    }
+
     /** The chunk's sections in {@link ExploredChunk}'s form; a waterlogged state is passed as water. */
     public static List<ExploredChunk.Section> sections(CompoundTag chunk) {
         List<ExploredChunk.Section> out = new ArrayList<>();
@@ -116,10 +132,7 @@ public final class SavedChunks {
             ListTag palette = states.getListOrEmpty("palette");
             if (palette.isEmpty()) continue;
             List<String> blocks = new ArrayList<>(palette.size());
-            for (CompoundTag state : palette.compoundStream().toList()) {
-                boolean wet = "true".equals(state.getCompoundOrEmpty("Properties").getStringOr("waterlogged", ""));
-                blocks.add(wet ? ExploredChunk.WATER : state.getStringOr("Name", "minecraft:air"));
-            }
+            for (int i = 0; i < palette.size(); i++) blocks.add(block(palette.get(i)));
             CompoundTag biomeTag = s.getCompoundOrEmpty("biomes");
             ListTag biomePalette = biomeTag.getListOrEmpty("palette");
             List<String> biomes = new ArrayList<>(biomePalette.size());

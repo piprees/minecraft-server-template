@@ -46,6 +46,11 @@ class SavedChunksTest {
 
     /** A finished chunk at section 4: grass at y 64 in column (0,0), a waterlogged stair under two water blocks over stone in (1,0). */
     static CompoundTag chunk(String status) {
+        return chunk(status, false);
+    }
+
+    /** As above; {@code strings} saves the palette as 26.3 does, each state as its string form. */
+    static CompoundTag chunk(String status, boolean strings) {
         int[] idx = new int[4096];
         idx[0] = 1;
         idx[1] = 3;
@@ -54,6 +59,10 @@ class SavedChunksTest {
         String[] names = {"minecraft:air", "minecraft:grass_block", "minecraft:oak_stairs", "minecraft:stone", "minecraft:water"};
         ListTag palette = new ListTag();
         for (String n : names) {
+            if (strings) {
+                palette.add(StringTag.valueOf(n.equals("minecraft:oak_stairs") ? n + "[facing=east,half=bottom,waterlogged=true]" : n));
+                continue;
+            }
             CompoundTag state = new CompoundTag();
             state.putString("Name", n);
             if (n.equals("minecraft:oak_stairs")) {
@@ -123,6 +132,15 @@ class SavedChunksTest {
         assertEquals(66, c.height()[1]);
         assertArrayEquals(bytes, Files.readAllBytes(file));
         assertEquals(before, Files.getLastModifiedTime(file).toMillis());
+    }
+
+    @Test
+    void aPaletteSavedAsStateStringsReadsAsTheCompoundForm() {
+        assertEquals(SavedChunks.sections(chunk("minecraft:full")).getFirst().blocks(),
+                SavedChunks.sections(chunk("minecraft:full", true)).getFirst().blocks());
+        assertEquals("minecraft:oak_stairs", SavedChunks.block(StringTag.valueOf("minecraft:oak_stairs[facing=east,waterlogged=false]")));
+        assertEquals(ExploredChunk.WATER, SavedChunks.block(StringTag.valueOf("minecraft:kelp[age=3,waterlogged=true]")));
+        assertEquals("minecraft:stone", SavedChunks.block(StringTag.valueOf("minecraft:stone")));
     }
 
     @Test
