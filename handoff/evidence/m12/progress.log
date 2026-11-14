@@ -1,0 +1,12 @@
+00:08 — M12 start; worktree fast-forwarded to 77ac8ffa; owner addition: texture-average palette, biome tints, water depth, constant hillshade
+00:13 — read brief, rules, F3b report, FastWave/FastRender/FastLayers; 26.3 jar unobfuscated: ChunkMap extends SimpleRegionStorage.read(ChunkPos) public, ServerChunkCache.chunkMap public; borders max r8192 so stride 4 fits WIDE_MAX_SIDE 4096
+00:14 — palette: scripts/map-palette.py writes core/.../customdimensions/map-palette.json, 1284 blocks, 22 tinted, 3 colormaps 33x33
+00:16 — design: export renders stride-4 pieces of 1024px (+1px margin) through FastRender (no images), own pyramid/tiles; viewer = own dependency-free tile viewer embedded in the mod jar and written into the web root by the export; out root map-web
+00:21 — core map package: MapTiles, TilePyramid, MapPalette, BiomeTint, MapShade, ExploredChunk, PackedIndices, ExploredRegion, MapFingerprint; 13 tests pass (palette, tints in 2 biomes, water at 1/5/20, light, synthetic chunk)
+00:26 — server: MapExport (render.fast), MapColours (climate via Biome.NETWORK_CODEC; a mixin accessor failed: ClimateSettings is private), FastRender Options.images + Rendered.blocks/footprints + FastPixels ground; compiles
+00:32 — server export, explored reader, MapSite, MapCommand, viewer shell, messages written; compiles; first bench the_ashgrove r1024: 270k columns 7.3 s on 3 threads, 25 tiles 0.57 MB
+00:34 — server map tests 5 pass (synthetic region file read-only, waterlogged as water, incremental by mtime, manifest, shell)
+00:36 — idle-tasks (cutover copy): map export after pre-gen every MAP_INTERVAL (6h), .skip-pause-map until map-web/.export-finished or MAP_EXPORT_MAX_MINUTES; harness /tmp/claude-0/m12/idle-test.sh passes; committed 998c100c
+00:38 — bench b2: the_underdark r4096 65 s 4.26M cols 595 tiles 11.5 MB (7 layers); the_aviary r4096 136 s 510 tiles 10.8 MB (tiers 1-2 separate); fingerprint skip 1 ms; lane script handoff/evidence/m12/map-lane.sh committed ab95f2ac
+00:40 — retirement step 7b (edits.py webmap + apply.sh + not-automated rows) committed a2b1f757; clean-clone apply.sh --no-network rc 0, compose config valid, publish matrix without unmined-render
+00:43 — viewer interim screenshots fine (no console errors, no horizontal scroll at 390); roofed worlds now open on Roofless (underdark terrain is a uniform roof); cuts named 'Cut: X'; README section committed 750c911f
