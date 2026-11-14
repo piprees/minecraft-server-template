@@ -30,21 +30,31 @@ Paste this as the summary when the session is compacted or handed off. Before ac
 - End: a denser dungeons group (about 57 cities), and elytra at 8% a chest in End dungeon chests.
 
 ## State (log time in HANDOFF.md)
+- **Roadmap doc:** "Adventure pack on 26.3: parity roadmap", https://claude.ai/artifact/Ezk5Wt4Wr1tApDUqsRhG8A (Claude Docs project 7156bec1-4a57-4666-b2d9-0b149b0ec53b).
+  - The owner's decisions are a checklist in it. Read the doc, with its ticks and comments, before planning.
+  - Parity is about 55% overall (method and 91 features in `docs/design/rebuild-26/parity-audit/`).
+  - About 74 packages remain, in phases 0–4.
+- **Places plan:** `docs/design/rebuild-26/places/` (P1, merged), waiting for the owner's review.
+  - Packages in order: PL0 (wire kept structures and stand-ins, server lane, no code), SP1 (places in the tools), EX (explorify dep-review), SP2–SP4 (set-pieces kit), SP5–SP7 (places per batch).
+  - PL0 and SP1 can start before the kit.
+  - Eight owner decisions are listed in `places/README.md`.
+- **The new standard for every dimension** (the owner said the configs lacked care):
+  1. A design card per dimension, from its description and 1.21.1 source, read by the lead before any change.
+  2. Anything that contradicts the description goes.
+  3. Structures are curated per dimension; no generic scatter.
+  4. The lane boots with `-PstructureMods=/tmp/claude-0/pack-structure-mods` (the ten pinned 26.3 structure mods, Moog's lib and cristel-lib).
+  5. A separate blind reviewer scores each dimension from its description and shots, and the lead checks before any page reaches the owner.
+- **Owner's notes:** `mods/custom-dimensions-26/fidelity/feedback/owner-review-1.md` (Batches 1–2) and `owner-review-2.md` (Batch 3: all 12 marked "change").
 - **Batches:**
-  - Batch 1 is under rework from the owner's notes.
-  - Batch 2 is done to the bar.
-  - Batch 3 (End and sky worlds, plus the Aviary) is done: 11 at 4/5; the Crumbling Reaches is at 3/5 as a named exception.
+  - Batches 1–3 are all to be reworked under the new standard.
   - Batches 4–6 have not started.
-- **Review pages:**
+- **Review pages** (feedback is read with ArtifactData from collections `batch1`, `dimension-review-batch2` and `dimension-review-batch3`):
   - Batch 1: https://claude.ai/artifact/HLfMWRYiUxoMMZMMryZCuq
   - Batch 2: https://claude.ai/artifact/26a27z8QwNWYegwYwFAGn2
   - Batch 3: https://claude.ai/artifact/VoCuffQGcwQN7rknN1wSdB
-  - Owner feedback is read with ArtifactData from collections `batch1`, `dimension-review-batch2` and `dimension-review-batch3`.
 - **Running agents (verify from their artefacts, never from idle signals):**
-  - K13 (worktree): `/locate` for our placements, structures in the void, fog default, traps T296–T302. When it lands, run its lane script with `MODS=/tmp/claude-0/k12-mods` (Moog's End Structures plus its lib) to measure the End city count and the elytra rolls inside cities.
-  - P1 (worktree, docs): the places plan in `docs/design/rebuild-26/places/`. The owner reviews it, then the kit packages start.
-  - W10r (lane, main checkout): the owner's terrain and atmosphere notes on Batches 1–2.
-  - A1 (read-only): parity audit. Outputs go to `/tmp/claude-0/a1/`, and become the roadmap artifact for the owner.
+  - K13 (worktree): `/locate` for our placements, structures in the void, fog default, traps T296–T302. When it lands, merge it between W10r's commits, then run its lane script with `MODS=/tmp/claude-0/k12-mods` or `/tmp/claude-0/pack-structure-mods`.
+  - W10r (lane, main checkout): the owner's Batch 1–2 terrain and atmosphere notes, now under the new standard. It sends the lead a design card path per dimension; the lead reads each card.
 - **Next ids:** T296 and K18.
 - **Briefs:** in `handoff/scratchpad/`; `common-rules.md` binds every agent.
 
