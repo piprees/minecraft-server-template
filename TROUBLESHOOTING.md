@@ -1597,9 +1597,9 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
 <a id="t304"></a>
-### T304 — Only an underground step marks a structure that needs ground under it
+### T304 — Only an underground step, or a stronghold, marks a structure that needs ground under it
 - **Symptom:** on a world of islands over a void, a structure that picks an absolute height hangs below the islands.
-- **Cause:** mineshafts, trial chambers, ancient cities and strongholds choose their height without reading the terrain. `UndergroundGround` refuses a start in an underground step (`UNDERGROUND_STRUCTURES`, `UNDERGROUND_DECORATION`, `STRONGHOLDS`) unless every column at its box's centre and corners has a block other than air at or below the box's floor; a structure in a surface step with an absolute start height is not checked, and a forced start with a `y` is never refused.
+- **Cause:** mineshafts, trial chambers, ancient cities and strongholds choose their height without reading the terrain. `UndergroundGround` refuses a start in an underground step (`UNDERGROUND_STRUCTURES`, `UNDERGROUND_DECORATION`, `STRONGHOLDS`), or a stronghold (whose step is `SURFACE_STRUCTURES`), unless every column at its box's centre and corners has a block other than air at or below the box's floor; a structure in a surface step with an absolute start height is not checked, and a forced start with a `y` is never refused.
 - **Fix:** give a mod's underground structure an underground `step`, or shun it in sky worlds; never widen the rule to surface steps, which would refuse sky structures over the void by design.
 
 <a id="t303"></a>

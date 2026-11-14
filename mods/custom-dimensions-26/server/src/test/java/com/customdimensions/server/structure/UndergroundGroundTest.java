@@ -70,7 +70,8 @@ class UndergroundGroundTest {
         assertTrue(UndergroundGround.underground(structure(BuiltinStructures.MINESHAFT)));
         assertTrue(UndergroundGround.underground(structure(BuiltinStructures.TRIAL_CHAMBERS)));
         assertTrue(UndergroundGround.underground(structure(BuiltinStructures.ANCIENT_CITY)));
-        assertTrue(UndergroundGround.underground(structure(BuiltinStructures.STRONGHOLD)));
+        assertTrue(UndergroundGround.underground(structure(BuiltinStructures.STRONGHOLD)), "a stronghold, though its step is the surface's");
+        assertTrue(UndergroundGround.underground(structure(BuiltinStructures.TRAIL_RUINS)));
         assertFalse(UndergroundGround.underground(structure(BuiltinStructures.END_CITY)));
         assertFalse(UndergroundGround.underground(structure(BuiltinStructures.VILLAGE_PLAINS)));
     }

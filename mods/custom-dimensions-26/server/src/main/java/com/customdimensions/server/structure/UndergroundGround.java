@@ -7,6 +7,7 @@ import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.StructureType;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -17,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Mineshafts, trial chambers, ancient cities and strongholds choose their
  * height without reading the terrain, so under a sky world's islands they
  * would hang in the void. A start whose structure generates in an underground
- * step stands when every column at its box's corners and centre has a block
+ * step, or a stronghold, stands when every column at its box's corners and centre has a block
  * other than air at or below the box's floor in the generator's base terrain;
  * otherwise it does not start. Terrain with a floor everywhere (the overworld,
  * the Nether) always passes.
@@ -37,9 +38,9 @@ public final class UndergroundGround {
         return LOGGED.add(level + " " + structure);
     }
 
-    /** Whether {@code structure} generates in an underground step. */
+    /** Whether {@code structure} generates in an underground step, or is a stronghold (whose own step is the surface's). */
     public static boolean underground(Structure structure) {
-        return UNDERGROUND.contains(structure.step());
+        return UNDERGROUND.contains(structure.step()) || structure.type() == StructureType.STRONGHOLD;
     }
 
     /** Whether an underground {@code structure} with this box would hang over the void; a structure above ground never does. */
