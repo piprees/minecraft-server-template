@@ -11,10 +11,17 @@
   "terrain": {
     "base": "end",
     "params": {
-      "coverage": 0.04
+      "coverage": -0.04
     },
     "scales": {
       "climate": 2
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 0],
+      "radius": 8000,
+      "falloff": 16,
+      "strength": 1.0
     }
   },
   "biomes": [

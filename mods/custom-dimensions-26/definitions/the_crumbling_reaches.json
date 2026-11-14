@@ -11,13 +11,20 @@
   "terrain": {
     "base": "end",
     "params": {
-      "coverage": -0.03,
+      "coverage": -0.06,
       "peaks": 1.0,
       "peakWidth": 0.05,
       "islandHeight": 40
     },
     "scales": {
       "climate": 2
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 0],
+      "radius": 8000,
+      "falloff": 16,
+      "strength": 1.0
     }
   },
   "biomes": [
