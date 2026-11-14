@@ -28,6 +28,7 @@ Paste this as the summary when the session is compacted or handed off. Before ac
 - No structures float in the void.
 - the_violet_spire is night-only.
 - End: a denser dungeons group (about 57 cities), and elytra at 8% a chest in End dungeon chests.
+- **Danger and reward (RB-39):** base difficulty per dimension, plus mobs harder the nearer a high-value structure, hardest in endgame dungeons. Loot follows the same curve: buried treasure and chests scale with the dimension's difficulty and size. Easy and peaceful dimensions are safe but poor (weak loot, fewer ores), as in 1.21.1. Loot from exploring is how players get ahead. Package DL1 (not yet dispatched).
 
 ## Owner's roadmap decisions
 Before asking the owner anything, look for the answer in `docs/design/rebuild-26/decisions.md`, the mod register, `HANDOFF.md` and the owner's notes. Never re-litigate a settled decision.
