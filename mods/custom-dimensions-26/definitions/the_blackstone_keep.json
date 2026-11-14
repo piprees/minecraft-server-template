@@ -7,6 +7,11 @@
     "type": "noise",
     "preset": "nether"
   },
+  "terrain": {
+    "scales": {
+      "climate": 2
+    }
+  },
   "biomes": [
     "adventure:blackstone_basin",
     "minecraft:basalt_deltas",
@@ -49,9 +54,16 @@
       }
     }
   },
+  "liquids": {
+    "seaLevel": 24
+  },
+  "materials": {
+    "cliffs": "minecraft:blackstone"
+  },
   "atmosphere": {
     "fogColor": "#1B1B2B",
-    "ambientLight": 0.08
+    "ambientLight": 0.08,
+    "overBiomes": true
   },
   "borders": {
     "player": 1024,
@@ -116,16 +128,5 @@
       "crimson_fungus",
       "mvs:large_warped_tower"
     ]
-  },
-  "terrain": {
-    "scales": {
-      "climate": 2
-    }
-  },
-  "liquids": {
-    "seaLevel": 24
-  },
-  "materials": {
-    "cliffs": "minecraft:blackstone"
   }
 }

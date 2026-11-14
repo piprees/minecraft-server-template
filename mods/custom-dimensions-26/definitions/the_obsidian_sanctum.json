@@ -31,10 +31,24 @@
       "arrangement": "core"
     }
   },
+  "liquids": {
+    "seaLevel": 20
+  },
+  "materials": {
+    "cliffs": "minecraft:obsidian",
+    "biomes": {
+      "minecraft:nether_wastes": {
+        "cliffs": "minecraft:crying_obsidian",
+        "top": "minecraft:obsidian"
+      }
+    },
+    "beaches": "minecraft:obsidian"
+  },
   "atmosphere": {
     "skyColor": "#1B0B2B",
     "fogColor": "#1B0B2B",
-    "ambientLight": 0.05
+    "ambientLight": 0.05,
+    "overBiomes": true
   },
   "borders": {
     "player": 1024,
@@ -82,18 +96,5 @@
       "mvs:large_warped_tower",
       "bastion"
     ]
-  },
-  "liquids": {
-    "seaLevel": 20
-  },
-  "materials": {
-    "cliffs": "minecraft:obsidian",
-    "biomes": {
-      "minecraft:nether_wastes": {
-        "cliffs": "minecraft:crying_obsidian",
-        "top": "minecraft:obsidian"
-      }
-    },
-    "beaches": "minecraft:obsidian"
   }
 }
