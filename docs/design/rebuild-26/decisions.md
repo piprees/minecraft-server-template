@@ -166,3 +166,7 @@ Why: a place feels real when it implies what happened there and what came before
 **RB-43 — Nothing in the world names its history.**
 No book, sign, map, item name or lore line names a faction, a dimension, an epoch or a person; it alludes, and leaves the rest unsaid. Where an object can tell it without words (a banner pattern, a material, an arrangement of items, remains in their gear, a part-built frame), no words are used. Where words are needed (a portal study's notes), they are few, fragmentary and in the voice of someone who never understood it either.
 Why: mystery is the point; a name settles what the player should be left to wonder about.
+
+**RB-44 — The world is lived in, and the players' stories come first.**
+Players arrive long after it all: what happened is over, and what is left is remnants, some still standing, some worn down, some grown into something else. The world is not narrative-led and not dramatic; it is lived in, with signs of use, habit and passing time everywhere a little, and grand ruins rarely. Established Minecraft lore (the ancient builders and their cities, illagers, piglins and their bastions, the End's builders, trail ruins) and the spirit of Minecraft Dungeons are inspiration, alluded to under RB-43, never reproduced.
+Why: the server is where players tell their own stories; the world gives them a setting with depth, not a plot to follow.

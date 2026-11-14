@@ -33,6 +33,7 @@ Paste this as the summary when the session is compacted or handed off. Before ac
 - **Broken portals (RB-41):** some treasure maps lead to half-finished portals: a partial frame, an igniter precursor, a study (enchanting table, bookshelves, notes that stop short), ground part-transformed when the target's `portal.aura` is on; placed where the target dimension would plausibly reach through (biome, height, depth). Never the exact recipe.
 - **Deep time (RB-42):** structures and set pieces are placed as linked stories (shared faction, materials, banners, loot, placed near one another), with restraint: most terrain carries nothing, so a find means something. Feeds the set-pieces kit (SP2–SP7) and LR1.
 - **Never named (RB-43):** in-game text never names a faction, dimension, epoch or person; it only alludes. Prefer no words at all (banners, materials, item arrangements, remains, part-built frames); where words are needed, few and fragmentary.
+- **Lived in (RB-44):** players arrive in the far future of it all; remnants survive, wear down or morph. Not narrative-led, not dramatic: small signs of use and time everywhere, grand ruins rarely. Established Minecraft lore and the spirit of Minecraft Dungeons inspire, alluded to, never reproduced. Players' own stories come first.
 
 ## Owner's roadmap decisions
 Before asking the owner anything, look for the answer in `docs/design/rebuild-26/decisions.md`, the mod register, `HANDOFF.md` and the owner's notes. Never re-litigate a settled decision.
