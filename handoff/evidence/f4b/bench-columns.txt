@@ -1,0 +1,11 @@
+fast bench: packs [vanilla, customdimensions, fabric-convention-tags-v2, fabric-gametest-api-v1, fantasy, openpartiesandclaims, file/customdimensions]
+fast bench: registries loaded and bound in 1141 ms
+fast bench: the_nether lod shape: ROOFED, window 0..127, pre-scan 1089 columns every 64 blocks (1089 roofed, 0 floating) in 289 ms; roofed in 1089 of 1089 pre-scan columns: whole columns, the roof left out; no fixed start, as block 104 is open between the ceiling and the floor under it in 557 of 998 roofed pre-scan columns with a floor, under 0.9
+fast bench: the_nether lod column -440 -440: lod surface 22, runs [127..67, 21..0] roofed; noise surface 22, blocks [127..67 netherrack, 66..32 air, 31..22 lava, 21..0 netherrack]
+fast bench: the_nether lod column 440 -264: lod surface 66, runs [127..84, 65..49, 47..33, 27..0] roofed; noise surface 66, blocks [127..84 netherrack, 83..66 air, 65..49 netherrack, 48..48 air, 47..33 netherrack, 32..32 air, 31..28 lava, 27..0 netherrack]
+fast bench: the_nether lod column 88 -440: lod surface 128, runs [127..0] roofed; noise surface 128, blocks [127..0 netherrack]
+fast bench: the_nether lod column 264 88: lod surface 29, runs [127..105, 28..0] roofed; noise surface 29, blocks [127..105 netherrack, 104..32 air, 31..29 lava, 28..0 netherrack]
+fast bench: the_nether lod column -88 264: lod surface 55, runs [127..74, 54..36, 23..0] roofed; noise surface 55, blocks [127..74 netherrack, 73..55 air, 54..36 netherrack, 35..32 air, 31..24 lava, 23..0 netherrack]
+fast bench: the_nether lod column -440 -264: lod surface 128, runs [127..0] roofed; noise surface 128, blocks [127..0 netherrack]
+fast bench: the_nether lod column -440 -88: lod surface 22, runs [127..82, 21..0] roofed; noise surface 22, blocks [127..82 netherrack, 81..32 air, 31..22 lava, 21..0 netherrack]
+fast bench: the_nether lod request detail 0: 4096 columns, 4.99 segments and 3.47 solid segments per column, 0 columns malformed, 27 ms
