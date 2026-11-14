@@ -12,5 +12,7 @@ Source: 1.21.1 paradise_lost type, seaLevel 90; biomes shadowlands, deep_ocean, 
 Must NOT appear: villages, taverns, mineshafts, cave structures (the trial dungeon), any structure under the islands in the void (owner).
 Remove: the forced trial_dungeon (see Structures).
 
+Danger and reward (RB-39): middling danger round a sacred site: guardians and the warden monument; reward concentrated at the monument and the shrine. 1.21.1 difficulty block: {"mobMultiplier": 1.0, "playerLuck": 1.5}.
+
 ## Structures (places plan, docs/design/rebuild-26/places/dimensions.md)
 Follows the places plan except one departure: the monument forced in the hollow lake (0,0 within 160), ati underwater_dungeon wanted near the lake, mss castle_ruin, ati warden_monument near the border. Departure: the vault's stand-in nova trial_dungeon is a cave structure (small_cave_structures) and stands in the void under sky islands, which the owner rejects; the vault waits on the places kit (SP cell). The shrine itself: set piece, waiting on the places kit.

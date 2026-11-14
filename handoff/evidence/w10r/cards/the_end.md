@@ -10,5 +10,7 @@ Source: vanilla End; wants end_city and phantom_citadel near spawn, enderkeep an
 
 Sky and light: vanilla End. Must NOT appear: anything on the central island but vanilla's; overworld or Nether structures.
 
+Danger and reward (RB-39): vanilla End: dragon and cities; high danger, endgame reward (elytra, shulkers). 1.21.1 difficulty block: {"mobMultiplier": 1.5, "playerLuck": 1.5}.
+
 ## Structures (places plan, docs/design/rebuild-26/places/dimensions.md)
 Follows the places plan: end cities and mes phantom_citadel wanted 900-1500 out (the gateways' reach); mes enderkeep_courtyard, monolith; outer-island variety mes enderskog, enderbloom_grove, placid_prairie, ender_spire, mystical_archway, nova end_lighthouse and end_castle; mes astral_meteorite, mega_ship. The crater round the meteorite: set piece, waiting on the places kit.

@@ -30,8 +30,15 @@
       "clearSpawnChunks": 0
     }
   },
-  "mode": null,
-  "list": [],
+  "mode": "allow",
+  "list": [
+    "mss:large_tower",
+    "mss:small_tower",
+    "mes:enderwatch_tower",
+    "mes:mystical_archway",
+    "ddd:dddtowers",
+    "nova_structures:shrine_tower"
+  ],
   "exclude": [],
   "include": [],
   "rarity": {
@@ -57,7 +64,32 @@
       "exclusive": false
     }
   ],
-  "wants": [],
+  "wants": [
+    {
+      "name": "ati_structures:fortified_temple",
+      "structure": "ati_structures:fortified_temple",
+      "min": 450,
+      "max": 650
+    },
+    {
+      "name": "mss:castle_ruin",
+      "structure": "mss:castle_ruin",
+      "min": 450,
+      "max": 650
+    },
+    {
+      "name": "ddd:wizard_tower",
+      "structure": "ddd:wizard_tower",
+      "min": 150,
+      "max": 500
+    },
+    {
+      "name": "nova_structures:shrine_tower",
+      "structure": "nova_structures:shrine_tower",
+      "min": 100,
+      "max": 500
+    }
+  ],
   "shuns": [],
   "replace": {},
   "terrainAdaptation": {

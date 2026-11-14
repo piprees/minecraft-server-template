@@ -12,15 +12,16 @@
     "params": {
       "lakeShare": 0.75,
       "basinDepth": 16,
-      "rimHeight": 6,
+      "rimHeight": 16,
       "islandShare": 0.2,
       "lakeSize": 2,
       "size": 2,
       "coverage": 0.55,
       "tiers": 2,
-      "tierSpacing": 48,
-      "tierGap": 20,
-      "tierShrink": 0.6
+      "tierSpacing": 36,
+      "tierGap": 16,
+      "tierShrink": 0.6,
+      "underside": 50
     },
     "scales": {
       "climate": 3
@@ -70,7 +71,9 @@
     }
   },
   "liquids": {
-    "basins": {}
+    "basins": {
+      "level": 165
+    }
   },
   "borders": {
     "player": 4096,
@@ -85,6 +88,49 @@
     "noise": {
       "dungeons": "dense",
       "maritime": "dense"
+    },
+    "mode": "allow",
+    "list": [
+      "minecraft:ocean_monuments",
+      "mtr:ocean_temple",
+      "mss:large_tower",
+      "mss:small_tower",
+      "nova_structures:conduit_ruin",
+      "nova_structures:ocean_structures"
+    ],
+    "force": [
+      {
+        "structure": "mtr:ocean_temple",
+        "x": 500,
+        "z": 0,
+        "radius": 400
+      }
+    ],
+    "wants": {
+      "mtr:ocean_temple": {
+        "min": 1200,
+        "max": 2000
+      },
+      "ati_structures:sinking_temple": {
+        "min": 200,
+        "max": 1200
+      },
+      "ati_structures:underwater_dungeon": {
+        "min": 200,
+        "max": 1500
+      },
+      "minecraft:monument": {
+        "min": 300,
+        "max": 1200
+      },
+      "mss:castle_ruin": {
+        "min": 1200,
+        "max": 2000
+      },
+      "mss:large_tower": {
+        "min": 0,
+        "max": 300
+      }
     }
   },
   "portals": [
@@ -109,7 +155,6 @@
     ],
     "water": "sea",
     "wants": {
-      "nova_structures:trial_dungeon": "spread",
       "mss:castle_ruin": "near_border",
       "monument": "spread",
       "ati_structures:underwater_dungeon": "spread",

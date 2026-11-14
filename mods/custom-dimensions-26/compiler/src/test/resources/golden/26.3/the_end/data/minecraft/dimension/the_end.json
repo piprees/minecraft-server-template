@@ -5,6 +5,6 @@
     "biome_source": {
       "type": "minecraft:the_end"
     },
-    "settings": "minecraft:end"
+    "settings": "adventure:the_end"
   }
 }

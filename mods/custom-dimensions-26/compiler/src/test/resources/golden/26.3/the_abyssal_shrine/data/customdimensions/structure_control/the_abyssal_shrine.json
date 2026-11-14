@@ -42,22 +42,43 @@
       "clearSpawnChunks": 0
     }
   },
-  "mode": null,
-  "list": [],
+  "mode": "allow",
+  "list": [
+    "minecraft:ocean_monuments"
+  ],
   "exclude": [],
   "include": [],
   "rarity": {},
   "spacing": {},
   "force": [
     {
-      "structure": "nova_structures:trial_dungeon",
-      "x": 180,
-      "z": -140,
-      "radius": 0,
+      "structure": "minecraft:monument",
+      "x": 0,
+      "z": 0,
+      "radius": 160,
       "exclusive": true
     }
   ],
-  "wants": [],
+  "wants": [
+    {
+      "name": "ati_structures:underwater_dungeon",
+      "structure": "ati_structures:underwater_dungeon",
+      "min": 0,
+      "max": 300
+    },
+    {
+      "name": "mss:castle_ruin",
+      "structure": "mss:castle_ruin",
+      "min": 150,
+      "max": 450
+    },
+    {
+      "name": "ati_structures:warden_monument",
+      "structure": "ati_structures:warden_monument",
+      "min": 350,
+      "max": 500
+    }
+  ],
   "shuns": [],
   "replace": {},
   "terrainAdaptation": {}

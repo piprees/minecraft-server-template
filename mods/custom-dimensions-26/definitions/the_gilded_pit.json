@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "description": "The piglin capital. Every portal drops you at the same ledge overlooking what remains: a bastion, a forge, a palace, a forbidden castle — gold in every wall, treasure in every ruin. Nothing within arm's reach of the landing. Greed pays and costs.",
   "seed": -7161067373243224201,
-  "spawn": [0, 86, -560],
+  "spawn": [0, 86, -500],
   "generator": {
     "type": "noise",
     "preset": "nether"
@@ -23,10 +23,10 @@
       "type": "radial",
       "centre": [0, 0],
       "radius": 470,
-      "falloff": 48,
+      "falloff": 32,
       "strength": 1,
       "warp": {
-        "blocks": 38,
+        "blocks": 12,
         "wavelength": 256
       }
     },
@@ -142,7 +142,29 @@
         "z": 358
       }
     ],
-    "clearSpawnRadius": 64
+    "clearSpawnRadius": 120,
+    "mode": "allow",
+    "list": [
+      "minecraft:nether_complexes",
+      "mns:crimson_forge",
+      "mns:large_blackstone_walls",
+      "mns:nether_tower",
+      "nova_structures:nether_structures"
+    ],
+    "wants": {
+      "nova_structures:sealing_halls": {
+        "min": 450,
+        "max": 650
+      },
+      "mns:large_blackstone_walls": {
+        "min": 450,
+        "max": 650
+      },
+      "mns:nether_tower": {
+        "min": 450,
+        "max": 650
+      }
+    }
   },
   "portals": [
     {

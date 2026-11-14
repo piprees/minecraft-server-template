@@ -11,5 +11,7 @@ Source: 1.21.1 nether; biomes ash_barrens, nether_wastes, basalt_deltas, inferna
 Sky and light: vanilla Nether. Must NOT appear: fire on the fields, basalt columns and ash heaps strewn about (debris), piglin villages, crimson forests, trees.
 Remove: magma_land's fire, ash_barrens' heaps and stumps, basalt columns and blobs (ores.remove).
 
+Danger and reward (RB-39): middling danger in an abandoned works; reward from salvage (forts, labs), moderate. 1.21.1 difficulty block: {"mobMultiplier": 1.5, "playerLuck": 1.4}.
+
 ## Structures (places plan, docs/design/rebuild-26/places/dimensions.md)
 Follows the places plan: mns crimson_lava_well near spawn, mns:bridge_1 as the pipeline stand-in, mns mega_fortress and nova piglin_outstation as the forts, mns crimson_forge near the border as the reactor stand-in. The works, quenched pads, barracks, shipping yard, gateway attempt, prison and laboratory: set pieces, waiting on the places kit.

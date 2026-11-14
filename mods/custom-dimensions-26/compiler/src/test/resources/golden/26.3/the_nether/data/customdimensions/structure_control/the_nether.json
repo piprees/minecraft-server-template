@@ -36,14 +36,37 @@
       "clearSpawnChunks": 0
     }
   },
-  "mode": null,
-  "list": [],
+  "mode": "allow",
+  "list": [
+    "minecraft:nether_complexes",
+    "mns:mega_fortress",
+    "mns:bridge_1",
+    "mns:bridge_2",
+    "mns:bridge_3",
+    "mns:bridge_4",
+    "mns:bridge_5",
+    "mns:bridge_6",
+    "minecraft:nether_fossils"
+  ],
   "exclude": [],
   "include": [],
   "rarity": {},
   "spacing": {},
   "force": [],
-  "wants": [],
+  "wants": [
+    {
+      "name": "towns_and_towers:exclusives/village_piglin",
+      "structure": "towns_and_towers:exclusives/village_piglin",
+      "min": 200,
+      "max": 900
+    },
+    {
+      "name": "nova_structures:sealing_halls",
+      "structure": "nova_structures:sealing_halls",
+      "min": 700,
+      "max": 1000
+    }
+  ],
   "shuns": [],
   "replace": {},
   "terrainAdaptation": {}

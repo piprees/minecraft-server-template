@@ -13,5 +13,7 @@ Source: 1.21.1 nether; biomes quartz_flats, nether_wastes, crimson_pinewood, cri
 Sky and light: brown fog, very low light (kept). Must NOT appear: trees and huge fungi (pinewood pines, crimson fungi), weeping vines, piglin villages, flat easy ground.
 Remove: tree features (ores.remove); the crimson_forest biome's fungi.
 
+Danger and reward (RB-39): high danger: "small brutal deep", a capital to cross as a slog; high reward from the forge, bastions and keeps. 1.21.1 difficulty block: {"mobMultiplier": 2.5, "playerLuck": 2.2, "depthScaling": {"enabled": true, "startY": 90, "endY": 10, "minMultiplier": 1.5, "maxMultiplier": 3.5}}.
+
 ## Structures (places plan, docs/design/rebuild-26/places/dimensions.md)
 Follows the places plan: mns crimson_forge at spawn (0-120); the city from nova piglin_donjon, nether_keep, piglin_outstation (nova nether_structures set), mns large_house_1, medium_house, large_blackstone_walls, density dense with the settlements and landmarks ceilings at 12; bastion and fortress (vanilla nether_complexes), mns mega_fortress; mns copper_tower as the ruined-lab stand-in. Reactors, chimney stacks and slag heaps: set pieces, waiting on the places kit.

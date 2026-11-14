@@ -11,13 +11,16 @@
     "base": "roofed",
     "params": {
       "floorHeight": 72,
-      "floorRelief": 10,
-      "ceilingGap": 32,
-      "roughness": 0.3,
+      "floorRelief": 18,
+      "ceilingGap": 40,
+      "roughness": 0.6,
       "pit": 0.04,
       "pitDepth": 34,
       "ledges": 0.5,
-      "ledgeStep": 8
+      "ledgeStep": 8,
+      "chasms": 0.08,
+      "chasmDepth": 24,
+      "pillars": 0.05
     },
     "layout": {
       "type": "radial",
@@ -94,7 +97,40 @@
     }
   },
   "structures": {
-    "density": "dense"
+    "density": "dense",
+    "mode": "allow",
+    "list": [
+      "mns:crimson_forge",
+      "mns:large_house_1",
+      "mns:medium_house",
+      "mns:large_blackstone_walls",
+      "mns:mega_fortress",
+      "mns:copper_tower",
+      "minecraft:nether_complexes",
+      "nova_structures:nether_structures"
+    ],
+    "repetition": {
+      "settlements": 12,
+      "landmarks": 12
+    },
+    "wants": {
+      "mns:crimson_forge": {
+        "min": 0,
+        "max": 120
+      },
+      "nova_structures:piglin_donjon": {
+        "min": 100,
+        "max": 600
+      },
+      "nova_structures:nether_keep": {
+        "min": 100,
+        "max": 600
+      },
+      "minecraft:bastion_remnant": {
+        "min": 150,
+        "max": 650
+      }
+    }
   },
   "portals": [
     {
@@ -144,5 +180,31 @@
     "enabled": true,
     "pos": "spawn",
     "target": "bed"
+  },
+  "ores": {
+    "remove": [
+      "adventure:biome/crimson_pinewood/crimson_pines",
+      "minecraft:crimson_fungi",
+      "minecraft:crimson_forest_vegetation",
+      "minecraft:weeping_vines"
+    ]
+  },
+  "liquids": {
+    "lavaLevel": 24
+  },
+  "materials": {
+    "bands": [
+      {
+        "below": 40,
+        "top": "minecraft:magma_block",
+        "filler": "minecraft:blackstone",
+        "cliffs": "minecraft:blackstone"
+      },
+      {
+        "below": 52,
+        "cliffs": "minecraft:blackstone",
+        "filler": "minecraft:blackstone"
+      }
+    ]
   }
 }

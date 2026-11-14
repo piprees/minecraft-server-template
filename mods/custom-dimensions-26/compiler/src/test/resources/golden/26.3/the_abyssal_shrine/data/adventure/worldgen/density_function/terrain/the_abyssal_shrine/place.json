@@ -99,17 +99,17 @@
                                       "points": [
                                         {
                                           "derivative": 0.0,
-                                          "location": 220.0,
+                                          "location": 290.0,
                                           "value": -1.0
                                         },
                                         {
                                           "derivative": 0.0,
-                                          "location": 360.0,
+                                          "location": 410.0,
                                           "value": 1.0
                                         },
                                         {
                                           "derivative": 0.0,
-                                          "location": 500.0,
+                                          "location": 530.0,
                                           "value": -1.0
                                         }
                                       ]
@@ -121,7 +121,7 @@
                                 },
                                 "type": "minecraft:add"
                               },
-                              "right": -0.15364935,
+                              "right": 0.0368187746,
                               "type": "minecraft:add"
                             },
                             "right": 3.41296928,
@@ -291,17 +291,17 @@
                                     "points": [
                                       {
                                         "derivative": 0.0,
-                                        "location": 220.0,
+                                        "location": 290.0,
                                         "value": -1.0
                                       },
                                       {
                                         "derivative": 0.0,
-                                        "location": 360.0,
+                                        "location": 410.0,
                                         "value": 1.0
                                       },
                                       {
                                         "derivative": 0.0,
-                                        "location": 500.0,
+                                        "location": 530.0,
                                         "value": -1.0
                                       }
                                     ]
@@ -313,7 +313,7 @@
                               },
                               "type": "minecraft:add"
                             },
-                            "right": -0.15364935,
+                            "right": 0.0368187746,
                             "type": "minecraft:add"
                           },
                           "right": 3.41296928,

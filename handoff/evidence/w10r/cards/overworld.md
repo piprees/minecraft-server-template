@@ -11,5 +11,7 @@ Source: vanilla overworld; wants village, tavern, campsite, farmstead, ruined po
 
 Must NOT appear: wizard towers, nether towers (shunned). This pass only checks the mountain; no definition change unless it is a fault.
 
+Danger and reward (RB-39): safe at spawn, danger rising toward the border; ancient cities near the border are the endgame of the overworld. 1.21.1 difficulty block: {"mobMultiplier": 1.0, "depthScaling": {"enabled": true, "startY": 64, "endY": -64, "minMultiplier": 1.0, "maxMultiplier": 1.5}, "playerLuck": 1.0}.
+
 ## Structures (places plan, docs/design/rebuild-26/places/dimensions.md)
 Places plan: village, tavern, campsite, farmstead, ruined portal near spawn; watchtowers, mineshafts, outposts, trial chambers, monuments spread; ancient cities, mansion, coliseum near the border: all present in the definition's wants; no change this pass.

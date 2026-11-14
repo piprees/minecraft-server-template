@@ -110,7 +110,7 @@
             "right": {
               "input": {
                 "left": {
-                  "alpha": 0.4,
+                  "alpha": 0.25,
                   "first": {
                     "input": {
                       "left": {
@@ -123,10 +123,10 @@
                                   "shift_x": "minecraft:shift_x",
                                   "shift_z": "minecraft:shift_z",
                                   "type": "minecraft:noise",
-                                  "xz_scale": 0.6666666666666666,
+                                  "xz_scale": 0.45454545454545453,
                                   "y_scale": 0.0
                                 },
-                                "right": -0.213771793,
+                                "right": -0.13319773,
                                 "type": "minecraft:add"
                               },
                               "right": 6.56167979,
@@ -194,10 +194,10 @@
                               "shift_x": "minecraft:shift_x",
                               "shift_z": "minecraft:shift_z",
                               "type": "minecraft:noise",
-                              "xz_scale": 0.6666666666666666,
+                              "xz_scale": 0.45454545454545453,
                               "y_scale": 0.0
                             },
-                            "right": -0.213771793,
+                            "right": -0.13319773,
                             "type": "minecraft:add"
                           },
                           "right": 6.56167979,

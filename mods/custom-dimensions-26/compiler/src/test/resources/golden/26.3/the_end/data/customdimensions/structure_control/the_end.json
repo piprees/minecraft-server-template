@@ -37,14 +37,41 @@
       "clearSpawnChunks": 0
     }
   },
-  "mode": null,
-  "list": [],
+  "mode": "allow",
+  "list": [
+    "minecraft:end_cities",
+    "mes:phantom_citadel",
+    "mes:enderkeep_courtyard",
+    "mes:monolith",
+    "mes:enderskog",
+    "mes:enderbloom_grove",
+    "mes:placid_prairie",
+    "mes:ender_spire",
+    "mes:mystical_archway",
+    "nova_structures:end_lighthouses",
+    "nova_structures:end_castle",
+    "mes:astral_meteorite",
+    "mes:mega_ship"
+  ],
   "exclude": [],
   "include": [],
   "rarity": {},
   "spacing": {},
   "force": [],
-  "wants": [],
+  "wants": [
+    {
+      "name": "minecraft:end_city",
+      "structure": "minecraft:end_city",
+      "min": 900,
+      "max": 1500
+    },
+    {
+      "name": "mes:phantom_citadel",
+      "structure": "mes:phantom_citadel",
+      "min": 900,
+      "max": 1500
+    }
+  ],
   "shuns": [],
   "replace": {},
   "terrainAdaptation": {},

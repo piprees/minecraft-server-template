@@ -342,10 +342,7 @@ Owner: "This place is cool, I’d like to see more netherwart and mushroom “fa
 
 ### the_glacial_drift
 
-- **The palace** (1.21.1 forced): `mss:castle_ruin`.
-- **Remains and the igloo** near spawn: `mvs:statue_ruins`, `minecraft:igloo`.
-- **Aurel towers and birdcages**: `mss:large_tower`; **SP** `column` cage.
-- **The vault** near border: **SP** `cell`.
+Owner: nothing at all; pure tundra and its animals, no places.
 
 ## Batch 4: caves and void or special generators
 
@@ -419,17 +416,17 @@ No structures (1.21.1 `structureDensity: none`). The void is the place; falling 
 
 ### the_canvas
 
-Owner: forced structures only.
+Owner: the small oak house only; no lore marks and no lived-in signs.
 
-- **The small oak house and the ancient city** (forced, 1200, -880): `mss:small_oak_house`, `minecraft:ancient_city`.
+- **The small oak house** (forced, 1200, -880): `mss:small_oak_house`.
 
 ## Batch 5: overworld presets, worst half
 
 ### the_tidepools
 
+Owner: the wreck only; its chest may hold a treasure map.
+
 - **The drowned wreck**: `minecraft:shipwreck` (want, 0–256).
-- **The ocean ruin and the ocean tower** (1.21.1 forced): `minecraft:ocean_ruin_warm`, `mvs:ocean_tower` (`bury`).
-- **Buried treasure**: `minecraft:buried_treasure` (want, 0–256).
 
 ### the_lost_outpost
 
