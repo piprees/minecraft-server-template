@@ -2135,6 +2135,20 @@
           "maximum": 1,
           "default": 1
         },
+        "hollowApron": {
+          "description": "With a hollow lake: blocks past the hollow's edge its rim runs on as solid ground at the rim's height, so the lake's edge joins the ring's land with no void between",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200,
+          "default": 0
+        },
+        "hollowJitter": {
+          "description": "With a hollow lake: blocks the hollow's edge wanders in and out by (one standard deviation), read from the lakes noise, so the lake is no drawn circle",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 120,
+          "default": 0
+        },
         "tiers": {
           "description": "Island layers, counting the terrain's own: each further tier floats tierSpacing above the one under it",
           "type": "integer",

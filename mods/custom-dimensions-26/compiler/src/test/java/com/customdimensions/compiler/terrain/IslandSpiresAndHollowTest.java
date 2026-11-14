@@ -153,6 +153,28 @@ class IslandSpiresAndHollowTest {
     }
 
     @Test
+    void anApronRunsTheRimOnPastTheEdgeSoTheLakeJoinsTheRing() {
+        SkyTiersTest.Built b = build(HOLLOW.replace("\"gaps\": 0,", "\"gaps\": 0, \"hollowApron\": 60,"));
+        for (double x : new double[] {EDGE + 1, EDGE + 40, EDGE + 59}) {
+            assertEquals(A + 4, floor(b, x, -1), 0.01, "the rim's height " + (x - EDGE) + " past the edge");
+            assertFalse(runs(b, at(x, -1)).isEmpty(), "ground, not void, " + (x - EDGE) + " past the edge");
+            assertTrue(eval(b, b.named().get(TerrainFamily.BASIN), at(x, -1), 0) < 0, "and no water on it");
+        }
+        assertTrue(runs(b, at(EDGE + 80, -1)).isEmpty(), "past the apron the sky is open again");
+        assertEquals(A - 30, floor(b, 0, -1), 0.01, "the hollow keeps its floor");
+    }
+
+    @Test
+    void jitterMovesTheHollowsEdgeWithTheLakesNoise() {
+        SkyTiersTest.Built b = build(HOLLOW.replace("\"gaps\": 0,", "\"gaps\": 0, \"hollowJitter\": 40, \"ringLakes\": 0,"));
+        double sl = Noises.sigma("lakes");
+        assertTrue(runs(b, at(EDGE + 20, 0)).isEmpty(), "at the noise's mean the edge stays where it was");
+        assertFalse(runs(b, at(EDGE + 20, sl)).isEmpty(), "a standard deviation up pushes the edge out by 40");
+        assertTrue(floor(b, EDGE - 20, -sl) < floor(b, EDGE - 20, 0) - 1 || runs(b, at(EDGE - 20, -sl)).isEmpty(),
+                "a standard deviation down pulls it in");
+    }
+
+    @Test
     void ringLakesDecidesWhetherTheRingKeepsItsOwnLakeMasses() {
         double heartNoise = Noises.threshold(0.4, SL) + 0.8 * SL;
         SkyTiersTest.Built kept = build(HOLLOW);

@@ -130,7 +130,11 @@ public enum TerrainFamily {
                     new TerrainParam("islandRise", 0, 60, 8, "Blocks of cliff the islands inside a lake mass rise by out of the water"),
                     new TerrainParam("hollowDepth", 0, 60, 0, "With a ring terrain.layout: blocks below the water line the floor of one lake filling the ring's hollow lies, "
                             + "held by a rim at the hollow's edge; 0 leaves the hollow open void"),
-                    count("ringLakes", 0, 1, 1, "With a hollow lake: 1 keeps the lake masses round the ring, 0 makes the hollow's lake the only one")),
+                    count("ringLakes", 0, 1, 1, "With a hollow lake: 1 keeps the lake masses round the ring, 0 makes the hollow's lake the only one"),
+                    new TerrainParam("hollowApron", 0, 200, 0, "With a hollow lake: blocks past the hollow's edge its rim runs on as solid ground at the rim's "
+                            + "height, so the lake's edge joins the ring's land with no void between"),
+                    new TerrainParam("hollowJitter", 0, 120, 0, "With a hollow lake: blocks the hollow's edge wanders in and out by (one standard "
+                            + "deviation), read from the lakes noise, so the lake is no drawn circle")),
                     TerrainParam.TIERS),
             Map.of(),
             Map.of("lakeShare", 0.25, "basinDepth", 4.0, "rimHeight", 2.0, "gaps", 0.15, "islandRise", 4.0, "spread", 10.0,
@@ -933,12 +937,22 @@ public enum TerrainFamily {
      * to the layout's centre: the mass's threshold at the hollow's edge ({@link #hollowEdge}), its rim's crest ending
      * {@link #HOLLOW_CREST} blocks inside, its shore {@link #HOLLOW_SHORE} and its heart {@link #HOLLOW_HEART}, so
      * {@link #basinIslands} lays the hollow's rim, shore and basin as it lays any lake mass's; null without one.
+     * {@code hollowJitter} moves the distance by the lakes noise, so the edge wanders; {@code hollowApron} holds the
+     * rim's crest from the edge out that many blocks, ground at the rim's height joining the ring.
      */
     private static JsonElement hollowLake(Ctx ctx, double edge, double crestEnd, double shore, double heart, double sl) {
         if (ctx.p("hollowDepth") <= 0) return null;
         TerrainShaping.Layout l = ctx.layout();
         double r = hollowEdge(l);
         JsonElement d = ctx.layoutDistance();
+        double jitter = ctx.p("hollowJitter");
+        if (jitter > 0) d = sub(d, mul(ctx.noise("lakes", 1 / ctx.p("lakeSize"), 0), jitter / sl));
+        double apron = ctx.p("hollowApron");
+        if (apron > 0) {
+            double risen = edge + 0.08 * sl;
+            return spline(d, r - HOLLOW_HEART, heart, r - HOLLOW_SHORE, shore, r - HOLLOW_CREST, crestEnd, r, risen,
+                    r + apron, risen, r + apron + HOLLOW_OUTSIDE, edge - 0.2 * sl);
+        }
         return spline(d, r - HOLLOW_HEART, heart, r - HOLLOW_SHORE, shore, r - HOLLOW_CREST, crestEnd, r, edge,
                 r + HOLLOW_OUTSIDE, edge - 0.2 * sl);
     }
