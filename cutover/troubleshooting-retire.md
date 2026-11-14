@@ -52,7 +52,9 @@ A list, not an edit. Classified from each entry's heading and first lines (`ts-f
 | --- | --- |
 | D2 | The creation-time fields are v2's (`generator`, `terrain`, `biomes`, `biomeLayout`, `zones`, `liquids`, `materials`, `carvers`, `ores`, `dimensionType`, `seed`), and the pack logs one WARN naming D2 when one changes under existing chunks; the `registerDimensions`/`level.dat` mechanism is the 1.21.1 one |
 | D6 | The 26.3 mod has no `C2meConfigPatch`; whether c2me's density-function compiler still has to stay off on 26.3 is unmeasured — measure in the rehearsal, then reword or retire |
+| D8 | Rewritten by `edits.py` step `webmap`: generated layers for every dimension from its generator, the explored layer only once it has saved chunks |
 | D9 | `level.dat` growth came from the 1.21.1 mod inlining generators; check whether the base worlds' pack entries can grow it on 26.3, then reword or retire |
+| T13 | Rewritten by `edits.py` step `webmap`: the mod's export into `data/map-web`, `MAP_INTERVAL`, `./ops map` |
 | T31 | Seed per dimension is v2's `seed` (or `"env"`); the `ServerWorldSeedMixin` wording goes |
 | T33 | `structures.force` over a void: re-measure against 26.3 forced starts, which skip the biome check only |
 | T48 | Moog's sets now reach the world through bridges and structure control; re-measure the spacing claim |
@@ -65,4 +67,4 @@ A list, not an edit. Classified from each entry's heading and first lines (`ts-f
 | T178 | "A linked 26.x consumer refuses the 1.21.1 dimension files": still true for a consumer whose `data/config/` predates the switch; reword around `./dev refresh-config` |
 | T177 | `.minecraft-version` in a linked checkout: drop the 1.21.1 example |
 
-Everything else (T1–T17, T30, T41–T47, T49, T50, T57, T61, T63, T67, T68, T77, T78, T80, T83, T87, T88, T90, T117–T215, P1, P3–P6, D8, K1, K2, K5, K6, K9, K17) applies after the switch as written, so far as its first lines show.
+Everything else (T1–T12, T14–T17, T30, T41–T47, T49, T50, T57, T61, T63, T67, T68, T77, T78, T80, T83, T87, T88, T90, T117–T215, P1, P3–P6, K1, K2, K5, K6, K9, K17) applies after the switch as written, so far as its first lines show.
