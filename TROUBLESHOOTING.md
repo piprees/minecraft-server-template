@@ -1639,10 +1639,10 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
 - **Fix:** for a structure that sits on the occupied block, give `y` one above the start height wanted.
 
 <a id="t297"></a>
-### T297 — The End's dungeons pool is shared with the pack's structure mods
-- **Symptom:** with Moog's End Structures installed, the End has about half the End cities a headless count gives (about 30 where 57 were counted).
-- **Cause:** the End dungeons noise group pools every End structure set in its group; Moog's phantom citadel joins it and takes about half the sites by weight. Headless counts (`EndCitiesTest`) see vanilla's registry only.
-- **Fix:** count End cities on a server with the pack's structure jars loaded; weight the pool, or give the citadel its own group, when the cities must hold their count.
+### T297 — A random-spread subclass keeps its own grid; only plain random spread is pooled
+- **Symptom:** a structure mod's sets ignore a dimension's noise groups and density: Moog's End Structures' phantom citadel starts on its own spacing-31 grid, outside the End's dungeons group, and its weight never competes with End cities.
+- **Cause:** `StructureRuntime.control` pools a set only when its placement's class is exactly `RandomSpreadStructurePlacement`; `moogs_structures:advanced_random_spread` (every Moog's set) subclasses it, so the set is kept as it is. Headless counts (`EndCitiesTest`) see vanilla's registry only; `/customdim starts <dimension>` counts confirmed starts under the server's registry, mods included.
+- **Fix:** read a dimension's groups from its `structure control applied` log line and its starts from `/customdim starts`; a set that must follow the groups needs plain random spread.
 
 <a id="t296"></a>
 ### T296 — The survey's End city census counts sites, not cities

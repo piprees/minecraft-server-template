@@ -98,6 +98,9 @@ public final class Messages {
             Map.entry("customdim.survey.done", "Surveyed {dimension}: {patches} patches, {columns} columns in {seconds} s; {types} surface place types, {landmarks} landmarks -> {path}"),
             Map.entry("customdim.survey.range", "Patches {patches} or size {size} is outside 1 to {maxPatches} and 1 to {maxSize}."),
             Map.entry("customdim.survey.failed", "Could not survey {dimension}: {reason}"),
+            Map.entry("customdim.starts.started", "Counting structure starts in {dimension} within {radius} blocks of 0, 0."),
+            Map.entry("customdim.starts.done", "Starts in {dimension} within {radius} blocks of 0, 0: {total} in {seconds} s: {counts}"),
+            Map.entry("customdim.starts.failed", "Could not count structure starts in {dimension}: {reason}"),
             Map.entry("customdim.pick.done", "Wrote seed {seed} into {path}; {dimension} uses it after the next restart."),
             Map.entry("customdim.pick.no_rank", "The last roll of {dimension} has no rank {rank}; roll it first."),
             Map.entry("customdim.pick.no_file", "{dimension} has no definition file at {path} to write the seed into."));
