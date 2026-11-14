@@ -4,16 +4,16 @@
   "shots": [
    {
     "kind": "surface-t1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_blackstone_keep-surface-t1.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_blackstone_keep-surface-t1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-surface-t1.jpg",
     "shows": "Blackstone fills most of the frame, in blackstone basin. Blackstone basin is 44.0% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 0%; near: blackstone 87%, polished_blackstone 1%; mid: blackstone 10.5%; biomes: adventure:blackstone_basin 100%",
+    "censusCaption": "sky 0%; near: blackstone 94.6%; mid: blackstone 5.3%; biomes: adventure:blackstone_basin 100%",
     "layer": "surface",
-    "place": "surface type 1: 47.0% of cells; biome adventure:blackstone_basin; ground blackstone; top blackstone; height 65",
+    "place": "surface type 1: 38.3% of cells; biome adventure:blackstone_basin; ground blackstone; top blackstone; height 70",
     "camera": {
-     "x": -664.5,
-     "y": 93.62000000476837,
-     "z": -502.5,
+     "x": -294.5,
+     "y": 75.62000000476837,
+     "z": -379.5,
      "yaw": -45.0,
      "pitch": 5.0
     },
@@ -23,26 +23,26 @@
     "gate": {
      "passed": false,
      "reasons": [
-      "dark: mean luma 16.9 < 30"
+      "dark: mean luma 15.7 < 30"
      ],
-     "luma": 16.9,
-     "fogPercent": 11.0
+     "luma": 15.7,
+     "fogPercent": 18.4
     },
     "frame": "as a player sees it",
     "pairOf": "the_blackstone_keep-surface-t1"
    },
    {
     "kind": "surface-t1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_blackstone_keep-surface-t1-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_blackstone_keep-surface-t1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-surface-t1-nv.jpg",
     "shows": "Blackstone fills most of the frame, in blackstone basin. Blackstone basin is 44.0% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 0%; near: blackstone 87%, polished_blackstone 1%; mid: blackstone 10.5%; biomes: adventure:blackstone_basin 100%",
+    "censusCaption": "sky 0%; near: blackstone 94.6%; mid: blackstone 5.3%; biomes: adventure:blackstone_basin 100%",
     "layer": "surface",
-    "place": "surface type 1: 47.0% of cells; biome adventure:blackstone_basin; ground blackstone; top blackstone; height 65",
+    "place": "surface type 1: 38.3% of cells; biome adventure:blackstone_basin; ground blackstone; top blackstone; height 70",
     "camera": {
-     "x": -664.5,
-     "y": 93.62000000476837,
-     "z": -502.5,
+     "x": -294.5,
+     "y": 75.62000000476837,
+     "z": -379.5,
      "yaw": -45.0,
      "pitch": 5.0
     },
@@ -52,25 +52,25 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 40.9,
-     "fogPercent": 34.4
+     "luma": 39.2,
+     "fogPercent": 53.0
     },
     "frame": "with night vision",
     "pairOf": "the_blackstone_keep-surface-t1"
    },
    {
     "kind": "sky-t1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_blackstone_keep-sky-t1.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_blackstone_keep-sky-t1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-sky-t1.jpg",
-    "shows": "Blackstone fills most of the frame, in blackstone basin. Blackstone basin is 44.0% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 0%; near: blackstone 68.3%, lava 1.1%; mid: blackstone 28.9%; biomes: adventure:blackstone_basin 100%",
+    "shows": "Crimson fungus fill most of the frame, in crimson pinewood. Crimson pinewood is 5.5% of this world's surface, 7th of its 8 surface biomes.",
+    "censusCaption": "sky 0%; near: nether_wart_block 38.1%, crimson_nylium 25.6%; far: blackstone 1.2%; biomes: adventure:crimson_pinewood 98.6%",
     "layer": "sky",
-    "place": "sky type 1: 85.7% of cells; biome adventure:blackstone_basin; ground blackstone; height 80",
+    "place": "sky type 1: 71.4% of cells; biome adventure:crimson_pinewood; ground crimson_nylium; height 69; relief over 16 blocks 64.4 (layer 53.6)",
     "camera": {
-     "x": 204.5,
-     "y": 93.62000000476837,
-     "z": -102.5,
-     "yaw": -135.0,
+     "x": -389.5,
+     "y": 51.62000000476837,
+     "z": 696.5,
+     "yaw": -90.0,
      "pitch": 5.0
     },
     "lookingAt": null,
@@ -79,27 +79,27 @@
     "gate": {
      "passed": false,
      "reasons": [
-      "dark: mean luma 17.1 < 30"
+      "dark: mean luma 27.0 < 30"
      ],
-     "luma": 17.1,
-     "fogPercent": 16.0
+     "luma": 27.0,
+     "fogPercent": 2.2
     },
     "frame": "as a player sees it",
     "pairOf": "the_blackstone_keep-sky-t1"
    },
    {
     "kind": "sky-t1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_blackstone_keep-sky-t1-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_blackstone_keep-sky-t1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-sky-t1-nv.jpg",
-    "shows": "Blackstone fills most of the frame, in blackstone basin. Blackstone basin is 44.0% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 0%; near: blackstone 68.3%, lava 1.1%; mid: blackstone 28.9%; biomes: adventure:blackstone_basin 100%",
+    "shows": "Crimson fungus fill most of the frame, in crimson pinewood. Crimson pinewood is 5.5% of this world's surface, 7th of its 8 surface biomes.",
+    "censusCaption": "sky 0%; near: nether_wart_block 37.3%, crimson_nylium 25.4%; far: blackstone 1.2%; biomes: adventure:crimson_pinewood 98.6%",
     "layer": "sky",
-    "place": "sky type 1: 85.7% of cells; biome adventure:blackstone_basin; ground blackstone; height 80",
+    "place": "sky type 1: 71.4% of cells; biome adventure:crimson_pinewood; ground crimson_nylium; height 69; relief over 16 blocks 64.4 (layer 53.6)",
     "camera": {
-     "x": 204.5,
-     "y": 93.62000000476837,
-     "z": -102.5,
-     "yaw": -135.0,
+     "x": -389.5,
+     "y": 51.62000000476837,
+     "z": 696.5,
+     "yaw": -90.0,
      "pitch": 5.0
     },
     "lookingAt": null,
@@ -108,24 +108,24 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 61.2,
-     "fogPercent": 26.8
+     "luma": 38.6,
+     "fogPercent": 2.0
     },
     "frame": "with night vision",
     "pairOf": "the_blackstone_keep-sky-t1"
    },
    {
-    "kind": "underground-t4",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_blackstone_keep-underground-t4.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-underground-t4.jpg",
-    "shows": "Blackstone and lava fill most of the frame, in blackstone basin. Blackstone basin is 44.0% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 0%; unloaded 1.7%; near: lava 31.2%, blackstone 27.6%; mid: blackstone 26.7%; far: blackstone 10.4%; biomes: adventure:blackstone_basin 100%",
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_blackstone_keep-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-underground-t1.jpg",
+    "shows": "Blackstone fills most of the frame, with soul sand, in blackstone basin and soul sand valley. Blackstone basin is 44.0% of this world's surface, 1st of its 8 surface biomes.",
+    "censusCaption": "sky 0%; near: blackstone 70.9%; mid: blackstone 8.6%, soul_sand 4.9%; far: soul_soil 2.7%, soul_sand 2.3%; biomes: adventure:blackstone_basin 81.9%, soul_sand_valley 18.1%",
     "layer": "underground",
-    "place": "underground type 4: 15.0% of cells; notableId gilded_blackstone; biome adventure:blackstone_basin; height 32; neighbour step 1.5 (layer 5.2); relief over 16 blocks 35.6 (layer 65.3); notable-block density (log) 0.3 (layer 1.0); cave air 2% (layer 21%); cave pockets 1% (layer 40%)",
+    "place": "underground type 1: 32.1% of cells; notableId gilded_blackstone; biome adventure:blackstone_basin; height 66; notable-block density (log) 0.4 (layer 1.1)",
     "camera": {
-     "x": -391.5,
-     "y": 28.50000000476837,
-     "z": 589.5,
+     "x": 573.5,
+     "y": 70.50000000476837,
+     "z": 508.5,
      "yaw": -112.5,
      "pitch": 10.0
     },
@@ -133,26 +133,28 @@
     "renderer": "render distance 32, noon, clear, clouds off",
     "nightVision": false,
     "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 46.9,
-     "fogPercent": 44.0
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 18.0 < 30"
+     ],
+     "luma": 18.0,
+     "fogPercent": 31.4
     },
     "frame": "as a player sees it",
-    "pairOf": "the_blackstone_keep-underground-t4"
+    "pairOf": "the_blackstone_keep-underground-t1"
    },
    {
-    "kind": "underground-t4-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_blackstone_keep-underground-t4-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-underground-t4-nv.jpg",
-    "shows": "Blackstone and lava fill most of the frame, in blackstone basin. Blackstone basin is 44.0% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 0%; unloaded 1.7%; near: lava 31.2%, blackstone 27.6%; mid: blackstone 26.7%; far: blackstone 10.4%; biomes: adventure:blackstone_basin 100%",
+    "kind": "underground-t1-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_blackstone_keep-underground-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-underground-t1-nv.jpg",
+    "shows": "Blackstone fills most of the frame, with soul sand, in blackstone basin and soul sand valley. Blackstone basin is 44.0% of this world's surface, 1st of its 8 surface biomes.",
+    "censusCaption": "sky 0%; near: blackstone 70.9%; mid: blackstone 8.6%, soul_sand 4.9%; far: soul_soil 2.7%, soul_sand 2.3%; biomes: adventure:blackstone_basin 81.9%, soul_sand_valley 18.1%",
     "layer": "underground",
-    "place": "underground type 4: 15.0% of cells; notableId gilded_blackstone; biome adventure:blackstone_basin; height 32; neighbour step 1.5 (layer 5.2); relief over 16 blocks 35.6 (layer 65.3); notable-block density (log) 0.3 (layer 1.0); cave air 2% (layer 21%); cave pockets 1% (layer 40%)",
+    "place": "underground type 1: 32.1% of cells; notableId gilded_blackstone; biome adventure:blackstone_basin; height 66; notable-block density (log) 0.4 (layer 1.1)",
     "camera": {
-     "x": -391.5,
-     "y": 28.50000000476837,
-     "z": 589.5,
+     "x": 573.5,
+     "y": 70.50000000476837,
+     "z": 508.5,
      "yaw": -112.5,
      "pitch": 10.0
     },
@@ -162,25 +164,25 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 121.5,
-     "fogPercent": 11.5
+     "luma": 63.6,
+     "fogPercent": 44.3
     },
     "frame": "with night vision",
-    "pairOf": "the_blackstone_keep-underground-t4"
+    "pairOf": "the_blackstone_keep-underground-t1"
    },
    {
     "kind": "roof-t8",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_blackstone_keep-roof-t8.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_blackstone_keep-roof-t8.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-roof-t8.jpg",
-    "shows": "Basalt fills most of the frame, with netherrack, in basalt deltas. Basalt deltas is 7.5% of this world's surface, 5th of its 8 surface biomes.",
-    "censusCaption": "sky 0%; near: basalt 91.5%, netherrack 3.6%; mid: basalt 3.9%; biomes: basalt_deltas 100%",
+    "shows": "Basalt and netherrack fill most of the frame, with blackstone, in basalt deltas. Basalt deltas is 7.5% of this world's surface, 5th of its 8 surface biomes.",
+    "censusCaption": "sky 0%; near: basalt 70.3%, netherrack 22.1%; mid: netherrack 1.8%; biomes: basalt_deltas 100%",
     "layer": "roof",
-    "place": "roof type 8: 4.3% of cells; notableId blackstone; height 81; layer present in 80% (layer 98%); neighbour step 4.3 (layer 1.8); relief over 16 blocks 89.8 (layer 32.6); notable-block density (log) 2.0 (layer 0.4)",
+    "place": "roof type 8: 3.3% of cells; notableId blackstone; height 67; layer present in 86% (layer 99%); neighbour step 5.8 (layer 2.1); relief over 16 blocks 84.3 (layer 33.3); notable-block density (log) 2.0 (layer 0.4)",
     "camera": {
-     "x": -791.5,
-     "y": 95.50000000476837,
-     "z": -759.5,
-     "yaw": 0.0,
+     "x": -775.5,
+     "y": 99.50000000476837,
+     "z": -679.5,
+     "yaw": 90.0,
      "pitch": -30.0
     },
     "lookingAt": null,
@@ -189,27 +191,27 @@
     "gate": {
      "passed": false,
      "reasons": [
-      "dark: mean luma 27.5 < 30"
+      "dark: mean luma 28.1 < 30"
      ],
-     "luma": 27.5,
-     "fogPercent": 0.0
+     "luma": 28.1,
+     "fogPercent": 27.5
     },
     "frame": "as a player sees it",
     "pairOf": "the_blackstone_keep-roof-t8"
    },
    {
     "kind": "roof-t8-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_blackstone_keep-roof-t8-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_blackstone_keep-roof-t8-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-roof-t8-nv.jpg",
-    "shows": "Basalt fills most of the frame, with netherrack, in basalt deltas. Basalt deltas is 7.5% of this world's surface, 5th of its 8 surface biomes.",
-    "censusCaption": "sky 0%; near: basalt 91.5%, netherrack 3.6%; mid: basalt 3.9%; biomes: basalt_deltas 100%",
+    "shows": "Basalt and netherrack fill most of the frame, with blackstone, in basalt deltas. Basalt deltas is 7.5% of this world's surface, 5th of its 8 surface biomes.",
+    "censusCaption": "sky 0%; near: basalt 70.3%, netherrack 22.1%; mid: netherrack 1.8%; biomes: basalt_deltas 100%",
     "layer": "roof",
-    "place": "roof type 8: 4.3% of cells; notableId blackstone; height 81; layer present in 80% (layer 98%); neighbour step 4.3 (layer 1.8); relief over 16 blocks 89.8 (layer 32.6); notable-block density (log) 2.0 (layer 0.4)",
+    "place": "roof type 8: 3.3% of cells; notableId blackstone; height 67; layer present in 86% (layer 99%); neighbour step 5.8 (layer 2.1); relief over 16 blocks 84.3 (layer 33.3); notable-block density (log) 2.0 (layer 0.4)",
     "camera": {
-     "x": -791.5,
-     "y": 95.50000000476837,
-     "z": -759.5,
-     "yaw": 0.0,
+     "x": -775.5,
+     "y": 99.50000000476837,
+     "z": -679.5,
+     "yaw": 90.0,
      "pitch": -30.0
     },
     "lookingAt": null,
@@ -218,25 +220,25 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 54.6,
-     "fogPercent": 2.4
+     "luma": 44.2,
+     "fogPercent": 31.9
     },
     "frame": "with night vision",
     "pairOf": "the_blackstone_keep-roof-t8"
    },
    {
-    "kind": "surface-t4",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_blackstone_keep-surface-t4.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-surface-t4.jpg",
-    "shows": "Netherrack and crimson fungus fill most of the frame, in crimson forest. Crimson forest is 9.6% of this world's surface, 4th of its 8 surface biomes.",
-    "censusCaption": "sky 0%; near: netherrack 45.3%, nether_wart_block 32.2%; mid: netherrack 7.2%, nether_wart_block 5.8%; biomes: crimson_forest 93.8%, adventure:crimson_pinewood 6.2%",
+    "kind": "surface-t3",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_blackstone_keep-surface-t3.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-surface-t3.jpg",
+    "shows": "Crimson fungus and netherrack fill most of the frame, in crimson forest. Crimson forest is 9.6% of this world's surface, 4th of its 8 surface biomes.",
+    "censusCaption": "sky 0%; near: crimson_stem 34.2%, crimson_nylium 12.8%; mid: nether_wart_block 18.8%, netherrack 12.4%; far: netherrack 1%; biomes: crimson_forest 100%",
     "layer": "surface",
-    "place": "surface type 4: 7.7% of cells; biome crimson_forest; ground crimson_nylium; top nether_wart_block; height 59; relief over 16 blocks 84.9 (layer 67.5); relief over the patch 114.0 (layer 101.7); trees per cell 4.7 (layer 0.4); canopy 39% (layer 4%); ground plants 15% (layer 1%); liquid cover 5% (layer 20%); bare rock 11% (layer 60%)",
+    "place": "surface type 3: 10.7% of cells; biome crimson_forest; ground crimson_nylium; top nether_wart_block; height 62; trees per cell 4.8 (layer 0.7); canopy 44% (layer 8%); ground plants 15% (layer 2%); liquid cover 4% (layer 17%); bare rock 9% (layer 60%); overhangs 52% (layer 34%); stacked layers 8% (layer 3%)",
     "camera": {
-     "x": -691.5,
-     "y": 106.62000000476837,
-     "z": 711.5,
-     "yaw": 135.0,
+     "x": -792.5,
+     "y": 58.62000000476837,
+     "z": 378.5,
+     "yaw": 90.0,
      "pitch": 5.0
     },
     "lookingAt": null,
@@ -245,28 +247,27 @@
     "gate": {
      "passed": false,
      "reasons": [
-      "dark: mean luma 13.4 < 30",
-      "fog wall: 72.1% of pixels within 24 of the fog colour"
+      "dark: mean luma 17.8 < 30"
      ],
-     "luma": 13.4,
-     "fogPercent": 72.1
+     "luma": 17.8,
+     "fogPercent": 21.2
     },
     "frame": "as a player sees it",
-    "pairOf": "the_blackstone_keep-surface-t4"
+    "pairOf": "the_blackstone_keep-surface-t3"
    },
    {
-    "kind": "surface-t4-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_blackstone_keep-surface-t4-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-surface-t4-nv.jpg",
-    "shows": "Netherrack and crimson fungus fill most of the frame, in crimson forest. Crimson forest is 9.6% of this world's surface, 4th of its 8 surface biomes.",
-    "censusCaption": "sky 0%; near: netherrack 45.3%, nether_wart_block 32.2%; mid: netherrack 7.2%, nether_wart_block 5.8%; biomes: crimson_forest 93.8%, adventure:crimson_pinewood 6.2%",
+    "kind": "surface-t3-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_blackstone_keep-surface-t3-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-surface-t3-nv.jpg",
+    "shows": "Crimson fungus and netherrack fill most of the frame, in crimson forest. Crimson forest is 9.6% of this world's surface, 4th of its 8 surface biomes.",
+    "censusCaption": "sky 0%; near: crimson_stem 34.2%, crimson_nylium 12.8%; mid: nether_wart_block 18.8%, netherrack 12.4%; far: netherrack 1%; biomes: crimson_forest 100%",
     "layer": "surface",
-    "place": "surface type 4: 7.7% of cells; biome crimson_forest; ground crimson_nylium; top nether_wart_block; height 59; relief over 16 blocks 84.9 (layer 67.5); relief over the patch 114.0 (layer 101.7); trees per cell 4.7 (layer 0.4); canopy 39% (layer 4%); ground plants 15% (layer 1%); liquid cover 5% (layer 20%); bare rock 11% (layer 60%)",
+    "place": "surface type 3: 10.7% of cells; biome crimson_forest; ground crimson_nylium; top nether_wart_block; height 62; trees per cell 4.8 (layer 0.7); canopy 44% (layer 8%); ground plants 15% (layer 2%); liquid cover 4% (layer 17%); bare rock 9% (layer 60%); overhangs 52% (layer 34%); stacked layers 8% (layer 3%)",
     "camera": {
-     "x": -691.5,
-     "y": 106.62000000476837,
-     "z": 711.5,
-     "yaw": 135.0,
+     "x": -792.5,
+     "y": 58.62000000476837,
+     "z": 378.5,
+     "yaw": 90.0,
      "pitch": 5.0
     },
     "lookingAt": null,
@@ -275,25 +276,81 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 31.6,
-     "fogPercent": 17.6
+     "luma": 59.2,
+     "fogPercent": 8.1
     },
     "frame": "with night vision",
-    "pairOf": "the_blackstone_keep-surface-t4"
+    "pairOf": "the_blackstone_keep-surface-t3"
    },
    {
-    "kind": "surface-t3",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_blackstone_keep-surface-t3.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-surface-t3.jpg",
-    "shows": "Blackstone and lava fill most of the frame, in blackstone basin. Blackstone basin is 44.0% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 0%; near: lava 44.7%, blackstone 18.4%; mid: blackstone 27.7%; far: blackstone 7.7%; biomes: adventure:blackstone_basin 100%",
+    "kind": "surface-t2",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_blackstone_keep-surface-t2.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-surface-t2.jpg",
+    "shows": "Soul sand fills most of the frame, with netherrack, in soul sand valley. Soul sand valley is 11.1% of this world's surface, 3rd of its 8 surface biomes.",
+    "censusCaption": "sky 0%; near: soul_soil 51.3%, soul_sand 10.3%; mid: soul_sand 16.4%, soul_soil 12.7%; biomes: soul_sand_valley 100%",
     "layer": "surface",
-    "place": "surface type 3: 11.5% of cells; biome adventure:blackstone_basin; ground blackstone; top lava; height 28; liquid cover 69% (layer 20%); bare rock 27% (layer 60%); overhangs 11% (layer 30%); cave pockets 2% (layer 40%)",
+    "place": "surface type 2: 18.9% of cells; biome soul_sand_valley; ground netherrack; top netherrack; height 77; liquid cover 5% (layer 17%)",
     "camera": {
-     "x": -391.5,
-     "y": 25.62000000476837,
-     "z": 584.5,
+     "x": 888.5,
+     "y": 44.62000000476837,
+     "z": 488.5,
      "yaw": -135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 19.4 < 30"
+     ],
+     "luma": 19.4,
+     "fogPercent": 36.3
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_blackstone_keep-surface-t2"
+   },
+   {
+    "kind": "surface-t2-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_blackstone_keep-surface-t2-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-surface-t2-nv.jpg",
+    "shows": "Soul sand fills most of the frame, with netherrack, in soul sand valley. Soul sand valley is 11.1% of this world's surface, 3rd of its 8 surface biomes.",
+    "censusCaption": "sky 0%; near: soul_soil 51.3%, soul_sand 10.3%; mid: soul_sand 16.4%, soul_soil 12.7%; biomes: soul_sand_valley 100%",
+    "layer": "surface",
+    "place": "surface type 2: 18.9% of cells; biome soul_sand_valley; ground netherrack; top netherrack; height 77; liquid cover 5% (layer 17%)",
+    "camera": {
+     "x": 888.5,
+     "y": 44.62000000476837,
+     "z": 488.5,
+     "yaw": -135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 62.3,
+     "fogPercent": 12.1
+    },
+    "frame": "with night vision",
+    "pairOf": "the_blackstone_keep-surface-t2"
+   },
+   {
+    "kind": "surface-lm1",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_blackstone_keep-surface-lm1.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-surface-lm1.jpg",
+    "shows": "Netherrack and magma fill most of the frame, with lava and crimson fungus, in crimson forest. Crimson forest is 9.6% of this world's surface, 4th of its 8 surface biomes.",
+    "censusCaption": "sky 0%; near: netherrack 61.9%, magma_block 18.9%; biomes: crimson_forest 100%",
+    "layer": "surface",
+    "place": "surface landmark: biome crimson_forest (type soul_sand_valley); ground crimson_nylium (type netherrack); neighbour step 13.2 (type 5.5); relief over the patch 125.0 (type 97.0); relief over 16 blocks 125.0 (type 79.0)",
+    "camera": {
+     "x": -570.5,
+     "y": 32.62000000476837,
+     "z": 518.5,
+     "yaw": 45.0,
      "pitch": 5.0
     },
     "lookingAt": null,
@@ -302,25 +359,25 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 57.9,
-     "fogPercent": 6.7
+     "luma": 38.3,
+     "fogPercent": 0.4
     },
     "frame": "as a player sees it",
-    "pairOf": "the_blackstone_keep-surface-t3"
+    "pairOf": "the_blackstone_keep-surface-lm1"
    },
    {
-    "kind": "surface-t3-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_blackstone_keep-surface-t3-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-surface-t3-nv.jpg",
-    "shows": "Blackstone and lava fill most of the frame, in blackstone basin. Blackstone basin is 44.0% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 0%; near: lava 44.7%, blackstone 18.4%; mid: blackstone 27.7%; far: blackstone 7.7%; biomes: adventure:blackstone_basin 100%",
+    "kind": "surface-lm1-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_blackstone_keep-surface-lm1-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_blackstone_keep-surface-lm1-nv.jpg",
+    "shows": "Netherrack and magma fill most of the frame, with lava and crimson fungus, in crimson forest. Crimson forest is 9.6% of this world's surface, 4th of its 8 surface biomes.",
+    "censusCaption": "sky 0%; near: netherrack 61.9%, magma_block 18.9%; biomes: crimson_forest 100%",
     "layer": "surface",
-    "place": "surface type 3: 11.5% of cells; biome adventure:blackstone_basin; ground blackstone; top lava; height 28; liquid cover 69% (layer 20%); bare rock 27% (layer 60%); overhangs 11% (layer 30%); cave pockets 2% (layer 40%)",
+    "place": "surface landmark: biome crimson_forest (type soul_sand_valley); ground crimson_nylium (type netherrack); neighbour step 13.2 (type 5.5); relief over the patch 125.0 (type 97.0); relief over 16 blocks 125.0 (type 79.0)",
     "camera": {
-     "x": -391.5,
-     "y": 25.62000000476837,
-     "z": 584.5,
-     "yaw": -135.0,
+     "x": -570.5,
+     "y": 32.62000000476837,
+     "z": 518.5,
+     "yaw": 45.0,
      "pitch": 5.0
     },
     "lookingAt": null,
@@ -329,11 +386,11 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 126.7,
-     "fogPercent": 8.5
+     "luma": 51.2,
+     "fogPercent": 2.8
     },
     "frame": "with night vision",
-    "pairOf": "the_blackstone_keep-surface-t3"
+    "pairOf": "the_blackstone_keep-surface-lm1"
    }
   ]
  },
@@ -623,232 +680,16 @@
   "shots": [
    {
     "kind": "surface-t1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_obsidian_sanctum-surface-t1.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_obsidian_sanctum-surface-t1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-surface-t1.jpg",
-    "shows": "Soul sand, netherrack and crimson fungus fill most of the frame, with grass tufts, in withered forest. Withered forest is 57.0% of this world's surface, 1st of its 4 surface biomes.",
-    "censusCaption": "sky 0%; near: soul_soil 30.4%, stripped_crimson_stem 12.2%; mid: netherrack 16.8%, soul_soil 6.1%; biomes: adventure:withered_forest 100%",
+    "shows": "Soul sand, crimson fungus and netherrack fill most of the frame, with grass tufts, in withered forest. Withered forest is 56.0% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 0%; near: soul_soil 51.6%, stripped_crimson_stem 16.3%; biomes: adventure:withered_forest 100%",
     "layer": "surface",
-    "place": "surface type 1: 52.0% of cells; biome adventure:withered_forest; ground soul_soil; top soul_soil; height 59; trees per cell 5.9 (layer 3.1); canopy 4% (layer 2%); ground plants 7% (layer 4%)",
+    "place": "surface type 1: 48.4% of cells; biome adventure:withered_forest; ground soul_soil; top soul_soil; height 67; trees per cell 5.4 (layer 2.6); canopy 3% (layer 2%); ground plants 6% (layer 3%)",
     "camera": {
-     "x": 632.5,
-     "y": 82.62000000476837,
-     "z": 600.5,
-     "yaw": 135.0,
-     "pitch": 5.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": false,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 58.7,
-     "fogPercent": 31.2
-    },
-    "frame": "as a player sees it",
-    "pairOf": "the_obsidian_sanctum-surface-t1"
-   },
-   {
-    "kind": "surface-t1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_obsidian_sanctum-surface-t1-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-surface-t1-nv.jpg",
-    "shows": "Soul sand, netherrack and crimson fungus fill most of the frame, with grass tufts, in withered forest. Withered forest is 57.0% of this world's surface, 1st of its 4 surface biomes.",
-    "censusCaption": "sky 0%; near: soul_soil 30.4%, stripped_crimson_stem 12.2%; mid: netherrack 16.8%, soul_soil 6.1%; biomes: adventure:withered_forest 100%",
-    "layer": "surface",
-    "place": "surface type 1: 52.0% of cells; biome adventure:withered_forest; ground soul_soil; top soul_soil; height 59; trees per cell 5.9 (layer 3.1); canopy 4% (layer 2%); ground plants 7% (layer 4%)",
-    "camera": {
-     "x": 632.5,
-     "y": 82.62000000476837,
-     "z": 600.5,
-     "yaw": 135.0,
-     "pitch": 5.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": true,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 134.3,
-     "fogPercent": 7.1
-    },
-    "frame": "with night vision",
-    "pairOf": "the_obsidian_sanctum-surface-t1"
-   },
-   {
-    "kind": "sky-t1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_obsidian_sanctum-sky-t1.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-sky-t1.jpg",
-    "shows": "Netherrack and soul sand fill most of the frame, in withered forest. Withered forest is 57.0% of this world's surface, 1st of its 4 surface biomes.",
-    "censusCaption": "sky 0%; near: netherrack 38.4%, soul_soil 37.4%; mid: netherrack 11.5%, soul_soil 6.6%; biomes: adventure:withered_forest 100%",
-    "layer": "sky",
-    "place": "sky type 1: 64.3% of cells; biome adventure:withered_forest; ground soul_soil; height 83",
-    "camera": {
-     "x": 199.5,
-     "y": 74.62000000476837,
-     "z": 233.5,
-     "yaw": -135.0,
-     "pitch": 5.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": false,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 50.0,
-     "fogPercent": 21.3
-    },
-    "frame": "as a player sees it",
-    "pairOf": "the_obsidian_sanctum-sky-t1"
-   },
-   {
-    "kind": "sky-t1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_obsidian_sanctum-sky-t1-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-sky-t1-nv.jpg",
-    "shows": "Netherrack and soul sand fill most of the frame, in withered forest. Withered forest is 57.0% of this world's surface, 1st of its 4 surface biomes.",
-    "censusCaption": "sky 0%; near: netherrack 38.4%, soul_soil 37.4%; mid: netherrack 11.5%, soul_soil 6.4%; biomes: adventure:withered_forest 100%",
-    "layer": "sky",
-    "place": "sky type 1: 64.3% of cells; biome adventure:withered_forest; ground soul_soil; height 83",
-    "camera": {
-     "x": 199.5,
-     "y": 74.62000000476837,
-     "z": 233.5,
-     "yaw": -135.0,
-     "pitch": 5.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": true,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 107.7,
-     "fogPercent": 2.0
-    },
-    "frame": "with night vision",
-    "pairOf": "the_obsidian_sanctum-sky-t1"
-   },
-   {
-    "kind": "underground-t2",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_obsidian_sanctum-underground-t2.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-underground-t2.jpg",
-    "shows": "Soul sand and crimson fungus fill most of the frame, with netherrack and warped fungus, in withered forest. Withered forest is 57.0% of this world's surface, 1st of its 4 surface biomes.",
-    "censusCaption": "sky 0%; near: soul_soil 34.3%, stripped_crimson_stem 16.3%; mid: netherrack 4.6%, soul_soil 3%; far: netherrack 8.7%, soul_soil 1.5%; biomes: adventure:withered_forest 100%",
-    "layer": "underground",
-    "place": "underground type 2: 21.8% of cells; notableId blackstone; biome adventure:withered_forest; height 30; trees per cell 0.5 (layer 2.9); notable-block density (log) 0.5 (layer 1.3); cave air 6% (layer 26%); cave pockets 1% (layer 40%)",
-    "camera": {
-     "x": 862.5,
-     "y": 24.50000000476837,
-     "z": 210.5,
-     "yaw": -22.5,
-     "pitch": 10.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": false,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 46.9,
-     "fogPercent": 0.0
-    },
-    "frame": "as a player sees it",
-    "pairOf": "the_obsidian_sanctum-underground-t2"
-   },
-   {
-    "kind": "underground-t2-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_obsidian_sanctum-underground-t2-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-underground-t2-nv.jpg",
-    "shows": "Soul sand and crimson fungus fill most of the frame, with netherrack and warped fungus, in withered forest. Withered forest is 57.0% of this world's surface, 1st of its 4 surface biomes.",
-    "censusCaption": "sky 0%; near: soul_soil 34.3%, stripped_crimson_stem 16.3%; mid: netherrack 4.6%, soul_soil 3%; far: netherrack 8.7%, soul_soil 1.5%; biomes: adventure:withered_forest 100%",
-    "layer": "underground",
-    "place": "underground type 2: 21.8% of cells; notableId blackstone; biome adventure:withered_forest; height 30; trees per cell 0.5 (layer 2.9); notable-block density (log) 0.5 (layer 1.3); cave air 6% (layer 26%); cave pockets 1% (layer 40%)",
-    "camera": {
-     "x": 862.5,
-     "y": 24.50000000476837,
-     "z": 210.5,
-     "yaw": -22.5,
-     "pitch": 10.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": true,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 119.8,
-     "fogPercent": 1.0
-    },
-    "frame": "with night vision",
-    "pairOf": "the_obsidian_sanctum-underground-t2"
-   },
-   {
-    "kind": "roof-t1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_obsidian_sanctum-roof-t1.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-roof-t1.jpg",
-    "shows": "Netherrack and glowstone fill most of the frame, in withered forest. Withered forest is 57.0% of this world's surface, 1st of its 4 surface biomes.",
-    "censusCaption": "sky 0%; near: netherrack 74.5%, glowstone 19.7%; mid: netherrack 2.7%; far: netherrack 1.7%; biomes: adventure:withered_forest 100%",
-    "layer": "roof",
-    "place": "roof type 1: 62.2% of cells; notableId nether_quartz_ore; height 107; relief over 16 blocks 15.7 (layer 31.0)",
-    "camera": {
-     "x": 168.5,
-     "y": 105.50000000476837,
-     "z": 232.5,
-     "yaw": 0.0,
-     "pitch": -30.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": false,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 56.5,
-     "fogPercent": 9.0
-    },
-    "frame": "as a player sees it",
-    "pairOf": "the_obsidian_sanctum-roof-t1"
-   },
-   {
-    "kind": "roof-t1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_obsidian_sanctum-roof-t1-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-roof-t1-nv.jpg",
-    "shows": "Netherrack and glowstone fill most of the frame, in withered forest. Withered forest is 57.0% of this world's surface, 1st of its 4 surface biomes.",
-    "censusCaption": "sky 0%; near: netherrack 74.5%, glowstone 19.7%; mid: netherrack 2.7%; far: netherrack 1.7%; biomes: adventure:withered_forest 100%",
-    "layer": "roof",
-    "place": "roof type 1: 62.2% of cells; notableId nether_quartz_ore; height 107; relief over 16 blocks 15.7 (layer 31.0)",
-    "camera": {
-     "x": 168.5,
-     "y": 105.50000000476837,
-     "z": 232.5,
-     "yaw": 0.0,
-     "pitch": -30.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": true,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 92.8,
-     "fogPercent": 1.2
-    },
-    "frame": "with night vision",
-    "pairOf": "the_obsidian_sanctum-roof-t1"
-   },
-   {
-    "kind": "surface-t2",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_obsidian_sanctum-surface-t2.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-surface-t2.jpg",
-    "shows": "Soul sand fills most of the frame, with netherrack, in soul sand valley. Soul sand valley is 28.0% of this world's surface, 2nd of its 4 surface biomes.",
-    "censusCaption": "sky 0%; near: soul_sand 68.9%, soul_soil 17.7%; mid: soul_sand 4.6%, netherrack 4.3%; biomes: soul_sand_valley 100%",
-    "layer": "surface",
-    "place": "surface type 2: 48.0% of cells; biome soul_sand_valley; ground soul_sand; top soul_sand; height 72; trees per cell 0.1 (layer 3.1); canopy 0% (layer 2%); ground plants 0% (layer 4%)",
-    "camera": {
-     "x": 712.5,
-     "y": 96.62000000476837,
-     "z": -935.5,
+     "x": 375.5,
+     "y": 36.62000000476837,
+     "z": -270.5,
      "yaw": -45.0,
      "pitch": 5.0
     },
@@ -858,26 +699,26 @@
     "gate": {
      "passed": false,
      "reasons": [
-      "dark: mean luma 18.9 < 30"
+      "dark: mean luma 16.6 < 30"
      ],
-     "luma": 18.9,
-     "fogPercent": 0.0
+     "luma": 16.6,
+     "fogPercent": 2.2
     },
     "frame": "as a player sees it",
-    "pairOf": "the_obsidian_sanctum-surface-t2"
+    "pairOf": "the_obsidian_sanctum-surface-t1"
    },
    {
-    "kind": "surface-t2-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_obsidian_sanctum-surface-t2-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-surface-t2-nv.jpg",
-    "shows": "Soul sand fills most of the frame, with netherrack, in soul sand valley. Soul sand valley is 28.0% of this world's surface, 2nd of its 4 surface biomes.",
-    "censusCaption": "sky 0%; near: soul_sand 68.9%, soul_soil 17.7%; mid: soul_sand 4.6%, netherrack 4.3%; biomes: soul_sand_valley 100%",
+    "kind": "surface-t1-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_obsidian_sanctum-surface-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-surface-t1-nv.jpg",
+    "shows": "Soul sand, crimson fungus and netherrack fill most of the frame, with grass tufts, in withered forest. Withered forest is 56.0% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 0%; near: soul_soil 51.6%, stripped_crimson_stem 16.3%; biomes: adventure:withered_forest 100%",
     "layer": "surface",
-    "place": "surface type 2: 48.0% of cells; biome soul_sand_valley; ground soul_sand; top soul_sand; height 72; trees per cell 0.1 (layer 3.1); canopy 0% (layer 2%); ground plants 0% (layer 4%)",
+    "place": "surface type 1: 48.4% of cells; biome adventure:withered_forest; ground soul_soil; top soul_soil; height 67; trees per cell 5.4 (layer 2.6); canopy 3% (layer 2%); ground plants 6% (layer 3%)",
     "camera": {
-     "x": 712.5,
-     "y": 96.62000000476837,
-     "z": -935.5,
+     "x": 375.5,
+     "y": 36.62000000476837,
+     "z": -270.5,
      "yaw": -45.0,
      "pitch": 5.0
     },
@@ -887,25 +728,306 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 51.3,
-     "fogPercent": 10.5
+     "luma": 42.8,
+     "fogPercent": 19.8
+    },
+    "frame": "with night vision",
+    "pairOf": "the_obsidian_sanctum-surface-t1"
+   },
+   {
+    "kind": "sky-t1",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_obsidian_sanctum-sky-t1.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-sky-t1.jpg",
+    "shows": "Soul sand, crimson fungus and netherrack fill most of the frame, with wither rose, in withered forest. Withered forest is 56.0% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 0%; near: soul_soil 38.7%, stripped_crimson_stem 30.2%; mid: netherrack 16.1%, soul_soil 3.1%; biomes: adventure:withered_forest 100%",
+    "layer": "sky",
+    "place": "sky type 1: 100.0% of cells; biome adventure:withered_forest; ground soul_soil; height 69",
+    "camera": {
+     "x": -856.5,
+     "y": 58.62000000476837,
+     "z": -391.5,
+     "yaw": 135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 16.3 < 30"
+     ],
+     "luma": 16.3,
+     "fogPercent": 36.8
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_obsidian_sanctum-sky-t1"
+   },
+   {
+    "kind": "sky-t1-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_obsidian_sanctum-sky-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-sky-t1-nv.jpg",
+    "shows": "Soul sand, crimson fungus and netherrack fill most of the frame, with wither rose, in withered forest. Withered forest is 56.0% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 0%; near: soul_soil 38.7%, stripped_crimson_stem 30.2%; mid: netherrack 16.1%, soul_soil 3.1%; biomes: adventure:withered_forest 100%",
+    "layer": "sky",
+    "place": "sky type 1: 100.0% of cells; biome adventure:withered_forest; ground soul_soil; height 69",
+    "camera": {
+     "x": -856.5,
+     "y": 58.62000000476837,
+     "z": -391.5,
+     "yaw": 135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 57.3,
+     "fogPercent": 2.2
+    },
+    "frame": "with night vision",
+    "pairOf": "the_obsidian_sanctum-sky-t1"
+   },
+   {
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_obsidian_sanctum-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-underground-t1.jpg",
+    "shows": "Netherrack and soul sand fill most of the frame, with crimson fungus, in withered forest. Withered forest is 56.0% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 0%; near: netherrack 28.6%, soul_soil 23%; mid: netherrack 25.6%, soul_soil 3.1%; far: netherrack 5.5%, soul_soil 1.6%; biomes: adventure:withered_forest 100%",
+    "layer": "underground",
+    "place": "underground type 1: 61.6% of cells; notableId magma_block; biome adventure:withered_forest; height 79",
+    "camera": {
+     "x": 306.5,
+     "y": 44.500000004768374,
+     "z": 270.5,
+     "yaw": 157.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 15.6 < 30",
+      "fog wall: 65.1% of pixels within 24 of the fog colour"
+     ],
+     "luma": 15.6,
+     "fogPercent": 65.1
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_obsidian_sanctum-underground-t1"
+   },
+   {
+    "kind": "underground-t1-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_obsidian_sanctum-underground-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-underground-t1-nv.jpg",
+    "shows": "Netherrack and soul sand fill most of the frame, with crimson fungus, in withered forest. Withered forest is 56.0% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 0%; near: netherrack 28.6%, soul_soil 23%; mid: netherrack 25.6%, soul_soil 3.1%; far: netherrack 5.4%, soul_soil 1.6%; biomes: adventure:withered_forest 100%",
+    "layer": "underground",
+    "place": "underground type 1: 61.6% of cells; notableId magma_block; biome adventure:withered_forest; height 79",
+    "camera": {
+     "x": 306.5,
+     "y": 44.500000004768374,
+     "z": 270.5,
+     "yaw": 157.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 69.5,
+     "fogPercent": 2.9
+    },
+    "frame": "with night vision",
+    "pairOf": "the_obsidian_sanctum-underground-t1"
+   },
+   {
+    "kind": "roof-t1",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_obsidian_sanctum-roof-t1.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-roof-t1.jpg",
+    "shows": "Netherrack fills most of the frame, in withered forest. Withered forest is 56.0% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 0%; near: netherrack 71.5%, nether_quartz_ore 1.4%; mid: netherrack 14.8%, glowstone 2.6%; far: netherrack 4.4%, soul_soil 1.4%; biomes: adventure:withered_forest 99.9%",
+    "layer": "roof",
+    "place": "roof type 1: 74.0% of cells; notableId nether_quartz_ore; height 107; relief over 16 blocks 16.1 (layer 31.8)",
+    "camera": {
+     "x": 792.5,
+     "y": 104.50000000476837,
+     "z": 216.5,
+     "yaw": 0.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 16.3 < 30"
+     ],
+     "luma": 16.3,
+     "fogPercent": 42.7
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_obsidian_sanctum-roof-t1"
+   },
+   {
+    "kind": "roof-t1-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_obsidian_sanctum-roof-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-roof-t1-nv.jpg",
+    "shows": "Netherrack fills most of the frame, in withered forest. Withered forest is 56.0% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 0%; near: netherrack 71.5%, nether_quartz_ore 1.4%; mid: netherrack 14.8%, glowstone 2.6%; far: netherrack 4.4%, soul_soil 1.4%; biomes: adventure:withered_forest 99.9%",
+    "layer": "roof",
+    "place": "roof type 1: 74.0% of cells; notableId nether_quartz_ore; height 107; relief over 16 blocks 16.1 (layer 31.8)",
+    "camera": {
+     "x": 792.5,
+     "y": 104.50000000476837,
+     "z": 216.5,
+     "yaw": 0.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 64.6,
+     "fogPercent": 0.0
+    },
+    "frame": "with night vision",
+    "pairOf": "the_obsidian_sanctum-roof-t1"
+   },
+   {
+    "kind": "surface-t2",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_obsidian_sanctum-surface-t2.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-surface-t2.jpg",
+    "shows": "Soul sand fills most of the frame, with netherrack, in soul sand valley. Soul sand valley is 24.0% of this world's surface, 2nd of its 4 surface biomes.",
+    "censusCaption": "sky 0.8%; near: soul_soil 47.8%, soul_sand 11.2%; mid: soul_sand 19.1%, soul_soil 12.7%; biomes: soul_sand_valley 99%",
+    "layer": "surface",
+    "place": "surface type 2: 16.0% of cells; biome soul_sand_valley; ground soul_soil; top soul_soil; height 74; relief over the patch 97.5 (layer 107.8); trees per cell 0.0 (layer 2.6); notable-block density (log) 1.1 (layer 0.6); canopy 0% (layer 2%); ground plants 1% (layer 3%)",
+    "camera": {
+     "x": 153.5,
+     "y": 84.62000000476837,
+     "z": -695.5,
+     "yaw": 0.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 19.5 < 30"
+     ],
+     "luma": 19.5,
+     "fogPercent": 29.3
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_obsidian_sanctum-surface-t2"
+   },
+   {
+    "kind": "surface-t2-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_obsidian_sanctum-surface-t2-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-surface-t2-nv.jpg",
+    "shows": "Soul sand fills most of the frame, with netherrack, in soul sand valley. Soul sand valley is 24.0% of this world's surface, 2nd of its 4 surface biomes.",
+    "censusCaption": "sky 0.8%; near: soul_soil 47.8%, soul_sand 11.2%; mid: soul_sand 19.1%, soul_soil 12.7%; biomes: soul_sand_valley 99%",
+    "layer": "surface",
+    "place": "surface type 2: 16.0% of cells; biome soul_sand_valley; ground soul_soil; top soul_soil; height 74; relief over the patch 97.5 (layer 107.8); trees per cell 0.0 (layer 2.6); notable-block density (log) 1.1 (layer 0.6); canopy 0% (layer 2%); ground plants 1% (layer 3%)",
+    "camera": {
+     "x": 153.5,
+     "y": 84.62000000476837,
+     "z": -695.5,
+     "yaw": 0.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 56.5,
+     "fogPercent": 0.3
     },
     "frame": "with night vision",
     "pairOf": "the_obsidian_sanctum-surface-t2"
    },
    {
-    "kind": "sky-t2",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_obsidian_sanctum-sky-t2.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-sky-t2.jpg",
-    "shows": "Basalt fills most of the frame, with netherrack, in basalt deltas. Basalt deltas is 6.4% of this world's surface, 4th of its 4 surface biomes.",
-    "censusCaption": "sky 0%; near: basalt 66.6%, lava 1.3%; mid: basalt 22.1%, blackstone 1%; far: netherrack 4.6%, obsidian 2.5%; biomes: basalt_deltas 92.4%, nether_wastes 7.6%",
-    "layer": "sky",
-    "place": "sky type 2: 35.7% of cells; biome basalt_deltas; ground basalt; height 77; layer present in 40% (layer 53%); neighbour step 3.5 (layer 2.8); relief over 16 blocks 33.6 (layer 43.0); trees per cell 0.2 (layer 2.4)",
+    "kind": "surface-t3",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_obsidian_sanctum-surface-t3.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-surface-t3.jpg",
+    "shows": "Obsidian and netherrack fill most of the frame, with magma, in nether wastes. Nether wastes is 11.9% of this world's surface, 3rd of its 4 surface biomes.",
+    "censusCaption": "sky 0%; near: obsidian 52%, netherrack 10.7%; mid: netherrack 24.5%, obsidian 7.2%; biomes: nether_wastes 100%",
+    "layer": "surface",
+    "place": "surface type 3: 13.8% of cells; biome nether_wastes; ground obsidian; top obsidian; height 45; relief over the patch 116.1 (layer 107.8); trees per cell 0.1 (layer 2.6); canopy 0% (layer 2%); ground plants 0% (layer 3%)",
     "camera": {
-     "x": 613.5,
-     "y": 77.62000000476837,
-     "z": 632.5,
-     "yaw": -45.0,
+     "x": 962.5,
+     "y": 24.62000000476837,
+     "z": 644.5,
+     "yaw": 0.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 8.4 < 30"
+     ],
+     "luma": 8.4,
+     "fogPercent": 7.2
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_obsidian_sanctum-surface-t3"
+   },
+   {
+    "kind": "surface-t3-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_obsidian_sanctum-surface-t3-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-surface-t3-nv.jpg",
+    "shows": "Obsidian and netherrack fill most of the frame, with magma, in nether wastes. Nether wastes is 11.9% of this world's surface, 3rd of its 4 surface biomes.",
+    "censusCaption": "sky 0%; near: obsidian 52%, netherrack 10.7%; mid: netherrack 24.4%, obsidian 7%; biomes: nether_wastes 100%",
+    "layer": "surface",
+    "place": "surface type 3: 13.8% of cells; biome nether_wastes; ground obsidian; top obsidian; height 45; relief over the patch 116.1 (layer 107.8); trees per cell 0.1 (layer 2.6); canopy 0% (layer 2%); ground plants 0% (layer 3%)",
+    "camera": {
+     "x": 962.5,
+     "y": 24.62000000476837,
+     "z": 644.5,
+     "yaw": 0.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 33.4,
+     "fogPercent": 12.5
+    },
+    "frame": "with night vision",
+    "pairOf": "the_obsidian_sanctum-surface-t3"
+   },
+   {
+    "kind": "surface-lm1",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_obsidian_sanctum-surface-lm1.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-surface-lm1.jpg",
+    "shows": "Netherrack and lava fill most of the frame, with soul sand and obsidian, in withered forest. Withered forest is 56.0% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 0%; near: lava 39.9%, netherrack 32.6%; mid: netherrack 3.1%, soul_soil 1.3%; far: netherrack 4.6%; biomes: adventure:withered_forest 100%",
+    "layer": "surface",
+    "place": "surface landmark: biome adventure:withered_forest (type nether_wastes); ground bedrock (type obsidian); top lava (type obsidian); liquid cover 74% (type 4%); notable-block density (log) 3.0 (type 0.3); overhangs 30% (type 2%)",
+    "camera": {
+     "x": 680.5,
+     "y": 21.62000000476837,
+     "z": 8.5,
+     "yaw": 90.0,
      "pitch": 5.0
     },
     "lookingAt": null,
@@ -914,25 +1036,25 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 47.6,
-     "fogPercent": 9.4
+     "luma": 45.9,
+     "fogPercent": 1.8
     },
     "frame": "as a player sees it",
-    "pairOf": "the_obsidian_sanctum-sky-t2"
+    "pairOf": "the_obsidian_sanctum-surface-lm1"
    },
    {
-    "kind": "sky-t2-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_obsidian_sanctum-sky-t2-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-sky-t2-nv.jpg",
-    "shows": "Basalt fills most of the frame, with netherrack, in basalt deltas. Basalt deltas is 6.4% of this world's surface, 4th of its 4 surface biomes.",
-    "censusCaption": "sky 0%; near: basalt 66.6%, lava 1.3%; mid: basalt 22.1%, blackstone 1%; far: netherrack 4.6%, obsidian 2.5%; biomes: basalt_deltas 92.4%, nether_wastes 7.6%",
-    "layer": "sky",
-    "place": "sky type 2: 35.7% of cells; biome basalt_deltas; ground basalt; height 77; layer present in 40% (layer 53%); neighbour step 3.5 (layer 2.8); relief over 16 blocks 33.6 (layer 43.0); trees per cell 0.2 (layer 2.4)",
+    "kind": "surface-lm1-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_obsidian_sanctum-surface-lm1-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_obsidian_sanctum-surface-lm1-nv.jpg",
+    "shows": "Netherrack and lava fill most of the frame, with soul sand and obsidian, in withered forest. Withered forest is 56.0% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 0%; near: lava 39.9%, netherrack 32.6%; mid: netherrack 3.1%, soul_soil 1.3%; far: netherrack 4.6%; biomes: adventure:withered_forest 100%",
+    "layer": "surface",
+    "place": "surface landmark: biome adventure:withered_forest (type nether_wastes); ground bedrock (type obsidian); top lava (type obsidian); liquid cover 74% (type 4%); notable-block density (log) 3.0 (type 0.3); overhangs 30% (type 2%)",
     "camera": {
-     "x": 613.5,
-     "y": 77.62000000476837,
-     "z": 632.5,
-     "yaw": -45.0,
+     "x": 680.5,
+     "y": 21.62000000476837,
+     "z": 8.5,
+     "yaw": 90.0,
      "pitch": 5.0
     },
     "lookingAt": null,
@@ -941,11 +1063,11 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 89.7,
-     "fogPercent": 9.5
+     "luma": 73.1,
+     "fogPercent": 0.1
     },
     "frame": "with night vision",
-    "pairOf": "the_obsidian_sanctum-sky-t2"
+    "pairOf": "the_obsidian_sanctum-surface-lm1"
    }
   ]
  },
@@ -956,7 +1078,7 @@
     "kind": "surface-t1",
     "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_furnace_halls-surface-t1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_furnace_halls-surface-t1.jpg",
-    "shows": "Basalt fills most of the frame, in basalt deltas. Basalt deltas is 31.8% of this world's surface, 1st of its 5 surface biomes.",
+    "shows": "Basalt fills most of the frame, in basalt deltas. Basalt deltas is 37.0% of this world's surface, 1st of its 5 surface biomes.",
     "censusCaption": "sky 0%; near: basalt 62.3%; mid: basalt 30.8%, blackstone 1.5%; far: basalt 4.8%; biomes: basalt_deltas 100%",
     "layer": "surface",
     "place": "surface type 1: 30.9% of cells; biome basalt_deltas; ground basalt; top basalt; height 53; bare rock 66% (layer 40%)",
@@ -983,7 +1105,7 @@
     "kind": "surface-t1-nv",
     "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_furnace_halls-surface-t1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_furnace_halls-surface-t1-nv.jpg",
-    "shows": "Basalt fills most of the frame, in basalt deltas. Basalt deltas is 31.8% of this world's surface, 1st of its 5 surface biomes.",
+    "shows": "Basalt fills most of the frame, in basalt deltas. Basalt deltas is 37.0% of this world's surface, 1st of its 5 surface biomes.",
     "censusCaption": "sky 0%; near: basalt 62.3%; mid: basalt 30.8%, blackstone 1.5%; far: basalt 4.8%; biomes: basalt_deltas 100%",
     "layer": "surface",
     "place": "surface type 1: 30.9% of cells; biome basalt_deltas; ground basalt; top basalt; height 53; bare rock 66% (layer 40%)",
@@ -1010,7 +1132,7 @@
     "kind": "sky-t1",
     "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_furnace_halls-sky-t1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_furnace_halls-sky-t1.jpg",
-    "shows": "Basalt fills most of the frame, with blackstone and lava, in basalt deltas. Basalt deltas is 31.8% of this world's surface, 1st of its 5 surface biomes.",
+    "shows": "Basalt fills most of the frame, with blackstone and lava, in basalt deltas. Basalt deltas is 37.0% of this world's surface, 1st of its 5 surface biomes.",
     "censusCaption": "sky 0%; near: basalt 37.5%, lava 10.2%; mid: basalt 40.2%, blackstone 2.8%; biomes: basalt_deltas 100%",
     "layer": "sky",
     "place": "sky type 1: 100.0% of cells; biome basalt_deltas; ground basalt; height 68",
@@ -1037,7 +1159,7 @@
     "kind": "sky-t1-nv",
     "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_furnace_halls-sky-t1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_furnace_halls-sky-t1-nv.jpg",
-    "shows": "Basalt fills most of the frame, with blackstone and lava, in basalt deltas. Basalt deltas is 31.8% of this world's surface, 1st of its 5 surface biomes.",
+    "shows": "Basalt fills most of the frame, with blackstone and lava, in basalt deltas. Basalt deltas is 37.0% of this world's surface, 1st of its 5 surface biomes.",
     "censusCaption": "sky 0%; near: basalt 37.5%, lava 10.2%; mid: basalt 40.2%, blackstone 2.8%; biomes: basalt_deltas 100%",
     "layer": "sky",
     "place": "sky type 1: 100.0% of cells; biome basalt_deltas; ground basalt; height 68",
@@ -1064,7 +1186,7 @@
     "kind": "underground-t1",
     "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_furnace_halls-underground-t1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_furnace_halls-underground-t1.jpg",
-    "shows": "Basalt fills most of the frame, in basalt deltas. Basalt deltas is 31.8% of this world's surface, 1st of its 5 surface biomes.",
+    "shows": "Basalt fills most of the frame, in basalt deltas. Basalt deltas is 37.0% of this world's surface, 1st of its 5 surface biomes.",
     "censusCaption": "sky 0%; near: basalt 91.7%, blackstone 2.4%; mid: basalt 5.3%; biomes: basalt_deltas 100%",
     "layer": "underground",
     "place": "underground type 1: 56.8% of cells; notableId blackstone; biome basalt_deltas; height 51",
@@ -1091,7 +1213,7 @@
     "kind": "underground-t1-nv",
     "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_furnace_halls-underground-t1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_furnace_halls-underground-t1-nv.jpg",
-    "shows": "Basalt fills most of the frame, in basalt deltas. Basalt deltas is 31.8% of this world's surface, 1st of its 5 surface biomes.",
+    "shows": "Basalt fills most of the frame, in basalt deltas. Basalt deltas is 37.0% of this world's surface, 1st of its 5 surface biomes.",
     "censusCaption": "sky 0%; near: basalt 91.7%, blackstone 2.4%; mid: basalt 5.3%; biomes: basalt_deltas 100%",
     "layer": "underground",
     "place": "underground type 1: 56.8% of cells; notableId blackstone; biome basalt_deltas; height 51",
@@ -1118,7 +1240,7 @@
     "kind": "roof-t1",
     "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_furnace_halls-roof-t1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_furnace_halls-roof-t1.jpg",
-    "shows": "Basalt and netherrack fill most of the frame, with crimson fungus and blackstone, in basalt deltas and crimson forest. Basalt deltas is 31.8% of this world's surface, 1st of its 5 surface biomes.",
+    "shows": "Basalt and netherrack fill most of the frame, with crimson fungus and blackstone, in basalt deltas and crimson forest. Basalt deltas is 37.0% of this world's surface, 1st of its 5 surface biomes.",
     "censusCaption": "sky 0%; near: basalt 50.3%, blackstone 4.1%; mid: basalt 16.4%, netherrack 14.7%; far: netherrack 3.5%, nether_wart_block 1.8%; biomes: basalt_deltas 74%, crimson_forest 26%",
     "layer": "roof",
     "place": "roof type 1: 38.6% of cells; notableId blackstone; height 97; notable-block density (log) 1.2 (layer 0.8)",
@@ -1145,7 +1267,7 @@
     "kind": "roof-t1-nv",
     "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_furnace_halls-roof-t1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_furnace_halls-roof-t1-nv.jpg",
-    "shows": "Basalt and netherrack fill most of the frame, with crimson fungus and blackstone, in basalt deltas and crimson forest. Basalt deltas is 31.8% of this world's surface, 1st of its 5 surface biomes.",
+    "shows": "Basalt and netherrack fill most of the frame, with crimson fungus and blackstone, in basalt deltas and crimson forest. Basalt deltas is 37.0% of this world's surface, 1st of its 5 surface biomes.",
     "censusCaption": "sky 0%; near: basalt 50.3%, blackstone 4.1%; mid: basalt 16.4%, netherrack 14.7%; far: netherrack 3.5%, nether_wart_block 1.8%; biomes: basalt_deltas 74%, crimson_forest 26%",
     "layer": "roof",
     "place": "roof type 1: 38.6% of cells; notableId blackstone; height 97; notable-block density (log) 1.2 (layer 0.8)",
@@ -1172,7 +1294,7 @@
     "kind": "surface-t2",
     "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_furnace_halls-surface-t2.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_furnace_halls-surface-t2.jpg",
-    "shows": "Netherrack fills most of the frame, with gravel and fire, in nether wastes. Nether wastes is 24.8% of this world's surface, 2nd of its 5 surface biomes.",
+    "shows": "Netherrack fills most of the frame, with gravel and fire, in nether wastes. Nether wastes is 29.6% of this world's surface, 2nd of its 5 surface biomes.",
     "censusCaption": "sky 0%; near: netherrack 74.6%, gravel 14.6%; mid: netherrack 4.5%; biomes: nether_wastes 100%",
     "layer": "surface",
     "place": "surface type 2: 21.4% of cells; biome nether_wastes; ground netherrack; top netherrack; height 66; liquid cover 7% (layer 20%); bare rock 71% (layer 40%)",
@@ -1199,7 +1321,7 @@
     "kind": "surface-t2-nv",
     "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_furnace_halls-surface-t2-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_furnace_halls-surface-t2-nv.jpg",
-    "shows": "Netherrack fills most of the frame, with gravel and fire, in nether wastes. Nether wastes is 24.8% of this world's surface, 2nd of its 5 surface biomes.",
+    "shows": "Netherrack fills most of the frame, with gravel and fire, in nether wastes. Nether wastes is 29.6% of this world's surface, 2nd of its 5 surface biomes.",
     "censusCaption": "sky 0%; near: netherrack 74.6%, gravel 14.6%; mid: netherrack 4.5%; biomes: nether_wastes 100%",
     "layer": "surface",
     "place": "surface type 2: 21.4% of cells; biome nether_wastes; ground netherrack; top netherrack; height 66; liquid cover 7% (layer 20%); bare rock 71% (layer 40%)",
@@ -1226,7 +1348,7 @@
     "kind": "surface-lm1",
     "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_furnace_halls-surface-lm1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_furnace_halls-surface-lm1.jpg",
-    "shows": "Soul sand fills most of the frame, with basalt, in soul sand valley. Soul sand valley is 22.2% of this world's surface, 3rd of its 5 surface biomes.",
+    "shows": "Soul sand fills most of the frame, with basalt, in soul sand valley. Soul sand valley is 18.5% of this world's surface, 3rd of its 5 surface biomes.",
     "censusCaption": "sky 0%; near: soul_soil 78.7%, soul_sand 8.5%; mid: soul_sand 4%, soul_soil 3.5%; far: netherrack 1.2%; biomes: soul_sand_valley 98.8%",
     "layer": "surface",
     "place": "surface landmark: ground soul_sand (type soul_soil); top soul_sand (type soul_soil); notable-block density (log) 3.7 (type 0.1); relief over 16 blocks 2.0 (type 79.0); relief over the patch 101.0 (type 126.0)",
@@ -1255,7 +1377,7 @@
     "kind": "surface-lm1-nv",
     "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_furnace_halls-surface-lm1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_furnace_halls-surface-lm1-nv.jpg",
-    "shows": "Soul sand fills most of the frame, with basalt, in soul sand valley. Soul sand valley is 22.2% of this world's surface, 3rd of its 5 surface biomes.",
+    "shows": "Soul sand fills most of the frame, with basalt, in soul sand valley. Soul sand valley is 18.5% of this world's surface, 3rd of its 5 surface biomes.",
     "censusCaption": "sky 0%; near: soul_soil 78.7%, soul_sand 8.5%; mid: soul_sand 4%, soul_soil 3.5%; far: netherrack 1.2%; biomes: soul_sand_valley 98.8%",
     "layer": "surface",
     "place": "surface landmark: ground soul_sand (type soul_soil); top soul_sand (type soul_soil); notable-block density (log) 3.7 (type 0.1); relief over 16 blocks 2.0 (type 79.0); relief over the patch 101.0 (type 126.0)",
@@ -1284,125 +1406,79 @@
   "slug": "the_buried_age",
   "shots": [
    {
-    "kind": "surface-t2",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_buried_age-surface-t2.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-surface-t2.jpg",
-    "shows": "Lava and netherrack fill most of the frame, in upside down forest and nether wastes. Upside down forest is 7.3% of this world's surface, 7th of its 7 surface biomes.",
-    "censusCaption": "sky 0%; unloaded 9.6%; near: lava 51.6%; mid: netherrack 18.2%, lava 4.2%; far: netherrack 13.2%, glowstone 1%; biomes: adventure:upside_down_forest 55.7%, nether_wastes 42.7%",
-    "layer": "surface",
-    "place": "surface type 2: 19.2% of cells; biome adventure:upside_down_forest; ground netherrack; top nether_wart_block; height 67; canopy 74% (layer 14%); liquid cover 18% (layer 58%); stacked layers 21% (layer 4%)",
+    "kind": "far",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_buried_age-far.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-far.jpg",
+    "shows": "Soul sand fills most of the frame, with basalt and blackstone, in soul sand valley. Soul sand valley is 3.6% of this world's surface, 5th of its 7 surface biomes.",
+    "censusCaption": "sky 3.5%; near: soul_sand 23.3%, soul_soil 12.2%; mid: soul_sand 20.9%, soul_soil 14.6%; far: basalt 8.6%, soul_soil 1.6%; biomes: soul_sand_valley 89.3%, basalt_deltas 9.5%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
     "camera": {
-     "x": -279.5,
-     "y": 75.62000000476837,
-     "z": -615.5,
-     "yaw": 45.0,
-     "pitch": 5.0
+     "x": -895.5,
+     "y": 99.62000000476837,
+     "z": -319.5,
+     "yaw": -70.3,
+     "pitch": 11.3
     },
-    "lookingAt": null,
+    "lookingAt": [
+     -1008,
+     67,
+     -208
+    ],
     "renderer": "render distance 32, noon, clear, clouds off",
     "nightVision": false,
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 65.2,
-     "fogPercent": 45.8
+     "luma": 30.9,
+     "fogPercent": 39.9
     },
     "frame": "as a player sees it",
-    "pairOf": "the_buried_age-surface-t2"
+    "pairOf": "the_buried_age-far"
    },
    {
-    "kind": "surface-t2-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_buried_age-surface-t2-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-surface-t2-nv.jpg",
-    "shows": "Lava and netherrack fill most of the frame, in upside down forest and nether wastes. Upside down forest is 7.3% of this world's surface, 7th of its 7 surface biomes.",
-    "censusCaption": "sky 0%; unloaded 8.9%; near: lava 51.6%; mid: netherrack 18.2%, lava 4.2%; far: netherrack 13.4%, glowstone 1.4%; biomes: adventure:upside_down_forest 55.2%, nether_wastes 42.7%",
-    "layer": "surface",
-    "place": "surface type 2: 19.2% of cells; biome adventure:upside_down_forest; ground netherrack; top nether_wart_block; height 67; canopy 74% (layer 14%); liquid cover 18% (layer 58%); stacked layers 21% (layer 4%)",
+    "kind": "far-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_buried_age-far-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-far-nv.jpg",
+    "shows": "Soul sand fills most of the frame, with basalt and blackstone, in soul sand valley. Soul sand valley is 3.6% of this world's surface, 5th of its 7 surface biomes.",
+    "censusCaption": "sky 3.5%; near: soul_sand 23.3%, soul_soil 12.2%; mid: soul_sand 20.9%, soul_soil 14.6%; far: basalt 8.6%, soul_soil 1.6%; biomes: soul_sand_valley 89.3%, basalt_deltas 9.5%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
     "camera": {
-     "x": -279.5,
-     "y": 75.62000000476837,
-     "z": -615.5,
-     "yaw": 45.0,
-     "pitch": 5.0
+     "x": -895.5,
+     "y": 99.62000000476837,
+     "z": -319.5,
+     "yaw": -70.3,
+     "pitch": 11.3
     },
-    "lookingAt": null,
+    "lookingAt": [
+     -1008,
+     67,
+     -208
+    ],
     "renderer": "render distance 32, noon, clear, clouds off",
     "nightVision": true,
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 97.5,
-     "fogPercent": 0.0
+     "luma": 113.8,
+     "fogPercent": 9.1
     },
     "frame": "with night vision",
-    "pairOf": "the_buried_age-surface-t2"
-   },
-   {
-    "kind": "underground-t1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_buried_age-underground-t1.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-underground-t1.jpg",
-    "shows": "Soul sand and lava fill most of the frame, in soul sand valley. Soul sand valley is 8.1% of this world's surface, 6th of its 7 surface biomes.",
-    "censusCaption": "sky 0%; unloaded 8.5%; near: lava 33.2%, soul_soil 13.5%; mid: soul_sand 10.9%, soul_soil 7.9%; far: soul_soil 6.6%, soul_sand 6%; biomes: soul_sand_valley 100%",
-    "layer": "underground",
-    "place": "underground type 1: 33.3% of cells; notableId magma_block; biome adventure:quartz_flats; height 69; neighbour step 1.2 (layer 2.6)",
-    "camera": {
-     "x": 485.5,
-     "y": 78.50000000476837,
-     "z": 103.5,
-     "yaw": 22.5,
-     "pitch": 10.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": false,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 70.9,
-     "fogPercent": 39.7
-    },
-    "frame": "as a player sees it",
-    "pairOf": "the_buried_age-underground-t1"
-   },
-   {
-    "kind": "underground-t1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_buried_age-underground-t1-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-underground-t1-nv.jpg",
-    "shows": "Soul sand and lava fill most of the frame, in soul sand valley. Soul sand valley is 8.1% of this world's surface, 6th of its 7 surface biomes.",
-    "censusCaption": "sky 0%; unloaded 7.8%; near: lava 33.2%, soul_soil 13.5%; mid: soul_sand 10.9%, soul_soil 7.9%; far: soul_soil 6.9%, soul_sand 6.2%; biomes: soul_sand_valley 99.8%",
-    "layer": "underground",
-    "place": "underground type 1: 33.3% of cells; notableId magma_block; biome adventure:quartz_flats; height 69; neighbour step 1.2 (layer 2.6)",
-    "camera": {
-     "x": 485.5,
-     "y": 78.50000000476837,
-     "z": 103.5,
-     "yaw": 22.5,
-     "pitch": 10.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": true,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 141.7,
-     "fogPercent": 1.5
-    },
-    "frame": "with night vision",
-    "pairOf": "the_buried_age-underground-t1"
+    "pairOf": "the_buried_age-far"
    },
    {
     "kind": "surface-t1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_buried_age-surface-t1.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_buried_age-surface-t1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-surface-t1.jpg",
-    "shows": "Lava and basalt fill most of the frame, with glowstone, in basalt deltas. Basalt deltas is 32.5% of this world's surface, 1st of its 7 surface biomes.",
-    "censusCaption": "sky 0%; unloaded 0.5%; near: lava 51.6%; mid: basalt 22.9%, lava 1.9%; far: basalt 13.5%, glowstone 3.7%; biomes: basalt_deltas 91.5%, adventure:quartz_flats 8.2%",
+    "shows": "Lava and basalt fill most of the frame, with soul sand and glowstone, in basalt deltas. Basalt deltas is 74.6% of this world's surface, 1st of its 7 surface biomes.",
+    "censusCaption": "sky 0.2%; unloaded 0.4%; near: lava 47.4%, basalt 15.5%; mid: basalt 6.7%, soul_sand 4.6%; far: basalt 10.3%; biomes: basalt_deltas 80.7%, soul_sand_valley 12.5%, adventure:quartz_flats 6.8%",
     "layer": "surface",
-    "place": "surface type 1: 19.7% of cells; biome basalt_deltas; ground basalt; top lava; height 65; relief over the patch 83.7 (layer 71.9); liquid cover 93% (layer 58%)",
+    "place": "surface type 1: 81.7% of cells; biome basalt_deltas; ground basalt; top lava; height 70",
     "camera": {
-     "x": -775.5,
+     "x": -663.5,
      "y": 75.62000000476837,
-     "z": -103.5,
+     "z": -631.5,
      "yaw": -180.0,
      "pitch": 5.0
     },
@@ -1412,24 +1488,24 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 99.5,
-     "fogPercent": 35.0
+     "luma": 71.3,
+     "fogPercent": 42.6
     },
     "frame": "as a player sees it",
     "pairOf": "the_buried_age-surface-t1"
    },
    {
     "kind": "surface-t1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_buried_age-surface-t1-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_buried_age-surface-t1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-surface-t1-nv.jpg",
-    "shows": "Lava and basalt fill most of the frame, with glowstone, in basalt deltas. Basalt deltas is 32.5% of this world's surface, 1st of its 7 surface biomes.",
-    "censusCaption": "sky 0%; unloaded 0.4%; near: lava 51.6%; mid: basalt 22.9%, lava 1.9%; far: basalt 13.6%, glowstone 3.7%; biomes: basalt_deltas 91.5%, adventure:quartz_flats 8.2%",
+    "shows": "Lava and basalt fill most of the frame, with soul sand and glowstone, in basalt deltas. Basalt deltas is 74.6% of this world's surface, 1st of its 7 surface biomes.",
+    "censusCaption": "sky 0.2%; unloaded 0.4%; near: lava 47.4%, basalt 15.5%; mid: basalt 6.7%, soul_sand 4.6%; far: basalt 10.3%; biomes: basalt_deltas 80.7%, soul_sand_valley 12.5%, adventure:quartz_flats 6.8%",
     "layer": "surface",
-    "place": "surface type 1: 19.7% of cells; biome basalt_deltas; ground basalt; top lava; height 65; relief over the patch 83.7 (layer 71.9); liquid cover 93% (layer 58%)",
+    "place": "surface type 1: 81.7% of cells; biome basalt_deltas; ground basalt; top lava; height 70",
     "camera": {
-     "x": -775.5,
+     "x": -663.5,
      "y": 75.62000000476837,
-     "z": -103.5,
+     "z": -631.5,
      "yaw": -180.0,
      "pitch": 5.0
     },
@@ -1439,26 +1515,26 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 154.6,
-     "fogPercent": 2.6
+     "luma": 127.3,
+     "fogPercent": 2.4
     },
     "frame": "with night vision",
     "pairOf": "the_buried_age-surface-t1"
    },
    {
-    "kind": "surface-t7",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_buried_age-surface-t7.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-surface-t7.jpg",
-    "shows": "Quartz and glowstone fill most of the frame, with netherrack, in quartz flats. Quartz flats is 15.8% of this world's surface, 3rd of its 7 surface biomes, flagged mostly lava.",
-    "censusCaption": "sky 0.3%; unloaded 0.1%; near: quartz_block 30.6%, quartz_pillar 30.4%; mid: glowstone 10.7%, netherrack 10.2%; far: glowstone 1.1%; biomes: adventure:quartz_flats 99.1%",
-    "layer": "surface",
-    "place": "surface type 7: 10.3% of cells; biome adventure:quartz_flats; ground quartz_block; top quartz_block; height 84; neighbour step 4.2 (layer 2.6); liquid cover 9% (layer 58%)",
+    "kind": "roof-t1",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_buried_age-roof-t1.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-roof-t1.jpg",
+    "shows": "Basalt fills most of the frame, with crimson fungus, in basalt deltas. Basalt deltas is 74.6% of this world's surface, 1st of its 7 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 6.8%; near: basalt 70.6%; mid: basalt 14.9%, weeping_vines_plant 1%; far: basalt 3.1%; biomes: basalt_deltas 97.2%",
+    "layer": "roof",
+    "place": "roof type 1: 67.1% of cells; notableId blackstone; height 110",
     "camera": {
-     "x": -583.5,
-     "y": 91.62000000476837,
-     "z": -118.5,
-     "yaw": -180.0,
-     "pitch": 5.0
+     "x": 568.5,
+     "y": 104.50000000476837,
+     "z": 424.5,
+     "yaw": 0.0,
+     "pitch": -30.0
     },
     "lookingAt": null,
     "renderer": "render distance 32, noon, clear, clouds off",
@@ -1466,26 +1542,26 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 132.1,
-     "fogPercent": 6.0
+     "luma": 30.5,
+     "fogPercent": 41.8
     },
     "frame": "as a player sees it",
-    "pairOf": "the_buried_age-surface-t7"
+    "pairOf": "the_buried_age-roof-t1"
    },
    {
-    "kind": "surface-t7-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_buried_age-surface-t7-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-surface-t7-nv.jpg",
-    "shows": "Quartz and glowstone fill most of the frame, with netherrack, in quartz flats. Quartz flats is 15.8% of this world's surface, 3rd of its 7 surface biomes, flagged mostly lava.",
-    "censusCaption": "sky 0.3%; near: quartz_block 30.6%, quartz_pillar 30.4%; mid: glowstone 10.7%, netherrack 10.2%; far: glowstone 1.1%; biomes: adventure:quartz_flats 99%",
-    "layer": "surface",
-    "place": "surface type 7: 10.3% of cells; biome adventure:quartz_flats; ground quartz_block; top quartz_block; height 84; neighbour step 4.2 (layer 2.6); liquid cover 9% (layer 58%)",
+    "kind": "roof-t1-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_buried_age-roof-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-roof-t1-nv.jpg",
+    "shows": "Basalt fills most of the frame, with crimson fungus, in basalt deltas. Basalt deltas is 74.6% of this world's surface, 1st of its 7 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 6.6%; near: basalt 70.6%; mid: basalt 14.9%, weeping_vines_plant 1%; far: basalt 3.3%; biomes: basalt_deltas 97.2%",
+    "layer": "roof",
+    "place": "roof type 1: 67.1% of cells; notableId blackstone; height 110",
     "camera": {
-     "x": -583.5,
-     "y": 91.62000000476837,
-     "z": -118.5,
-     "yaw": -180.0,
-     "pitch": 5.0
+     "x": 568.5,
+     "y": 104.50000000476837,
+     "z": 424.5,
+     "yaw": 0.0,
+     "pitch": -30.0
     },
     "lookingAt": null,
     "renderer": "render distance 32, noon, clear, clouds off",
@@ -1493,24 +1569,24 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 167.3,
-     "fogPercent": 29.2
+     "luma": 94.6,
+     "fogPercent": 1.3
     },
     "frame": "with night vision",
-    "pairOf": "the_buried_age-surface-t7"
+    "pairOf": "the_buried_age-roof-t1"
    },
    {
-    "kind": "surface-lm1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_buried_age-surface-lm1.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-surface-lm1.jpg",
-    "shows": "Lava fills most of the frame, with netherrack, basalt and crimson fungus, in basalt deltas and nether wastes. Basalt deltas is 32.5% of this world's surface, 1st of its 7 surface biomes.",
-    "censusCaption": "sky 2%; near: lava 51.3%; mid: basalt 10.9%, netherrack 5.7%; far: netherrack 8.6%, weeping_vines_plant 5.3%; biomes: basalt_deltas 67.8%, nether_wastes 15.1%, adventure:upside_down_forest 8.9%",
+    "kind": "surface-t2",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_buried_age-surface-t2.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-surface-t2.jpg",
+    "shows": "Netherrack and basalt fill most of the frame, with lava and crimson fungus, in nether wastes and basalt deltas. Nether wastes is 9.6% of this world's surface, 2nd of its 7 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 2.5%; near: netherrack 54.3%, lava 4.2%; mid: basalt 12.4%, netherrack 7.7%; far: basalt 8.5%, weeping_vines_plant 2.4%; biomes: nether_wastes 71.2%, basalt_deltas 25.9%",
     "layer": "surface",
-    "place": "surface landmark: overhangs 62% (type 1%); neighbour step 11.8 (type 1.6); notable-block density (log) 4.7 (type 0.0)",
+    "place": "surface type 2: 18.3% of cells; biome nether_wastes; ground netherrack; top netherrack; height 79; liquid cover 7% (layer 61%); bare rock 74% (layer 28%); stacked layers 2% (layer 0%)",
     "camera": {
-     "x": -535.5,
-     "y": 75.62000000476837,
-     "z": -887.5,
+     "x": 377.5,
+     "y": 76.62000000476837,
+     "z": 776.5,
      "yaw": -45.0,
      "pitch": 5.0
     },
@@ -1520,25 +1596,191 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 94.1,
-     "fogPercent": 38.1
+     "luma": 33.2,
+     "fogPercent": 43.2
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_buried_age-surface-t2"
+   },
+   {
+    "kind": "surface-t2-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_buried_age-surface-t2-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-surface-t2-nv.jpg",
+    "shows": "Netherrack and basalt fill most of the frame, with lava and crimson fungus, in nether wastes and basalt deltas. Nether wastes is 9.6% of this world's surface, 2nd of its 7 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 2.2%; near: netherrack 54.3%, lava 4.2%; mid: basalt 12.4%, netherrack 7.7%; far: basalt 8.7%, weeping_vines_plant 2.4%; biomes: nether_wastes 71%, basalt_deltas 26.1%",
+    "layer": "surface",
+    "place": "surface type 2: 18.3% of cells; biome nether_wastes; ground netherrack; top netherrack; height 79; liquid cover 7% (layer 61%); bare rock 74% (layer 28%); stacked layers 2% (layer 0%)",
+    "camera": {
+     "x": 377.5,
+     "y": 76.62000000476837,
+     "z": 776.5,
+     "yaw": -45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 96.5,
+     "fogPercent": 17.3
+    },
+    "frame": "with night vision",
+    "pairOf": "the_buried_age-surface-t2"
+   },
+   {
+    "kind": "underground-t2",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_buried_age-underground-t2.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-underground-t2.jpg",
+    "shows": "Basalt and quartz fill most of the frame, with glowstone and lava, in basalt deltas and quartz flats. Basalt deltas is 74.6% of this world's surface, 1st of its 7 surface biomes.",
+    "censusCaption": "sky 3.9%; near: basalt 19.5%, quartz_block 13%; mid: basalt 23.9%, lava 2.1%; far: basalt 14.5%, glowstone 2.1%; biomes: basalt_deltas 59.4%, adventure:quartz_flats 38.6%",
+    "layer": "underground",
+    "place": "underground type 2: 33.7% of cells; notableId blackstone; biome basalt_deltas; height 76; neighbour step 4.7 (layer 2.8); relief over 16 blocks 58.3 (layer 42.6); cave air 6% (layer 2%)",
+    "camera": {
+     "x": -558.5,
+     "y": 83.50000000476837,
+     "z": -651.5,
+     "yaw": 45.0,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "fog wall: 60.7% of pixels within 24 of the fog colour"
+     ],
+     "luma": 58.5,
+     "fogPercent": 60.7
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_buried_age-underground-t2"
+   },
+   {
+    "kind": "underground-t2-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_buried_age-underground-t2-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-underground-t2-nv.jpg",
+    "shows": "Basalt and quartz fill most of the frame, with glowstone and lava, in basalt deltas and quartz flats. Basalt deltas is 74.6% of this world's surface, 1st of its 7 surface biomes.",
+    "censusCaption": "sky 3.9%; near: basalt 19.5%, quartz_block 13%; mid: basalt 23.9%, lava 2.1%; far: basalt 14.5%, glowstone 2.1%; biomes: basalt_deltas 59.4%, adventure:quartz_flats 38.6%",
+    "layer": "underground",
+    "place": "underground type 2: 33.7% of cells; notableId blackstone; biome basalt_deltas; height 76; neighbour step 4.7 (layer 2.8); relief over 16 blocks 58.3 (layer 42.6); cave air 6% (layer 2%)",
+    "camera": {
+     "x": -558.5,
+     "y": 83.50000000476837,
+     "z": -651.5,
+     "yaw": 45.0,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 145.7,
+     "fogPercent": 4.9
+    },
+    "frame": "with night vision",
+    "pairOf": "the_buried_age-underground-t2"
+   },
+   {
+    "kind": "roof-t2",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_buried_age-roof-t2.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-roof-t2.jpg",
+    "shows": "Netherrack and crimson fungus fill most of the frame, in nether wastes. Nether wastes is 9.6% of this world's surface, 2nd of its 7 surface biomes.",
+    "censusCaption": "sky 0%; near: netherrack 67.2%, nether_wart_block 13.2%; biomes: nether_wastes 89.4%, adventure:upside_down_forest 10.6%",
+    "layer": "roof",
+    "place": "roof type 2: 32.9% of cells; notableId nether_quartz_ore; height 110; notable-block density (log) 0.1 (layer 0.7)",
+    "camera": {
+     "x": 376.5,
+     "y": 105.50000000476837,
+     "z": 696.5,
+     "yaw": -180.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 22.0 < 30"
+     ],
+     "luma": 22.0,
+     "fogPercent": 5.3
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_buried_age-roof-t2"
+   },
+   {
+    "kind": "roof-t2-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_buried_age-roof-t2-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-roof-t2-nv.jpg",
+    "shows": "Netherrack and crimson fungus fill most of the frame, in nether wastes. Nether wastes is 9.6% of this world's surface, 2nd of its 7 surface biomes.",
+    "censusCaption": "sky 0%; near: netherrack 67.2%, nether_wart_block 13.2%; biomes: nether_wastes 89.4%, adventure:upside_down_forest 10.6%",
+    "layer": "roof",
+    "place": "roof type 2: 32.9% of cells; notableId nether_quartz_ore; height 110; notable-block density (log) 0.1 (layer 0.7)",
+    "camera": {
+     "x": 376.5,
+     "y": 105.50000000476837,
+     "z": 696.5,
+     "yaw": -180.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 41.2,
+     "fogPercent": 27.1
+    },
+    "frame": "with night vision",
+    "pairOf": "the_buried_age-roof-t2"
+   },
+   {
+    "kind": "surface-lm1",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_buried_age-surface-lm1.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-surface-lm1.jpg",
+    "shows": "Basalt, netherrack and lava fill most of the frame, in upside down forest and basalt deltas. Upside down forest is 1.3% of this world's surface, 7th of its 7 surface biomes.",
+    "censusCaption": "sky 0.3%; near: lava 27.2%, basalt 22%; mid: basalt 9.9%, netherrack 5.7%; far: basalt 4.3%, netherrack 1.9%; biomes: adventure:upside_down_forest 46.8%, basalt_deltas 43.4%, crimson_forest 9.8%",
+    "layer": "surface",
+    "place": "surface landmark: biome adventure:upside_down_forest (type nether_wastes); top nether_wart_block (type netherrack); canopy 64% (type 0%); stacked layers 12% (type 0%); cave pockets 88% (type 8%)",
+    "camera": {
+     "x": 216.5,
+     "y": 75.62000000476837,
+     "z": 664.5,
+     "yaw": 90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 58.1,
+     "fogPercent": 42.6
     },
     "frame": "as a player sees it",
     "pairOf": "the_buried_age-surface-lm1"
    },
    {
     "kind": "surface-lm1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-low/screenshots/the_buried_age-surface-lm1-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_buried_age-surface-lm1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_buried_age-surface-lm1-nv.jpg",
-    "shows": "Lava fills most of the frame, with netherrack, basalt and crimson fungus, in basalt deltas and nether wastes. Basalt deltas is 32.5% of this world's surface, 1st of its 7 surface biomes.",
-    "censusCaption": "sky 2%; near: lava 51.3%; mid: basalt 10.9%, netherrack 5.7%; far: netherrack 8.6%, weeping_vines_plant 5.3%; biomes: basalt_deltas 67.8%, nether_wastes 15.1%, adventure:upside_down_forest 8.9%",
+    "shows": "Basalt, netherrack and lava fill most of the frame, in upside down forest and basalt deltas. Upside down forest is 1.3% of this world's surface, 7th of its 7 surface biomes.",
+    "censusCaption": "sky 0.3%; near: lava 27.2%, basalt 22%; mid: basalt 9.9%, netherrack 5.7%; far: basalt 4.3%, netherrack 1.9%; biomes: adventure:upside_down_forest 46.8%, basalt_deltas 43.4%, crimson_forest 9.8%",
     "layer": "surface",
-    "place": "surface landmark: overhangs 62% (type 1%); neighbour step 11.8 (type 1.6); notable-block density (log) 4.7 (type 0.0)",
+    "place": "surface landmark: biome adventure:upside_down_forest (type nether_wastes); top nether_wart_block (type netherrack); canopy 64% (type 0%); stacked layers 12% (type 0%); cave pockets 88% (type 8%)",
     "camera": {
-     "x": -535.5,
+     "x": 216.5,
      "y": 75.62000000476837,
-     "z": -887.5,
-     "yaw": -45.0,
+     "z": 664.5,
+     "yaw": 90.0,
      "pitch": 5.0
     },
     "lookingAt": null,
@@ -1547,8 +1789,8 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 150.6,
-     "fogPercent": 0.4
+     "luma": 105.5,
+     "fogPercent": 13.5
     },
     "frame": "with night vision",
     "pairOf": "the_buried_age-surface-lm1"
@@ -1559,13 +1801,75 @@
   "slug": "the_boneyard",
   "shots": [
    {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_boneyard-far.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-far.jpg",
+    "shows": "Nether bricks, bone and netherrack fill most of the frame, with soul sand, in gravel desert. Gravel desert is 6.6% of this world's surface, 3rd of its 9 surface biomes.",
+    "censusCaption": "sky 5.8%; near: bone_block 8.6%, nether_bricks 5.2%; mid: nether_bricks 23.5%, netherrack 21.1%; far: soul_soil 3.8%, soul_sand 3.4%; biomes: adventure:gravel_desert 89.5%, soul_sand_valley 9.4%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": 736.5,
+     "y": 79.62000000476837,
+     "z": 312.5,
+     "yaw": 156.0,
+     "pitch": 11.9
+    },
+    "lookingAt": [
+     672,
+     46,
+     168
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 140.1,
+     "fogPercent": 34.5
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_boneyard-far"
+   },
+   {
+    "kind": "far-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_boneyard-far-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-far-nv.jpg",
+    "shows": "Nether bricks, bone and netherrack fill most of the frame, with soul sand, in gravel desert. Gravel desert is 6.6% of this world's surface, 3rd of its 9 surface biomes.",
+    "censusCaption": "sky 5.8%; near: bone_block 8.6%, nether_bricks 5.2%; mid: nether_bricks 23.5%, netherrack 21.1%; far: soul_soil 3.8%, soul_sand 3.4%; biomes: adventure:gravel_desert 89.5%, soul_sand_valley 9.4%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": 736.5,
+     "y": 79.62000000476837,
+     "z": 312.5,
+     "yaw": 156.0,
+     "pitch": 11.9
+    },
+    "lookingAt": [
+     672,
+     46,
+     168
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 179.3,
+     "fogPercent": 10.8
+    },
+    "frame": "with night vision",
+    "pairOf": "the_boneyard-far"
+   },
+   {
     "kind": "surface-t1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_boneyard-surface-t1.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_boneyard-surface-t1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-surface-t1.jpg",
-    "shows": "Soul sand fills most of the frame, with basalt, in soul sand valley. Soul sand valley is 66.1% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 2%; unloaded 2.5%; near: soul_sand 35.2%, soul_soil 8.1%; mid: soul_sand 14.9%, soul_soil 9.4%; far: soul_soil 10.5%, soul_sand 8.8%; biomes: soul_sand_valley 100%",
+    "shows": "Soul sand fills most of the frame, with basalt, in soul sand valley. Soul sand valley is 63.5% of this world's surface, 1st of its 9 surface biomes.",
+    "censusCaption": "sky 1.6%; unloaded 4%; near: soul_sand 35.2%, soul_soil 8.1%; mid: soul_sand 14.9%, soul_soil 9.4%; far: soul_soil 9.6%, soul_sand 8.7%; biomes: soul_sand_valley 99.9%",
     "layer": "surface",
-    "place": "surface type 1: 32.6% of cells; biome soul_sand_valley; ground soul_sand; top soul_sand; height 49",
+    "place": "surface type 1: 33.0% of cells; biome soul_sand_valley; ground soul_sand; top soul_sand; height 49",
     "camera": {
      "x": 104.5,
      "y": 53.62000000476837,
@@ -1579,20 +1883,20 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 41.5,
-     "fogPercent": 44.5
+     "luma": 111.7,
+     "fogPercent": 37.2
     },
     "frame": "as a player sees it",
     "pairOf": "the_boneyard-surface-t1"
    },
    {
     "kind": "surface-t1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_boneyard-surface-t1-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_boneyard-surface-t1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-surface-t1-nv.jpg",
-    "shows": "Soul sand fills most of the frame, with basalt, in soul sand valley. Soul sand valley is 66.1% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 2%; unloaded 2.1%; near: soul_sand 35.2%, soul_soil 8.1%; mid: soul_sand 14.9%, soul_soil 9.4%; far: soul_soil 10.6%, soul_sand 9%; biomes: soul_sand_valley 100%",
+    "shows": "Soul sand fills most of the frame, with basalt, in soul sand valley. Soul sand valley is 63.5% of this world's surface, 1st of its 9 surface biomes.",
+    "censusCaption": "sky 1.6%; unloaded 2.8%; near: soul_sand 35.2%, soul_soil 8.1%; mid: soul_sand 14.9%, soul_soil 9.4%; far: soul_soil 10.2%, soul_sand 9%; biomes: soul_sand_valley 100%",
     "layer": "surface",
-    "place": "surface type 1: 32.6% of cells; biome soul_sand_valley; ground soul_sand; top soul_sand; height 49",
+    "place": "surface type 1: 33.0% of cells; biome soul_sand_valley; ground soul_sand; top soul_sand; height 49",
     "camera": {
      "x": 104.5,
      "y": 53.62000000476837,
@@ -1606,24 +1910,24 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 134.7,
-     "fogPercent": 1.8
+     "luma": 142.3,
+     "fogPercent": 5.6
     },
     "frame": "with night vision",
     "pairOf": "the_boneyard-surface-t1"
    },
    {
-    "kind": "underground-t3",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_boneyard-underground-t3.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-underground-t3.jpg",
-    "shows": "Soul sand fills most of the frame, with basalt, bone and netherrack, in soul sand valley. Soul sand valley is 66.1% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 1.8%; unloaded 3.5%; near: soul_sand 40.1%, soul_soil 7.2%; mid: soul_sand 10.4%, soul_soil 5%; far: soul_sand 8.3%, soul_soil 6.9%; biomes: soul_sand_valley 96.3%",
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_boneyard-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-underground-t1.jpg",
+    "shows": "Soul sand fills most of the frame, with bone, in soul sand valley. Soul sand valley is 63.5% of this world's surface, 1st of its 9 surface biomes.",
+    "censusCaption": "sky 4.2%; near: soul_sand 48.5%, bone_block 3.7%; mid: soul_sand 5%, soul_soil 4.5%; far: soul_sand 14.1%, soul_soil 13.9%; biomes: soul_sand_valley 99.7%",
     "layer": "underground",
-    "place": "underground type 3: 16.8% of cells; notableId magma_block; biome soul_sand_valley; height 67; neighbour step 6.2 (layer 3.6); notable-block density (log) 1.5 (layer 1.1); cave air 25% (layer 13%); cave pockets 37% (layer 16%)",
+    "place": "underground type 1: 43.7% of cells; notableId magma_block; biome soul_sand_valley; height 57; neighbour step 5.2 (layer 3.7); cave air 21% (layer 13%)",
     "camera": {
-     "x": 562.5,
-     "y": 58.500000004768374,
-     "z": 152.5,
+     "x": 356.5,
+     "y": 47.500000004768374,
+     "z": 417.5,
      "yaw": 45.0,
      "pitch": 10.0
     },
@@ -1633,24 +1937,24 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 36.8,
-     "fogPercent": 34.1
+     "luma": 100.2,
+     "fogPercent": 39.0
     },
     "frame": "as a player sees it",
-    "pairOf": "the_boneyard-underground-t3"
+    "pairOf": "the_boneyard-underground-t1"
    },
    {
-    "kind": "underground-t3-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_boneyard-underground-t3-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-underground-t3-nv.jpg",
-    "shows": "Soul sand fills most of the frame, with basalt, bone and netherrack, in soul sand valley. Soul sand valley is 66.1% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 1.8%; unloaded 3%; near: soul_sand 40.1%, soul_soil 7.2%; mid: soul_sand 10.4%, soul_soil 5%; far: soul_sand 8.4%, soul_soil 6.9%; biomes: soul_sand_valley 95.8%",
+    "kind": "underground-t1-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_boneyard-underground-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-underground-t1-nv.jpg",
+    "shows": "Soul sand fills most of the frame, with bone, in soul sand valley. Soul sand valley is 63.5% of this world's surface, 1st of its 9 surface biomes.",
+    "censusCaption": "sky 4.2%; near: soul_sand 48.5%, bone_block 3.7%; mid: soul_sand 4.9%, soul_soil 4.5%; far: soul_sand 14.1%, soul_soil 13.9%; biomes: soul_sand_valley 99.7%",
     "layer": "underground",
-    "place": "underground type 3: 16.8% of cells; notableId magma_block; biome soul_sand_valley; height 67; neighbour step 6.2 (layer 3.6); notable-block density (log) 1.5 (layer 1.1); cave air 25% (layer 13%); cave pockets 37% (layer 16%)",
+    "place": "underground type 1: 43.7% of cells; notableId magma_block; biome soul_sand_valley; height 57; neighbour step 5.2 (layer 3.7); cave air 21% (layer 13%)",
     "camera": {
-     "x": 562.5,
-     "y": 58.500000004768374,
-     "z": 152.5,
+     "x": 356.5,
+     "y": 47.500000004768374,
+     "z": 417.5,
      "yaw": 45.0,
      "pitch": 10.0
     },
@@ -1660,24 +1964,24 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 118.3,
-     "fogPercent": 2.8
+     "luma": 133.0,
+     "fogPercent": 1.5
     },
     "frame": "with night vision",
-    "pairOf": "the_boneyard-underground-t3"
+    "pairOf": "the_boneyard-underground-t1"
    },
    {
     "kind": "roof-t1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_boneyard-roof-t1.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_boneyard-roof-t1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-roof-t1.jpg",
-    "shows": "Soul sand fills most of the frame, in soul sand valley. Soul sand valley is 66.1% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 5.1%; unloaded 0.7%; near: soul_sand 64.1%, soul_soil 13.2%; mid: soul_soil 7%, soul_sand 6.9%; far: basalt 1.1%, soul_soil 1%; biomes: soul_sand_valley 100%",
+    "shows": "Netherrack fills most of the frame, with basalt, in ash barrens. Ash barrens is 13.8% of this world's surface, 2nd of its 9 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 3.7%; near: netherrack 74.5%, basalt 2.2%; mid: netherrack 8.3%, basalt 6%; far: basalt 1.5%; biomes: adventure:ash_barrens 89.8%, basalt_deltas 10%",
     "layer": "roof",
-    "place": "roof type 1: 28.7% of cells; notableId nether_quartz_ore; height 98; notable-block density (log) 0.3 (layer 0.7)",
+    "place": "roof type 1: 32.6% of cells; notableId nether_quartz_ore; height 99; neighbour step 0.4 (layer 0.8); notable-block density (log) 0.3 (layer 0.7)",
     "camera": {
-     "x": 264.5,
-     "y": 94.50000000476837,
-     "z": -231.5,
+     "x": -423.5,
+     "y": 96.50000000476837,
+     "z": -663.5,
      "yaw": 0.0,
      "pitch": -30.0
     },
@@ -1685,28 +1989,26 @@
     "renderer": "render distance 32, noon, clear, clouds off",
     "nightVision": false,
     "gate": {
-     "passed": false,
-     "reasons": [
-      "dark: mean luma 27.7 < 30"
-     ],
-     "luma": 27.7,
-     "fogPercent": 14.7
+     "passed": true,
+     "reasons": [],
+     "luma": 65.9,
+     "fogPercent": 16.7
     },
     "frame": "as a player sees it",
     "pairOf": "the_boneyard-roof-t1"
    },
    {
     "kind": "roof-t1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_boneyard-roof-t1-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_boneyard-roof-t1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-roof-t1-nv.jpg",
-    "shows": "Soul sand fills most of the frame, in soul sand valley. Soul sand valley is 66.1% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 5.2%; unloaded 0.6%; near: soul_sand 64.1%, soul_soil 13.2%; mid: soul_soil 7%, soul_sand 6.9%; far: basalt 1.1%, soul_soil 1%; biomes: soul_sand_valley 100%",
+    "shows": "Netherrack fills most of the frame, with basalt, in ash barrens. Ash barrens is 13.8% of this world's surface, 2nd of its 9 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 3.6%; near: netherrack 74.5%, basalt 2.2%; mid: netherrack 8.3%, basalt 6%; far: basalt 1.5%; biomes: adventure:ash_barrens 89.8%, basalt_deltas 10%",
     "layer": "roof",
-    "place": "roof type 1: 28.7% of cells; notableId nether_quartz_ore; height 98; notable-block density (log) 0.3 (layer 0.7)",
+    "place": "roof type 1: 32.6% of cells; notableId nether_quartz_ore; height 99; neighbour step 0.4 (layer 0.8); notable-block density (log) 0.3 (layer 0.7)",
     "camera": {
-     "x": 264.5,
-     "y": 94.50000000476837,
-     "z": -231.5,
+     "x": -423.5,
+     "y": 96.50000000476837,
+     "z": -663.5,
      "yaw": 0.0,
      "pitch": -30.0
     },
@@ -1716,25 +2018,25 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 82.4,
-     "fogPercent": 0.7
+     "luma": 85.9,
+     "fogPercent": 1.1
     },
     "frame": "with night vision",
     "pairOf": "the_boneyard-roof-t1"
    },
    {
     "kind": "surface-t2",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_boneyard-surface-t2.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_boneyard-surface-t2.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-surface-t2.jpg",
-    "shows": "Soul sand fills most of the frame, with netherrack and basalt, in soul sand valley. Soul sand valley is 66.1% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 0%; unloaded 11.4%; near: soul_soil 32.9%, soul_sand 11.8%; mid: soul_soil 9%, soul_sand 8.9%; far: soul_soil 6%, netherrack 5.3%; biomes: soul_sand_valley 86.6%, adventure:withered_forest 13.4%",
+    "shows": "Soul sand and nether bricks fill most of the frame, in soul sand valley. Soul sand valley is 63.5% of this world's surface, 1st of its 9 surface biomes.",
+    "censusCaption": "sky 0.3%; unloaded 1.4%; near: soul_soil 43.5%, nether_bricks 19.9%; mid: soul_soil 6%, nether_bricks 4.3%; far: soul_sand 8.3%, soul_soil 6%; biomes: soul_sand_valley 100%",
     "layer": "surface",
-    "place": "surface type 2: 26.5% of cells; biome soul_sand_valley; ground soul_soil; top soul_soil; height 48; bare rock 8% (layer 25%)",
+    "place": "surface type 2: 23.7% of cells; biome soul_sand_valley; ground soul_soil; top soul_soil; height 49",
     "camera": {
-     "x": -935.5,
-     "y": 62.62000000476837,
-     "z": 184.5,
-     "yaw": -45.0,
+     "x": 152.5,
+     "y": 43.62000000476837,
+     "z": -7.5,
+     "yaw": -180.0,
      "pitch": 5.0
     },
     "lookingAt": null,
@@ -1743,20 +2045,74 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 40.9,
-     "fogPercent": 51.0
+     "luma": 69.6,
+     "fogPercent": 22.7
     },
     "frame": "as a player sees it",
     "pairOf": "the_boneyard-surface-t2"
    },
    {
     "kind": "surface-t2-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_boneyard-surface-t2-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_boneyard-surface-t2-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-surface-t2-nv.jpg",
-    "shows": "Soul sand fills most of the frame, with netherrack and basalt, in soul sand valley. Soul sand valley is 66.1% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 0%; unloaded 9.7%; near: soul_soil 32.9%, soul_sand 11.8%; mid: soul_soil 9%, soul_sand 8.9%; far: soul_soil 6.3%, netherrack 6.1%; biomes: soul_sand_valley 85.9%, adventure:withered_forest 14.1%",
+    "shows": "Soul sand and nether bricks fill most of the frame, in soul sand valley. Soul sand valley is 63.5% of this world's surface, 1st of its 9 surface biomes.",
+    "censusCaption": "sky 0.5%; unloaded 1%; near: soul_soil 43.5%, nether_bricks 19.9%; mid: soul_soil 6%, nether_bricks 4.3%; far: soul_sand 8.4%, soul_soil 6.1%; biomes: soul_sand_valley 100%",
     "layer": "surface",
-    "place": "surface type 2: 26.5% of cells; biome soul_sand_valley; ground soul_soil; top soul_soil; height 48; bare rock 8% (layer 25%)",
+    "place": "surface type 2: 23.7% of cells; biome soul_sand_valley; ground soul_soil; top soul_soil; height 49",
+    "camera": {
+     "x": 152.5,
+     "y": 43.62000000476837,
+     "z": -7.5,
+     "yaw": -180.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 93.5,
+     "fogPercent": 1.0
+    },
+    "frame": "with night vision",
+    "pairOf": "the_boneyard-surface-t2"
+   },
+   {
+    "kind": "surface-t7",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_boneyard-surface-t7.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-surface-t7.jpg",
+    "shows": "Soul sand fills most of the frame, with netherrack, warped fungus and crimson fungus, in withered forest and soul sand valley. Withered forest is 3.8% of this world's surface, 4th of its 9 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 6.7%; near: soul_soil 32.3%, stripped_warped_hyphae 9.2%; mid: netherrack 7%, soul_soil 5.8%; far: netherrack 7.2%, soul_soil 4.7%; biomes: adventure:withered_forest 78.1%, soul_sand_valley 21.9%",
+    "layer": "surface",
+    "place": "surface type 7: 4.3% of cells; biome adventure:withered_forest; ground soul_soil; top soul_soil; height 46; neighbour step 1.3 (layer 3.7); relief over the patch 78.1 (layer 94.3); trees per cell 7.4 (layer 0.4); canopy 4% (layer 0%); ground plants 7% (layer 1%); bare rock 1% (layer 25%); overhangs 5% (layer 24%); cave pockets 4% (layer 16%)",
+    "camera": {
+     "x": -935.5,
+     "y": 62.62000000476837,
+     "z": 184.5,
+     "yaw": -45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 118.1,
+     "fogPercent": 44.7
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_boneyard-surface-t7"
+   },
+   {
+    "kind": "surface-t7-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_boneyard-surface-t7-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-surface-t7-nv.jpg",
+    "shows": "Soul sand fills most of the frame, with netherrack, warped fungus and crimson fungus, in withered forest and soul sand valley. Withered forest is 3.8% of this world's surface, 4th of its 9 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 6.5%; near: soul_soil 32.3%, stripped_warped_hyphae 9.2%; mid: netherrack 7%, soul_soil 5.8%; far: netherrack 7.3%, soul_soil 4.8%; biomes: adventure:withered_forest 78%, soul_sand_valley 22%",
+    "layer": "surface",
+    "place": "surface type 7: 4.3% of cells; biome adventure:withered_forest; ground soul_soil; top soul_soil; height 46; neighbour step 1.3 (layer 3.7); relief over the patch 78.1 (layer 94.3); trees per cell 7.4 (layer 0.4); canopy 4% (layer 0%); ground plants 7% (layer 1%); bare rock 1% (layer 25%); overhangs 5% (layer 24%); cave pockets 4% (layer 16%)",
     "camera": {
      "x": -935.5,
      "y": 62.62000000476837,
@@ -1770,78 +2126,24 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 137.0,
-     "fogPercent": 0.0
+     "luma": 149.8,
+     "fogPercent": 0.4
     },
     "frame": "with night vision",
-    "pairOf": "the_boneyard-surface-t2"
-   },
-   {
-    "kind": "surface-t4",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_boneyard-surface-t4.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-surface-t4.jpg",
-    "shows": "Soul sand fills most of the frame, with basalt, in soul sand valley. Soul sand valley is 66.1% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 0.7%; unloaded 4.7%; near: soul_soil 46.9%, basalt 2.9%; mid: soul_sand 5.2%, soul_soil 4.4%; far: soul_soil 15.5%, soul_sand 13%; biomes: soul_sand_valley 100%",
-    "layer": "surface",
-    "place": "surface type 4: 9.0% of cells; biome soul_sand_valley; ground netherrack; top netherrack; height 73; neighbour step 7.2 (layer 3.6); canopy 0% (layer 0%); bare rock 52% (layer 25%); overhangs 50% (layer 23%); cave pockets 32% (layer 16%)",
-    "camera": {
-     "x": 360.5,
-     "y": 48.62000000476837,
-     "z": 407.5,
-     "yaw": 135.0,
-     "pitch": 5.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": false,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 39.6,
-     "fogPercent": 47.4
-    },
-    "frame": "as a player sees it",
-    "pairOf": "the_boneyard-surface-t4"
-   },
-   {
-    "kind": "surface-t4-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_boneyard-surface-t4-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-surface-t4-nv.jpg",
-    "shows": "Soul sand fills most of the frame, with basalt, in soul sand valley. Soul sand valley is 66.1% of this world's surface, 1st of its 8 surface biomes.",
-    "censusCaption": "sky 1.1%; unloaded 4.3%; near: soul_soil 46.9%, basalt 2.9%; mid: soul_sand 5.2%, soul_soil 4.4%; far: soul_soil 15.5%, soul_sand 13%; biomes: soul_sand_valley 100%",
-    "layer": "surface",
-    "place": "surface type 4: 9.0% of cells; biome soul_sand_valley; ground netherrack; top netherrack; height 73; neighbour step 7.2 (layer 3.6); canopy 0% (layer 0%); bare rock 52% (layer 25%); overhangs 50% (layer 23%); cave pockets 32% (layer 16%)",
-    "camera": {
-     "x": 360.5,
-     "y": 48.62000000476837,
-     "z": 407.5,
-     "yaw": 135.0,
-     "pitch": 5.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": true,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 130.6,
-     "fogPercent": 0.8
-    },
-    "frame": "with night vision",
-    "pairOf": "the_boneyard-surface-t4"
+    "pairOf": "the_boneyard-surface-t7"
    },
    {
     "kind": "surface-lm1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_boneyard-surface-lm1.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_boneyard-surface-lm1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-surface-lm1.jpg",
-    "shows": "Moss, slime block and warped fungus fill most of the frame, in mycotoxic undergrowth. Mycotoxic undergrowth is 3.2% of this world's surface, 4th of its 8 surface biomes.",
-    "censusCaption": "sky 0%; near: moss_block 37.7%, slime_block 36.2%; mid: slime_block 1%; biomes: adventure:mycotoxic_undergrowth 99.1%",
+    "shows": "Moss and netherrack fill most of the frame, with soul sand and crimson fungus, in mycotoxic undergrowth and withered forest. Mycotoxic undergrowth is 2.8% of this world's surface, 7th of its 9 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 0.5%; near: moss_block 37.6%, soul_soil 12.4%; mid: netherrack 3.8%; far: netherrack 12.8%, cave_vines_plant 1.1%; biomes: adventure:mycotoxic_undergrowth 53.1%, adventure:withered_forest 46.6%",
     "layer": "surface",
-    "place": "surface landmark: biome adventure:mycotoxic_undergrowth (type soul_sand_valley); ground slime_block (type soul_sand); top slime_block (type soul_sand); trees per cell 2.0 (type 0.0); overhangs 67% (type 14%); notable-block density (log) 2.4 (type 0.7)",
+    "place": "surface landmark: biome adventure:mycotoxic_undergrowth (type adventure:withered_forest); ground moss_block (type soul_soil); top moss_block (type soul_soil); canopy 2% (type 5%); stacked layers 0% (type 0%); trees per cell 5.0 (type 8.0)",
     "camera": {
      "x": -999.5,
-     "y": 50.62000000476837,
-     "z": 744.5,
+     "y": 49.62000000476837,
+     "z": 728.5,
      "yaw": -90.0,
      "pitch": 5.0
     },
@@ -1851,24 +2153,24 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 56.5,
-     "fogPercent": 2.2
+     "luma": 67.9,
+     "fogPercent": 20.0
     },
     "frame": "as a player sees it",
     "pairOf": "the_boneyard-surface-lm1"
    },
    {
     "kind": "surface-lm1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_boneyard-surface-lm1-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_boneyard-surface-lm1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_boneyard-surface-lm1-nv.jpg",
-    "shows": "Moss, slime block and warped fungus fill most of the frame, in mycotoxic undergrowth. Mycotoxic undergrowth is 3.2% of this world's surface, 4th of its 8 surface biomes.",
-    "censusCaption": "sky 0%; near: moss_block 37.7%, slime_block 36.2%; mid: slime_block 1%; biomes: adventure:mycotoxic_undergrowth 99.1%",
+    "shows": "Moss and netherrack fill most of the frame, with soul sand and crimson fungus, in mycotoxic undergrowth and withered forest. Mycotoxic undergrowth is 2.8% of this world's surface, 7th of its 9 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 0.4%; near: moss_block 37.6%, soul_soil 12.4%; mid: netherrack 3.8%; far: netherrack 12.7%, cave_vines_plant 1.1%; biomes: adventure:mycotoxic_undergrowth 53%, adventure:withered_forest 46.6%",
     "layer": "surface",
-    "place": "surface landmark: biome adventure:mycotoxic_undergrowth (type soul_sand_valley); ground slime_block (type soul_sand); top slime_block (type soul_sand); trees per cell 2.0 (type 0.0); overhangs 67% (type 14%); notable-block density (log) 2.4 (type 0.7)",
+    "place": "surface landmark: biome adventure:mycotoxic_undergrowth (type adventure:withered_forest); ground moss_block (type soul_soil); top moss_block (type soul_soil); canopy 2% (type 5%); stacked layers 0% (type 0%); trees per cell 5.0 (type 8.0)",
     "camera": {
      "x": -999.5,
-     "y": 50.62000000476837,
-     "z": 744.5,
+     "y": 49.62000000476837,
+     "z": 728.5,
      "yaw": -90.0,
      "pitch": 5.0
     },
@@ -1878,8 +2180,8 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 86.1,
-     "fogPercent": 0.5
+     "luma": 95.1,
+     "fogPercent": 0.0
     },
     "frame": "with night vision",
     "pairOf": "the_boneyard-surface-lm1"
@@ -1891,80 +2193,78 @@
   "shots": [
    {
     "kind": "far",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-far.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_ember_fields-far.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-far.jpg",
-    "shows": "Netherrack, crimson fungus and warped fungus fill most of the frame, with glowstone, in nether grasslands. Nether grasslands is 51.9% of this world's surface, 1st of its 11 surface biomes.",
-    "censusCaption": "sky 11.4%; mid: crimson_roots 17.2%, warped_roots 11.5%; far: netherrack 21.1%, crimson_roots 4.3%; biomes: adventure:nether_grasslands 100%",
+    "shows": "Quartz, netherrack and glowstone fill most of the frame, in quartz flats and sulphur springs. Quartz flats is 1.1% of this world's surface, 10th of its 11 surface biomes.",
+    "censusCaption": "sky 10.5%; near: quartz_block 7.1%, quartz_pillar 4.3%; mid: quartz_block 16.6%, quartz_pillar 7.7%; far: netherrack 19.5%, glowstone 7.9%; biomes: adventure:quartz_flats 77.5%, adventure:sulphur_springs 16%, adventure:magma_land 6.3%",
     "layer": "vista",
     "place": "vista: summit of the coarse map, facing its largest drop",
     "camera": {
-     "x": -215.5,
-     "y": 67.62000000476837,
-     "z": -103.5,
-     "yaw": -66.0,
-     "pitch": 9.8
+     "x": 8.5,
+     "y": 66.62000000476837,
+     "z": -1023.5,
+     "yaw": 0.4,
+     "pitch": 7.5
     },
     "lookingAt": [
-     -72,
-     40,
-     -40
+     -152,
+     45,
+     -1024
     ],
     "renderer": "render distance 32, noon, clear, clouds off",
     "nightVision": false,
     "gate": {
-     "passed": false,
-     "reasons": [
-      "fog wall: 65.2% of pixels within 24 of the fog colour"
-     ],
-     "luma": 67.6,
-     "fogPercent": 65.2
+     "passed": true,
+     "reasons": [],
+     "luma": 154.8,
+     "fogPercent": 59.5
     },
     "frame": "as a player sees it",
     "pairOf": "the_ember_fields-far"
    },
    {
     "kind": "far-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-far-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_ember_fields-far-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-far-nv.jpg",
-    "shows": "Netherrack, crimson fungus and warped fungus fill most of the frame, with glowstone, in nether grasslands. Nether grasslands is 51.9% of this world's surface, 1st of its 11 surface biomes.",
-    "censusCaption": "sky 11.4%; mid: crimson_roots 17.2%, warped_roots 11.5%; far: netherrack 21.1%, crimson_roots 4.3%; biomes: adventure:nether_grasslands 100%",
+    "shows": "Quartz, netherrack and glowstone fill most of the frame, in quartz flats and sulphur springs. Quartz flats is 1.1% of this world's surface, 10th of its 11 surface biomes.",
+    "censusCaption": "sky 10.5%; near: quartz_block 7.1%, quartz_pillar 4.3%; mid: quartz_block 16.6%, quartz_pillar 7.7%; far: netherrack 19.5%, glowstone 7.9%; biomes: adventure:quartz_flats 77.5%, adventure:sulphur_springs 16%, adventure:magma_land 6.3%",
     "layer": "vista",
     "place": "vista: summit of the coarse map, facing its largest drop",
     "camera": {
-     "x": -215.5,
-     "y": 67.62000000476837,
-     "z": -103.5,
-     "yaw": -66.0,
-     "pitch": 9.8
+     "x": 8.5,
+     "y": 66.62000000476837,
+     "z": -1023.5,
+     "yaw": 0.4,
+     "pitch": 7.5
     },
     "lookingAt": [
-     -72,
-     40,
-     -40
+     -152,
+     45,
+     -1024
     ],
     "renderer": "render distance 32, noon, clear, clouds off",
     "nightVision": true,
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 118.0,
-     "fogPercent": 3.6
+     "luma": 179.6,
+     "fogPercent": 5.8
     },
     "frame": "with night vision",
     "pairOf": "the_ember_fields-far"
    },
    {
     "kind": "surface-t1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-surface-t1.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_ember_fields-surface-t1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-surface-t1.jpg",
-    "shows": "Netherrack, warped fungus and crimson fungus fill most of the frame, with nether sprouts, in nether grasslands. Nether grasslands is 51.9% of this world's surface, 1st of its 11 surface biomes.",
-    "censusCaption": "sky 9.3%; near: warped_roots 18.2%, crimson_roots 17.9%; mid: crimson_roots 1%; far: netherrack 31.3%, glowstone 1.3%; biomes: adventure:nether_grasslands 99.8%",
+    "shows": "Crimson fungus, netherrack and warped fungus fill most of the frame, with glowstone, in nether grasslands. Nether grasslands is 51.2% of this world's surface, 1st of its 11 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 12.2%; near: crimson_roots 23%, warped_roots 11.7%; far: netherrack 25.6%, glowstone 1.1%; biomes: adventure:nether_grasslands 99.7%",
     "layer": "surface",
-    "place": "surface type 1: 56.0% of cells; biome adventure:nether_grasslands; ground crimson_nylium; top nether_sprouts; height 48; ground plants 83% (layer 50%); bare rock 1% (layer 28%)",
+    "place": "surface type 1: 51.6% of cells; biome adventure:nether_grasslands; ground crimson_nylium; top nether_sprouts; height 48; ground plants 88% (layer 49%); bare rock 1% (layer 26%)",
     "camera": {
-     "x": -375.5,
-     "y": 45.62000000476837,
-     "z": -24.5,
+     "x": -407.5,
+     "y": 46.62000000476837,
+     "z": -7.5,
      "yaw": 135.0,
      "pitch": 5.0
     },
@@ -1974,24 +2274,24 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 60.0,
-     "fogPercent": 44.6
+     "luma": 108.0,
+     "fogPercent": 41.3
     },
     "frame": "as a player sees it",
     "pairOf": "the_ember_fields-surface-t1"
    },
    {
     "kind": "surface-t1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-surface-t1-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_ember_fields-surface-t1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-surface-t1-nv.jpg",
-    "shows": "Netherrack, warped fungus and crimson fungus fill most of the frame, with nether sprouts, in nether grasslands. Nether grasslands is 51.9% of this world's surface, 1st of its 11 surface biomes.",
-    "censusCaption": "sky 9.3%; near: warped_roots 18.2%, crimson_roots 17.9%; mid: crimson_roots 1%; far: netherrack 31.1%, glowstone 1.3%; biomes: adventure:nether_grasslands 99.8%",
+    "shows": "Crimson fungus, netherrack and warped fungus fill most of the frame, with glowstone, in nether grasslands. Nether grasslands is 51.2% of this world's surface, 1st of its 11 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 10.9%; near: crimson_roots 23%, warped_roots 11.7%; far: netherrack 26.9%, glowstone 1.1%; biomes: adventure:nether_grasslands 99.7%",
     "layer": "surface",
-    "place": "surface type 1: 56.0% of cells; biome adventure:nether_grasslands; ground crimson_nylium; top nether_sprouts; height 48; ground plants 83% (layer 50%); bare rock 1% (layer 28%)",
+    "place": "surface type 1: 51.6% of cells; biome adventure:nether_grasslands; ground crimson_nylium; top nether_sprouts; height 48; ground plants 88% (layer 49%); bare rock 1% (layer 26%)",
     "camera": {
-     "x": -375.5,
-     "y": 45.62000000476837,
-     "z": -24.5,
+     "x": -407.5,
+     "y": 46.62000000476837,
+     "z": -7.5,
      "yaw": 135.0,
      "pitch": 5.0
     },
@@ -2001,25 +2301,25 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 98.2,
-     "fogPercent": 0.2
+     "luma": 120.2,
+     "fogPercent": 0.4
     },
     "frame": "with night vision",
     "pairOf": "the_ember_fields-surface-t1"
    },
    {
     "kind": "underground-t1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-underground-t1.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_ember_fields-underground-t1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-underground-t1.jpg",
-    "shows": "Warped fungus, netherrack and crimson fungus fill most of the frame, with nether sprouts, in nether grasslands. Nether grasslands is 51.9% of this world's surface, 1st of its 11 surface biomes.",
-    "censusCaption": "sky 4.5%; unloaded 6%; near: warped_roots 34%, crimson_roots 8.9%; mid: crimson_roots 1%; far: netherrack 25.1%, glowstone 1.5%; biomes: adventure:nether_grasslands 96.6%",
+    "shows": "Crimson fungus, netherrack and warped fungus fill most of the frame, with glowstone, in nether grasslands. Nether grasslands is 51.2% of this world's surface, 1st of its 11 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 15.2%; near: crimson_roots 19.1%, warped_roots 13.5%; mid: crimson_roots 3.4%, warped_roots 3.1%; far: netherrack 21.3%, glowstone 1.3%; biomes: adventure:nether_grasslands 99.7%",
     "layer": "underground",
-    "place": "underground type 1: 72.2% of cells; notableId magma_block; biome adventure:nether_grasslands; height 48",
+    "place": "underground type 1: 65.3% of cells; notableId magma_block; biome adventure:nether_grasslands; height 47",
     "camera": {
-     "x": 138.5,
-     "y": 45.500000004768374,
-     "z": -202.5,
-     "yaw": 157.5,
+     "x": -334.5,
+     "y": 49.500000004768374,
+     "z": 497.5,
+     "yaw": 45.0,
      "pitch": 10.0
     },
     "lookingAt": null,
@@ -2028,25 +2328,25 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 61.9,
-     "fogPercent": 41.5
+     "luma": 109.5,
+     "fogPercent": 42.9
     },
     "frame": "as a player sees it",
     "pairOf": "the_ember_fields-underground-t1"
    },
    {
     "kind": "underground-t1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-underground-t1-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_ember_fields-underground-t1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-underground-t1-nv.jpg",
-    "shows": "Warped fungus, netherrack and crimson fungus fill most of the frame, with nether sprouts, in nether grasslands. Nether grasslands is 51.9% of this world's surface, 1st of its 11 surface biomes.",
-    "censusCaption": "sky 5.6%; unloaded 4.7%; near: warped_roots 34%, crimson_roots 8.9%; mid: crimson_roots 1%; far: netherrack 25.2%, glowstone 1.5%; biomes: adventure:nether_grasslands 96.5%",
+    "shows": "Crimson fungus, netherrack and warped fungus fill most of the frame, with glowstone, in nether grasslands. Nether grasslands is 51.2% of this world's surface, 1st of its 11 surface biomes.",
+    "censusCaption": "sky 0.2%; unloaded 13.8%; near: crimson_roots 19.1%, warped_roots 13.5%; mid: crimson_roots 3.4%, warped_roots 3.1%; far: netherrack 21.8%, glowstone 1.3%; biomes: adventure:nether_grasslands 99.6%",
     "layer": "underground",
-    "place": "underground type 1: 72.2% of cells; notableId magma_block; biome adventure:nether_grasslands; height 48",
+    "place": "underground type 1: 65.3% of cells; notableId magma_block; biome adventure:nether_grasslands; height 47",
     "camera": {
-     "x": 138.5,
-     "y": 45.500000004768374,
-     "z": -202.5,
-     "yaw": 157.5,
+     "x": -334.5,
+     "y": 49.500000004768374,
+     "z": 497.5,
+     "yaw": 45.0,
      "pitch": 10.0
     },
     "lookingAt": null,
@@ -2055,24 +2355,24 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 99.6,
-     "fogPercent": 0.2
+     "luma": 126.2,
+     "fogPercent": 1.5
     },
     "frame": "with night vision",
     "pairOf": "the_ember_fields-underground-t1"
    },
    {
     "kind": "roof-t1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-roof-t1.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_ember_fields-roof-t1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-roof-t1.jpg",
-    "shows": "Netherrack fills most of the frame, with glowstone, in nether grasslands. Nether grasslands is 51.9% of this world's surface, 1st of its 11 surface biomes.",
-    "censusCaption": "sky 8.6%; near: netherrack 79.3%, glowstone 1.8%; mid: netherrack 6.3%; far: netherrack 1.9%, glowstone 1%; biomes: adventure:nether_grasslands 100%",
+    "shows": "Netherrack fills most of the frame, in nether grasslands. Nether grasslands is 51.2% of this world's surface, 1st of its 11 surface biomes.",
+    "censusCaption": "sky 4.6%; unloaded 3.4%; near: netherrack 76.9%, lava 1.3%; mid: netherrack 10.2%; far: netherrack 1.4%, glowstone 1.1%; biomes: adventure:nether_grasslands 100%",
     "layer": "roof",
-    "place": "roof type 1: 44.0% of cells; notableId nether_quartz_ore; height 108; neighbour step 0.2 (layer 0.6)",
+    "place": "roof type 1: 39.1% of cells; notableId nether_quartz_ore; height 108; neighbour step 0.2 (layer 0.6)",
     "camera": {
-     "x": -71.5,
-     "y": 103.50000000476837,
-     "z": -151.5,
+     "x": 136.5,
+     "y": 104.50000000476837,
+     "z": -199.5,
      "yaw": 0.0,
      "pitch": -30.0
     },
@@ -2082,24 +2382,24 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 35.5,
-     "fogPercent": 17.5
+     "luma": 52.8,
+     "fogPercent": 16.2
     },
     "frame": "as a player sees it",
     "pairOf": "the_ember_fields-roof-t1"
    },
    {
     "kind": "roof-t1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-roof-t1-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_ember_fields-roof-t1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-roof-t1-nv.jpg",
-    "shows": "Netherrack fills most of the frame, with glowstone, in nether grasslands. Nether grasslands is 51.9% of this world's surface, 1st of its 11 surface biomes.",
-    "censusCaption": "sky 8.6%; near: netherrack 79.3%, glowstone 1.8%; mid: netherrack 6.3%; far: netherrack 1.9%, glowstone 1%; biomes: adventure:nether_grasslands 100%",
+    "shows": "Netherrack fills most of the frame, in nether grasslands. Nether grasslands is 51.2% of this world's surface, 1st of its 11 surface biomes.",
+    "censusCaption": "sky 5.3%; unloaded 2.8%; near: netherrack 76.9%, lava 1.3%; mid: netherrack 10.2%; far: netherrack 1.4%, glowstone 1.1%; biomes: adventure:nether_grasslands 100%",
     "layer": "roof",
-    "place": "roof type 1: 44.0% of cells; notableId nether_quartz_ore; height 108; neighbour step 0.2 (layer 0.6)",
+    "place": "roof type 1: 39.1% of cells; notableId nether_quartz_ore; height 108; neighbour step 0.2 (layer 0.6)",
     "camera": {
-     "x": -71.5,
-     "y": 103.50000000476837,
-     "z": -151.5,
+     "x": 136.5,
+     "y": 104.50000000476837,
+     "z": -199.5,
      "yaw": 0.0,
      "pitch": -30.0
     },
@@ -2109,79 +2409,25 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 60.3,
-     "fogPercent": 3.4
+     "luma": 70.0,
+     "fogPercent": 1.0
     },
     "frame": "with night vision",
     "pairOf": "the_ember_fields-roof-t1"
    },
    {
-    "kind": "surface-t2",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-surface-t2.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-surface-t2.jpg",
-    "shows": "Netherrack fills most of the frame, in sulphur springs. Sulphur springs is 23.1% of this world's surface, 2nd of its 11 surface biomes.",
-    "censusCaption": "sky 3.4%; unloaded 4.6%; near: netherrack 55%; mid: netherrack 4.7%; far: netherrack 28.9%, glowstone 2.3%; biomes: adventure:sulphur_springs 81.7%, adventure:nether_grasslands 14.7%",
-    "layer": "surface",
-    "place": "surface type 2: 28.2% of cells; biome adventure:sulphur_springs; ground netherrack; top netherrack; height 53; neighbour step 7.5 (layer 4.0); relief over 16 blocks 82.5 (layer 68.5); relief over the patch 87.7 (layer 82.9); notable-block density (log) 0.1 (layer 0.6); ground plants 1% (layer 50%); liquid cover 5% (layer 2%); bare rock 88% (layer 28%); cave pockets 35% (layer 19%)",
-    "camera": {
-     "x": 456.5,
-     "y": 44.62000000476837,
-     "z": -615.5,
-     "yaw": 90.0,
-     "pitch": 5.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": false,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 95.8,
-     "fogPercent": 41.3
-    },
-    "frame": "as a player sees it",
-    "pairOf": "the_ember_fields-surface-t2"
-   },
-   {
-    "kind": "surface-t2-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-surface-t2-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-surface-t2-nv.jpg",
-    "shows": "Netherrack fills most of the frame, in sulphur springs. Sulphur springs is 23.1% of this world's surface, 2nd of its 11 surface biomes.",
-    "censusCaption": "sky 3.4%; unloaded 4.6%; near: netherrack 55%; mid: netherrack 4.7%; far: netherrack 28.9%, glowstone 2.3%; biomes: adventure:sulphur_springs 81.7%, adventure:nether_grasslands 14.7%",
-    "layer": "surface",
-    "place": "surface type 2: 28.2% of cells; biome adventure:sulphur_springs; ground netherrack; top netherrack; height 53; neighbour step 7.5 (layer 4.0); relief over 16 blocks 82.5 (layer 68.5); relief over the patch 87.7 (layer 82.9); notable-block density (log) 0.1 (layer 0.6); ground plants 1% (layer 50%); liquid cover 5% (layer 2%); bare rock 88% (layer 28%); cave pockets 35% (layer 19%)",
-    "camera": {
-     "x": 456.5,
-     "y": 44.62000000476837,
-     "z": -615.5,
-     "yaw": 90.0,
-     "pitch": 5.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": true,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 130.9,
-     "fogPercent": 0.7
-    },
-    "frame": "with night vision",
-    "pairOf": "the_ember_fields-surface-t2"
-   },
-   {
     "kind": "surface-t3",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-surface-t3.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_ember_fields-surface-t3.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-surface-t3.jpg",
-    "shows": "Crimson fungus fill most of the frame, with shroomlight and slime block, in crimson pinewood. Crimson pinewood is 6.7% of this world's surface, 3rd of its 11 surface biomes.",
-    "censusCaption": "sky 0%; near: nether_wart_block 30.3%, crimson_nylium 24.4%; biomes: adventure:crimson_pinewood 92.4%, adventure:mycotoxic_undergrowth 7.6%",
+    "shows": "Crimson fungus fill most of the frame, with shroomlight and vines, in crimson pinewood. Crimson pinewood is 6.9% of this world's surface, 3rd of its 11 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 0.9%; near: nether_wart_block 62.6%, shroomlight 12.4%; mid: cave_vines_plant 1.9%; far: cave_vines_plant 4.1%, netherrack 1.4%; biomes: adventure:crimson_pinewood 90.3%, adventure:mycotoxic_undergrowth 9.6%",
     "layer": "surface",
-    "place": "surface type 3: 15.8% of cells; biome adventure:crimson_pinewood; ground crimson_nylium; top nether_wart_block; height 46; trees per cell 4.4 (layer 0.7); canopy 51% (layer 8%); ground plants 19% (layer 50%); cave pockets 7% (layer 19%)",
+    "place": "surface type 3: 16.4% of cells; biome crimson_forest; ground crimson_nylium; top nether_wart_block; height 47; relief over 16 blocks 56.1 (layer 67.9); trees per cell 4.6 (layer 0.9); canopy 49% (layer 9%); ground plants 18% (layer 49%); cave pockets 7% (layer 19%)",
     "camera": {
-     "x": 296.5,
-     "y": 46.62000000476837,
-     "z": 856.5,
-     "yaw": -45.0,
+     "x": 936.5,
+     "y": 52.62000000476837,
+     "z": -122.5,
+     "yaw": -180.0,
      "pitch": 5.0
     },
     "lookingAt": null,
@@ -2190,25 +2436,25 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 32.3,
-     "fogPercent": 25.3
+     "luma": 54.3,
+     "fogPercent": 11.7
     },
     "frame": "as a player sees it",
     "pairOf": "the_ember_fields-surface-t3"
    },
    {
     "kind": "surface-t3-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-surface-t3-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_ember_fields-surface-t3-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-surface-t3-nv.jpg",
-    "shows": "Crimson fungus fill most of the frame, with shroomlight and slime block, in crimson pinewood. Crimson pinewood is 6.7% of this world's surface, 3rd of its 11 surface biomes.",
-    "censusCaption": "sky 0%; near: nether_wart_block 30.3%, crimson_nylium 24.4%; biomes: adventure:crimson_pinewood 92.4%, adventure:mycotoxic_undergrowth 7.6%",
+    "shows": "Crimson fungus fill most of the frame, with shroomlight and vines, in crimson pinewood. Crimson pinewood is 6.9% of this world's surface, 3rd of its 11 surface biomes.",
+    "censusCaption": "sky 0.5%; unloaded 0.4%; near: nether_wart_block 62.6%, shroomlight 12.4%; mid: cave_vines_plant 1.9%; far: cave_vines_plant 4.1%, netherrack 1.4%; biomes: adventure:crimson_pinewood 90.3%, adventure:mycotoxic_undergrowth 9.6%",
     "layer": "surface",
-    "place": "surface type 3: 15.8% of cells; biome adventure:crimson_pinewood; ground crimson_nylium; top nether_wart_block; height 46; trees per cell 4.4 (layer 0.7); canopy 51% (layer 8%); ground plants 19% (layer 50%); cave pockets 7% (layer 19%)",
+    "place": "surface type 3: 16.4% of cells; biome crimson_forest; ground crimson_nylium; top nether_wart_block; height 47; relief over 16 blocks 56.1 (layer 67.9); trees per cell 4.6 (layer 0.9); canopy 49% (layer 9%); ground plants 18% (layer 49%); cave pockets 7% (layer 19%)",
     "camera": {
-     "x": 296.5,
-     "y": 46.62000000476837,
-     "z": 856.5,
-     "yaw": -45.0,
+     "x": 936.5,
+     "y": 52.62000000476837,
+     "z": -122.5,
+     "yaw": -180.0,
      "pitch": 5.0
     },
     "lookingAt": null,
@@ -2217,79 +2463,25 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 41.4,
-     "fogPercent": 11.2
+     "luma": 58.6,
+     "fogPercent": 0.6
     },
     "frame": "with night vision",
     "pairOf": "the_ember_fields-surface-t3"
    },
    {
-    "kind": "underground-t2",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-underground-t2.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-underground-t2.jpg",
-    "shows": "Netherrack fills most of the frame, in sulphur springs. Sulphur springs is 23.1% of this world's surface, 2nd of its 11 surface biomes.",
-    "censusCaption": "sky 0%; unloaded 14.8%; near: netherrack 57.9%; mid: netherrack 7.5%; far: netherrack 19%; biomes: adventure:sulphur_springs 98.1%",
-    "layer": "underground",
-    "place": "underground type 2: 27.8% of cells; notableId lava; biome adventure:sulphur_springs; height 52; neighbour step 7.3 (layer 4.0); relief over 16 blocks 81.8 (layer 68.5); notable-block density (log) 0.6 (layer 1.0); cave liquid 3% (layer 1%); cave pockets 34% (layer 19%)",
-    "camera": {
-     "x": -427.5,
-     "y": 44.500000004768374,
-     "z": -1003.5,
-     "yaw": 22.5,
-     "pitch": 10.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": false,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 88.0,
-     "fogPercent": 37.9
-    },
-    "frame": "as a player sees it",
-    "pairOf": "the_ember_fields-underground-t2"
-   },
-   {
-    "kind": "underground-t2-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-underground-t2-nv.png",
-    "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-underground-t2-nv.jpg",
-    "shows": "Netherrack fills most of the frame, in sulphur springs. Sulphur springs is 23.1% of this world's surface, 2nd of its 11 surface biomes.",
-    "censusCaption": "sky 0%; unloaded 13.9%; near: netherrack 57.9%; mid: netherrack 7.5%; far: netherrack 19.9%; biomes: adventure:sulphur_springs 98.2%",
-    "layer": "underground",
-    "place": "underground type 2: 27.8% of cells; notableId lava; biome adventure:sulphur_springs; height 52; neighbour step 7.3 (layer 4.0); relief over 16 blocks 81.8 (layer 68.5); notable-block density (log) 0.6 (layer 1.0); cave liquid 3% (layer 1%); cave pockets 34% (layer 19%)",
-    "camera": {
-     "x": -427.5,
-     "y": 44.500000004768374,
-     "z": -1003.5,
-     "yaw": 22.5,
-     "pitch": 10.0
-    },
-    "lookingAt": null,
-    "renderer": "render distance 32, noon, clear, clouds off",
-    "nightVision": true,
-    "gate": {
-     "passed": true,
-     "reasons": [],
-     "luma": 120.3,
-     "fogPercent": 0.4
-    },
-    "frame": "with night vision",
-    "pairOf": "the_ember_fields-underground-t2"
-   },
-   {
     "kind": "surface-lm1",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-surface-lm1.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_ember_fields-surface-lm1.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-surface-lm1.jpg",
-    "shows": "Netherrack, warped fungus and lava fill most of the frame, in nether jungle. Nether jungle is 4.7% of this world's surface, 5th of its 11 surface biomes.",
-    "censusCaption": "sky 0%; near: netherrack 39.1%, twisting_vines_plant 30.1%; biomes: adventure:nether_jungle 97.1%",
+    "shows": "Gravel, bone and netherrack fill most of the frame, in gravel desert and nether wastes. Gravel desert is 1.9% of this world's surface, 9th of its 11 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 7.5%; near: gravel 35.8%, bone_block 30.2%; mid: netherrack 2.5%; far: netherrack 21.1%; biomes: adventure:gravel_desert 72.5%, nether_wastes 20.9%, adventure:nether_grasslands 6.6%",
     "layer": "surface",
-    "place": "surface landmark: biome adventure:nether_jungle (type adventure:crimson_pinewood); ground netherrack (type crimson_nylium); stacked layers 4% (type 0%); liquid cover 14% (type 1%); relief over the patch 99.0 (type 75.0)",
+    "place": "surface landmark: biome adventure:gravel_desert (type adventure:sulphur_springs); ground gravel (type netherrack); top gravel (type netherrack); bare rock 17% (type 94%); relief over the patch 76.0 (type 90.0); height 69.9 (type 51.8)",
     "camera": {
-     "x": 633.5,
-     "y": 24.62000000476837,
-     "z": 680.5,
-     "yaw": -135.0,
+     "x": -744.5,
+     "y": 46.62000000476837,
+     "z": 902.5,
+     "yaw": -180.0,
      "pitch": 5.0
     },
     "lookingAt": null,
@@ -2298,25 +2490,25 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 49.8,
-     "fogPercent": 0.2
+     "luma": 85.9,
+     "fogPercent": 31.7
     },
     "frame": "as a player sees it",
     "pairOf": "the_ember_fields-surface-lm1"
    },
    {
     "kind": "surface-lm1-nv",
-    "file": "/tmp/claude-0/w10c2/runs/rig-fin2/screenshots/the_ember_fields-surface-lm1-nv.png",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_ember_fields-surface-lm1-nv.png",
     "jpg": "/tmp/claude-0/w10c2/shots/the_ember_fields-surface-lm1-nv.jpg",
-    "shows": "Netherrack, warped fungus and lava fill most of the frame, in nether jungle. Nether jungle is 4.7% of this world's surface, 5th of its 11 surface biomes.",
-    "censusCaption": "sky 0%; near: netherrack 39.1%, twisting_vines_plant 30.1%; biomes: adventure:nether_jungle 97.1%",
+    "shows": "Gravel, bone and netherrack fill most of the frame, in gravel desert and nether wastes. Gravel desert is 1.9% of this world's surface, 9th of its 11 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 7.3%; near: gravel 35.8%, bone_block 30.2%; mid: netherrack 2.5%; far: netherrack 21.2%; biomes: adventure:gravel_desert 72.4%, nether_wastes 20.9%, adventure:nether_grasslands 6.7%",
     "layer": "surface",
-    "place": "surface landmark: biome adventure:nether_jungle (type adventure:crimson_pinewood); ground netherrack (type crimson_nylium); stacked layers 4% (type 0%); liquid cover 14% (type 1%); relief over the patch 99.0 (type 75.0)",
+    "place": "surface landmark: biome adventure:gravel_desert (type adventure:sulphur_springs); ground gravel (type netherrack); top gravel (type netherrack); bare rock 17% (type 94%); relief over the patch 76.0 (type 90.0); height 69.9 (type 51.8)",
     "camera": {
-     "x": 633.5,
-     "y": 24.62000000476837,
-     "z": 680.5,
-     "yaw": -135.0,
+     "x": -744.5,
+     "y": 46.62000000476837,
+     "z": 902.5,
+     "yaw": -180.0,
      "pitch": 5.0
     },
     "lookingAt": null,
@@ -2325,8 +2517,8 @@
     "gate": {
      "passed": true,
      "reasons": [],
-     "luma": 75.6,
-     "fogPercent": 8.2
+     "luma": 130.0,
+     "fogPercent": 0.1
     },
     "frame": "with night vision",
     "pairOf": "the_ember_fields-surface-lm1"
@@ -2336,6 +2528,68 @@
  {
   "slug": "the_wailing_narrows",
   "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_wailing_narrows-far.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_wailing_narrows-far.jpg",
+    "shows": "Quartz, netherrack and glowstone fill most of the frame, in quartz flats. Quartz flats is 15.7% of this world's surface, 3rd of its 3 surface biomes.",
+    "censusCaption": "sky 0.7%; near: glowstone 22.9%, netherrack 21.4%; mid: quartz_block 12.2%, netherrack 8.7%; far: quartz_pillar 1.2%, soul_soil 1.2%; biomes: adventure:quartz_flats 96.4%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": -490.5,
+     "y": 103.62000000476837,
+     "z": -418.5,
+     "yaw": -49.6,
+     "pitch": 7.5
+    },
+    "lookingAt": [
+     -611,
+     46,
+     -339
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 114.8,
+     "fogPercent": 20.0
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_wailing_narrows-far"
+   },
+   {
+    "kind": "far-nv",
+    "file": "/tmp/claude-0/w10c2/runs/rig-c/screenshots/the_wailing_narrows-far-nv.png",
+    "jpg": "/tmp/claude-0/w10c2/shots/the_wailing_narrows-far-nv.jpg",
+    "shows": "Quartz, netherrack and glowstone fill most of the frame, in quartz flats. Quartz flats is 15.7% of this world's surface, 3rd of its 3 surface biomes.",
+    "censusCaption": "sky 0.7%; near: glowstone 22.9%, netherrack 21.4%; mid: quartz_block 12.2%, netherrack 8.7%; far: quartz_pillar 1.2%, soul_soil 1.2%; biomes: adventure:quartz_flats 96.4%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": -490.5,
+     "y": 103.62000000476837,
+     "z": -418.5,
+     "yaw": -49.6,
+     "pitch": 7.5
+    },
+    "lookingAt": [
+     -611,
+     46,
+     -339
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 144.0,
+     "fogPercent": 19.5
+    },
+    "frame": "with night vision",
+    "pairOf": "the_wailing_narrows-far"
+   },
    {
     "kind": "surface-t1",
     "file": "/tmp/claude-0/w10c2/runs/rig-four/screenshots/the_wailing_narrows-surface-t1.png",

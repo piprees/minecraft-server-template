@@ -22,18 +22,18 @@ Zones: none
 
 ## Survey
 
-Dossier: `runs/r11/full/the_wailing_narrows/dossier.json`; layer maps in `runs/r11/full/the_wailing_narrows/layers`
+Dossier: `/tmp/claude-0/w10c2/runs/c1/full/the_wailing_narrows/dossier.json`; layer maps in `/tmp/claude-0/w10c2/runs/c1/full/the_wailing_narrows/layers`
 
 ## Summary
 
-- Top blocks seen from the sky: soul_sand 23%, basalt 22.8%, soul_soil 17.5%, quartz_block 12.6%.
+- Top blocks seen from the sky: soul_sand 23%, basalt 22.7%, soul_soil 17.5%, quartz_block 12.6%.
 - Surface biomes: soul_sand_valley 45.6%, basalt_deltas 38.8%, adventure:quartz_flats 15.7%.
-- Ground blocks: basalt 26.8%, soul_sand 23.1%, soul_soil 17.7%, quartz_block 12.6%.
-- Liquid cover 0% water, 9.2% lava, 0% other; snow or ice 0% (a snowing climate over 0%); tree canopy 0%; bare rock 31.7%; no ground (void) 0%.
+- Ground blocks: basalt 26.7%, soul_sand 23.1%, soul_soil 17.7%, quartz_block 12.6%.
+- Liquid cover 0% water, 9.2% lava, 0% other; snow or ice 0% (a snowing climate over 0%); tree canopy 0%; bare rock 31.6%; no ground (void) 0%.
 - Trees: 0 per ha; ground plants other 0.2%, mushroom 0.1%, grass 0.1%.
-- Surface height p5 18, median 72, p95 104, max 127; median relief per patch 104 blocks; slopes under 15° 38.6%, over 45° 39.3%, cliffs 15.3%; above the clouds 0%, below sea level 2.2%.
-- Underground: 10% open, 0.5% liquid; cave biomes soul_sand_valley 48.5%, basalt_deltas 35.1%, adventure:quartz_flats 16.4%.
-- Notable clusters, fewest first: dried_ghast 9 clusters, spacing 30.4; brown_mushroom 21 clusters, spacing 7.6; basalt 26 clusters, spacing 6.9; fire 39 clusters, spacing 6.5; red_mushroom 45 clusters, spacing 4.1; bone_block 51 clusters, spacing 9.1.
+- Surface height p5 18, median 72, p95 104, max 127; median relief per patch 104 blocks; slopes under 15° 38.5%, over 45° 39.4%, cliffs 15.3%; above the clouds 0%, below sea level 2.2%.
+- Underground: 10% open, 0.5% liquid; cave biomes soul_sand_valley 48.7%, basalt_deltas 35.2%, adventure:quartz_flats 16.1%.
+- Notable clusters, fewest first: dried_ghast 9 clusters, spacing 30.4; brown_mushroom 21 clusters, spacing 7.6; basalt 26 clusters, spacing 6.9; fire 38 clusters, spacing 6.8; red_mushroom 45 clusters, spacing 4.1; bone_block 51 clusters, spacing 9.1.
 - 3 of 3 placed biomes are expressed; 0 listed biomes were not found.
 - Render against world at 900 columns: height within 2 blocks 75.7%, biome match 100%.
 - Landforms over the border (noise render): plains 34.2%, hills 31.3%, mountains 11.1%, plateaus 10.9%, basins 12.5%, islands 0%, water 0%, void 0%.
@@ -58,26 +58,32 @@ Dossier: `runs/r11/full/the_wailing_narrows/dossier.json`; layer maps in `runs/r
   - landmark at [104,-600]: biome soul_sand_valley (type basalt_deltas); ground netherrack (type basalt); top netherrack (type basalt); stacked layers 1% (type 0%); overhangs 29% (type 1%); cave pockets 30% (type 0%)
   - landmark at [104,264]: ground basalt (type soul_sand); top lava (type soul_sand); ground plants 2% (type 0%); overhangs 38% (type 5%); cave pockets 43% (type 0%)
 - **sky**: no cells.
-- **underground** (225 cells, 3 types, silhouette 0.244):
-  - type 1: 39.6% of cells; notableId blackstone; biome soul_sand_valley; height 30; notable-block density (log) 0.8 (layer 1.3); cave pockets 1% (layer 12%) — camera [242.5,33.88,-280.5]
-  - type 2: 30.2% of cells; notableId blackstone; biome basalt_deltas; height 73 — camera [43.5,60.88,573.5]
-  - type 3: 30.2% of cells; notableId magma_block; biome soul_sand_valley; height 75; cave pockets 22% (layer 12%) — camera [349.5,78.88,-530.5]
-  - landmark at [-520,552]: layer present in 35% (type 100%); cave air 75% (type 4%); neighbour step 15.4 (type 2.2)
-  - landmark at [-504,552]: notableId magma_block (type blackstone); cave air 79% (type 4%); neighbour step 16.3 (type 2.2); layer present in 71% (type 100%)
-  - landmark at [392,-24]: notableId soul_sand (type magma_block); cave air 74% (type 4%); layer present in 61% (type 100%); neighbour step 13.5 (type 2.6)
-  - landmark at [-536,568]: biome basalt_deltas (type none); layer present in 25% (type 100%); cave air 48% (type 2%); neighbour step 11.0 (type 1.8)
-  - landmark at [-536,552]: cave air 70% (type 4%); neighbour step 13.7 (type 2.2); layer present in 72% (type 100%)
-- **roof** (225 cells, 6 types, silhouette 0.364):
-  - type 1: 28.0% of cells; notableId nether_quartz_ore; height 107; notable-block density (log) 0.2 (layer 0.8) — camera [280.5,98.88,-295.5]
-  - type 2: 23.6% of cells; notableId blackstone; height 106; neighbour step 0.1 (layer 0.5); relief over 16 blocks 6.3 (layer 11.3) — camera [-247.5,98.88,248.5]
-  - type 3: 14.2% of cells; notableId soul_soil; height 107; notable-block density (log) 1.4 (layer 0.8) — camera [360.5,101.88,-551.5]
-  - type 4: 14.2% of cells; notableId soul_sand; height 108; relief over 16 blocks 17.6 (layer 11.3); notable-block density (log) 1.6 (layer 0.8) — camera [536.5,101.88,-647.5]
-  - type 5: 14.2% of cells; notableId blackstone; height 111; neighbour step 1.2 (layer 0.5) — camera [-535.5,101.88,552.5]
-  - type 6: 5.8% of cells; notableId glowstone; height 107; notable-block density (log) 0.4 (layer 0.8) — camera [-551.5,100.88,-391.5]
+- **underground** (225 cells, 7 types, silhouette 0.244):
+  - type 1: 21.8% of cells; notableId blackstone; biome soul_sand_valley; height 46; cave air 2% (layer 11%); cave pockets 1% (layer 12%) — camera [242.5,33.88,-280.5]
+  - type 2: 19.6% of cells; notableId blackstone; biome basalt_deltas; height 73; notable-block density (log) 1.8 (layer 1.3) — camera [43.5,60.88,573.5]
+  - type 3: 15.6% of cells; notableId soul_sand; biome soul_sand_valley; height 23; neighbour step 1.5 (layer 3.3); notable-block density (log) 0.8 (layer 1.3); cave pockets 0% (layer 12%) — camera [270.5,23.88,-270.5]
+  - type 4: 14.7% of cells; notableId magma_block; biome soul_sand_valley; height 78; cave pockets 31% (layer 12%) — camera [594.5,81.88,-227.5]
+  - type 5: 13.3% of cells; notableId magma_block; biome adventure:quartz_flats; height 83; relief over 16 blocks 40.6 (layer 60.5) — camera [-248.5,85.88,-568.5]
+  - type 6: 8.4% of cells; notableId blackstone; biome basalt_deltas; height 38; layer present in 87% (layer 98%); neighbour step 9.7 (layer 3.3); relief over 16 blocks 96.1 (layer 60.5); notable-block density (log) 0.3 (layer 1.3); cave air 41% (layer 11%) — camera [-497.5,24.88,564.5]
+  - type 7: 6.7% of cells; notableId soul_soil; biome soul_sand_valley; height 49; layer present in 93% (layer 98%); neighbour step 7.5 (layer 3.3); relief over 16 blocks 95.5 (layer 60.5); cave air 35% (layer 11%); cave liquid 2% (layer 1%) — camera [586.5,20.88,-196.5]
+  - landmark at [-504,552]: notableId magma_block (type blackstone); layer present in 71% (type 100%); neighbour step 16.3 (type 6.1); cave liquid 6% (type 0%)
+  - landmark at [392,-24]: notableId soul_sand (type soul_soil); layer present in 61% (type 100%); cave air 74% (type 37%); cave liquid 5% (type 0%)
+  - landmark at [-520,552]: layer present in 35% (type 100%); cave liquid 9% (type 0%); neighbour step 15.4 (type 6.1)
+  - landmark at [376,-24]: neighbour step 20.3 (type 6.1); layer present in 63% (type 100%); cave air 80% (type 37%)
+  - landmark at [-232,248]: cave liquid 22% (type 0%); layer present in 67% (type 100%); height 22.7 (type 74.7)
+- **roof** (225 cells, 8 types, silhouette 0.359):
+  - type 1: 23.6% of cells; notableId nether_quartz_ore; height 107; notable-block density (log) 0.2 (layer 0.8) — camera [-519.5,101.88,-391.5]
+  - type 2: 13.8% of cells; notableId soul_soil; height 107; notable-block density (log) 1.5 (layer 0.8) — camera [360.5,101.88,-551.5]
+  - type 3: 13.8% of cells; notableId soul_sand; height 108; relief over 16 blocks 18.0 (layer 11.4); notable-block density (log) 1.7 (layer 0.8) — camera [536.5,101.88,-647.5]
+  - type 4: 12.4% of cells; notableId blackstone; height 106 — camera [24.5,99.88,536.5]
+  - type 5: 12.4% of cells; notableId blackstone; height 106; neighbour step 0.0 (layer 0.5); relief over 16 blocks 1.6 (layer 11.4) — camera [-295.5,99.88,648.5]
+  - type 6: 11.1% of cells; notableId blackstone; height 112; neighbour step 1.4 (layer 0.5) — camera [-296.5,99.88,664.5]
+  - type 7: 7.1% of cells; notableId nether_gold_ore; height 107; notable-block density (log) 0.1 (layer 0.8) — camera [344.5,102.88,-567.5]
+  - type 8: 5.8% of cells; notableId glowstone; height 107 — camera [-551.5,100.88,-391.5]
   - landmark at [104,264]: notableId basalt (type soul_sand); relief over 16 blocks 103.0 (type 15.0); height 102.5 (type 108.0); neighbour step 1.2 (type 0.4)
   - landmark at [568,-200]: layer present in 100% (type 100%); relief over 16 blocks 42.0 (type 15.0); notable-block density (log) 0.0 (type 1.6)
-  - landmark at [328,-536]: notableId basalt (type blackstone); height 116.4 (type 110.2); neighbour step 0.6 (type 1.4); notable-block density (log) 0.3 (type 0.1)
-  - landmark at [-520,552]: notableId magma_block (type blackstone); height 117.9 (type 110.2); neighbour step 1.7 (type 1.4); notable-block density (log) 0.0 (type 0.1)
+  - landmark at [-520,552]: notableId magma_block (type blackstone); height 117.9 (type 110.2); neighbour step 1.7 (type 1.3); notable-block density (log) 0.0 (type 0.2)
+  - landmark at [328,-536]: notableId basalt (type blackstone); height 116.4 (type 110.2); neighbour step 0.6 (type 1.3); notable-block density (log) 0.3 (type 0.2)
   - landmark at [168,120]: neighbour step 2.4 (type 0.4); height 112.2 (type 108.0); notable-block density (log) 0.8 (type 1.6)
 
 ## Biome expression
@@ -85,8 +91,8 @@ Dossier: `runs/r11/full/the_wailing_narrows/dossier.json`; layer maps in `runs/r
 3 of 3 placed biomes are expressed.
 
 - minecraft:soul_sand_valley: expressed, 26251 columns; placement land 98%, lava 1.9%, roofed 99.9%; snow 0%, canopy 0%, trees 0/ha; top soul_sand 50.5%, soul_soil 38.3%, netherrack 5.9%
-- minecraft:basalt_deltas: expressed, 22330 columns; placement land 78.8%, lava 21.1%, roofed 100%; snow 0%, canopy 0%, trees 0/ha; top basalt 56.9%, lava 21.1%, blackstone 13.1%
-- adventure:quartz_flats: expressed, 9057 columns; placement land 99.2%, lava 0.6%, roofed 99.8%, sky 0.2%; snow 0%, canopy 0%, trees 0/ha; top quartz_block 80.1%, glowstone 8.4%, smooth_quartz_slab 5.1%
+- minecraft:basalt_deltas: expressed, 22330 columns; placement land 78.8%, lava 21.2%, roofed 100%; snow 0%, canopy 0%, trees 0/ha; top basalt 56.8%, lava 21.2%, blackstone 13.1%
+- adventure:quartz_flats: expressed, 9057 columns; placement land 99.2%, lava 0.6%, roofed 99.8%, sky 0.2%; snow 0%, canopy 0%, trees 0/ha; top quartz_block 80.1%, glowstone 8.4%, smooth_quartz_slab 5.2%
 
 
 ## Facts
@@ -127,6 +133,18 @@ None.
 - S:d — layers the 1.21.1 type implies: surface present (100.0% of columns), roof present (100.0% of columns)
 
 ## Shots
+
+### the_wailing_narrows-far
+
+Picked for: vista: summit of the coarse map, facing its largest drop
+Census: sky 0.7%; near: glowstone 22.9%, netherrack 21.4%; mid: quartz_block 12.2%, netherrack 8.7%; far: quartz_pillar 1.2%, soul_soil 1.2%; biomes: adventure:quartz_flats 96.4%
+Image: `/tmp/claude-0/w10c2/reviews/the_wailing_narrows/screens/the_wailing_narrows-far.png`
+
+### the_wailing_narrows-far-nv
+
+Picked for: vista: summit of the coarse map, facing its largest drop
+Census: sky 0.7%; near: glowstone 22.9%, netherrack 21.4%; mid: quartz_block 12.2%, netherrack 8.7%; far: quartz_pillar 1.2%, soul_soil 1.2%; biomes: adventure:quartz_flats 96.4%
+Image: `/tmp/claude-0/w10c2/reviews/the_wailing_narrows/screens/the_wailing_narrows-far-nv.png`
 
 ### the_wailing_narrows-surface-t1
 

@@ -2,7 +2,7 @@
 
 Evidence: the facts table in `review.md` (O/V/M/S rows, from `/tmp/claude-0/w10c2/reviews/the_bloodroot_wastes` and the W9c final survey), the shots' frame census. Every statement cites a row or a dossier key.
 
-1. **Do the shots show the dominant character?** Yes. surface-t1 and surface-t2 are crimson forest on crimson nylium under the red haze (place type 1, crimson_forest), roof-t2 and underground-t4 the nether jungle's weeping vines and twisting vines hung from the canopy (adventure:nether_jungle), surface-t4 a lava pool in the wastes fringe. No far view passed the gate; the landmark was dropped (camera over the roof).
+1. **Do the shots show the dominant character?** Yes. surface-t1 and surface-t2 are crimson forest on crimson nylium under the red haze (place type 1, crimson_forest), roof-t2 and underground-t4 the nether jungle's weeping vines and twisting vines hung from the canopy (adventure:nether_jungle), surface-t4 a lava pool in the wastes fringe. The far view, taken under the roof, was dropped (its camera stood among vines at arm's length); the landmark was rejected at every try.
 
 2. **Unsupported claims.** The shot captions here are the census captions, built from each frame's rays, so they carry no claim the census does not. No caption claims more than the census.
 

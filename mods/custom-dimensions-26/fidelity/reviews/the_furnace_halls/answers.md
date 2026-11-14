@@ -2,7 +2,7 @@
 
 Evidence: the facts table in `review.md` (O/V/M/S rows, from `/tmp/claude-0/w10c2/reviews/the_furnace_halls` and the W9c final survey), the shots' frame census. Every statement cites a row or a dossier key.
 
-1. **Do the shots show the dominant character?** Yes. sky-t1 and surface-t1 are basalt deltas' pillars over lava (basalt_deltas 31.8%), underground-t1 the same columns, surface-t2 netherrack wastes with fire, the landmark soul soil under the roof with soul fire (soul_sand_valley), roof-t1 the roof over a crimson edge. No far view passed the gate; surface-t4 was rejected in every try.
+1. **Do the shots show the dominant character?** Yes. sky-t1 and surface-t1 are basalt deltas' pillars over lava (basalt_deltas 31.8%), underground-t1 the same columns, surface-t2 netherrack wastes with fire, the landmark soul soil under the roof with soul fire (soul_sand_valley), roof-t1 the roof over a crimson edge. The far view, taken under the roof, was dropped (a closed tunnel); surface-t4 was rejected in every try.
 
 2. **Unsupported claims.** The shot captions here are the census captions, built from each frame's rays, so they carry no claim the census does not. No caption claims more than the census.
 

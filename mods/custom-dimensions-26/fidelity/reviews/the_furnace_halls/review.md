@@ -22,68 +22,80 @@ Zones: none
 
 ## Survey
 
-Dossier: `/tmp/claude-0/w10c2/runs/r3/full/the_furnace_halls/dossier.json`; layer maps in `/tmp/claude-0/w10c2/runs/r3/full/the_furnace_halls/layers`
+Dossier: `/tmp/claude-0/w10c2/runs/c1/full/the_furnace_halls/dossier.json`; layer maps in `/tmp/claude-0/w10c2/runs/c1/full/the_furnace_halls/layers`
 
 ## Summary
 
-- Top blocks seen from the sky: lava 19.9%, netherrack 19.2%, basalt 18.3%, soul_soil 7.9%.
-- Surface biomes: basalt_deltas 31.8%, nether_wastes 24.8%, soul_sand_valley 22.2%, crimson_forest 11.1%, adventure:magma_land 10%.
-- Ground blocks: netherrack 27.4%, basalt 23.1%, soul_soil 9.9%, soul_sand 9.3%.
-- Liquid cover 0% water, 19.9% lava, 0% other; snow or ice 0% (a snowing climate over 0%); tree canopy 3.6%; bare rock 40%; no ground (void) 0%.
-- Trees: 31.5 per ha (crimson_stem 31.5/ha, mean spacing 3.2 blocks); ground plants grass 1.2%, other 0.9%, mushroom 0.3%.
-- Surface height p5 21, median 56, p95 127, max 127; median relief per patch 115 blocks; slopes under 15° 30.2%, over 45° 48.3%, cliffs 27.9%; above the clouds 0%, below sea level 20.9%.
-- Underground: 19.2% open, 1.8% liquid; cave biomes soul_sand_valley 42.9%, basalt_deltas 24%, crimson_forest 13.5%, nether_wastes 12%.
-- Notable clusters, fewest first: dried_ghast 2 clusters, spacing n/a; basalt 5 clusters, spacing 20.1; nether_bricks 5 clusters, spacing 28.5; warped_fungus 9 clusters, spacing 10.8; bone_block 17 clusters, spacing 2.2; soul_fire 29 clusters, spacing 5.3.
+- Top blocks seen from the sky: lava 24.6%, netherrack 23.9%, basalt 20.6%, soul_soil 6.1%.
+- Surface biomes: basalt_deltas 37%, nether_wastes 29.6%, soul_sand_valley 18.5%, crimson_forest 7.4%, adventure:magma_land 7.4%.
+- Ground blocks: netherrack 36.6%, basalt 25.9%, soul_soil 7.4%, soul_sand 7.2%.
+- Liquid cover 0% water, 24.6% lava, 0% other; snow or ice 0% (a snowing climate over 0%); tree canopy 1.9%; bare rock 48.5%; no ground (void) 0%.
+- Trees: 15.4 per ha (crimson_stem 15.4/ha, mean spacing 2.9 blocks); ground plants grass 0.7%, other 0.4%, mushroom 0.2%.
+- Surface height p5 20, median 65, p95 116, max 127; median relief per patch 110 blocks; slopes under 15° 27.7%, over 45° 47.6%, cliffs 25.9%; above the clouds 0%, below sea level 21.9%.
+- Underground: 20.3% open, 2.4% liquid; cave biomes basalt_deltas 40.9%, soul_sand_valley 24.6%, nether_wastes 15.9%, adventure:magma_land 9.3%.
+- Notable clusters, fewest first: dried_ghast 2 clusters, spacing n/a; nether_bricks 6 clusters, spacing 28.5; basalt 11 clusters, spacing 8.1; bone_block 14 clusters, spacing 2.2; brown_mushroom 33 clusters, spacing 9.1; soul_fire 36 clusters, spacing 4.
 - 5 of 5 placed biomes are expressed; 0 listed biomes were not found.
-- Render against world at 972 columns: height within 2 blocks 72.7%, biome match 100%.
+- Render against world at 972 columns: height within 2 blocks 68%, biome match 100%.
 - Landforms over the border (noise render): plains 37%, hills 25.9%, mountains 8.4%, plateaus 7%, basins 9.4%, islands 0.3%, water 12%, void 0%.
 - Placeness: biome regions 1.2/km² (5 major, largest 28.1%), landform regions 16.7/km² (largest 9.5%), dominant place 28.1% of the border.
 
 ## Layers
 
-- Columns by class: void 0%, roofed 93.6%, stacked 0%, overhang 0%, cave 0%, single 6.4%.
-- Columns with each layer: sky 1.6%, surface 100%, underground 99.3%, roof 93.6%.
-- Overhangs in 29.3% of columns, stacked layers in 1.6%, cave pockets in 27.4%.
+- Columns by class: void 0%, roofed 96.1%, stacked 0%, overhang 0%, cave 0%, single 3.9%.
+- Columns with each layer: sky 4.8%, surface 100%, underground 99%, roof 96.1%.
+- Overhangs in 27.3% of columns, stacked layers in 4.8%, cave pockets in 31.5%.
 
 ## Places
 
-- **surface** (243 cells, 7 types, silhouette 0.393):
-  - type 1: 30.9% of cells; biome basalt_deltas; ground basalt; top basalt; height 53; bare rock 66% (layer 40%) — camera [-663.5,35,679.5]
-  - type 2: 21.4% of cells; biome nether_wastes; ground netherrack; top netherrack; height 66; liquid cover 7% (layer 20%); bare rock 71% (layer 40%) — camera [600.5,45,-616.5]
-  - type 3: 16.9% of cells; biome soul_sand_valley; ground soul_soil; top soul_soil; height 63; notable-block density (log) 1.0 (layer 0.6); bare rock 4% (layer 40%) — camera [-903.5,61,-503.5]
-  - type 4: 9.5% of cells; biome crimson_forest; ground crimson_nylium; top crimson_nylium; height 73; trees per cell 4.0 (layer 0.4); canopy 37% (layer 4%); ground plants 14% (layer 2%); liquid cover 3% (layer 20%); bare rock 8% (layer 40%); overhangs 44% (layer 29%); cave pockets 43% (layer 27%) — camera [24.5,48,92.5]
-  - type 5: 8.6% of cells; biome nether_wastes; ground netherrack; top lava; height 26; neighbour step 2.9 (layer 5.5); relief over the patch 106.8 (layer 112.5); liquid cover 72% (layer 20%); bare rock 9% (layer 40%); overhangs 13% (layer 29%); cave pockets 3% (layer 27%) — camera [984.5,24,-615.5]
-  - type 6: 6.6% of cells; biome nether_wastes; ground bedrock; top bedrock; height 109; neighbour step 9.4 (layer 5.5); relief over 16 blocks 110.7 (layer 80.8); relief over the patch 119.6 (layer 112.5); bare rock 21% (layer 40%); open to the sky 68% (layer 6%); overhangs 1% (layer 29%); cave pockets 2% (layer 27%); under a roof 32% (layer 94%) — camera [776.5,128,-199.5]
-  - type 7: 6.2% of cells; biome adventure:magma_land; ground magma_block; top magma_block; height 60; relief over the patch 106.6 (layer 112.5); ground plants 8% (layer 2%); bare rock 8% (layer 40%) — camera [920.5,53,424.5]
-  - landmark at [-200,-488]: ground soul_sand (type soul_soil); top soul_sand (type soul_soil); notable-block density (log) 3.7 (type 0.1); relief over 16 blocks 2.0 (type 79.0); relief over the patch 101.0 (type 126.0)
-  - landmark at [296,840]: biome crimson_forest (type nether_wastes); stacked layers 16% (type 0%); relief over the patch 93.0 (type 116.0); canopy 23% (type 0%)
-  - landmark at [-136,-456]: ground soul_sand (type soul_soil); top soul_sand (type soul_soil); stacked layers 33% (type 0%); notable-block density (log) 2.9 (type 0.1); neighbour step 8.4 (type 3.3)
-  - landmark at [-216,-488]: top lava (type soul_soil); neighbour step 16.5 (type 3.3); notable-block density (log) 2.7 (type 0.1); relief over the patch 101.0 (type 126.0)
-  - landmark at [-216,-504]: ground soul_sand (type soul_soil); top soul_sand (type soul_soil); stacked layers 16% (type 0%); relief over the patch 101.0 (type 126.0); neighbour step 9.0 (type 3.3)
-- **sky** (3 cells, 1 types, silhouette 0.0):
-  - type 1: 100.0% of cells; biome basalt_deltas; ground basalt; height 68 — camera [-868.5,58,296.5]
-- **underground** (243 cells, 2 types, silhouette 0.214):
-  - type 1: 56.8% of cells; notableId blackstone; biome basalt_deltas; height 51 — camera [-125.5,28.88,478.5]
-  - type 2: 43.2% of cells; notableId magma_block; biome soul_sand_valley; height 74; notable-block density (log) 1.8 (layer 1.3) — camera [-458.5,46.88,-929.5]
-- **roof** (236 cells, 3 types, silhouette 0.282):
-  - type 1: 38.6% of cells; notableId blackstone; height 97; notable-block density (log) 1.2 (layer 0.8) — camera [-119.5,88.88,808.5]
-  - type 2: 36.9% of cells; notableId nether_quartz_ore; height 104; neighbour step 0.8 (layer 2.2); relief over 16 blocks 19.9 (layer 40.5); notable-block density (log) 0.3 (layer 0.8) — camera [264.5,102.88,872.5]
-  - type 3: 24.6% of cells; notableId nether_quartz_ore; height 70; layer present in 86% (layer 96%); neighbour step 5.1 (layer 2.2); relief over 16 blocks 85.4 (layer 40.5) — camera [616.5,48.88,-600.5]
-  - landmark at [792,-168]: notableId lava (type nether_quartz_ore); layer present in 49% (type 100%); height 101.1 (type 69.5); neighbour step 3.5 (type 5.7)
-  - landmark at [792,-184]: notableId lava (type nether_quartz_ore); relief over 16 blocks 96.0 (type 12.0); layer present in 72% (type 100%); neighbour step 1.7 (type 0.3)
-  - landmark at [808,-200]: notableId lava (type nether_quartz_ore); layer present in 59% (type 100%); height 42.3 (type 69.5); notable-block density (log) 1.5 (type 0.6)
-  - landmark at [584,-616]: notableId magma_block (type nether_quartz_ore); layer present in 34% (type 100%); height 40.1 (type 69.5); neighbour step 3.3 (type 5.7)
-  - landmark at [-936,-168]: notableId magma_block (type nether_quartz_ore); layer present in 55% (type 100%); height 97.0 (type 69.5); neighbour step 3.5 (type 5.7)
+- **surface** (243 cells, 4 types, silhouette 0.319):
+  - type 1: 35.4% of cells; biome basalt_deltas; ground basalt; top basalt; height 70; bare rock 67% (layer 48%) — camera [-806.5,84,393.5]
+  - type 2: 26.7% of cells; biome nether_wastes; ground netherrack; top netherrack; height 76; neighbour step 7.6 (layer 5.3); liquid cover 6% (layer 25%); bare rock 74% (layer 48%); open to the sky 11% (layer 4%); under a roof 89% (layer 96%) — camera [648.5,64,-797.5]
+  - type 3: 22.2% of cells; biome nether_wastes; ground netherrack; top lava; height 28; liquid cover 68% (layer 25%); bare rock 17% (layer 48%); overhangs 13% (layer 27%); cave pockets 3% (layer 32%) — camera [984.5,24,-615.5]
+  - type 4: 15.6% of cells; biome soul_sand_valley; ground soul_soil; top soul_sand; height 65; trees per cell 0.8 (layer 0.2); canopy 7% (layer 2%); ground plants 4% (layer 1%); liquid cover 8% (layer 25%); bare rock 10% (layer 48%); overhangs 43% (layer 27%) — camera [-487.5,61,-920.5]
+  - landmark at [-968,-72]: ground bedrock (type basalt); top bedrock (type basalt); open to the sky 96% (type 0%); under a roof 4% (type 100%); relief over 16 blocks 118.0 (type 42.0)
+  - landmark at [248,24]: biome crimson_forest (type nether_wastes); ground crimson_nylium (type netherrack); top crimson_nylium (type lava); stacked layers 65% (type 0%); liquid cover 1% (type 96%); canopy 27% (type 0%)
+  - landmark at [360,-984]: ground bedrock (type netherrack); top bedrock (type netherrack); open to the sky 52% (type 3%); under a roof 48% (type 97%); bare rock 11% (type 95%)
+  - landmark at [680,-24]: ground bedrock (type netherrack); top bedrock (type netherrack); open to the sky 79% (type 3%); under a roof 21% (type 97%); bare rock 16% (type 95%)
+  - landmark at [248,936]: biome crimson_forest (type basalt_deltas); ground crimson_nylium (type basalt); top nether_wart_block (type basalt); canopy 64% (type 0%); trees per cell 7.0 (type 0.0); ground plants 27% (type 0%)
+- **sky** (17 cells, 3 types, silhouette 0.462):
+  - type 1: 47.1% of cells; biome basalt_deltas; ground basalt; height 90 — camera [-169.5,95,839.5]
+  - type 2: 35.3% of cells; biome nether_wastes; ground netherrack; height 89 — camera [296.5,90,-408.5]
+  - type 3: 17.6% of cells; biome soul_sand_valley; ground soul_soil; height 89; neighbour step 0.6 (layer 2.1); relief over 16 blocks 10.0 (layer 25.4); notable-block density (log) 1.1 (layer 0.5) — camera [-488.5,93,-935.5]
+- **underground** (243 cells, 5 types, silhouette 0.265):
+  - type 1: 28.0% of cells; notableId blackstone; biome basalt_deltas; height 79; cave pockets 64% (layer 32%) — camera [-414.5,86.88,980.5]
+  - type 2: 22.6% of cells; notableId blackstone; biome basalt_deltas; height 31; neighbour step 2.5 (layer 5.2); notable-block density (log) 0.7 (layer 1.3); cave air 5% (layer 19%); cave pockets 1% (layer 32%) — camera [978.5,22.88,-609.5]
+  - type 3: 20.2% of cells; notableId magma_block; biome nether_wastes; height 82; cave air 8% (layer 19%) — camera [674.5,84.88,-760.5]
+  - type 4: 17.7% of cells; notableId blackstone; biome nether_wastes; height 47; neighbour step 7.5 (layer 5.2); relief over 16 blocks 89.8 (layer 72.3); notable-block density (log) 0.6 (layer 1.3); cave air 32% (layer 19%) — camera [665.5,57.88,-532.5]
+  - type 5: 11.5% of cells; notableId soul_soil; biome soul_sand_valley; height 68; notable-block density (log) 2.1 (layer 1.3); cave air 33% (layer 19%); cave liquid 5% (layer 2%); cave pockets 58% (layer 32%) — camera [-813.5,42.88,-647.5]
+  - landmark at [-360,-328]: notableId soul_sand (type soul_soil); cave liquid 22% (type 0%); cave pockets 100% (type 50%); relief over 16 blocks 30.0 (type 69.0)
+  - landmark at [232,920]: biome crimson_forest (type nether_wastes); cave liquid 17% (type 3%); relief over 16 blocks 33.0 (type 98.0); cave air 66% (type 31%)
+  - landmark at [344,-984]: layer present in 72% (type 100%); cave liquid 16% (type 3%); neighbour step 18.1 (type 6.5)
+  - landmark at [248,920]: notableId lava (type blackstone); biome crimson_forest (type basalt_deltas); notable-block density (log) 4.0 (type 1.5); cave liquid 12% (type 0%); trees per cell 1.0 (type 0.0)
+  - landmark at [248,936]: notableId nether_quartz_ore (type blackstone); biome crimson_forest (type basalt_deltas); cave liquid 20% (type 0%); relief over 16 blocks 27.0 (type 74.0); trees per cell 1.0 (type 0.0)
+- **roof** (241 cells, 8 types, silhouette 0.327):
+  - type 1: 23.7% of cells; notableId blackstone; height 105; neighbour step 0.7 (layer 2.0); relief over 16 blocks 17.6 (layer 36.9) — camera [-872.5,101.88,824.5]
+  - type 2: 20.7% of cells; notableId nether_quartz_ore; height 87; relief over 16 blocks 54.7 (layer 36.9); notable-block density (log) 0.4 (layer 0.7) — camera [664.5,72.88,808.5]
+  - type 3: 15.8% of cells; notableId nether_quartz_ore; height 110; neighbour step 0.6 (layer 2.0); relief over 16 blocks 14.9 (layer 36.9); notable-block density (log) 0.1 (layer 0.7) — camera [984.5,107.88,-632.5]
+  - type 4: 9.5% of cells; notableId nether_gold_ore; height 107; neighbour step 0.4 (layer 2.0); relief over 16 blocks 15.3 (layer 36.9); notable-block density (log) 0.1 (layer 0.7) — camera [968.5,103.88,-615.5]
+  - type 5: 9.5% of cells; notableId blackstone; height 69; neighbour step 5.6 (layer 2.0); relief over 16 blocks 75.3 (layer 36.9); notable-block density (log) 2.0 (layer 0.7) — camera [-487.5,54.88,408.5]
+  - type 6: 8.3% of cells; notableId nether_quartz_ore; height 88; layer present in 76% (layer 97%); neighbour step 4.0 (layer 2.0); relief over 16 blocks 88.9 (layer 36.9) — camera [696.5,86.88,-7.5]
+  - type 7: 6.2% of cells; notableId soul_sand; height 108; notable-block density (log) 1.3 (layer 0.7) — camera [-359.5,99.88,-327.5]
+  - type 8: 6.2% of cells; notableId soul_soil; height 106; notable-block density (log) 1.4 (layer 0.7) — camera [-759.5,104.88,-583.5]
+  - landmark at [360,-984]: notableId magma_block (type blackstone); layer present in 48% (type 100%); height 39.1 (type 63.4); neighbour step 8.2 (type 4.8)
+  - landmark at [376,-968]: notableId magma_block (type blackstone); layer present in 42% (type 100%); notable-block density (log) 0.8 (type 2.4); relief over 16 blocks 90.0 (type 66.0)
+  - landmark at [344,-984]: notableId magma_block (type nether_quartz_ore); neighbour step 13.1 (type 2.4); relief over 16 blocks 96.0 (type 52.0); height 70.7 (type 85.4)
+  - landmark at [-856,840]: notable-block density (log) 4.2 (type 2.4); layer present in 79% (type 100%); height 83.4 (type 63.4)
+  - landmark at [376,-952]: notableId nether_bricks (type nether_quartz_ore); height 53.3 (type 89.9); notable-block density (log) 1.8 (type 0.3); neighbour step 2.5 (type 2.0)
 
 ## Biome expression
 
 5 of 5 placed biomes are expressed.
 
-- minecraft:basalt_deltas: expressed, 20389 columns; placement land 73.4%, lava 23.8%, roofed 94.4%, sky 2.8%; snow 0%, canopy 0%, trees 0/ha; top basalt 55.4%, lava 23.8%, blackstone 6.7%
-- minecraft:nether_wastes: expressed, 15520 columns; placement land 78.6%, lava 21%, roofed 83.6%, sky 0.4%; snow 0%, canopy 0%, trees 0/ha; top netherrack 56%, lava 21%, bedrock 16%
-- minecraft:soul_sand_valley: expressed, 14045 columns; placement land 78.7%, lava 19.7%, roofed 98.2%, sky 1.6%; snow 0%, canopy 0%, trees 0/ha; top soul_soil 35.1%, soul_sand 29.9%, lava 19.7%
-- minecraft:crimson_forest: expressed, 7016 columns; placement land 92.7%, lava 5.3%, roofed 94.9%, sky 1.9%; snow 0%, canopy 34.4%, trees 153.7/ha; top crimson_nylium 37.5%, nether_wart_block 31%, netherrack 9.7%
-- adventure:magma_land: expressed, 6240 columns; placement land 82.2%, lava 17.8%, roofed 89.3%; snow 0%, canopy 0%, trees 0/ha; top magma_block 42.1%, lava 17.8%, netherrack 12.7%
+- minecraft:basalt_deltas: expressed, 24631 columns; placement land 72.2%, lava 21.4%, roofed 90.9%, sky 6.5%; snow 0%, canopy 0%, trees 0/ha; top basalt 51.7%, lava 21.4%, blackstone 9.9%
+- minecraft:nether_wastes: expressed, 19124 columns; placement land 65.5%, lava 30.9%, roofed 87.9%, sky 3.6%; snow 0%, canopy 0%, trees 0/ha; top netherrack 53.8%, lava 30.9%, bedrock 8.4%
+- minecraft:soul_sand_valley: expressed, 11949 columns; placement land 81.3%, lava 15.1%, roofed 96.4%, sky 3.6%; snow 0%, canopy 0%, trees 0/ha; top soul_soil 31.8%, soul_sand 29.9%, lava 15.1%
+- minecraft:crimson_forest: expressed, 4852 columns; placement land 84%, lava 10.9%, roofed 95%, sky 5%; snow 0%, canopy 28.7%, trees 125.1/ha; top netherrack 29.6%, nether_wart_block 23.7%, crimson_nylium 20.1%
+- adventure:magma_land: expressed, 4658 columns; placement land 60.6%, lava 38.3%, roofed 95.6%, sky 1.1%; snow 0%, canopy 0%, trees 0/ha; top lava 38.3%, netherrack 28.1%, magma_block 19%
 
 
 ## Facts
@@ -94,11 +106,11 @@ Every factual statement in an answer cites a facts row (O<n>, V<n>, M:<key>, S:<
 
 | row | 1.21.1 biome | v2 id | surface % | columns | state | flag reason |
 |---|---|---|---|---|---|---|
-| O1 | minecraft:nether_wastes | minecraft:nether_wastes | 24.8 | 15520 | expressed | - |
-| O2 | minecraft:basalt_deltas | minecraft:basalt_deltas | 31.8 | 20389 | expressed | - |
-| O3 | minecraft:crimson_forest | minecraft:crimson_forest | 11.1 | 7016 | expressed | - |
-| O4 | incendium:volcanic_deltas | adventure:magma_land | 10.0 | 6240 | expressed | - |
-| O5 | minecraft:soul_sand_valley | minecraft:soul_sand_valley | 22.2 | 14045 | expressed | - |
+| O1 | minecraft:nether_wastes | minecraft:nether_wastes | 29.6 | 19124 | expressed | - |
+| O2 | minecraft:basalt_deltas | minecraft:basalt_deltas | 37.0 | 24631 | expressed | - |
+| O3 | minecraft:crimson_forest | minecraft:crimson_forest | 7.4 | 4852 | expressed | - |
+| O4 | incendium:volcanic_deltas | adventure:magma_land | 7.4 | 4658 | expressed | - |
+| O5 | minecraft:soul_sand_valley | minecraft:soul_sand_valley | 18.5 | 11949 | expressed | - |
 
 ### Placed v2 biomes no 1.21.1 biome maps to (V rows)
 
@@ -108,22 +120,22 @@ None.
 
 | key | dossier | 1.21.1 |
 |---|---|---|
-| M:topBiomes | minecraft:basalt_deltas 31.8%, minecraft:nether_wastes 24.8%, minecraft:soul_sand_valley 22.2% | type `nether` |
+| M:topBiomes | minecraft:basalt_deltas 37.0%, minecraft:nether_wastes 29.6%, minecraft:soul_sand_valley 18.5% | type `nether` |
 | M:snow | 0.0% (`surface.snowIcePercent`) | noiseSettings `None` |
 | M:water | 0.0% (`surface.fluidCoverPercent.water`) | settingsOverrides `null` |
-| M:lava | 19.9% (`surface.fluidCoverPercent.lava`) | |
+| M:lava | 24.6% (`surface.fluidCoverPercent.lava`) | |
 | M:void | 0.0% (`surface.voidPercent`) | |
-| M:canopy | 3.6% (`surface.canopyPercent`) | |
-| M:relief | median 115.0 blocks a patch; height {"p5": 21.0, "p25": 27.0, "p50": 56.0, "p75": 89.0, "p95": 127.0, "max": 127.0} (`terrain`) | |
-| M:layers | {"sky": 1.6, "surface": 100.0, "underground": 99.3, "roof": 93.6} (`vertical.layerColumnsPercent`) | environment `null` |
-| M:classes | {"void": 0.0, "roofed": 93.6, "stacked": 0.0, "overhang": 0.0, "cave": 0.0, "single": 6.4} (`vertical.columnClassPercent`); ceiling True, skylight False | |
+| M:canopy | 1.9% (`surface.canopyPercent`) | |
+| M:relief | median 110.0 blocks a patch; height {"p5": 20.0, "p25": 26.0, "p50": 65.0, "p75": 87.0, "p95": 116.0, "max": 127.0} (`terrain`) | |
+| M:layers | {"sky": 4.8, "surface": 100.0, "underground": 99.0, "roof": 96.1} (`vertical.layerColumnsPercent`) | environment `null` |
+| M:classes | {"void": 0.0, "roofed": 96.1, "stacked": 0.0, "overhang": 0.0, "cave": 0.0, "single": 3.9} (`vertical.columnClassPercent`); ceiling True, skylight False | |
 
 ### Scorecard (S rows)
 
 - S:a — surface traceable to the 1.21.1 biomes (of the columns that have ground): 100.0%
 - S:b — 1.21.1 biomes expressed: 100.0%
 - S:c — v2 biomes placed but not expressed: 0
-- S:d — layers the 1.21.1 type implies: surface present (100.0% of columns), roof present (93.6% of columns)
+- S:d — layers the 1.21.1 type implies: surface present (100.0% of columns), roof present (96.1% of columns)
 
 ## Shots
 

@@ -1,1 +1,1 @@
-w10c2c: steps 1-3 done; next step 4 (c1 run: K10 fields on buried/boneyard/ember/sanctum/blackstone + full surveys of the other six roofed)
+w10c2c: steps 1-4 done; final folder written; goldens+build running; next final self-test, map lane

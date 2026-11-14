@@ -2,7 +2,7 @@
 
 Evidence: the facts table in `review.md` (O/V/M/S rows, from `/tmp/claude-0/w10c2/reviews/the_wailing_narrows` and the W9c final survey), the shots' frame census. Every statement cites a row or a dossier key.
 
-1. **Do the shots show the dominant character?** Mostly. surface-lm1 looks along a lava-floored chasm between sheer basalt walls, surface-t3 stands on the soul soil floor of a chasm with its walls rising either side under the teal haze, surface-t1 looks over the broken basalt mesa tops of the deltas, surface-t4 the quartz flats with their pillars, underground-t1 a soul sand floor with bone, roof-t1 the low roof. The far view was rejected by the frame gate at every try (its summit lies at the roof, y 104) and surface-t2 was rejected too.
+1. **Do the shots show the dominant character?** Mostly. far looks across the quartz flats' pillar field under the low glowstone-studded roof, surface-lm1 along a lava-floored chasm between sheer basalt walls, surface-t3 stands on the soul soil floor of a chasm with its walls rising either side, surface-t1 looks over the broken basalt mesa tops of the deltas, surface-t4 the quartz flats with their pillars, underground-t1 a soul sand floor with bone, roof-t1 the low roof. surface-t2 was rejected by the frame gate.
 
 2. **Unsupported claims.** The shot captions here are the census captions, built from each frame's rays, so they carry no claim the census does not. No caption claims more than the census.
 
