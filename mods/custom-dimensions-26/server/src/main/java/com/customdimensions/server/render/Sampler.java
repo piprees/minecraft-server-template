@@ -226,7 +226,7 @@ public final class Sampler {
         StructureRuntime.Controlled c = control;
         if (c == null) {
             ChunkGeneratorStructureState raw = generator.createState(access.lookupOrThrow(Registries.STRUCTURE_SET), random, seed);
-            c = levelKey == null ? new StructureRuntime.Controlled(raw, java.util.Map.of(), java.util.Set.of(), java.util.Map.of(), null, "")
+            c = levelKey == null ? StructureRuntime.Controlled.none(raw)
                     : StructureRuntime.control(levelKey, access, generator, raw);
             control = c;
         }
@@ -274,7 +274,8 @@ public final class Sampler {
 
     private BoundingBox generate(Holder<Structure> structure, ChunkPos chunk, StructureRuntime.Controlled c,
                                  Predicate<Holder<Biome>> valid) {
-        StructureStart start = structure.value().generate(structure, levelKey, access, generator, generator.getBiomeSource(),
+        StructureStart start = structure.value().generate(structure, levelKey, access,
+                StructureRuntime.ground(generator, c.groundAt(structure.value(), chunk)), generator.getBiomeSource(),
                 random.createClimateSampler(SamplerContext.builder().enableCaches().build()), random, templates,
                 c.state().getLevelSeed(), chunk, 0, heights, valid);
         return start.isValid() ? start.getBoundingBox() : null;

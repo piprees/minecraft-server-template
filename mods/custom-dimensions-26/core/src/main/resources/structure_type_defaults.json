@@ -284,6 +284,7 @@
     "endgame"
    ],
    "profiles": {
+    "dungeons": "dense",
     "endgame": "natural"
    },
    "radial": {
@@ -291,7 +292,19 @@
     "landmarks": "even",
     "maritime": "even",
     "endgame": "even"
-   }
+   },
+   "repetition": {
+    "dungeons": 350
+   },
+   "loot": [
+    {
+     "item": "minecraft:elytra",
+     "chance": 0.08,
+     "structures": [
+      "dungeons"
+     ]
+    }
+   ]
   },
   "paradise_lost:paradise_lost": {
    "groups": [

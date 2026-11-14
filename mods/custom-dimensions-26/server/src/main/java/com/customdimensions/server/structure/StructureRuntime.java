@@ -54,7 +54,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * or noise-group placement, then forced starts and wants as one-chunk sets.
  * A forced or wanted structure skips the biome check in its own chunk only
  * (T53); an included set
- * skips it wherever its own grid places it.
+ * skips it wherever its own grid places it. A forced start with a {@code y}
+ * finds its ground at that height ({@link PinnedGround}).
  */
 public final class StructureRuntime {
 
@@ -73,6 +74,8 @@ public final class StructureRuntime {
     private static final Map<String, Map<Long, Set<Structure>>> BYPASS = new ConcurrentHashMap<>();
     private static final Map<String, Set<Structure>> BYPASS_EVERYWHERE = new ConcurrentHashMap<>();
     private static final Map<String, Map<Structure, TerrainAdjustment>> ADAPTATION = new ConcurrentHashMap<>();
+    private static final Map<String, Map<Long, Map<Structure, Integer>>> GROUND = new ConcurrentHashMap<>();
+    private static final Map<String, Map<Structure, String>> GROUPS = new ConcurrentHashMap<>();
 
     private StructureRuntime() {
     }
@@ -84,6 +87,8 @@ public final class StructureRuntime {
             BYPASS.clear();
             BYPASS_EVERYWHERE.clear();
             ADAPTATION.clear();
+            GROUND.clear();
+            GROUPS.clear();
         });
     }
 
@@ -130,6 +135,24 @@ public final class StructureRuntime {
         return here != null && here.contains(structure);
     }
 
+    /** The height a forced start of {@code structure} finds its ground at in this chunk of this level, or null. */
+    public static Integer forcedGround(ResourceKey<Level> level, Structure structure, ChunkPos chunk) {
+        Map<Long, Map<Structure, Integer>> sites = GROUND.get(level.identifier().toString());
+        Map<Structure, Integer> here = sites == null ? null : sites.get(chunk.pack());
+        return here == null ? null : here.get(structure);
+    }
+
+    /** The noise group {@code structure} places in under this level's control, or null. */
+    public static String groupOf(ResourceKey<Level> level, Structure structure) {
+        Map<Structure, String> groups = GROUPS.get(level.identifier().toString());
+        return groups == null ? null : groups.get(structure);
+    }
+
+    /** {@code generator}, or one that answers every ground query at {@code y} when a forced start gives one. */
+    public static ChunkGenerator ground(ChunkGenerator generator, Integer y) {
+        return y == null ? generator : new PinnedGround(generator, y);
+    }
+
     /** The structure's terrain adjustment in this level: the control's, else its own. */
     public static TerrainAdjustment adaptation(ResourceKey<Level> level, Structure structure) {
         Map<Structure, TerrainAdjustment> overrides = level == null ? null : ADAPTATION.get(level.identifier().toString());
@@ -169,12 +192,24 @@ public final class StructureRuntime {
      * no control for the level.
      */
     public record Controlled(ChunkGeneratorStructureState state, Map<Long, Set<Structure>> bypass, Set<Structure> everywhere,
-                             Map<Structure, TerrainAdjustment> adaptation, Applied applied, String summary) {
+                             Map<Structure, TerrainAdjustment> adaptation, Map<Long, Map<Structure, Integer>> ground,
+                             Map<Structure, String> groups, Applied applied, String summary) {
+        /** No control: the state as it is. */
+        public static Controlled none(ChunkGeneratorStructureState state) {
+            return new Controlled(state, Map.of(), Set.of(), Map.of(), Map.of(), Map.of(), null, "");
+        }
+
         /** Whether {@code structure} may ignore its biomes at {@code chunk} under this control. */
         public boolean bypasses(Structure structure, ChunkPos chunk) {
             if (everywhere.contains(structure)) return true;
             Set<Structure> here = bypass.get(chunk.pack());
             return here != null && here.contains(structure);
+        }
+
+        /** The height a forced start of {@code structure} finds its ground at in {@code chunk}, or null. */
+        public Integer groundAt(Structure structure, ChunkPos chunk) {
+            Map<Structure, Integer> here = ground.get(chunk.pack());
+            return here == null ? null : here.get(structure);
         }
     }
 
@@ -225,6 +260,8 @@ public final class StructureRuntime {
         BYPASS.put(level, c.bypass());
         BYPASS_EVERYWHERE.put(level, c.everywhere());
         ADAPTATION.put(level, c.adaptation());
+        GROUND.put(level, c.ground());
+        GROUPS.put(level, c.groups());
         APPLIED.put(level, c.applied());
         CustomDimensions.LOG.info("structure control applied to {}: {}", level, c.summary());
         return c.state();
@@ -239,7 +276,7 @@ public final class StructureRuntime {
         String level = levelKey.identifier().toString();
         StructureSpec spec = specs.get(level);
         if (spec == null) {
-            return new Controlled(original, Map.of(), Set.of(), Map.of(), null, "");
+            return Controlled.none(original);
         }
         long started = System.nanoTime();
         Registry<Structure> structures = registries.lookupOrThrow(Registries.STRUCTURE);
@@ -381,9 +418,8 @@ public final class StructureRuntime {
             String group = filled.get(i).getKey();
             NoiseFieldIndex index = indexes.get(i);
             List<Structure> pooled = filled.get(i).getValue().stream().map(e -> e.structure().value()).distinct().toList();
-            List<com.customdimensions.core.ChunkPos> sites = StructureSites.settle(index.positions(),
-                    StructureSites.seed(original.getLevelSeed(), "settle:" + group), index.exclusion() * 8,
-                    (cx, cz) -> anyBiomeAt(pooled, sampler, cx, cz, seaLevel));
+            List<com.customdimensions.core.ChunkPos> sites = settled(index, original.getLevelSeed(), group,
+                    here -> pooled.stream().anyMatch(s -> s.biomes().contains(here)), sampler, seaLevel);
             groupSites.put(group, sites.size());
             out.add(Holder.direct(new StructureSet(filled.get(i).getValue(), new StructurePlacements.Noise(group, index, sites))));
         }
@@ -391,6 +427,7 @@ public final class StructureRuntime {
         long indexedAt = System.nanoTime();
         List<Placed> placed = new ArrayList<>();
         Map<Long, Set<Structure>> bypass = new HashMap<>();
+        Map<Long, Map<Structure, Integer>> ground = new HashMap<>();
         for (StructureSpec.Force f : spec.force()) {
             Optional<Holder.Reference<Structure>> s = structure(structures, f.structure());
             if (s.isEmpty()) {
@@ -400,6 +437,10 @@ public final class StructureRuntime {
             StructureSites.Site site = StructureSites.choose(StructureSites.seed(original.getLevelSeed(), "force:" + f.structure()),
                     f.x(), f.z(), 0, f.radius(), (cx, cz) -> biomeAt(s.get().value(), biomes, sampler, cx, cz, seaLevel));
             fixed(out, bypass, placed, "force", f.structure(), s.get(), site);
+            if (f.y() != null) {
+                ground.computeIfAbsent(ChunkPos.pack(site.chunk().x(), site.chunk().z()), k -> new IdentityHashMap<>())
+                        .put(s.get().value(), f.y());
+            }
         }
         for (StructureSpec.Want w : spec.wants()) {
             List<Holder<Structure>> candidates = new ArrayList<>(members(structures, w.structure()));
@@ -437,7 +478,8 @@ public final class StructureRuntime {
         String summary = String.format(Locale.ROOT, "density %s, %d set(s) kept, %d dropped %s, %d replaced, groups %s, %d fixed start(s), "
                         + "%d adaptation override(s), %d ms (sets %d ms, noise sites %d ms)", spec.density(), out.size(), dropped, droppedIds,
                 replaced, groupSites, placed.size(), adaptation.size(), millis, (pooledAt - started) / 1_000_000, (indexedAt - pooledAt) / 1_000_000);
-        return new Controlled(StructureReflection.withSets(original, out), Map.copyOf(bypass), Set.copyOf(included), adaptation, applied, summary);
+        return new Controlled(StructureReflection.withSets(original, out), Map.copyOf(bypass), Set.copyOf(included), adaptation,
+                Map.copyOf(ground), groupOf, applied, summary);
     }
 
     private static void fixed(List<Holder<StructureSet>> out, Map<Long, Set<Structure>> bypass, List<Placed> placed,
@@ -447,13 +489,13 @@ public final class StructureRuntime {
         placed.add(new Placed(kind, id, site.chunk().x(), site.chunk().z(), site.matched()));
     }
 
-    /** The group's index, its exclusion widened until the sites stay within the pool's repetition budget. */
+    /** The group's index, its exclusion widened until the sites stay within the group's repetition ceiling per pooled structure. */
     static NoiseFieldIndex index(long levelSeed, String level, String groupName, StructureSpec.Group group,
                                  StructureSpec spec, int distinct) {
         long seed = levelSeed ^ StructureNoise.saltOf(level) ^ StructureNoise.saltOf(groupName);
         NoiseProfile profile = NoiseProfile.fromString(group.profile());
         return NoiseFieldIndex.withinBudget(seed, profile, group.exclusion(), group.radial(), spec.radiusChunks(),
-                spec.spawnChunkX(), spec.spawnChunkZ(), group.clearSpawnChunks(), distinct * profile.repetitionBudget(), 4);
+                spec.spawnChunkX(), spec.spawnChunkZ(), group.clearSpawnChunks(), distinct * group.repetition(), 4);
     }
 
     /** Spacing and frequency factors by theme for density on vanilla grids. */
@@ -494,13 +536,21 @@ public final class StructureRuntime {
         return biomes.possibleBiomes().stream().anyMatch(allowed::contains);
     }
 
-    /** Whether any of {@code structures} has its biome at the chunk's centre, near sea level: three biome reads, whatever their number. */
-    private static boolean anyBiomeAt(List<Structure> structures, BiomeResolver sampler, int cx, int cz, int seaLevel) {
+    /** A group's sites settled within half its exclusion onto a chunk where {@code fits} holds for a biome near sea level. */
+    static List<com.customdimensions.core.ChunkPos> settled(NoiseFieldIndex index, long levelSeed, String group,
+                                                          java.util.function.Predicate<Holder<net.minecraft.world.level.biome.Biome>> fits,
+                                                          BiomeResolver sampler, int seaLevel) {
+        return StructureSites.settle(index.positions(), StructureSites.seed(levelSeed, "settle:" + group), index.exclusion() * 8,
+                (cx, cz) -> anyBiomeAt(fits, sampler, cx, cz, seaLevel));
+    }
+
+    /** Whether {@code fits} holds for the biome at the chunk's centre, near sea level: three biome reads. */
+    private static boolean anyBiomeAt(java.util.function.Predicate<Holder<net.minecraft.world.level.biome.Biome>> fits,
+                                      BiomeResolver sampler, int cx, int cz, int seaLevel) {
         int qx = QuartPos.fromBlock(cx * 16 + 8);
         int qz = QuartPos.fromBlock(cz * 16 + 8);
         for (int dy : new int[] {0, 24, -24}) {
-            Holder<net.minecraft.world.level.biome.Biome> here = sampler.getNoiseBiome(qx, QuartPos.fromBlock(seaLevel + dy), qz);
-            for (Structure s : structures) if (s.biomes().contains(here)) return true;
+            if (fits.test(sampler.getNoiseBiome(qx, QuartPos.fromBlock(seaLevel + dy), qz))) return true;
         }
         return false;
     }

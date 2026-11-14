@@ -159,9 +159,25 @@ public final class StructureGroupRegistry {
     public record GroupDefault(String profile, String radial, int exclusion) {
     }
 
+    /**
+     * One world type's defaults: the groups it enables, per-group profile and
+     * radial overrides, per-group repetition ceilings (copies of one structure
+     * in that group, in place of {@link NoiseProfile#REPETITION_CEILING}) and
+     * the loot rules its dungeon chests carry.
+     */
     public record TypeEntry(List<String> groups,
                             Map<String, String> profiles,
-                            Map<String, String> radial) {
+                            Map<String, String> radial,
+                            Map<String, Integer> repetition,
+                            List<LootRule> loot) {
+    }
+
+    /**
+     * An item a container's loot gains, at {@code chance} per roll, when the
+     * container stands in a piece of a structure {@code structures} names (ids,
+     * {@code #tags} or group names).
+     */
+    public record LootRule(String item, double chance, List<String> structures) {
     }
 
     public static synchronized TypeDefaults defaults() {
@@ -253,10 +269,25 @@ public final class StructureGroupRegistry {
             for (JsonElement g : o.getAsJsonArray("groups")) {
                 groups.add(g.getAsString());
             }
+            Map<String, Integer> repetition = new LinkedHashMap<>();
+            if (o.has("repetition")) {
+                o.getAsJsonObject("repetition").entrySet().forEach(r -> repetition.put(r.getKey(), r.getValue().getAsInt()));
+            }
+            List<LootRule> loot = new ArrayList<>();
+            if (o.has("loot")) {
+                for (JsonElement l : o.getAsJsonArray("loot")) {
+                    JsonObject rule = l.getAsJsonObject();
+                    List<String> targets = new ArrayList<>();
+                    rule.getAsJsonArray("structures").forEach(t -> targets.add(t.getAsString()));
+                    loot.add(new LootRule(rule.get("item").getAsString(), rule.get("chance").getAsDouble(), List.copyOf(targets)));
+                }
+            }
             types.put(e.getKey(), new TypeEntry(
                     List.copyOf(groups),
                     stringMap(o.getAsJsonObject("profiles")),
-                    stringMap(o.getAsJsonObject("radial"))));
+                    stringMap(o.getAsJsonObject("radial")),
+                    Collections.unmodifiableMap(repetition),
+                    List.copyOf(loot)));
         }
 
         JsonObject shifts = root.getAsJsonObject("difficultyShifts");
