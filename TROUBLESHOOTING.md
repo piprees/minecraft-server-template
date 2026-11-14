@@ -1596,6 +1596,12 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
   the same trap. Pin it against the Java, not against intuition —
   `scripts/e2e/portal-matrix-selftest.sh` is the worked example.
 
+<a id="t305"></a>
+### T305 — An explorer map searches its radius in its set's own sectors, from where it is rolled
+- **Symptom:** `minecraft:chests/shipwreck_map` rolled at the overworld spawn gives no treasure map, while `/locate structure minecraft:buried_treasure` answers 1,129 blocks away; `loot spawn` reports one more item than it leaves on the ground.
+- **Cause:** `ExplorationMapFunction` searches `search_radius` (50 for the shipwreck map, 100 for the cartographer trades) in sectors of the set's spacing; buried treasure keeps vanilla's spacing-1 grid (group `ubiquitous`), so the shipwreck map reaches 800 blocks from its chest. A failed map is `filtered` to `discard`, which leaves an empty stack that `loot spawn` counts and whose entity vanishes at once.
+- **Fix:** test a map where players roll it (a chest above a located shipwreck: 6 of 6 maps found), insert loot into a chest rather than spawning it, and read a map's `minecraft:map_id`.
+
 <a id="t304"></a>
 ### T304 — Only an underground step, or a stronghold, marks a structure that needs ground under it
 - **Symptom:** on a world of islands over a void, a structure that picks an absolute height hangs below the islands.
@@ -1606,7 +1612,7 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
 ### T303 — Vanilla's structure search walks only rings and random spread
 - **Symptom:** `/locate structure`, an explorer map, an eye of ender or a dolphin answers nothing, or a far start, for a structure the plan places.
 - **Cause:** `ChunkGenerator.findNearestMapStructure` searches `ConcentricRingsStructurePlacement` and `RandomSpreadStructurePlacement` only; any other placement is skipped. `PlanLocate` (via `ChunkGeneratorLocateMixin`) walks `StructurePlacements.Noise` sites and `StructurePlacements.Fixed` chunks nearest first, and `StructureCheckBypassMixin` makes the fast check honour the biome bypass and a forced `y`.
-- **Fix:** a new placement type of ours goes into `PlanLocate.sites` and `PlanLocate.spacing`, or the search never sees it.
+- **Fix:** a new placement type of ours goes into `PlanLocate.sites` and `PlanLocate.spacing`, or the search never sees it. The search never answers past the level's world border: our sites outside it are skipped, and vanilla's answer outside it is dropped, so when vanilla's nearest start lies past the border the search answers nothing rather than its next start inside.
 
 <a id="t302"></a>
 ### T302 — A rig list given by a relative path fails at once
@@ -1639,10 +1645,10 @@ A seed's map and its banked facts appear to contradict each other — the thumbn
 - **Fix:** for a structure that sits on the occupied block, give `y` one above the start height wanted.
 
 <a id="t297"></a>
-### T297 — The End's dungeons pool is shared with the pack's structure mods
-- **Symptom:** with Moog's End Structures installed, the End has about half the End cities a headless count gives (about 30 where 57 were counted).
-- **Cause:** the End dungeons noise group pools every End structure set in its group; Moog's phantom citadel joins it and takes about half the sites by weight. Headless counts (`EndCitiesTest`) see vanilla's registry only.
-- **Fix:** count End cities on a server with the pack's structure jars loaded; weight the pool, or give the citadel its own group, when the cities must hold their count.
+### T297 — A random-spread subclass keeps its own grid; only plain random spread is pooled
+- **Symptom:** a structure mod's sets ignore a dimension's noise groups and density: Moog's End Structures' phantom citadel starts on its own spacing-31 grid, outside the End's dungeons group, and its weight never competes with End cities.
+- **Cause:** `StructureRuntime.control` pools a set only when its placement's class is exactly `RandomSpreadStructurePlacement`; `moogs_structures:advanced_random_spread` (every Moog's set) subclasses it, so the set is kept as it is. Headless counts (`EndCitiesTest`) see vanilla's registry only; `/customdim starts <dimension>` counts confirmed starts under the server's registry, mods included.
+- **Fix:** read a dimension's groups from its `structure control applied` log line and its starts from `/customdim starts`; a set that must follow the groups needs plain random spread.
 
 <a id="t296"></a>
 ### T296 — The survey's End city census counts sites, not cities

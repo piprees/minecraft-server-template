@@ -55,7 +55,14 @@
   "rarity": {},
   "spacing": {},
   "force": [],
-  "wants": [],
+  "wants": [
+    {
+      "name": "minecraft:mansion",
+      "structure": "minecraft:mansion",
+      "min": 5632,
+      "max": 7500
+    }
+  ],
   "shuns": [],
   "replace": {},
   "terrainAdaptation": {}

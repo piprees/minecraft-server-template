@@ -5,21 +5,23 @@
 #   1. the boot's structure control lines for the_end, the overworld and the_snowbound_isle;
 #   2. locate: minecraft:end_city in the_end from three points and minecraft:trial_chambers in the overworld from three
 #      (each answer, its time, and whether it answered at all: before k13 the End answered "Could not find" at once);
-#   3. an explorer map: minecraft:chests/shipwreck_map spawned at the overworld spawn, the item read back (a
-#      minecraft:filled_map with a target decoration means ExplorationMapFunction's search found the buried treasure);
-#   4. K12's elytra rolls: minecraft:chests/end_city_treasure 100 times inside each End city step 2 located;
-#   5. the End's city count: `customdim fastrender the_end wave 4`, End city and phantom citadel ids counted in its
-#      json (with MODS set, Moog's End Structures shares the dungeons group, T297);
+#   3. explorer maps into a chest at 0 200 0 in the overworld: minecraft:chests/shipwreck_map twice, then a blank map
+#      in each of four slots given an inline exploration_map modifier: the shipwreck's (treasure tag, radius 50, no
+#      reference) and the cartographer trades' (ocean monument, buried trial chambers, woodland mansion; radius 100,
+#      reference); maps-diag.sh splits the shipwreck's search by radius, id or tag, and reference;
+#   4. K12's elytra rolls: minecraft:chests/end_city_treasure 100 times inside each End city step 2 located, at a
+#      point a location_check predicate places inside a city piece (StructureLoot reads getStructureWithPieceAt);
+#   5. the End's starts: `customdim starts the_end`, every confirmed start inside its border by structure;
 #   6. the sky world the_snowbound_isle: 12x12 chunks round its spawn forceloaded, the log's "no ground under it"
 #      refusals for it, and each located mineshaft and trial chambers with the surface height over its chunk centre;
 #   7. fog: the compiled pack's timeline adventure:atmosphere/the_abyssal_shrine (its definition sets fogColor and
 #      skyColor and no overBiomes) and its dimension type's first timeline.
 # Each wait is bounded. Results -> /tmp/claude-0/k13/lane/<tag>/: server.log, driver.log, structure-control.log,
-# locate.tsv (dimension, structure, from, answer, seconds), map.log, loot.tsv, waves/the_end/, end-count.log,
-# sky.log, fog.log.
-# What to read: locate.tsv (every row answers a position; End cities near the sites K12 counted); map.log
-# (minecraft:filled_map and a map_decorations target); loot.tsv (about 8 elytra per 100 rolls in each city);
-# end-count.log (minecraft:end_city footprints, about 57 vanilla-only, about 30 with MODS); sky.log (refusal lines
+# locate.tsv (dimension, structure, from, answer, seconds), map.log, loot.tsv, end-count.log, sky.log, fog.log.
+# What to read: locate.tsv (every row answers a position; End cities near the sites K12 counted); map.log (each
+# slot a map with minecraft:map_id and a map_decorations target; a blank minecraft:map is a failed search);
+# loot.tsv (the city's in-piece point, then about 8 elytra per 100 rolls); end-count.log (minecraft:end_city about
+# 57 inside the 4096 border, with or without MODS: Moog's sets keep their own grids, T297); sky.log (refusal lines
 # present; every located start's surface y over its chunk is an island top, far above the start's own floor, never
 # the floor of the level); fog.log (the timeline exists and is first).
 # Usage: P=<mods/custom-dimensions-26 checkout carrying the k13 commits> [MODS=<structure mod jar dir>] confirm-lane.sh <tag>
@@ -29,7 +31,7 @@ P=${P:-/home/user/minecraft-server-template/.claude/worktrees/agent-af600b2f415e
 case "$P" in /*) ;; *) echo "P must be an absolute path (T302)"; exit 2 ;; esac
 export JAVA_HOME=/home/user/.local/jdk/jdk-25.0.5+8 PATH=/home/user/.local/jdk/jdk-25.0.5+8/bin:$PATH
 OUT=/tmp/claude-0/k13/lane/$TAG
-mkdir -p "$OUT/waves"
+mkdir -p "$OUT"
 LOG=$OUT/server.log
 FIFO=$OUT/console.fifo
 cd "$P" || exit 1
@@ -81,26 +83,48 @@ located() {
   [ -n "$answer" ] && echo "$answer"
   return 0
 }
-# rolls <label> <dimension> <x> <z> <table>: 100 rolls of the table with the origin two blocks under the surface at x, z.
+# rolls <label> <dimension> <x> <z> <table> <structure>: 100 rolls of the table at a point inside a piece of the
+# structure within 40 blocks of x, z (an 11x11 grid, step 8, two blocks under the surface, kept where a
+# location_check predicate holds), or a row saying none was found.
 rolls() {
-  local label=$1 dim=$2 x=$3 z=$4 table=$5 before
-  say "execute in $dim run forceload add $x $z"
-  sleep 30
-  say "execute in $dim run kill @e[type=item,x=$x,y=0,z=$z,distance=..512]"
-  for _ in $(seq 1 100); do
-    say "execute in $dim positioned $x 0 $z positioned over world_surface positioned ~ ~-2 ~ run loot spawn ~ ~3 ~ loot $table"
+  local label=$1 dim=$2 x=$3 z=$4 table=$5 structure=$6 before inside dx dz
+  say "execute in $dim run forceload add $((x - 48)) $((z - 48)) $((x + 48)) $((z + 48))"
+  sleep 40
+  say "execute in $dim run kill @e[tag=k13in]"
+  for dx in -40 -32 -24 -16 -8 0 8 16 24 32 40; do
+    for dz in -40 -32 -24 -16 -8 0 8 16 24 32 40; do
+      say "execute in $dim positioned $((x + dx)) 0 $((z + dz)) positioned over world_surface positioned ~ ~-2 ~ if predicate {type:\"minecraft:location_check\",predicate:{structures:\"$structure\"}} run summon marker ~ ~ ~ {Tags:[\"k13in\"]}"
+    done
   done
-  sleep 5
-  say "execute in $dim positioned $x 0 $z store result score #elytra k13 if entity @e[type=item,distance=..512,nbt={Item:{id:\"minecraft:elytra\"}}]"
-  say "execute in $dim positioned $x 0 $z store result score #items k13 if entity @e[type=item,distance=..512]"
-  before=$(grep -c "has [0-9]* \[k13\]" "$LOG")
-  say "scoreboard players get #elytra k13"
-  say "scoreboard players get #items k13"
-  await "has [0-9]* \[k13\]" 15 "score $label" "$((before + 1))" "$(date +%s)"
-  printf '%s\t100\t%s\t%s\n' "$label" "$(grep -oE '#elytra has [0-9]+' "$LOG" | tail -1 | awk '{print $3}')" \
-    "$(grep -oE '#items has [0-9]+' "$LOG" | tail -1 | awk '{print $3}')" >> "$OUT/loot.tsv"
-  say "execute in $dim run kill @e[type=item,x=$x,y=0,z=$z,distance=..512]"
-  say "execute in $dim run forceload remove $x $z"
+  say "execute in $dim store result score #inside k13 if entity @e[tag=k13in]"
+  before=$(grep -c "#inside has [0-9]* \[k13\]" "$LOG")
+  say "scoreboard players get #inside k13"
+  await "#inside has [0-9]* \[k13\]" 15 "inside $label" "$before" "$(date +%s)"
+  inside=$(grep -oE '#inside has [0-9]+' "$LOG" | tail -1 | awk '{print $3}')
+  if [ "${inside:-0}" -eq 0 ]; then
+    printf '%s\t0\tno point inside a piece within 40 blocks\t\n' "$label" >> "$OUT/loot.tsv"
+  else
+    before=$(grep -c "has the following entity data" "$LOG")
+    say "execute in $dim positioned $x 0 $z run data get entity @e[tag=k13in,limit=1,sort=nearest] Pos"
+    await "has the following entity data" 15 "point $label" "$before" "$(date +%s)"
+    label="$label in-piece $(grep "has the following entity data" "$LOG" | tail -1 | sed 's/.*entity data: //')"
+    say "execute in $dim run kill @e[type=item,x=$x,y=0,z=$z,distance=..512]"
+    for _ in $(seq 1 100); do
+      say "execute in $dim positioned $x 0 $z at @e[tag=k13in,limit=1,sort=nearest] run loot spawn ~ ~ ~ loot $table"
+    done
+    sleep 5
+    say "execute in $dim positioned $x 0 $z store result score #elytra k13 if entity @e[type=item,distance=..512,nbt={Item:{id:\"minecraft:elytra\"}}]"
+    say "execute in $dim positioned $x 0 $z store result score #items k13 if entity @e[type=item,distance=..512]"
+    before=$(grep -c "#items has [0-9]* \[k13\]" "$LOG")
+    say "scoreboard players get #elytra k13"
+    say "scoreboard players get #items k13"
+    await "#items has [0-9]* \[k13\]" 15 "score $label" "$before" "$(date +%s)"
+    printf '%s\t100\t%s\t%s\n' "$label" "$(grep -oE '#elytra has [0-9]+' "$LOG" | tail -1 | awk '{print $3}')" \
+      "$(grep -oE '#items has [0-9]+' "$LOG" | tail -1 | awk '{print $3}')" >> "$OUT/loot.tsv"
+    say "execute in $dim run kill @e[type=item,x=$x,y=0,z=$z,distance=..512]"
+  fi
+  say "execute in $dim run kill @e[tag=k13in]"
+  say "execute in $dim run forceload remove $((x - 48)) $((z - 48)) $((x + 48)) $((z + 48))"
 }
 # surface <dimension> <x> <z> <label>: the world-surface height at x, z, from a marker, appended to sky.log.
 surface() {
@@ -133,19 +157,39 @@ for from in "0 0" "1500 1500" "-1500 -800"; do
 done
 [ -n "${MODS:-}" ] && located mes:phantom_citadel minecraft:the_end 0 1200 > /dev/null
 
-# 3. an explorer map
+# 3. explorer maps: a chest in the air at 0 200 0 (no item entities; a failed search's map is discarded to an
+# empty stack, which `loot spawn` still counts and whose entity vanishes at once)
+AT="execute in minecraft:overworld positioned 0 200 0"
 say "execute in minecraft:overworld run forceload add 0 0"
 sleep 20
-say "execute in minecraft:overworld run kill @e[type=item,x=0,y=0,z=0,distance=..512]"
-say "execute in minecraft:overworld positioned 0 0 0 positioned over world_surface run loot spawn ~ ~2 ~ loot minecraft:chests/shipwreck_map"
-sleep 30
-before=$(grep -c "has the following entity data" "$LOG")
-say "execute in minecraft:overworld positioned 0 0 0 run data get entity @e[type=item,distance=..512,nbt={Item:{id:\"minecraft:filled_map\"}},limit=1] Item"
-await "has the following entity data" 15 "explorer map" "$before" "$(date +%s)"
+say "execute in minecraft:overworld run setblock 0 200 0 minecraft:chest"
+sleep 2
+mapstart=$(wc -l < "$LOG")
+say "$AT run loot insert 0 200 0 loot minecraft:chests/shipwreck_map"
+sleep 15
+say "$AT run loot insert 0 200 0 loot minecraft:chests/shipwreck_map"
+sleep 15
+say "$AT run data get block 0 200 0 Items"
+sleep 3
+say "$AT run data merge block 0 200 0 {Items:[]}"
+n=0
+for modifier in \
+  'destination:"#minecraft:on_treasure_maps",decoration:"minecraft:red_x",zoom:1b,skip_existing_chunks:false' \
+  'destination:"#minecraft:on_ocean_monument_maps",decoration:"minecraft:monument",search_radius:100' \
+  'destination:"#minecraft:on_buried_trial_chambers_maps",decoration:"minecraft:trial_chambers",search_radius:100' \
+  'destination:"#minecraft:on_woodland_mansion_maps",decoration:"minecraft:mansion",search_radius:100'; do
+  say "$AT run item replace block 0 200 0 container.$n with minecraft:map"
+  say "$AT run item modify block 0 200 0 container.$n {type:\"minecraft:exploration_map\",$modifier}"
+  sleep 20
+  say "$AT run data get block 0 200 0 Items[{Slot:${n}b}]"
+  sleep 3
+  n=$((n + 1))
+done
 {
-  echo "filled maps among the spawned items (empty when the search found nothing and the map stayed blank):"
-  grep "has the following entity data" "$LOG" | tail -n +"$((before + 1))" | cut -c1-600
+  echo "chest after two shipwreck_map inserts, then slots 0-3 (shipwreck's modifier, monument, trial chambers and mansion trades):"
+  tail -n +"$((mapstart + 1))" "$LOG" | grep -E "has the following|Could not|Failed|Unknown|rror" | cut -c1-1500
 } > "$OUT/map.log"
+say "execute in minecraft:overworld run setblock 0 200 0 minecraft:air"
 say "execute in minecraft:overworld run forceload remove 0 0"
 
 # 4. elytra rolls inside each located End city
@@ -154,33 +198,14 @@ n=0
 for at in "${CITIES[@]}"; do
   n=$((n + 1))
   read -r cx cz <<< "$at"
-  rolls "end_city_$n@$cx,$cz" minecraft:the_end "$cx" "$cz" minecraft:chests/end_city_treasure
+  rolls "end_city_$n@$cx,$cz" minecraft:the_end "$cx" "$cz" minecraft:chests/end_city_treasure minecraft:end_city
 done
 
-# 5. the End's city count
-before=$(grep -c "Fast-rendered the_end seed" "$LOG")
-say "customdim fastrender the_end wave 4"
-await "Fast-rendered the_end seed" 900 "wave the_end" "$before" "$(date +%s)"
-cp -r server/run/renders/the_end "$OUT/waves/" 2> /dev/null
-python3 -I - "$OUT/waves" > "$OUT/end-count.log" 2>&1 << 'EOF'
-import json, pathlib, sys
-counts = {}
-def walk(node, under):
-    if isinstance(node, dict):
-        for k, v in node.items():
-            walk(v, under or "footprint" in k.lower())
-    elif isinstance(node, list):
-        for v in node:
-            walk(v, under)
-    elif isinstance(node, str) and under and node in ("minecraft:end_city", "mes:phantom_citadel"):
-        counts[node] = counts.get(node, 0) + 1
-for f in sorted(pathlib.Path(sys.argv[1]).rglob("*.json")):
-    try:
-        walk(json.loads(f.read_text()), False)
-    except ValueError:
-        pass
-print("footprints by structure:", counts or "none found (read the wave json by hand)")
-EOF
+# 5. the End's starts
+before=$(grep -c "Starts in the_end within" "$LOG")
+say "customdim starts the_end"
+await "Starts in the_end within\|Could not count structure starts in the_end" 900 "starts the_end" "$before" "$(date +%s)"
+grep "Starts in the_end within\|Could not count structure starts in the_end" "$LOG" | tail -1 | cut -c1-3000 > "$OUT/end-count.log"
 
 # 6. the sky world
 say "customdim activate the_snowbound_isle"

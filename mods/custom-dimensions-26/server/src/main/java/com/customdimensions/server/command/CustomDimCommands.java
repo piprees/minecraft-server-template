@@ -68,6 +68,7 @@ public final class CustomDimCommands {
         MapCommand.attach(root);
         RollCommand.attach(root);
         SurveyCommand.attach(root);
+        StartsCommand.attach(root);
         E2eStateCommand.attach(root);
         UseCommand.attach(root);
         dispatcher.register(root);

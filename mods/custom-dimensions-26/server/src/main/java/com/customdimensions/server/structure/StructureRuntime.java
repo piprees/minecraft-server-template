@@ -434,8 +434,9 @@ public final class StructureRuntime {
                 CustomDimensions.LOG.warn("{}: forced structure {} is not in the registry", level, f.structure());
                 continue;
             }
-            StructureSites.Site site = StructureSites.choose(StructureSites.seed(original.getLevelSeed(), "force:" + f.structure()),
-                    f.x(), f.z(), 0, f.radius(), (cx, cz) -> biomeAt(s.get().value(), biomes, sampler, cx, cz, seaLevel));
+            StructureSites.Site site = StructureSites.choosePlaced(StructureSites.seed(original.getLevelSeed(), "force:" + f.structure()),
+                    f.x(), f.z(), 0, f.radius(), (cx, cz) -> startBiomeAt(s.get().value(), generator, original.randomState(), sampler,
+                            cx, cz, seaLevel));
             fixed(out, bypass, placed, "force", f.structure(), s.get(), site);
             if (f.y() != null) {
                 ground.computeIfAbsent(ChunkPos.pack(site.chunk().x(), site.chunk().z()), k -> new IdentityHashMap<>())
@@ -452,10 +453,10 @@ public final class StructureRuntime {
             Holder<Structure> pick = candidates.stream().filter(h -> hasBiomeIn(h.value(), biomes)).findFirst().orElse(candidates.getFirst());
             ZoneStructureRules rules = zoneRules.getOrDefault(level, ZoneStructureRules.NONE);
             ZoneStructureRules.ZoneQuery query = zoneQueries.apply(level);
-            StructureSites.Site site = StructureSites.choose(StructureSites.seed(original.getLevelSeed(), "want:" + w.name()),
+            StructureSites.Site site = StructureSites.choosePlaced(StructureSites.seed(original.getLevelSeed(), "want:" + w.name()),
                     spec.spawnChunkX() * 16 + 8, spec.spawnChunkZ() * 16 + 8, w.min(), w.max(),
                     (cx, cz) -> (query == null || rules.wantAccepts(name -> matches(pick, name), cx * 16 + 8, cz * 16 + 8, query))
-                            && biomeAt(pick.value(), biomes, sampler, cx, cz, seaLevel));
+                            && startBiomeAt(pick.value(), generator, original.randomState(), sampler, cx, cz, seaLevel));
             String id = pick.unwrapKey().map(k -> k.identifier().toString()).orElse(w.structure());
             fixed(out, bypass, placed, "want", id, pick, site);
         }
@@ -487,6 +488,10 @@ public final class StructureRuntime {
         out.add(Holder.direct(new StructureSet(structure, new StructurePlacements.Fixed(site.chunk().x(), site.chunk().z()))));
         bypass.computeIfAbsent(ChunkPos.pack(site.chunk().x(), site.chunk().z()), k -> new HashSet<>()).add(structure.value());
         placed.add(new Placed(kind, id, site.chunk().x(), site.chunk().z(), site.matched()));
+        if (!site.matched()) {
+            CustomDimensions.LOG.warn("{} {}: none of up to {} tested chunks has its biome; it starts at chunk {}, {} with the biome check "
+                    + "bypassed (T53)", kind, id, StructureSites.PLACED_TESTS, site.chunk().x(), site.chunk().z());
+        }
     }
 
     /** The group's index, its exclusion widened until the sites stay within the group's repetition ceiling per pooled structure. */
@@ -556,7 +561,25 @@ public final class StructureRuntime {
     }
 
     /** The structure's biome at the chunk's centre, near sea level. */
-    private static boolean biomeAt(Structure structure, BiomeSource biomes, BiomeResolver sampler, int cx, int cz, int seaLevel) {
+    /**
+     * Whether a forced start or a want of {@code structure} would stand in one
+     * of its biomes at this chunk: its biome near sea level ({@link #biomeAt}),
+     * and, for a structure above ground, at the surface of the chunk's centre
+     * too, where its own biome check reads it.
+     */
+    static boolean startBiomeAt(Structure structure, ChunkGenerator generator, net.minecraft.world.level.levelgen.RandomState random,
+                                BiomeResolver sampler, int cx, int cz, int seaLevel) {
+        if (!biomeAt(structure, sampler, cx, cz, seaLevel)) return false;
+        if (UndergroundGround.underground(structure)) return true;
+        int x = cx * 16 + 8;
+        int z = cz * 16 + 8;
+        net.minecraft.world.level.LevelHeightAccessor height = net.minecraft.world.level.LevelHeightAccessor.create(generator.getMinY(),
+                generator.getGenDepth());
+        int y = generator.getBaseHeight(x, z, net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE_WG, height, random);
+        return structure.biomes().contains(sampler.getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(y), QuartPos.fromBlock(z)));
+    }
+
+    static boolean biomeAt(Structure structure, BiomeResolver sampler, int cx, int cz, int seaLevel) {
         int qx = QuartPos.fromBlock(cx * 16 + 8);
         int qz = QuartPos.fromBlock(cz * 16 + 8);
         for (int dy : new int[] {0, 24, -24}) {

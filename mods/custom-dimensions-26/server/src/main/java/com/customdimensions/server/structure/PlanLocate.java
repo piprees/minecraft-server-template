@@ -32,7 +32,9 @@ import java.util.Set;
  * forced starts and wants) nearest first, within the caller's radius in the
  * placement's own sectors, and checks each site for a real start as vanilla
  * does: the stored or predicted start, then the chunk at structure starts.
- * Only sites nearer than vanilla's own answer are checked.
+ * Only sites nearer than vanilla's own answer are checked. An answer
+ * outside the level's world border, vanilla's or the plan's, is never given:
+ * a map, an eye or {@code /locate} would point past the edge of the world.
  */
 public final class PlanLocate {
 
@@ -64,10 +66,10 @@ public final class PlanLocate {
      * The sites within {@code maxSearchRadius} sectors (Chebyshev, in chunks)
      * of {@code origin}'s chunk and nearer than {@code bestDistSqr}, nearest
      * first by the distance vanilla compares: {@code origin} to the
-     * placement's locate position.
+     * placement's locate position, which {@code inside} holds for.
      */
     static List<Candidate> candidates(Map<StructurePlacement, Set<Holder<Structure>>> scans, BlockPos origin,
-                                      int maxSearchRadius, double bestDistSqr) {
+                                      int maxSearchRadius, double bestDistSqr, java.util.function.Predicate<BlockPos> inside) {
         int cx = SectionPos.blockToSectionCoord(origin.getX());
         int cz = SectionPos.blockToSectionCoord(origin.getZ());
         List<Candidate> out = new ArrayList<>();
@@ -77,34 +79,57 @@ public final class PlanLocate {
             for (com.customdimensions.core.ChunkPos site : sites(placement)) {
                 if (Math.max(Math.abs((long) site.x() - cx), Math.abs((long) site.z() - cz)) > bound) continue;
                 ChunkPos chunk = new ChunkPos(site.x(), site.z());
-                double d = origin.distSqr(placement.getLocatePos(chunk));
-                if (d < bestDistSqr) out.add(new Candidate(chunk, d, placement, e.getValue()));
+                BlockPos at = placement.getLocatePos(chunk);
+                double d = origin.distSqr(at);
+                if (d < bestDistSqr && inside.test(at)) out.add(new Candidate(chunk, d, placement, e.getValue()));
             }
         }
         out.sort(Comparator.comparingDouble(Candidate::distSqr));
         return out;
     }
 
-    /** The plan's placements among those of {@code wanted}, each with the wanted structures it places. */
+    /**
+     * The plan's placements among the state's sets, each with the wanted
+     * structures it places. Read from the sets themselves, not
+     * {@code getPlacementsForStructure}, which leaves out a structure whose
+     * biomes the level lacks: a forced start or a want ignores its biomes (T53),
+     * so its structure can have none here.
+     */
     static Map<StructurePlacement, Set<Holder<Structure>>> scans(ChunkGeneratorStructureState state, HolderSet<Structure> wanted) {
+        Set<Structure> sought = java.util.Collections.newSetFromMap(new IdentityHashMap<>());
+        for (Holder<Structure> structure : wanted) sought.add(structure.value());
         Map<StructurePlacement, Set<Holder<Structure>>> out = new IdentityHashMap<>();
-        for (Holder<Structure> structure : wanted) {
-            for (StructurePlacement placement : state.getPlacementsForStructure(structure)) {
-                if (sites(placement) != null) out.computeIfAbsent(placement, p -> new LinkedHashSet<>()).add(structure);
+        for (Holder<net.minecraft.world.level.levelgen.structure.StructureSet> set : state.possibleStructureSets()) {
+            StructurePlacement placement = set.value().placement();
+            if (sites(placement) == null) continue;
+            for (net.minecraft.world.level.levelgen.structure.StructureSet.StructureSelectionEntry e : set.value().structures()) {
+                if (sought.contains(e.structure().value())) out.computeIfAbsent(placement, p -> new LinkedHashSet<>()).add(e.structure());
             }
         }
         return out;
     }
 
-    /** {@code found} (vanilla's answer, or null), or the plan's nearest start when it is nearer. */
+    /** {@code found}, or null when its position lies outside {@code border}. */
+    static Pair<BlockPos, Holder<Structure>> inside(net.minecraft.world.level.border.WorldBorder border,
+                                                     Pair<BlockPos, Holder<Structure>> found) {
+        return found == null || border.isWithinBounds(found.getFirst()) ? found : null;
+    }
+
+    /**
+     * {@code found} (vanilla's answer, or null) when it lies inside the level's
+     * world border, or the plan's nearest start inside the border when it is
+     * nearer; null when neither is inside.
+     */
     public static Pair<BlockPos, Holder<Structure>> nearer(ServerLevel level, HolderSet<Structure> wanted, BlockPos origin,
                                                           int maxSearchRadius, boolean createReference,
-                                                          Pair<BlockPos, Holder<Structure>> found) {
+                                                          Pair<BlockPos, Holder<Structure>> vanilla) {
+        net.minecraft.world.level.border.WorldBorder border = level.getWorldBorder();
+        Pair<BlockPos, Holder<Structure>> found = inside(border, vanilla);
         if (!level.getServer().getWorldGenSettings().options().generateStructures()) return found;
         Map<StructurePlacement, Set<Holder<Structure>>> scans = scans(level.getChunkSource().getGeneratorState(), wanted);
         if (scans.isEmpty()) return found;
         double best = found == null ? Double.MAX_VALUE : origin.distSqr(found.getFirst());
-        for (Candidate c : candidates(scans, origin, maxSearchRadius, best)) {
+        for (Candidate c : candidates(scans, origin, maxSearchRadius, best, border::isWithinBounds)) {
             Pair<BlockPos, Holder<Structure>> start = startAt(level, c, createReference);
             if (start != null) return start;
         }

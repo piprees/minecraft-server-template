@@ -290,7 +290,7 @@ public final class StructureSelfTest {
         double w = query.weight(zone, p.chunkX() * 16 + 8, p.chunkZ() * 16 + 8);
         var spec = StructureRuntime.spec(levelId).orElseThrow();
         long seed = level(levelId).getChunkSource().getGeneratorState().getLevelSeed();
-        StructureSites.Site unscoped = StructureSites.choose(StructureSites.seed(seed, "want:" + want.name()),
+        StructureSites.Site unscoped = StructureSites.choosePlaced(StructureSites.seed(seed, "want:" + want.name()),
                 spec.spawnChunkX() * 16 + 8, spec.spawnChunkZ() * 16 + 8, want.min(), want.max(), (cx, cz) -> true);
         double uw = query.weight(zone, unscoped.chunk().x() * 16 + 8, unscoped.chunk().z() * 16 + 8);
         return String.format("; zone %d wants it: weight %.2f at the site (needs %.1f)%s; unscoped, the first candidate is chunk %d,%d at weight %.2f",
@@ -339,9 +339,13 @@ public final class StructureSelfTest {
             refused.add(p.structure());
             Holder<Structure> holder = holder(level, p.structure());
             ChunkPos chunk = new ChunkPos(p.chunkX(), p.chunkZ());
-            var placement = state.getPlacementsForStructure(holder).stream().filter(pl -> pl instanceof StructurePlacements.Fixed f
-                    && f.chunkX() == p.chunkX() && f.chunkZ() == p.chunkZ()).findFirst().orElse(null);
-            if (placement == null || level.structureManager().checkStructurePresence(chunk, holder.value(), placement, false)
+            var placement = state.possibleStructureSets().stream().map(Holder::value)
+                    .filter(set -> set.placement() instanceof StructurePlacements.Fixed f && f.chunkX() == p.chunkX() && f.chunkZ() == p.chunkZ()
+                            && set.structures().stream().anyMatch(e -> e.structure().value() == holder.value()))
+                    .map(StructureSet::placement).findFirst().orElse(null);
+            if (placement == null) {
+                unpredicted.add(p.structure() + " at " + p.chunkX() + "," + p.chunkZ() + " (no fixed set places it)");
+            } else if (level.structureManager().checkStructurePresence(chunk, holder.value(), placement, false)
                     == net.minecraft.world.level.levelgen.structure.StructureCheckResult.START_NOT_PRESENT) {
                 unpredicted.add(p.structure() + " at " + p.chunkX() + "," + p.chunkZ());
             }
