@@ -217,7 +217,7 @@ public final class WorldgenRuntime {
                         () -> CustomDimensions.LOG.warn("{}: added carver {} is not in the registry", spec.level(), id));
             }
             Function<Holder<Biome>, BiomeGenerationSettings> getter = biome -> cache.computeIfAbsent(biome, b -> filtered(original.apply(b),
-                    library.contains(id(b)) ? Set.of() : spec.removeFeatures(), library.contains(id(b)) ? List.of() : added,
+                    removals(library.contains(id(b)), spec.removeFeatures()), library.contains(id(b)) ? List.of() : added,
                     spec.removeCarvers(), addCarvers));
             accessor.customdimensions$setGenerationSettingsGetter(getter);
             accessor.customdimensions$setFeaturesPerStep(Suppliers.memoize(() -> FeatureSorter.buildFeaturesPerStep(
@@ -229,8 +229,26 @@ public final class WorldgenRuntime {
     }
 
     /**
+     * The placed features a level removes from one biome: every listed id from a
+     * vanilla biome; from a library biome only the library's own features named
+     * in the list ({@code <namespace>:biome/<biome>/<name>}), so a definition can
+     * take one library feature out without stripping vanilla features the
+     * library biome also carries.
+     */
+    static Set<String> removals(boolean libraryBiome, Set<String> remove) {
+        if (!libraryBiome) return remove;
+        Set<String> own = new HashSet<>();
+        for (String id : remove) {
+            int colon = id.indexOf(':');
+            if (colon > 0 && id.startsWith(BiomeLibrary.FEATURE_FOLDER + "/", colon + 1)) own.add(id);
+        }
+        return own;
+    }
+
+    /**
      * The biome library's ids in the pack's namespace. A library biome keeps its
-     * own feature list in every level: per-level ore edits change vanilla's biomes only.
+     * own feature list in every level but for its own features a definition removes
+     * by id: added ores and removed vanilla features change vanilla's biomes only.
      */
     public static Set<String> libraryBiomes() {
         String namespace = LevelIndex.definitionsDir().map(PackInstaller::namespace).orElse(LevelIndex.DEFAULT_NAMESPACE);
