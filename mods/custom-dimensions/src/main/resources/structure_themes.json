@@ -254,6 +254,11 @@
   "group": "endgame",
   "rarity": "rare"
  },
+ "epic:large_dungeons_obelisks": {
+  "theme": "dungeon",
+  "group": "endgame",
+  "rarity": "rare"
+ },
  "epic:medium_dungeons": {
   "theme": "dungeon",
   "group": "dungeons",
@@ -984,6 +989,11 @@
   "group": "deco",
   "rarity": "common"
  },
+ "mss:trees": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
  "mss:volcano": {
   "theme": "landmark",
   "group": "landmarks",
@@ -1164,6 +1174,11 @@
   "group": "deco",
   "rarity": "common"
  },
+ "mvs:dead_tree_spruce": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
  "mvs:deepslate_house": {
   "theme": "settlement",
   "group": "settlements",
@@ -1294,6 +1309,11 @@
   "group": "loot",
   "rarity": "common"
  },
+ "mvs:lil_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
  "mvs:log_ruin": {
   "theme": "deco",
   "group": "deco",
@@ -1308,6 +1328,11 @@
   "theme": "settlement",
   "group": "settlements",
   "rarity": "common"
+ },
+ "mvs:medium_igloo_2": {
+  "theme": "ruins",
+  "group": "deco",
+  "rarity": "rare"
  },
  "mvs:medium_oak_lantern": {
   "theme": "deco",
