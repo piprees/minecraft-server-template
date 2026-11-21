@@ -182,3 +182,7 @@ Why: they add the lived-in remnants and settlements the places plan needs, with 
 **RB-47 — Server-side mods that fit may join without a separate ask.**
 A mod joins the 26.3 pack on the lead's judgement when it is server-side only (unmodded Java, Bedrock and mobile see all of it), passes the dependency checklist, respects RB-13 and the register's cuts, and fits the pack's direction (RB-39 to RB-45: lived in, understated, wordless, every place fitting its setting). Each is recorded in the register with its reason and reported to the owner.
 Why: the owner wants the pack full of fitting places and is happy to delegate the choice within these criteria.
+
+**RB-48 — Progression stays simple, conventional and speedrunnable.**
+A progression gate (strongholds and their End portal, a dimension's portal, a key structure) may move or change as long as it still makes sense and is reached by simple rules a player can work out from Minecraft's own conventions. No progression by time invested or grind: no brewing chains, farming quotas or crafting puzzles standing between a player and a gate. Someone who knows the rules could still speedrun it with little gear; finishing is not the point of the pack. Portal recipes (RB-40, RB-41) stay this simple: a frame of one block and a familiar igniter, found through exploring.
+Why: the pack is about exploring and telling one's own stories; a gate that demands a grind turns it into a different game.

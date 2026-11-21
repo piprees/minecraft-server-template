@@ -51,6 +51,7 @@ Before asking the owner anything, look for the answer in `docs/design/rebuild-26
 9. **Portal ambience:** bring it back.
 10. **More mods (RB-46):** Cinch's Abandoned Houses and Villager Statues, Lush Cave Ruins (without its add-on mob), Piglin Outposts, Moog's Missing Villages, D&T Ancient City Overhaul, WITS, Structure Layout Optimizer with Resourceful Config. All through the dependency checklist.
 11. **Standing authority (RB-47):** the lead may add any server-side mod that passes the checklist, respects RB-13 and the cuts, and fits RB-39 to RB-45, without asking; record it in the register and tell the owner.
+12. **Progression (RB-48):** gates may move if they still make sense and are reached by simple, conventional rules; no grind, brewing chains or farming quotas; speedrunnable with little gear; portal recipes stay one frame block and a familiar igniter.
 
 ## State (log time in HANDOFF.md)
 - **Roadmap doc:** "Adventure pack on 26.3: parity roadmap", https://claude.ai/artifact/Ezk5Wt4Wr1tApDUqsRhG8A (Claude Docs project 7156bec1-4a57-4666-b2d9-0b149b0ec53b).
