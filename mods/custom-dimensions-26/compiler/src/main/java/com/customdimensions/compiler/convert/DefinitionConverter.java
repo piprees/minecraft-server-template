@@ -61,7 +61,7 @@ public final class DefinitionConverter {
             "type", "description", "seed", "spawn", "noiseSettings", "biomes", "biome", "checkerboardScale",
             "layers", "flatBiome", "settingsOverrides", "biomePatches", "scale", "borders", "difficulty",
             "hostileSpawning", "structureDensity", "structures", "portal", "exitPortal", "exits",
-            "exitShrines", "environment", "seedRoll", "dimensionId", "inputHash");
+            "exitShrines", "environment", "seedRoll", "dimensionId", "inputHash", "setPieces");
 
     /** Top-level v1 fields dropped whole: parsed and inert in v1, or legacy. */
     private static final List<String> DROPPED_FIELDS = List.of("dimensionId", "hostileSpawning", "scale", "inputHash");
@@ -130,6 +130,7 @@ public final class DefinitionConverter {
         copy(v1, "exitPortal", parts, "exitPortal");
         copy(v1, "exits", parts, "exits");
         copy(v1, "exitShrines", parts, "exitShrines");
+        copy(v1, "setPieces", parts, "setPieces");
         roll(v1, source, report, parts);
         for (String field : DROPPED_FIELDS) {
             if (v1.has(field)) {

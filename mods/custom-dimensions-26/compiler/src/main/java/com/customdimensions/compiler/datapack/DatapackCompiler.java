@@ -108,6 +108,8 @@ public final class DatapackCompiler {
     private BiomeRoles roles;
     /** {@code settings.json}'s {@code defaults.atmosphere.dayLength}, or null. */
     private Atmosphere.DayLength defaultDayLength;
+    /** The shared set-piece library ({@code definitions/set-pieces/}) by name. */
+    private Map<String, JsonObject> setPieceLibrary = Map.of();
 
     private DatapackCompiler(VanillaData vanilla, VersionTable.Version version, String namespace) {
         this.vanilla = vanilla;
@@ -133,7 +135,7 @@ public final class DatapackCompiler {
         }
         Output output = compileAll(namespace, definitions, vanilla, version,
                 StructuresCompiler.Catalogue.of(vanilla, bridgesDir), BiomeLibrary.shipped(),
-                Atmosphere.DayLength.fromDefaults(settings.defaults()));
+                Atmosphere.DayLength.fromDefaults(settings.defaults()), SetPiecesCompiler.library(definitionsDir));
         output.files().put("pack.mcmeta", JsonWriter.write(packMeta(version, output.report().entries().size())));
         return output;
     }
@@ -147,21 +149,29 @@ public final class DatapackCompiler {
     /** As {@link #compileAll(String, Map, VanillaData, VersionTable.Version)} over the given biome library. */
     static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
                              VersionTable.Version version, BiomeLibrary library) {
-        return compileAll(namespace, definitions, vanilla, version, StructuresCompiler.Catalogue.of(vanilla, null), library, null);
+        return compileAll(namespace, definitions, vanilla, version, StructuresCompiler.Catalogue.of(vanilla, null), library, null, Map.of());
+    }
+
+    /** As {@link #compileAll(String, Map, VanillaData, VersionTable.Version)} with a set-piece library. */
+    static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
+                             VersionTable.Version version, Map<String, JsonObject> setPieceLibrary) {
+        return compileAll(namespace, definitions, vanilla, version, StructuresCompiler.Catalogue.of(vanilla, null), BiomeLibrary.shipped(),
+                null, setPieceLibrary);
     }
 
     /** As {@link #compileAll(String, Map, VanillaData, VersionTable.Version)} with {@code settings.json}'s default day length. */
     static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
                              VersionTable.Version version, Atmosphere.DayLength dayLength) {
         return compileAll(namespace, definitions, vanilla, version, StructuresCompiler.Catalogue.of(vanilla, null), BiomeLibrary.shipped(),
-                dayLength);
+                dayLength, Map.of());
     }
 
     private static Output compileAll(String namespace, Map<String, Definition> definitions, VanillaData vanilla,
                                      VersionTable.Version version, StructuresCompiler.Catalogue catalogue,
-                                     BiomeLibrary library, Atmosphere.DayLength dayLength) {
+                                     BiomeLibrary library, Atmosphere.DayLength dayLength, Map<String, JsonObject> setPieceLibrary) {
         DatapackCompiler compiler = new DatapackCompiler(vanilla, version, namespace);
         compiler.defaultDayLength = dayLength;
+        compiler.setPieceLibrary = Map.copyOf(setPieceLibrary);
         compiler.structureCatalogue = catalogue;
         library.validate(vanilla, namespace);
         compiler.library = library;
@@ -282,7 +292,10 @@ public final class DatapackCompiler {
         }
 
         String controlLevel = BASE_WORLDS.containsKey(slug) && !BASE_WORLDS.get(slug).isEmpty() ? BASE_WORLDS.get(slug) : typeId;
-        StructuresCompiler.files(slug, controlLevel, def, structureCatalogue, entry).forEach((path, json) -> put(path, json, entry));
+        SetPiecesCompiler.Compiled setPieces = SetPiecesCompiler.files(namespace, slug, def, setPieceLibrary, vanilla, entry);
+        setPieces.files().forEach((path, json) -> put(path, json, entry));
+        StructuresCompiler.files(slug, controlLevel, def, structureCatalogue, entry, setPieces.control())
+                .forEach((path, json) -> put(path, json, entry));
         reportRuntimeFields(def, entry);
     }
 
@@ -424,7 +437,7 @@ public final class DatapackCompiler {
         JsonObject carvers = overlay(source.carvers(), clone.carvers());
         return new Definition(clone.schemaVersion(), clone.description(), clone.seed(), clone.spawn(), source.generator(),
                 clone.terrain() != null ? clone.terrain() : source.terrain(), biomes, biomeLayout, liquids, materials, ores, carvers, clone.zones(), clone.dimensionType(),
-                clone.atmosphere(), clone.rules(), clone.gameRules(), clone.borders(), clone.difficulty(), clone.structures(), clone.portals(),
+                clone.atmosphere(), clone.rules(), clone.gameRules(), clone.borders(), clone.difficulty(), clone.structures(), clone.setPieces(), clone.portals(),
                 clone.exitPortal(), clone.exits(), clone.exitShrines(), clone.deaths(), clone.wins(), clone.roll());
     }
 

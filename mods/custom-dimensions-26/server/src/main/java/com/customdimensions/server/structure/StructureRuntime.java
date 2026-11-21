@@ -76,8 +76,71 @@ public final class StructureRuntime {
     private static final Map<String, Map<Structure, TerrainAdjustment>> ADAPTATION = new ConcurrentHashMap<>();
     private static final Map<String, Map<Long, Map<Structure, Integer>>> GROUND = new ConcurrentHashMap<>();
     private static final Map<String, Map<Structure, String>> GROUPS = new ConcurrentHashMap<>();
+    private static final Map<String, Map<Structure, com.customdimensions.core.structure.SiteFilter>> FILTERS = new ConcurrentHashMap<>();
+    private static final Map<String, Map<Structure, Set<Long>>> CAPS = new ConcurrentHashMap<>();
+    private static final Set<String> FILTER_LOGGED = ConcurrentHashMap.newKeySet();
+    /** {@code structures.sites} per level: structure id or #tag to its filter. */
+    private static volatile Map<String, Map<String, com.customdimensions.core.structure.SiteFilter>> siteFilters = Map.of();
+    /** The set pieces each level's control file names. */
+    private static volatile Map<String, List<SetPieceEntry>> setPieceEntries = Map.of();
+
+    /** A set piece as its level's control file names it: its structure, display name, seat, size, and its set and group when it joins one. */
+    public record SetPieceEntry(String structure, String name, String seat, int size, String set, String group, String rarity,
+                                Integer repetition) {
+        static SetPieceEntry fromJson(com.google.gson.JsonObject o) {
+            return new SetPieceEntry(o.get("structure").getAsString(), o.get("name").getAsString(), o.get("seat").getAsString(),
+                    o.get("size").getAsInt(), o.has("set") ? o.get("set").getAsString() : null,
+                    o.has("group") ? o.get("group").getAsString() : null, o.has("rarity") ? o.get("rarity").getAsString() : null,
+                    o.has("repetition") ? o.get("repetition").getAsInt() : null);
+        }
+    }
 
     private StructureRuntime() {
+    }
+
+    /** The set pieces a level's control names. */
+    public static List<SetPieceEntry> setPieces(String level) {
+        return setPieceEntries.getOrDefault(level, List.of());
+    }
+
+    /** Whether a structure set is one of the pack's set pieces ({@code <ns>:set_piece/...}). */
+    static boolean isSetPieceSet(String id) {
+        return id != null && id.substring(id.indexOf(':') + 1).startsWith(com.customdimensions.compiler.datapack.SetPiecesCompiler.FOLDER + "/");
+    }
+
+    /**
+     * Whether a start of {@code structure} at {@code chunk} is refused by its
+     * level's site filter or a set piece's repetition ceiling. A forced start's
+     * or a want's own chunk was chosen with the filter and is never refused here.
+     */
+    public static String refusal(ResourceKey<Level> level, Structure structure, ChunkPos chunk, ChunkGenerator generator,
+                                 net.minecraft.world.level.levelgen.RandomState random) {
+        String id = level.identifier().toString();
+        if (bypassesBiome(level, structure, chunk)) return null;
+        Map<Structure, Set<Long>> caps = CAPS.get(id);
+        Set<Long> allowed = caps == null ? null : caps.get(structure);
+        if (allowed != null && !allowed.contains(chunk.pack())) return "its repetition ceiling is taken by the group's nearer sites";
+        Map<Structure, com.customdimensions.core.structure.SiteFilter> filters = FILTERS.get(id);
+        com.customdimensions.core.structure.SiteFilter f = filters == null ? null : filters.get(structure);
+        if (f == null) return null;
+        GeneratorTerrain terrain = GeneratorTerrain.of(generator, random, generator.getBiomeSource().createUncachedResolver(random));
+        return f.refusal(terrain, chunk.getMiddleBlockX(), chunk.getMiddleBlockZ());
+    }
+
+    /** The group sites a set piece's repetition ceiling leaves it in this level, or null when it has none. */
+    public static Set<Long> cap(String level, Structure structure) {
+        Map<Structure, Set<Long>> caps = CAPS.get(level);
+        return caps == null ? null : caps.get(structure);
+    }
+
+    /** Whether this is the first refusal by site of {@code structure} in {@code level}, so the log names each once. */
+    public static boolean firstSiteRefusal(String level, String structure) {
+        return FILTER_LOGGED.add(level + " " + structure);
+    }
+
+    /** Whether {@code structure} may stand in {@code biome}: a set piece naming no biomes stands in every one. */
+    public static boolean biomeFits(Structure structure, Holder<net.minecraft.world.level.biome.Biome> biome) {
+        return structure instanceof SetPieceStructure s && s.anyBiome() || structure.biomes().contains(biome);
     }
 
     public static void register() {
@@ -89,6 +152,9 @@ public final class StructureRuntime {
             ADAPTATION.clear();
             GROUND.clear();
             GROUPS.clear();
+            FILTERS.clear();
+            CAPS.clear();
+            FILTER_LOGGED.clear();
         });
     }
 
@@ -168,6 +234,8 @@ public final class StructureRuntime {
     static Map<String, StructureSpec> load(MinecraftServer server) {
         Map<String, StructureSpec> out = new HashMap<>();
         Map<String, ZoneStructureRules> zones = new HashMap<>();
+        Map<String, Map<String, com.customdimensions.core.structure.SiteFilter>> sites = new HashMap<>();
+        Map<String, List<SetPieceEntry>> pieces = new HashMap<>();
         Map<Identifier, Resource> files = server.getResourceManager().listResources(StructuresCompiler.FOLDER,
                 id -> id.getNamespace().equals(DatapackCompiler.RUNTIME_NAMESPACE) && id.getPath().endsWith(".json"));
         for (Map.Entry<Identifier, Resource> file : files.entrySet()) {
@@ -178,11 +246,24 @@ public final class StructureRuntime {
                 if (json.has("zones")) {
                     zones.put(spec.level(), ZoneStructureRules.fromJson(json.getAsJsonArray("zones")));
                 }
+                if (json.has("sites")) {
+                    Map<String, com.customdimensions.core.structure.SiteFilter> m = new LinkedHashMap<>();
+                    json.getAsJsonObject("sites").entrySet().forEach(e -> m.put(e.getKey(),
+                            com.customdimensions.core.structure.SiteFilter.fromJson(e.getValue().getAsJsonObject())));
+                    sites.put(spec.level(), Map.copyOf(m));
+                }
+                if (json.has("setPieces")) {
+                    List<SetPieceEntry> l = new ArrayList<>();
+                    json.getAsJsonArray("setPieces").forEach(e -> l.add(SetPieceEntry.fromJson(e.getAsJsonObject())));
+                    pieces.put(spec.level(), List.copyOf(l));
+                }
             } catch (Exception e) {
                 CustomDimensions.LOG.warn("structure control file {} is unreadable: {}", file.getKey(), e.toString());
             }
         }
         zoneRules = Map.copyOf(zones);
+        siteFilters = Map.copyOf(sites);
+        setPieceEntries = Map.copyOf(pieces);
         return Map.copyOf(out);
     }
 
@@ -193,10 +274,11 @@ public final class StructureRuntime {
      */
     public record Controlled(ChunkGeneratorStructureState state, Map<Long, Set<Structure>> bypass, Set<Structure> everywhere,
                              Map<Structure, TerrainAdjustment> adaptation, Map<Long, Map<Structure, Integer>> ground,
-                             Map<Structure, String> groups, Applied applied, String summary) {
+                             Map<Structure, String> groups, Applied applied, String summary,
+                             Map<Structure, com.customdimensions.core.structure.SiteFilter> filters, Map<Structure, Set<Long>> caps) {
         /** No control: the state as it is. */
         public static Controlled none(ChunkGeneratorStructureState state) {
-            return new Controlled(state, Map.of(), Set.of(), Map.of(), Map.of(), Map.of(), null, "");
+            return new Controlled(state, Map.of(), Set.of(), Map.of(), Map.of(), Map.of(), null, "", Map.of(), Map.of());
         }
 
         /** Whether {@code structure} may ignore its biomes at {@code chunk} under this control. */
@@ -262,6 +344,8 @@ public final class StructureRuntime {
         ADAPTATION.put(level, c.adaptation());
         GROUND.put(level, c.ground());
         GROUPS.put(level, c.groups());
+        FILTERS.put(level, c.filters());
+        CAPS.put(level, c.caps());
         APPLIED.put(level, c.applied());
         CustomDimensions.LOG.info("structure control applied to {}: {}", level, c.summary());
         return c.state();
@@ -320,6 +404,28 @@ public final class StructureRuntime {
             }
         }
 
+        Map<String, SetPieceEntry> ourSets = new HashMap<>();
+        for (SetPieceEntry p : setPieceEntries.getOrDefault(level, List.of())) {
+            if (p.set() != null) ourSets.put(p.set(), p);
+        }
+        input.removeIf(h -> h.unwrapKey().map(k -> k.identifier().toString()).filter(id -> isSetPieceSet(id) && !ourSets.containsKey(id))
+                .isPresent());
+        for (String id : ourSets.keySet()) {
+            if (present.contains(id)) continue;
+            setRegistry.get(ResourceKey.create(Registries.STRUCTURE_SET, Identifier.parse(id))).ifPresentOrElse(input::add,
+                    () -> CustomDimensions.LOG.warn("{}: set piece set {} is not in the registry", level, id));
+        }
+        GeneratorTerrain terrain = GeneratorTerrain.of(generator, original.randomState(), sampler);
+        Map<Structure, com.customdimensions.core.structure.SiteFilter> filters = new IdentityHashMap<>();
+        siteFilters.getOrDefault(level, Map.of()).forEach((target, f) -> members(structures, target).forEach(h -> filters.put(h.value(), f)));
+        for (SetPieceEntry p : setPieceEntries.getOrDefault(level, List.of())) {
+            structure(structures, p.structure()).ifPresent(h -> {
+                if (h.value() instanceof SetPieceStructure piece && !piece.spec().site().isEmpty()) {
+                    filters.putIfAbsent(h.value(), piece.spec().site());
+                }
+            });
+        }
+
         boolean organic = !"none".equals(spec.density()) && !"none".equals(spec.mode());
         Set<String> list = Set.copyOf(spec.list());
         Set<String> exclude = Set.copyOf(spec.exclude());
@@ -361,6 +467,18 @@ public final class StructureRuntime {
             }
             int spacing = set.placement() instanceof RandomSpreadStructurePlacement r ? r.spacing() : -1;
             StructureGroupRegistry.Entry cls = StructureGroupRegistry.classify(id, spacing);
+            SetPieceEntry piece = id == null ? null : ourSets.get(id);
+            if (piece != null) {
+                cls = new StructureGroupRegistry.Entry(id, cls.theme(), piece.group(), piece.rarity() != null ? piece.rarity() : "common",
+                        cls.source());
+                if (!spec.noise() || !spec.groups().containsKey(piece.group())) {
+                    CustomDimensions.LOG.warn("{}: set piece {} names group {}, which places nothing here; it is placed by force or wants only",
+                            level, piece.structure(), piece.group());
+                    dropped++;
+                    droppedIds.add(id);
+                    continue;
+                }
+            }
             for (StructureSet.StructureSelectionEntry e : entries) {
                 groupOf.putIfAbsent(e.structure().value(), cls.group());
             }
@@ -408,6 +526,7 @@ public final class StructureRuntime {
         }
 
         long pooledAt = System.nanoTime();
+        Map<Structure, Set<Long>> caps = new IdentityHashMap<>();
         Map<String, Integer> groupSites = new LinkedHashMap<>();
         List<Map.Entry<String, List<StructureSet.StructureSelectionEntry>>> filled = pools.entrySet().stream()
                 .filter(e -> !e.getValue().isEmpty()).toList();
@@ -418,8 +537,26 @@ public final class StructureRuntime {
             String group = filled.get(i).getKey();
             NoiseFieldIndex index = indexes.get(i);
             List<Structure> pooled = filled.get(i).getValue().stream().map(e -> e.structure().value()).distinct().toList();
+            java.util.function.BiPredicate<Integer, Integer> sited = pooled.stream().noneMatch(filters::containsKey) ? null
+                    : (cx, cz) -> pooled.stream().anyMatch(s -> biomeAt(s, sampler, cx, cz, seaLevel) && passes(filters.get(s), terrain, cx, cz));
             List<com.customdimensions.core.ChunkPos> sites = settled(index, original.getLevelSeed(), group,
-                    here -> pooled.stream().anyMatch(s -> s.biomes().contains(here)), sampler, seaLevel);
+                    here -> pooled.stream().anyMatch(s -> biomeFits(s, here)), sampler, seaLevel, sited);
+            for (SetPieceEntry p : ourSets.values()) {
+                if (p.repetition() == null || !group.equals(p.group())) continue;
+                structure(structures, p.structure()).filter(h -> pooled.contains(h.value())).ifPresent(h -> {
+                    List<com.customdimensions.core.ChunkPos> order = new ArrayList<>(sites);
+                    order.sort(java.util.Comparator.comparingDouble(c -> StructureSites.distance(c, spec.spawnChunkX() * 16 + 8,
+                            spec.spawnChunkZ() * 16 + 8)));
+                    Set<Long> allowed = new HashSet<>();
+                    for (com.customdimensions.core.ChunkPos c : order) {
+                        if (allowed.size() >= p.repetition()) break;
+                        if (biomeAt(h.value(), sampler, c.x(), c.z(), seaLevel) && passes(filters.get(h.value()), terrain, c.x(), c.z())) {
+                            allowed.add(ChunkPos.pack(c.x(), c.z()));
+                        }
+                    }
+                    caps.put(h.value(), Set.copyOf(allowed));
+                });
+            }
             groupSites.put(group, sites.size());
             out.add(Holder.direct(new StructureSet(filled.get(i).getValue(), new StructurePlacements.Noise(group, index, sites))));
         }
@@ -436,7 +573,7 @@ public final class StructureRuntime {
             }
             StructureSites.Site site = StructureSites.choosePlaced(StructureSites.seed(original.getLevelSeed(), "force:" + f.structure()),
                     f.x(), f.z(), 0, f.radius(), (cx, cz) -> startBiomeAt(s.get().value(), generator, original.randomState(), sampler,
-                            cx, cz, seaLevel));
+                            cx, cz, seaLevel) && passes(filters.get(s.get().value()), terrain, cx, cz));
             fixed(out, bypass, placed, "force", f.structure(), s.get(), site);
             if (f.y() != null) {
                 ground.computeIfAbsent(ChunkPos.pack(site.chunk().x(), site.chunk().z()), k -> new IdentityHashMap<>())
@@ -456,7 +593,8 @@ public final class StructureRuntime {
             StructureSites.Site site = StructureSites.choosePlaced(StructureSites.seed(original.getLevelSeed(), "want:" + w.name()),
                     spec.spawnChunkX() * 16 + 8, spec.spawnChunkZ() * 16 + 8, w.min(), w.max(),
                     (cx, cz) -> (query == null || rules.wantAccepts(name -> matches(pick, name), cx * 16 + 8, cz * 16 + 8, query))
-                            && startBiomeAt(pick.value(), generator, original.randomState(), sampler, cx, cz, seaLevel));
+                            && startBiomeAt(pick.value(), generator, original.randomState(), sampler, cx, cz, seaLevel)
+                            && passes(filters.get(pick.value()), terrain, cx, cz));
             String id = pick.unwrapKey().map(k -> k.identifier().toString()).orElse(w.structure());
             fixed(out, bypass, placed, "want", id, pick, site);
         }
@@ -480,7 +618,12 @@ public final class StructureRuntime {
                         + "%d adaptation override(s), %d ms (sets %d ms, noise sites %d ms)", spec.density(), out.size(), dropped, droppedIds,
                 replaced, groupSites, placed.size(), adaptation.size(), millis, (pooledAt - started) / 1_000_000, (indexedAt - pooledAt) / 1_000_000);
         return new Controlled(StructureReflection.withSets(original, out), Map.copyOf(bypass), Set.copyOf(included), adaptation,
-                Map.copyOf(ground), groupOf, applied, summary);
+                Map.copyOf(ground), groupOf, applied, summary, filters, caps);
+    }
+
+    /** Whether the chunk's centre passes {@code filter}; no filter passes. */
+    static boolean passes(com.customdimensions.core.structure.SiteFilter filter, GeneratorTerrain terrain, int cx, int cz) {
+        return filter == null || filter.accepts(terrain, cx * 16 + 8, cz * 16 + 8);
     }
 
     private static void fixed(List<Holder<StructureSet>> out, Map<Long, Set<Structure>> bypass, List<Placed> placed,
@@ -537,6 +680,7 @@ public final class StructureRuntime {
     }
 
     private static boolean hasBiomeIn(Structure structure, BiomeSource biomes) {
+        if (structure instanceof SetPieceStructure piece && piece.anyBiome()) return true;
         HolderSet<net.minecraft.world.level.biome.Biome> allowed = structure.biomes();
         return biomes.possibleBiomes().stream().anyMatch(allowed::contains);
     }
@@ -545,8 +689,16 @@ public final class StructureRuntime {
     static List<com.customdimensions.core.ChunkPos> settled(NoiseFieldIndex index, long levelSeed, String group,
                                                           java.util.function.Predicate<Holder<net.minecraft.world.level.biome.Biome>> fits,
                                                           BiomeResolver sampler, int seaLevel) {
+        return settled(index, levelSeed, group, fits, sampler, seaLevel, null);
+    }
+
+    /** As above; {@code sited}, when given, answers instead: a pooled structure's biome and its site filter both hold there. */
+    static List<com.customdimensions.core.ChunkPos> settled(NoiseFieldIndex index, long levelSeed, String group,
+                                                          java.util.function.Predicate<Holder<net.minecraft.world.level.biome.Biome>> fits,
+                                                          BiomeResolver sampler, int seaLevel,
+                                                          java.util.function.BiPredicate<Integer, Integer> sited) {
         return StructureSites.settle(index.positions(), StructureSites.seed(levelSeed, "settle:" + group), index.exclusion() * 8,
-                (cx, cz) -> anyBiomeAt(fits, sampler, cx, cz, seaLevel));
+                sited != null ? sited : (cx, cz) -> anyBiomeAt(fits, sampler, cx, cz, seaLevel));
     }
 
     /** Whether {@code fits} holds for the biome at the chunk's centre, near sea level: three biome reads. */
@@ -576,14 +728,14 @@ public final class StructureRuntime {
         net.minecraft.world.level.LevelHeightAccessor height = net.minecraft.world.level.LevelHeightAccessor.create(generator.getMinY(),
                 generator.getGenDepth());
         int y = generator.getBaseHeight(x, z, net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE_WG, height, random);
-        return structure.biomes().contains(sampler.getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(y), QuartPos.fromBlock(z)));
+        return biomeFits(structure, sampler.getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(y), QuartPos.fromBlock(z)));
     }
 
     static boolean biomeAt(Structure structure, BiomeResolver sampler, int cx, int cz, int seaLevel) {
         int qx = QuartPos.fromBlock(cx * 16 + 8);
         int qz = QuartPos.fromBlock(cz * 16 + 8);
         for (int dy : new int[] {0, 24, -24}) {
-            if (structure.biomes().contains(sampler.getNoiseBiome(qx, QuartPos.fromBlock(seaLevel + dy), qz))) {
+            if (biomeFits(structure, sampler.getNoiseBiome(qx, QuartPos.fromBlock(seaLevel + dy), qz))) {
                 return true;
             }
         }

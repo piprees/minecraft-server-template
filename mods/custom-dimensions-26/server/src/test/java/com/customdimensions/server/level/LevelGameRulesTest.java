@@ -149,6 +149,11 @@ class LevelGameRulesTest {
             public String describe() {
                 return "runtime rules over " + dir.describe();
             }
+
+            @Override
+            public Optional<byte[]> bytes(String path) {
+                return dir.bytes(path);
+            }
         };
         Map<String, VanillaData.GameRuleType> expected = new VanillaData(dir).gameRules();
         assertEquals(expected, new VanillaData(live).gameRules());

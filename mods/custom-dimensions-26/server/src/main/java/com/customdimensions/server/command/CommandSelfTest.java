@@ -161,6 +161,7 @@ public final class CommandSelfTest {
         try (Stream<Path> files = Files.list(source)) {
             for (Path f : files.filter(p -> p.toString().endsWith(".json")).toList()) Files.copy(f, dir.resolve(f.getFileName()));
         }
+        com.customdimensions.compiler.datapack.SetPiecesCompiler.copyLibrary(source, dir);
         CreateCommand.definitionsOverride = dir;
         try {
             List<String> out = run(server, "customdim create selftest_created");

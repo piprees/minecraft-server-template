@@ -98,6 +98,7 @@ public final class DefinitionReader {
                         c.integer(o, "player"), c.integer(o, "generation"))),
                 ctx.object(root, "difficulty"),
                 ctx.object(root, "structures"),
+                ctx.object(root, "setPieces"),
                 ctx.objectList(root, "portals"),
                 ctx.object(root, "exitPortal"),
                 ctx.object(root, "exits"),

@@ -28,6 +28,9 @@ A definition gains `setPieces`: name to spec. A spec either stands alone or exte
 | `support` | Share of the footprint's sample columns that must find a seat (0–1, default 0.8); below it the start declines. A sky world's set piece never starts over void |
 | `slope` | Largest height spread across the footprint's samples, in blocks; above it the start declines |
 | `biomes` | Biome ids or `#tags` the origin must be in; default every biome of the dimension |
+| `site` | Where it may stand ([../lore/placement.md](../lore/placement.md) G3), the fields of `structures.sites`: `height` `{min, max}`, `relative` (`summit`, `spur`, `valley`), `water` `{kind, min, max}`, `cliff` `{min, max, rise}`, `shelter` (`overhang`, `hollow`, `lee`, `canopy`); `slope` and `biomes` above join it, and its footprint radius is `size`. Forced starts and wants choose a chunk that passes; a group start that fails does not start |
+| `age` | `recent`, `old`, `ancient` or `deep` (placement.md § Age): integrity, burial, weathering swaps, cobwebs and vines; an element may carry its own, and `structures.age` is the dimension's default |
+| `band`, `clear` | Seat `floor`: the `[minY, maxY]` searched and the headroom in blocks |
 | `elements` | The parts, drawn in order (§ Elements); each has its own offset, rotation, count and chance |
 | `palette` | Named block lists the elements draw from (`ground`, `rubble`, `metal`, `bone`, `glow`…), each a weighted list of vanilla block states |
 | `group`, `rarity`, `repetition` | Join a structure-control group (`deco`, `landmarks`, `dungeons`, …) at that rarity share, at most `repetition` copies |
@@ -85,12 +88,12 @@ Every element is drawn by one structure piece of ours (`customdimensions:set_pie
 
 ### Things inside
 
-Any element may carry these.
+Each is an element of its own `kind`, placed at its offset on the seat, or one of a `scatter`'s items.
 
 | Thing | Parameters | Notes |
 | --- | --- | --- |
-| `spawner` | `entity`, `delay`, `range`, `count` | A spawner block with its entity set in `postProcess`; a ghast spawner needs headroom the element checks |
-| `chest` | `loot` (a vanilla or pack loot table id), `kind` (`chest`, `barrel`, `trapped_chest`, `decorated_pot`) | Per-player through slashloot like any structure chest; `structures.loot` rules add to it |
+| `spawner` | `entity`, `delay`, `range`, `count` | A spawner block with its entity, delay, range and spawn count set in `postProcess` |
+| `chest` | `loot` (a vanilla or pack loot table id), `block` (`chest`, `barrel`, `trapped_chest`, `decorated_pot`; default `chest`) | Per-player through slashloot like any structure chest; `structures.loot` rules add to it |
 | `mob` | `entity`, `name`, `count`, `persistent`, `attributes` (`max_health`, `attack_damage`, `armor`, `scale`…), `equipment`, `effects` | Spawned into the world in `postProcess`, as vanilla's swamp hut spawns its witch; the easter eggs are these: a buffed iron golem with a chest of iron beside it |
 | `archaeology` | `share`, `loot` | Suspicious sand or gravel with a loot table, as vanilla's trail ruins processor lays it |
 

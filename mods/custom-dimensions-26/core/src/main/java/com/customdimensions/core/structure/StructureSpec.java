@@ -61,7 +61,7 @@ public record StructureSpec(
     public static final Set<String> UNSUPPORTED_ADAPTATIONS = Set.of("moat", "drain");
     public static final Set<String> FIELDS = Set.of("density", "wants", "shuns", "spacing", "mode", "list", "force",
             "clearSpawnRadius", "terrainAdaptation", "noise", "radial", "rarity", "exclude", "include", "replace", "repetition",
-            "loot");
+            "loot", "sites", "age");
 
     /**
      * One noise group: its profile, radial curve (null is even), exclusion in chunks, cleared spawn disc, and its
@@ -113,6 +113,16 @@ public record StructureSpec(
         for (String key : b.keySet()) {
             if (!FIELDS.contains(key)) {
                 throw bad(ctx, key, "is not a structures field");
+            }
+        }
+        if (b.has("age") && (!b.get("age").isJsonPrimitive() || !Age.NAMES.contains(b.get("age").getAsString()))) {
+            throw bad(ctx, "age", "must be one of " + Age.NAMES);
+        }
+        if (b.has("sites")) {
+            try {
+                SiteFilter.readAll(ctx.slug(), b.get("sites"));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException(e.getMessage(), e);
             }
         }
         String density = string(ctx, b, "density", "normal");

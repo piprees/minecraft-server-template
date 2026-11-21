@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * A schema v2 dimension definition ({@code definitions/<slug>.json}). The
  * layers later work packages extend ({@code terrain}, {@code biomeLayout}, {@code materials}, {@code ores}, {@code carvers},
- * {@code zones}, {@code structures}, {@code difficulty}, {@code portals},
+ * {@code zones}, {@code structures}, {@code setPieces}, {@code difficulty}, {@code portals},
  * the exits and {@code roll}) stay JSON here until those packages type them.
  * Absent fields are null; {@code biomes}, {@code zones}, {@code portals} and
  * {@code wins} are empty lists and {@code gameRules} is {@link GameRuleValues#NONE} when absent.
@@ -34,6 +34,7 @@ public record Definition(
         Borders borders,
         JsonObject difficulty,
         JsonObject structures,
+        JsonObject setPieces,
         List<JsonObject> portals,
         JsonObject exitPortal,
         JsonObject exits,
@@ -51,7 +52,7 @@ public record Definition(
     public static final List<String> FIELD_ORDER = List.of(
             "schemaVersion", "description", "seed", "spawn", "generator", "terrain", "biomes", "biomeLayout",
             "liquids", "materials", "ores", "carvers", "zones", "dimensionType", "atmosphere", "rules", "gameRules", "borders",
-            "difficulty", "structures", "portals", "exitPortal", "exits", "exitShrines", "deaths", "wins", "roll");
+            "difficulty", "structures", "setPieces", "portals", "exitPortal", "exits", "exitShrines", "deaths", "wins", "roll");
 
     public Definition {
         biomes = biomes == null ? List.of() : List.copyOf(biomes);

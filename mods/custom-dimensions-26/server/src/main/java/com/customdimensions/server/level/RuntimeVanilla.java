@@ -166,6 +166,11 @@ public final class RuntimeVanilla implements VanillaSource {
     }
 
     @Override
+    public Optional<byte[]> bytes(String path) {
+        return VanillaSource.bytes(root, path);
+    }
+
+    @Override
     public String describe() {
         return "the running game (" + root.toUri() + ")";
     }

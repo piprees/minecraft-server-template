@@ -69,7 +69,7 @@ public final class StructuresCompiler {
 
     /** The control file for one dimension, with what applies and every warning in the report. */
     static Map<String, JsonObject> files(String slug, String levelId, Definition def, Catalogue catalogue,
-                                         CompileReport.Entry entry) {
+                                         CompileReport.Entry entry, com.google.gson.JsonArray setPieces) {
         int border = def.borders() != null && def.borders().player() != null ? def.borders().player() : 4096;
         int spawnX = def.spawn() != null ? def.spawn().x() : 0;
         int spawnZ = def.spawn() != null ? def.spawn().z() : 0;
@@ -80,8 +80,29 @@ public final class StructuresCompiler {
         StructureSpec.Result result = StructureSpec.resolve(ctx, def.structures());
         result.applied().forEach(entry::structure);
         result.warnings().forEach(entry::structureWarning);
-        unknownIds(result.spec(), catalogue).forEach(entry::structureWarning);
+        Set<String> ours = new java.util.HashSet<>();
+        setPieces.forEach(p -> ours.add(p.getAsJsonObject().get("structure").getAsString()));
+        unknownIds(result.spec(), catalogue).stream().filter(w -> ours.stream().noneMatch(id -> w.contains("`" + id + "`")))
+                .forEach(entry::structureWarning);
         JsonObject json = result.spec().toJson();
+        if (!setPieces.isEmpty()) {
+            json.add("setPieces", setPieces);
+        }
+        if (def.structures() != null && def.structures().has("sites")) {
+            Map<String, com.customdimensions.core.structure.SiteFilter> sites =
+                    com.customdimensions.core.structure.SiteFilter.readAll(slug, def.structures().get("sites"));
+            if (!sites.isEmpty()) {
+                JsonObject s = new JsonObject();
+                sites.forEach((id, f) -> {
+                    s.add(id, f.toJson());
+                    if (!ours.contains(id) && !catalogue.knowsStructure(id)) {
+                        entry.structureWarning("sites: `" + id + "` is not a vanilla or bridged structure");
+                    }
+                });
+                json.add("sites", s);
+                entry.structure("sites: " + sites.size() + " structure(s) filtered by slope, height, water, cliff, shelter or biome");
+            }
+        }
         com.customdimensions.core.structure.ZoneStructureRules zones =
                 com.customdimensions.core.structure.ZoneStructureRules.read(slug, def.zones());
         if (!zones.rules().isEmpty()) {
