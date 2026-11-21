@@ -49,6 +49,7 @@ Before asking the owner anything, look for the answer in `docs/design/rebuild-26
 7. **Resource pack:** the server resource pack is required on join.
 8. **Mods:** add the ten mods now available, through the dependency checklist (Friends & Foes with its Polymer patch, Explorify, DeCubed Dungeons, Repurposed Structures, Trek, Hopo Better Mineshaft, Server-Side Waystones, Sit!, Ender Dragon Destroys End Island, Chunky Border).
 9. **Portal ambience:** bring it back.
+10. **More mods (RB-46):** Cinch's Abandoned Houses and Villager Statues, Lush Cave Ruins (without its add-on mob), Piglin Outposts, Moog's Missing Villages, D&T Ancient City Overhaul, WITS, Structure Layout Optimizer with Resourceful Config. All through the dependency checklist.
 
 ## State (log time in HANDOFF.md)
 - **Roadmap doc:** "Adventure pack on 26.3: parity roadmap", https://claude.ai/artifact/Ezk5Wt4Wr1tApDUqsRhG8A (Claude Docs project 7156bec1-4a57-4666-b2d9-0b149b0ec53b).
