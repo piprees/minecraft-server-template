@@ -972,7 +972,7 @@
         "slope": { "description": "Largest height spread over the footprint's centre, corners and edges, in blocks.", "type": "integer", "minimum": 0 },
         "radius": { "description": "The footprint's half-width in blocks (default 8; a set piece's is its size).", "type": "integer", "minimum": 1 },
         "height": {
-          "description": "The surface height window at the centre; under a roof, the floor's height. A generated start whose box floor lies above max or more than 4 below min does not start, and a filtered start under a roof seats on that floor.",
+          "description": "The surface height window at the centre. Under a roof a filtered start seats on the floor wherever its own seating asks the generator for ground.",
           "type": "object", "additionalProperties": false,
           "properties": { "min": { "type": "integer" }, "max": { "type": "integer" } }
         },

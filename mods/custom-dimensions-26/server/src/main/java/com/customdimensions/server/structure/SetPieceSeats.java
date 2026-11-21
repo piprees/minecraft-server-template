@@ -30,6 +30,29 @@ final class SetPieceSeats {
     private SetPieceSeats() {
     }
 
+    static final int ROOF = 8;
+    static final int HEADROOM = 4;
+
+    /**
+     * Under a roof (the column's surface heightmap within {@value #ROOF} of the
+     * generator's top), the floor: the first air over solid ground from sea
+     * level up with {@value #HEADROOM} blocks of headroom. Null where the
+     * column has no roof or no such floor.
+     */
+    static Integer roofedFloor(ChunkGenerator generator, RandomState random, int x, int z) {
+        LevelHeightAccessor height = LevelHeightAccessor.create(generator.getMinY(), generator.getGenDepth());
+        if (generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, height, random) < height.getMaxY() - ROOF) return null;
+        NoiseColumn column = generator.getBaseColumn(x, z, height, random);
+        for (int y = Math.max(height.getMinY() + 1, generator.getSeaLevel()); y <= height.getMaxY() - ROOF - HEADROOM; y++) {
+            BlockState below = column.getBlock(y - 1);
+            if (below.isAir() || !below.getFluidState().isEmpty()) continue;
+            boolean open = true;
+            for (int k = 0; k < HEADROOM && open; k++) open = column.getBlock(y + k).isAir();
+            if (open) return y;
+        }
+        return null;
+    }
+
     /** Whether a piece's shapes find their ground by scanning the column near the origin (floor, roof, a banded wall) rather than the surface. */
     static boolean scans(SetPieceSpec spec) {
         return "floor".equals(spec.seat()) || "roof".equals(spec.seat()) || "wall".equals(spec.seat()) && spec.bandMin() != null;

@@ -367,7 +367,7 @@ public final class ShapeSelfTest {
         StructureStart start = start(level, p);
         if (start == null) return "FAIL no start at " + p.chunkX() + "," + p.chunkZ();
         BoundingBox box = start.getBoundingBox();
-        boolean ok = box.minY() >= 36 - StructureRuntime.FLOOR_SLACK && box.minY() <= 100;
+        boolean ok = box.minY() >= 32 && box.minY() <= 100;
         return (ok ? "PASS" : "FAIL") + " box " + box.minY() + " to " + box.maxY() + " against the site's heights 36 to 100 under a roof at "
                 + level.getChunkSource().getGenerator().getGenDepth();
     }

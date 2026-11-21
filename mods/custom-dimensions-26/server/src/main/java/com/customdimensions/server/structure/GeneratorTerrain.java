@@ -20,10 +20,7 @@ import java.util.List;
  * A level's base terrain as a {@link SiteFilter} reads it: heights from the
  * generator's base columns (no features, as a structure's own siting reads
  * them), biomes from the level's biome resolver. Every answer is computed from
- * noise, so it is the same before and after the chunk generates. Under a roof
- * (a column solid within {@value #ROOF} blocks of the top) the height is the
- * floor: the first air over solid ground from sea level up with
- * {@value #HEADROOM} blocks of headroom, where a start on that level stands.
+ * noise, so it is the same before and after the chunk generates.
  */
 record GeneratorTerrain(ChunkGenerator generator, LevelHeightAccessor height, RandomState random, BiomeResolver biomes)
         implements SiteFilter.Terrain {
@@ -32,39 +29,14 @@ record GeneratorTerrain(ChunkGenerator generator, LevelHeightAccessor height, Ra
         return new GeneratorTerrain(generator, LevelHeightAccessor.create(generator.getMinY(), generator.getGenDepth()), random, biomes);
     }
 
-    static final int ROOF = 8;
-    static final int HEADROOM = 4;
-
     @Override
     public int height(int x, int z) {
-        int top = generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, height, random);
-        Integer floor = top >= height.getMaxY() - ROOF ? roofedFloor(x, z) : null;
-        return floor != null ? floor : top;
+        return generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, height, random);
     }
 
     @Override
     public int floor(int x, int z) {
-        int top = generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, height, random);
-        Integer floor = top >= height.getMaxY() - ROOF ? roofedFloor(x, z) : null;
-        return floor != null ? floor : generator.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, height, random);
-    }
-
-    /** Whether the column at ({@code x}, {@code z}) is under a roof. */
-    boolean roofed(int x, int z) {
-        return generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, height, random) >= height.getMaxY() - ROOF;
-    }
-
-    /** The floor under a roof: the first air over solid ground from sea level up with headroom, or null. */
-    Integer roofedFloor(int x, int z) {
-        NoiseColumn column = generator.getBaseColumn(x, z, height, random);
-        for (int y = Math.max(height.getMinY() + 1, generator.getSeaLevel()); y <= height.getMaxY() - ROOF - HEADROOM; y++) {
-            var below = column.getBlock(y - 1);
-            if (below.isAir() || !below.getFluidState().isEmpty()) continue;
-            boolean open = true;
-            for (int k = 0; k < HEADROOM && open; k++) open = column.getBlock(y + k).isAir();
-            if (open) return y;
-        }
-        return null;
+        return generator.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, height, random);
     }
 
     @Override

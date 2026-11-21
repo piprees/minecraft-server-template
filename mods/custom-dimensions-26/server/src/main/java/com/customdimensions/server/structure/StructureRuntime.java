@@ -84,10 +84,6 @@ public final class StructureRuntime {
     private static final Map<String, List<int[]>> TARGETS = new ConcurrentHashMap<>();
     private static final Map<String, int[]> SPAWNS = new ConcurrentHashMap<>();
     private static final Map<String, Map<String, Integer>> LIVED = new ConcurrentHashMap<>();
-    /** Starts refused at generation because their box floor fell outside their filter's height window, by level, structure and chunk. */
-    private static final Set<String> BOX_REFUSED = ConcurrentHashMap.newKeySet();
-    /** How far below a filter's minimum height a start's box floor may lie: foundations sit under the surface. */
-    public static final int FLOOR_SLACK = 4;
     /** {@code structures.approaches} per level: structure id or #tag to its approaches. */
     private static volatile Map<String, Map<String, List<com.customdimensions.core.structure.SetPieceSetting.Approach>>> approachRules = Map.of();
     /** {@code structures.sites} per level: structure id or #tag to its filter. */
@@ -134,47 +130,21 @@ public final class StructureRuntime {
         Map<Structure, com.customdimensions.core.structure.SiteFilter> filters = FILTERS.get(id);
         com.customdimensions.core.structure.SiteFilter f = filters == null ? null : filters.get(structure);
         if (f == null) return null;
-        if (BOX_REFUSED.contains(id + " " + System.identityHashCode(structure) + " " + chunk.pack())) {
-            return "its box floor fell outside its height window when it generated";
-        }
         GeneratorTerrain terrain = GeneratorTerrain.of(generator, random, generator.getBiomeSource().createUncachedResolver(random));
         return f.refusal(terrain, chunk.getMiddleBlockX(), chunk.getMiddleBlockZ());
     }
 
     /**
-     * The floor a filtered start stands on under a roof: the height its site
-     * filter measured at the chunk's centre, so a start that seats itself on
-     * the ground or a heightmap stands on the floor rather than the roof. Null
-     * without a filter, or where the column has no roof.
+     * The floor a filtered start stands on under a roof ({@link SetPieceSeats#roofedFloor}
+     * at the chunk's centre), so a start that seats itself on the ground or a
+     * heightmap stands on the floor rather than the roof. Null without a
+     * filter, or where the column has no roof.
      */
     public static Integer roofedGround(ResourceKey<Level> level, Structure structure, ChunkPos chunk, ChunkGenerator generator,
                                        net.minecraft.world.level.levelgen.RandomState random) {
         Map<Structure, com.customdimensions.core.structure.SiteFilter> filters = FILTERS.get(level.identifier().toString());
         if (filters == null || !filters.containsKey(structure)) return null;
-        GeneratorTerrain terrain = GeneratorTerrain.of(generator, random, generator.getBiomeSource().createUncachedResolver(random));
-        int x = chunk.getMiddleBlockX();
-        int z = chunk.getMiddleBlockZ();
-        return terrain.roofed(x, z) ? terrain.roofedFloor(x, z) : null;
-    }
-
-    /**
-     * Why a generated start is refused by its filter's height window: its box
-     * floor lies above the maximum or more than {@value #FLOOR_SLACK} blocks
-     * below the minimum (a forced start pinned to a {@code y} is never
-     * refused here). The refusal is remembered, so the fast check answers
-     * the same for that chunk afterwards.
-     */
-    public static String boxRefusal(ResourceKey<Level> level, Structure structure, ChunkPos chunk,
-                                    net.minecraft.world.level.levelgen.structure.BoundingBox box) {
-        String id = level.identifier().toString();
-        Map<Structure, com.customdimensions.core.structure.SiteFilter> filters = FILTERS.get(id);
-        com.customdimensions.core.structure.SiteFilter f = filters == null ? null : filters.get(structure);
-        if (f == null || f.minHeight() == null && f.maxHeight() == null) return null;
-        String why = null;
-        if (f.maxHeight() != null && box.minY() > f.maxHeight()) why = "its box floor " + box.minY() + " is above " + f.maxHeight();
-        if (f.minHeight() != null && box.minY() < f.minHeight() - FLOOR_SLACK) why = "its box floor " + box.minY() + " is below " + f.minHeight();
-        if (why != null) BOX_REFUSED.add(id + " " + System.identityHashCode(structure) + " " + chunk.pack());
-        return why;
+        return SetPieceSeats.roofedFloor(generator, random, chunk.getMiddleBlockX(), chunk.getMiddleBlockZ());
     }
 
     /** The group sites a set piece's repetition ceiling leaves it in this level, or null when it has none. */
@@ -247,7 +217,6 @@ public final class StructureRuntime {
             TARGETS.clear();
             SPAWNS.clear();
             LIVED.clear();
-            BOX_REFUSED.clear();
         });
     }
 

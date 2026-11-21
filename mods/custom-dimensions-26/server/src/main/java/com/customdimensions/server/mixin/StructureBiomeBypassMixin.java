@@ -49,14 +49,6 @@ abstract class StructureBiomeBypassMixin {
         Integer floor = ground == null ? StructureRuntime.roofedGround(level, structure, chunk, generator, random) : null;
         StructureStart start = original.call(structure, holder, level, registries, StructureRuntime.ground(generator, ground != null ? ground : floor),
                 biomes, sampler, random, templates, seed, chunk, references, height, test);
-        String box = start.isValid() && ground == null ? StructureRuntime.boxRefusal(level, structure, chunk, start.getBoundingBox()) : null;
-        if (box != null) {
-            if (StructureRuntime.firstSiteRefusal(level.identifier().toString(), holder.getRegisteredName() + " box")) {
-                com.customdimensions.server.CustomDimensions.LOG.info("{}: {} at chunk {} did not start: {} (logged once per structure)",
-                        level.identifier(), holder.getRegisteredName(), chunk, box);
-            }
-            return StructureStart.INVALID_START;
-        }
         if (ground != null && !start.isValid()) {
             com.customdimensions.server.CustomDimensions.LOG.warn("{}: forced {} at chunk {} did not start on ground at y {}: "
                     + "its own rules refuse that height", level.identifier(), holder.getRegisteredName(), chunk, ground);

@@ -96,21 +96,21 @@ class SetPieceRoofSeatTest {
     }
 
     @Test
-    void aSiteFilterReadsTheFloorUnderARoof() {
-        GeneratorTerrain t = GeneratorTerrain.of(nether, netherRandom, nether.getBiomeSource().createUncachedResolver(netherRandom));
+    void aFilteredStartUnderARoofSeatsOnTheFloor() {
         int roofed = 0;
         for (int i = 0; i < 12; i++) {
             int x = i * 64;
             int top = nether.getBaseHeight(x, 32, Heightmap.Types.WORLD_SURFACE_WG, NETHER_HEIGHT, netherRandom);
-            if (!t.roofed(x, 32)) continue;
+            Integer floor = SetPieceSeats.roofedFloor(nether, netherRandom, x, 32);
+            if (floor == null) continue;
             roofed++;
-            assertTrue(top >= 120, "the roof's heightmap " + top);
-            Integer floor = t.roofedFloor(x, 32);
-            if (floor != null) assertEquals(floor, Integer.valueOf(t.height(x, 32)));
-            assertTrue(t.height(x, 32) < 120 || floor == null, "the filter reads the floor " + t.height(x, 32));
+            assertTrue(top >= 120 && floor < 120, "the roof's heightmap " + top + ", the floor " + floor);
+            var column = nether.getBaseColumn(x, 32, NETHER_HEIGHT, netherRandom);
+            assertTrue(column.getBlock(floor).isAir() && !column.getBlock(floor - 1).isAir());
+            assertEquals(floor, Integer.valueOf(new PinnedGround(nether, floor).getBaseHeight(x, 32, Heightmap.Types.WORLD_SURFACE_WG, NETHER_HEIGHT,
+                    netherRandom)), "a start seating on the heightmap sees the floor");
         }
         assertTrue(roofed > 0);
-        GeneratorTerrain e = GeneratorTerrain.of(end, endRandom, end.getBiomeSource().createUncachedResolver(endRandom));
-        assertEquals(end.getBaseHeight(24, 24, Heightmap.Types.WORLD_SURFACE_WG, END_HEIGHT, endRandom), e.height(24, 24), "no roof: the surface");
+        assertNull(SetPieceSeats.roofedFloor(end, endRandom, 24, 24), "no roof in the End");
     }
 }
