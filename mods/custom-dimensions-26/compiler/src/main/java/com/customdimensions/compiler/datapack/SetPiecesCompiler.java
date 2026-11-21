@@ -61,6 +61,18 @@ public final class SetPiecesCompiler {
         return out;
     }
 
+    /** Copies {@code from}'s set-piece library into {@code to}, for a compile of a copied definitions folder. */
+    public static void copyLibrary(Path from, Path to) throws IOException {
+        Path dir = from.resolve(LIBRARY);
+        if (!Files.isDirectory(dir)) return;
+        Files.createDirectories(to.resolve(LIBRARY));
+        try (Stream<Path> files = Files.list(dir)) {
+            for (Path f : files.filter(p -> p.getFileName().toString().endsWith(".json")).toList()) {
+                Files.copy(f, to.resolve(LIBRARY).resolve(f.getFileName()));
+            }
+        }
+    }
+
     /** The structure id of set piece {@code name} of {@code slug}. */
     public static String structureId(String namespace, String slug, String name) {
         return namespace + ":" + FOLDER + "/" + slug + "/" + name;

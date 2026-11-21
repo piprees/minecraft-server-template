@@ -99,7 +99,7 @@ class ShippedDefinitionsSchemaTest {
     void theSelfTestFixturesValidateAndLoad() throws IOException {
         List<String> failures = new ArrayList<>();
         try (Stream<Path> files = Files.list(Path.of("../server/src/selftest/definitions"))) {
-            for (Path file : files.sorted().toList()) {
+            for (Path file : files.filter(Files::isRegularFile).sorted().toList()) {
                 String text = Files.readString(file);
                 schema.validate(text, InputFormat.JSON).forEach(e -> failures.add(file.getFileName() + ": " + e));
                 DefinitionReader.read(text, file.toString());

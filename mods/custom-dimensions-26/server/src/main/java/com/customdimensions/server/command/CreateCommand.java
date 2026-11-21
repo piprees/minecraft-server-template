@@ -113,6 +113,7 @@ final class CreateCommand {
         Path copy = Files.createTempDirectory("customdim-create");
         try {
             for (Path file : definitionFiles(dir)) Files.copy(file, copy.resolve(file.getFileName()));
+            com.customdimensions.compiler.datapack.SetPiecesCompiler.copyLibrary(dir, copy);
             Path settings = dir.resolve("settings.json");
             if (Files.isRegularFile(settings)) Files.copy(settings, copy.resolve("settings.json"));
             else Files.writeString(copy.resolve("settings.json"), "{\"schemaVersion\": 2}");

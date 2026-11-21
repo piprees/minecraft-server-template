@@ -949,9 +949,10 @@
       }
     },
     "setPieceElement": {
+      "description": "One element; kind may be left out for a block.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind"],
+      "anyOf": [{ "required": ["kind"] }, { "required": ["block"] }],
       "properties": {
         "kind": { "enum": ["template", "scatter", "block", "chest", "spawner"] },
         "offset": { "description": "Blocks from the origin in the piece's rotation; y above the seat found there.", "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "integer" } },
