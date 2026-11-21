@@ -10,33 +10,37 @@
     "fabric-loader": "0.20.1"
   },
   "_comment": "This manifest is the source for build-modpack.sh when the selected version is 26.3 (mc_manifest in scripts/lib.sh). The 'files' array is populated at build time from the client mod list below. The in-house companion (mods/client-mods-26.3.manifest) rides in overrides/mods/.",
-  "_holds": {},
+  "_holds": {
+    "otterlib": "pre-release; release when a release build for 26.3 ships",
+    "trek": "pre-release accepted by the owner (RB-50); release when a release build for 26.3 ships"
+  },
   "_clientMods": {
     "_comment": "Modrinth slugs of the optional 26.3 client pack: the register's kept client and optional rows (docs/design/rebuild-26/mod-register.csv) and the libraries they need. An unmodded client joins without any of them (decisions.md RB-02); each is presentation only (RB-03, RB-25). build-modpack.sh resolves these to download URLs and populates 'files'.",
     "required": [
-      "fabric-api:EQKgpeKu",
+      "fabric-api:Zns5SSRA",
       "fabric-language-kotlin:SKW1BTL3",
       "resourceful-lib:P6Jq77km",
-      "architectury-api:1pMaB6So",
+      "architectury-api:Njpa4lhR",
       "forge-config-api-port:JpKvrr9J",
       "cloth-config:fg2uyxOW",
       "distanthorizons:TGgEbP9A",
-      "simple-voice-chat:cZm965sW",
+      "simple-voice-chat:x9jLR94Q",
       "appleskin:PHjDtQay",
-      "carry-on:6kJQXHUF",
+      "carry-on:9UKSKr1K",
       "sound-physics-remastered:gA7nKz5g",
       "stack-refill:2ApxamAM",
       "configured-defaults:frAVVzBj",
-      "collective:SLDUG1Rg",
+      "collective:27TLnjkk",
       "open-parties-and-claims:KBCCg0os",
       "enchantment-descriptions:uZf2qbql",
       "prickle:aPdekuq6",
-      "puzzles-lib:vbwu116x",
-      "attributefix:zJLURVLx"
+      "puzzles-lib:TZ0hp2h3",
+      "attributefix:zJLURVLx",
+      "no-chat-reports:e3GIS0Ep"
     ],
     "optional": [
       "sodium:g6ju16VJ",
-      "lithium:xS0Q8LSi",
+      "lithium:Lal8mJGR",
       "ferrite-core:d5ddUdiB",
       "entityculling:X1g3VhTx",
       "iris:vTN4NRGW",
@@ -74,7 +78,6 @@
   },
   "_waitingComment": "_waiting: register rows (decision waiting) that join the pack when their author ships a 26.3 build (decisions.md RB-09), keyed by slug with the list they join.",
   "_waiting": {
-    "no-chat-reports": "_clientMods.required",
     "betterf3": "_clientMods.optional",
     "particle-rain": "_clientMods.optional",
     "consumableoptimizer": "_clientMods.optional",

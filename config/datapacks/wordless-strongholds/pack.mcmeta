@@ -1,0 +1,10 @@
+{
+ "pack": {
+  "pack_format": 48,
+  "supported_formats": [
+   48,
+   999
+  ],
+  "description": "Biome Strongholds own the strongholds (their set over any other mod's), and the frozen portal frame answers a missing key with a sound, without words"
+ }
+}

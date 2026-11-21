@@ -27,6 +27,7 @@ import partition  # noqa: E402
 REPO = Path(__file__).resolve().parents[2]
 REAL_TXT = (REPO / collect.MODS_TXT).read_text(encoding="utf-8")
 REAL_MANIFEST = (REPO / collect.MANIFEST).read_text(encoding="utf-8")
+REAL_TXT_26 = (REPO / "config/modrinth-mods-26.3.txt").read_text(encoding="utf-8")
 POLICY = common.load_policy()
 
 
@@ -217,8 +218,8 @@ def rows(report):
 class RealFilesTest(unittest.TestCase):
     OLD = (REAL_TXT, REAL_MANIFEST)
 
-    def test_policy_sections_exist_in_the_real_server_list(self):
-        sections = {e["section"] for e in collect.parse_server_list(REAL_TXT).values()}
+    def test_policy_sections_exist_in_the_real_server_lists(self):
+        sections = {e["section"] for text in (REAL_TXT, REAL_TXT_26) for e in collect.parse_server_list(text).values()}
         for name in POLICY["never_automerge_sections"]:
             self.assertIn(name, sections)
 

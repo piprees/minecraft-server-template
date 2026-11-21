@@ -30,6 +30,8 @@ Every dimension's places and the source of each: [dimensions.md](dimensions.md).
 
 PL0 and SP1 run in parallel and need no new kit: the pack's own structures become places the reviews can see. EX can run beside them. SP2–SP4 are one kit build; SP5–SP7 author with it.
 
+SP5 closes one named gap: adventure:* biomes lose monster rooms under DeCubed until each dimension includes decubed sets or the tags gain our biomes.
+
 ## What the owner decides
 
 1. **explorify:** add it in the `v6.0.0` major, and for each of its 13 stand-ins keep the 26.3 stand-in or restore the explorify id. Proposed: restore the three weak ones (`farmstead`, `guide_post_warm`, `guide_post_cold`) and `campsite`, keep the rest.
