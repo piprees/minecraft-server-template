@@ -48,7 +48,6 @@ import net.minecraft.world.item.component.WrittenBookContent;
 import net.minecraft.world.item.equipment.trim.ArmorTrim;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.LecternBlock;
 import net.minecraft.world.level.block.entity.BannerBlockEntity;
 import net.minecraft.world.level.block.entity.BannerPatternLayers;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -271,7 +270,9 @@ public final class SetPieceThings {
         }
         boolean glow = t.has("glow") && t.get("glow").getAsBoolean();
         ItemFrame frame = glow ? new GlowItemFrame(level.getLevel(), pos, facing) : new ItemFrame(level.getLevel(), pos, facing);
+        frame.setSilent(true);
         frame.setItem(stack(level.registryAccess(), t.get("item")), false);
+        frame.setSilent(false);
         level.addFreshEntityWithPassengers(frame);
     }
 
@@ -301,8 +302,6 @@ public final class SetPieceThings {
         String title = t.has("title") ? t.get("title").getAsString() : "Notes";
         book.set(DataComponents.WRITTEN_BOOK_CONTENT, new WrittenBookContent(Filterable.passThrough(title), "", 0, pages, true));
         lectern.setBook(book);
-        BlockState s = level.getBlockState(pos);
-        if (s.hasProperty(LecternBlock.HAS_BOOK)) level.setBlock(pos, s.setValue(LecternBlock.HAS_BOOK, true), 2);
     }
 
     /** A book's lines: fixed, or {@code pick} drawn from a pool by the thing's seed, in pool order. */
