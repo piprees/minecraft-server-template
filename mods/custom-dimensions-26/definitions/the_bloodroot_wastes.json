@@ -91,6 +91,48 @@
   "liquids": {
     "seaLevel": 24
   },
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [120, 90],
+      "radius": 56,
+      "blend": 16,
+      "edgeJitter": 24,
+      "biomes": [
+        "minecraft:nether_wastes"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [-330, -210],
+      "radius": 64,
+      "blend": 16,
+      "edgeJitter": 24,
+      "biomes": [
+        "minecraft:nether_wastes"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [260, -360],
+      "radius": 56,
+      "blend": 16,
+      "edgeJitter": 24,
+      "biomes": [
+        "minecraft:nether_wastes"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [-420, 330],
+      "radius": 60,
+      "blend": 16,
+      "edgeJitter": 24,
+      "biomes": [
+        "minecraft:nether_wastes"
+      ]
+    }
+  ],
   "structures": {
     "mode": "allow",
     "list": [

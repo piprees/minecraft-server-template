@@ -75,6 +75,8 @@
   "materials": {
     "biomes": {
       "adventure:chorus_forest": {
+        "top": "minecraft:end_stone",
+        "filler": "minecraft:end_stone",
         "cliffs": "minecraft:purpur_block"
       },
       "adventure:sky_highlands": {
@@ -90,6 +92,11 @@
         "top": "minecraft:amethyst_block",
         "filler": "minecraft:calcite",
         "cliffs": "minecraft:amethyst_block"
+      },
+      "adventure:umbrella_jungle": {
+        "top": "minecraft:end_stone",
+        "filler": "minecraft:end_stone",
+        "cliffs": "minecraft:end_stone_bricks"
       }
     }
   },
@@ -249,7 +256,19 @@
         "count": 6,
         "minY": 140,
         "maxY": 250
+      },
+      {
+        "id": "spire_clusters",
+        "block": "minecraft:amethyst_cluster",
+        "size": 4,
+        "count": 40,
+        "minY": 140,
+        "maxY": 250
       }
+    ],
+    "remove": [
+      "minecraft:monster_room",
+      "minecraft:monster_room_deep"
     ]
   }
 }

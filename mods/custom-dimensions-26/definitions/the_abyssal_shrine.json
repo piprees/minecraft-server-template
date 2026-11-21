@@ -133,5 +133,11 @@
       "tavern"
     ],
     "terrain": "islands"
+  },
+  "ores": {
+    "remove": [
+      "adventure:biome/umbral_wastes/obsidian_spikes",
+      "minecraft:end_gateway_return"
+    ]
   }
 }
