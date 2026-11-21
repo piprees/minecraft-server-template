@@ -43,13 +43,9 @@
     "mes:phantom_citadel",
     "mes:enderkeep_courtyard",
     "mes:monolith",
-    "mes:enderskog",
-    "mes:enderbloom_grove",
-    "mes:placid_prairie",
     "mes:ender_spire",
     "mes:mystical_archway",
     "nova_structures:end_lighthouses",
-    "nova_structures:end_castle",
     "mes:astral_meteorite",
     "mes:mega_ship"
   ],
@@ -72,7 +68,12 @@
       "max": 1500
     }
   ],
-  "shuns": [],
+  "shuns": [
+    "nova_structures:end_castle",
+    "mes:enderskog",
+    "mes:enderbloom_grove",
+    "mes:placid_prairie"
+  ],
   "replace": {},
   "terrainAdaptation": {},
   "loot": [
