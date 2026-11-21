@@ -450,3 +450,4 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 14:38 — DR2 plan: 13 runs + 2 builds (~3 h lane). From code: FAIL1 real bug (firewall switchOff replaces set, re-enables 47 unbridged); FAIL7 Clumps orb merge; FAIL8 YIAS grave chest; FAIL5 warm vs cold timing. Accepted with conditions (no check weakening; FAIL1 production impact).
 14:40 — DR2 met conditions in code: FAIL8 DeathOutcome both sides with unit test; FAIL7 exact 70/0; FAIL1 switchOff caller is self-test only (no live impact); FAIL5 both timed warm. Waiting for lane after K14.
 14:55 — K14 done on lane: build 1667/0; bastions 3/5 kept (min 33), 2 lava-sea refused; slope dropped. Wreck-frame FAIL open: 15-min lane granted, then DR2.
+15:00 — K14 wreck FAIL deterministic, not set-piece trial; 3 suspects (refusal on included-everywhere sets, igloo trial, floorRefusal/terrain); bisect granted 20 min; DR2 told ~30 min
