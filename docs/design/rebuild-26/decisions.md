@@ -186,3 +186,7 @@ Why: the owner wants the pack full of fitting places and is happy to delegate th
 **RB-48 — Progression stays simple, conventional and speedrunnable.**
 A progression gate (strongholds and their End portal, a dimension's portal, a key structure) may move or change as long as it still makes sense and is reached by simple rules a player can work out from Minecraft's own conventions. No progression by time invested or grind: no brewing chains, farming quotas or crafting puzzles standing between a player and a gate. Someone who knows the rules could still speedrun it with little gear; finishing is not the point of the pack. Portal recipes (RB-40, RB-41) stay this simple: a frame of one block and a familiar igniter, found through exploring.
 Why: the pack is about exploring and telling one's own stories; a gate that demands a grind turns it into a different game.
+
+**RB-49 — No natural waystones, and no player teleporting.**
+Server-Side Waystones is in the pack, but none generate naturally and players cannot craft them; only admins place them, or a dimension's definition places one as a set piece (a storytelling piece, a server meeting place). Teleport commands stay off for players, as they are today.
+Why: travel is where encounters happen; a network of waystones lets players skip the walking and flying the world is built for.
