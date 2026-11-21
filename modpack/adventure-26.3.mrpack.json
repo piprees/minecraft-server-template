@@ -73,7 +73,11 @@
     "_stableOnlyComment": "stableOnly: resolver picks the newest RELEASE for these slugs instead of the newest build of any channel. Use for mods whose pre-release channels have burned us. Everything else gets the newest build - mod authors keep their own latest sets coherent (e.g. supplementaries release requires sodium beta).",
     "stableOnly": [],
     "_parityExemptComment": "_parityExempt: slugs check-client-parity.py must not fail on, keyed by slug with the reason. A server mod declaring client_side=required that genuinely ships no client registry entries belongs here. Remove an entry only when its stated reason stops being true.",
-    "_parityExempt": {},
+    "_parityExempt": {
+      "farmers-delight-refabricated": "server-side through farmers-delight-polymer: vanilla clients see vanilla blocks and items, and the 26.3 vanilla join gate passes with it",
+      "friends-and-foes": "server-side through friends-and-foes-polymer: vanilla clients see vanilla blocks, items and mobs, and the 26.3 vanilla join gate passes with it",
+      "otterlib": "a library for sit with no synced registry entries; the 26.3 vanilla join gate passes with it"
+    },
     "_holdsComment": "holds: slugs pin-mod-versions.sh must NOT re-pin, keyed by slug with the reason. Remove an entry only when its blocker clears."
   },
   "_waitingComment": "_waiting: register rows (decision waiting) that join the pack when their author ships a 26.3 build (decisions.md RB-09), keyed by slug with the list they join.",
