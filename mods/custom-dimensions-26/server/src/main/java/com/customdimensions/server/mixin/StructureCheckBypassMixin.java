@@ -18,8 +18,9 @@ import java.util.Optional;
 
 /**
  * The structure search's fast check predicts a start as generation makes it:
- * a forced start or a want ignores its biomes in its own chunk, and a forced
- * start with a {@code y} finds its ground at that height
+ * a forced start or a want ignores its biomes in its own chunk; a forced
+ * start with a {@code y} finds its ground at that height; and a start its
+ * site filter or repetition ceiling refuses is predicted absent
  * ({@link StructureBiomeBypassMixin}).
  */
 @Mixin(StructureCheck.class)
@@ -33,6 +34,9 @@ abstract class StructureCheckBypassMixin {
         boolean bypass = StructureRuntime.bypassesBiome(dimension, structure, pos)
                 || structure instanceof com.customdimensions.server.structure.SetPieceStructure piece && piece.anyBiome();
         Integer ground = StructureRuntime.forcedGround(dimension, structure, pos);
+        if (StructureRuntime.refusal(dimension, structure, pos, context.chunkGenerator(), context.randomState()) != null) {
+            return Optional.empty();
+        }
         if (!bypass && ground == null) {
             return original.call(structure, context);
         }

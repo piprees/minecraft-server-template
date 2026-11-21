@@ -94,6 +94,7 @@ public final class SetPieceSelfTest {
                 }
                 lines(this, "setpieces places.named " + slug, () -> named(level, applied));
                 if (slug.equals(FLOOR)) lines(this, "setpieces group " + slug, () -> group(level, applied));
+                lines(this, "setpieces mixin StructureCheckBypassMixin site refusal " + slug, () -> predicted(level, slug.equals(FLOOR)));
                 chunks.forEach(c -> level.setChunkForced(c.x(), c.z(), false));
             });
         });
@@ -254,6 +255,49 @@ public final class SetPieceSelfTest {
         return (ok ? "PASS " : "FAIL ") + piece.name() + " in group " + piece.group() + ": " + sites + " group site(s), " + census
                 + " in the census, " + named + " in places.named, repetition " + piece.repetition() + " leaves it " + (cap == null ? "no" : cap.size())
                 + " site(s)";
+    }
+
+    /**
+     * The structure search's fast check predicts each group set piece absent
+     * at every group site its site filter or repetition ceiling refuses, as
+     * generation refuses it there; and, with {@code present}, present at one or
+     * more of the sites left to it.
+     */
+    private String predicted(ServerLevel level, boolean present) {
+        String id = level.dimension().identifier().toString();
+        List<String> parts = new ArrayList<>();
+        List<String> wrong = new ArrayList<>();
+        int refused = 0;
+        int predicted = 0;
+        for (StructureRuntime.SetPieceEntry piece : StructureRuntime.setPieces(id)) {
+            if (piece.set() == null) continue;
+            Structure structure = level.registryAccess().lookupOrThrow(Registries.STRUCTURE)
+                    .getValue(ResourceKey.create(Registries.STRUCTURE, Identifier.parse(piece.structure())));
+            StructurePlacements.Noise noise = level.getChunkSource().getGeneratorState().possibleStructureSets().stream()
+                    .map(h -> h.value().placement()).filter(p -> p instanceof StructurePlacements.Noise n && n.group().equals(piece.group()))
+                    .map(p -> (StructurePlacements.Noise) p).findFirst().orElse(null);
+            if (noise == null) return "FAIL no " + piece.group() + " placement for " + piece.name();
+            int r = 0;
+            int a = 0;
+            for (com.customdimensions.core.ChunkPos c : noise.sites()) {
+                ChunkPos chunk = new ChunkPos(c.x(), c.z());
+                String why = StructureRuntime.refusal(level.dimension(), structure, chunk, level.getChunkSource().getGenerator(),
+                        level.getChunkSource().randomState());
+                var result = level.structureManager().checkStructurePresence(chunk, structure, noise, false);
+                boolean absent = result == net.minecraft.world.level.levelgen.structure.StructureCheckResult.START_NOT_PRESENT;
+                if (why != null) {
+                    r++;
+                    if (!absent) wrong.add(piece.name() + " at " + c.x() + "," + c.z() + " " + result + " (" + why + ")");
+                } else if (!absent) {
+                    a++;
+                }
+            }
+            refused += r;
+            predicted += a;
+            parts.add(piece.name() + ": " + r + " of " + noise.sites().size() + " site(s) refused, " + a + " predicted present");
+        }
+        boolean ok = refused > 0 && wrong.isEmpty() && (!present || predicted > 0);
+        return (ok ? "PASS " : "FAIL ") + String.join("; ", parts) + (wrong.isEmpty() ? "" : "; predicted present though refused: " + wrong);
     }
 
     private CompletableFuture<Void> load(ServerLevel level, List<ChunkPos> chunks) {

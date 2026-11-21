@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "description": "Self-test fixture: set pieces over the End's islands and void. A ground piece forced on the central island (a fossil skull template, a scatter of bone, a chest, a spawner), a ground piece forced over the void ring that declines, a pinned overlook forced over the void at y 90, and a wanted old house whose site filter (surface at 40 or more) keeps it off the void.",
+  "description": "Self-test fixture: set pieces over the End's islands and void. A ground piece forced on the central island (a fossil skull template, a scatter of bone, a chest, a spawner), a ground piece forced over the void ring that declines, a pinned overlook forced over the void at y 90, a wanted old house whose site filter (surface at 40 or more) keeps it off the void, and a pinned cairn in the landmarks group with the same filter, which never starts over the void and is never predicted there.",
   "seed": 20261031,
   "spawn": [0, 64, 0],
   "generator": {
@@ -37,6 +37,17 @@
       "site": {"height": {"min": 40}},
       "elements": [
         {"kind": "template", "id": "minecraft:village/plains/houses/plains_armorer_house_1", "integrity": 1.0, "embed": 0}
+      ]
+    },
+    "island_cairn": {
+      "name": "The Island Cairn",
+      "seat": "pinned",
+      "size": 6,
+      "group": "landmarks",
+      "rarity": "common",
+      "site": {"height": {"min": 40}},
+      "elements": [
+        {"kind": "scatter", "count": 4, "radius": 3, "items": [{"block": "minecraft:end_stone_bricks"}]}
       ]
     },
     "overlook": {
