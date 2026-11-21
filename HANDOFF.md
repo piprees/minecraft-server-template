@@ -448,3 +448,4 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 14:23 — DR1 merged (b9c35eac, quick gate 0, Gradle build pending lane); 22 added, 23 updated; End 55 is W10u's 2761cb31 End change, not mods; elytra 4/100 needs ≥300 rolls (BL1); freed disk to 6.0 GB (3 merged worktrees, dr1 world); K14 booting
 14:24 — DR2 spawned (brief handoff/scratchpad/dr2-brief.md); lane order K14 → DR2 → BL1; BL1 told to merge DR1 and add elytra ≥300 rolls and the starts-total check
 14:38 — DR2 plan: 13 runs + 2 builds (~3 h lane). From code: FAIL1 real bug (firewall switchOff replaces set, re-enables 47 unbridged); FAIL7 Clumps orb merge; FAIL8 YIAS grave chest; FAIL5 warm vs cold timing. Accepted with conditions (no check weakening; FAIL1 production impact).
+14:40 — DR2 met conditions in code: FAIL8 DeathOutcome both sides with unit test; FAIL7 exact 70/0; FAIL1 switchOff caller is self-test only (no live impact); FAIL5 both timed warm. Waiting for lane after K14.
