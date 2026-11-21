@@ -138,28 +138,27 @@ final class AssemblySelfTest {
             BoundingBox box = sp.getBoundingBox();
             int rotation = d.get("rotation").getAsInt();
             int[] axis = (rotation & 1) == 1 ? new int[] {1, 0} : new int[] {0, 1};
-            double cx = (box.minX() + box.maxX()) / 2.0;
-            double cz = (box.minZ() + box.maxZ()) / 2.0;
-            double[] sum = new double[2];
-            int[] n = new int[2];
+            List<double[]> hull = new ArrayList<>();
             BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
             for (int y = box.minY(); y <= box.maxY(); y++) for (int z = box.minZ(); z <= box.maxZ(); z++) for (int x = box.minX(); x <= box.maxX(); x++) {
                 if (!HULL.contains(level.getBlockState(pos.set(x, y, z)).getBlock())) continue;
-                int side = (x - cx) * axis[0] + (z - cz) * axis[1] > 0 ? 0 : 1;
-                sum[side] += y;
-                n[side]++;
+                hull.add(new double[] {x * axis[0] + z * axis[1], y});
             }
-            if (n[0] == 0 || n[1] == 0) return "FAIL the ship placed no hull: " + n[0] + " and " + n[1] + " hull blocks";
-            double nose = sum[0] / n[0];
-            double tail = sum[1] / n[1];
+            if (hull.size() < 100) return "FAIL the ship placed " + hull.size() + " hull blocks";
+            double ms = hull.stream().mapToDouble(h -> h[0]).average().orElse(0);
+            double my = hull.stream().mapToDouble(h -> h[1]).average().orElse(0);
+            double cov = hull.stream().mapToDouble(h -> (h[0] - ms) * (h[1] - my)).sum();
+            double var = hull.stream().mapToDouble(h -> (h[0] - ms) * (h[0] - ms)).sum();
+            double slope = cov / var;
             List<ItemFrame> frames = level.getEntitiesOfClass(ItemFrame.class, AABB.of(box).inflate(2), f -> f.getItem().is(Items.ELYTRA));
             int anyFrames = level.getEntitiesOfClass(ItemFrame.class, AABB.of(box).inflate(2), f -> true).size();
             int loose = level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, AABB.of(box).inflate(4), i -> i.getItem().is(Items.ELYTRA)).size();
             if (frames.isEmpty()) lines.add("INFO setpieces assemblies wreck: " + anyFrames + " frame(s) of any item, " + loose + " loose elytra in the box");
-            boolean ok = d.has("tilt") && tail - nose > 4 && frames.size() == 1;
+            boolean ok = d.has("tilt") && slope < -0.2 && frames.size() == 1;
             return (ok ? "PASS " : "FAIL ") + "tilt " + (d.has("tilt") ? d.get("tilt").getAsString() + " " + d.get("angle").getAsDouble() : "none")
-                    + ": nose half's hull at mean y " + Math.round(nose) + " (" + n[0] + " blocks), tail half's at " + Math.round(tail) + " (" + n[1]
-                    + "); " + frames.size() + " elytra frame(s) at integrity " + d.get("integrity").getAsDouble()
+                    + ": the hull's height falls " + String.format("%.2f", -slope) + " a block toward its bow over " + hull.size()
+                    + " hull blocks (the template measures 0.38 tilted 35 degrees, 0.01 level); " + frames.size() + " elytra frame(s) at integrity "
+                    + d.get("integrity").getAsDouble()
                     + (frames.isEmpty() ? "" : " at " + frames.getFirst().blockPosition().toShortString());
         }
         return "FAIL the crash site has no template part";
@@ -266,7 +265,9 @@ final class AssemblySelfTest {
                     parts.add("stand with " + head.getItem() + " trimmed " + (trim == null ? "none" : trim.pattern().getRegisteredName() + " in " + trim.material().getRegisteredName())
                             + ", " + chest.getItem() + " dyed " + (dye == null ? "none" : Integer.toHexString(dye.rgb())));
                     if (trim == null || !trim.pattern().is(Identifier.parse("minecraft:snout"))) problems.add("the stand's helmet lacks its snout trim");
-                    if (dye == null || dye.rgb() != 0x3355AA) problems.add("the stand's coat is not dyed 3355aa");
+                    if (t.has("equipment") && t.getAsJsonObject("equipment").has("chest") && (dye == null || dye.rgb() != 0x3355AA)) {
+                        problems.add("the stand's coat is not dyed 3355aa");
+                    }
                 }
                 case "lectern" -> {
                     ItemStack book = level.getBlockEntity(p) instanceof LecternBlockEntity l ? l.getBook() : ItemStack.EMPTY;

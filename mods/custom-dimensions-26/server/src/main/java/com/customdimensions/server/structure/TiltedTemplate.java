@@ -114,6 +114,15 @@ final class TiltedTemplate {
                     int k = t.index(src[0], src[1], src[2]);
                     BlockState state = t.states()[k];
                     if (state == null || state.is(Blocks.STRUCTURE_VOID) || state.is(Blocks.JIGSAW)) continue;
+                    if (state.is(Blocks.STRUCTURE_BLOCK)) {
+                        CompoundTag nbt = t.nbt()[k];
+                        if (nbt != null && "DATA".equals(nbt.getStringOr("mode", ""))) {
+                            int[] below = tilt.target(src[0], src[1] - 1, src[2]);
+                            marker(level, chunkBox, nbt.getStringOr("metadata", ""), new BlockPos(x, y, z),
+                                    corner.offset(below[0], below[1], below[2]), facing(tilt, rotation.rotate(Direction.SOUTH)), seed);
+                        }
+                        continue;
+                    }
                     if (integrity < 1 && SetPiecePlan.roll(seed, src[0], src[1], src[2], 3) >= integrity) continue;
                     state = weather(state, age, burned, seed, x, y, z);
                     if (state == null) continue;
@@ -127,6 +136,45 @@ final class TiltedTemplate {
             }
         }
         for (int i = 0; i < t.entities().size(); i++) entity(level, chunkBox, t.entities().get(i), t.entityPos().get(i), tilt, corner);
+    }
+
+    /** {@code d} turned by the tilt, to the nearest face. */
+    static Direction facing(Tilt tilt, Direction d) {
+        double[] o = tilt.turn(0, 0, 0, false);
+        double[] f = tilt.turn(d.getStepX(), d.getStepY(), d.getStepZ(), false);
+        return Direction.getApproximateNearest(f[0] - o[0], f[1] - o[1], f[2] - o[2]);
+    }
+
+    /**
+     * Vanilla's data markers in the templates we reuse, as the End city's own
+     * pieces read them: {@code Elytra} an item frame holding an elytra facing
+     * {@code facing} with a solid block behind it, {@code Chest} the chest
+     * below it given the End city's treasure, {@code Sentry} a shulker. The
+     * marker itself is air; others are left as air.
+     */
+    static void marker(WorldGenLevel level, BoundingBox chunkBox, String metadata, BlockPos pos, BlockPos below, Direction facing, long seed) {
+        if (!chunkBox.isInside(pos)) return;
+        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+        if (metadata.startsWith("Elytra")) {
+            BlockPos behind = pos.relative(facing.getOpposite());
+            if (chunkBox.isInside(behind) && !level.getBlockState(behind).isSolid()) level.setBlock(behind, Blocks.PURPUR_BLOCK.defaultBlockState(), 2);
+            var frame = new net.minecraft.world.entity.decoration.ItemFrame(level.getLevel(), pos, facing);
+            frame.setSilent(true);
+            frame.setItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ELYTRA), false);
+            frame.setSilent(false);
+            level.addFreshEntityWithPassengers(frame);
+        } else if (metadata.startsWith("Chest")) {
+            if (chunkBox.isInside(below) && level.getBlockEntity(below) instanceof net.minecraft.world.RandomizableContainer chest) {
+                chest.setLootTable(net.minecraft.resources.ResourceKey.create(Registries.LOOT_TABLE,
+                        Identifier.withDefaultNamespace("chests/end_city_treasure")), seed ^ below.asLong());
+            }
+        } else if (metadata.startsWith("Sentry")) {
+            Entity shulker = net.minecraft.world.entity.EntityTypes.SHULKER.create(level.getLevel(), EntitySpawnReason.STRUCTURE);
+            if (shulker != null) {
+                shulker.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0, 0);
+                level.addFreshEntityWithPassengers(shulker);
+            }
+        }
     }
 
     /** A block weathered to its age and burned when the piece is: null when it is gone. */

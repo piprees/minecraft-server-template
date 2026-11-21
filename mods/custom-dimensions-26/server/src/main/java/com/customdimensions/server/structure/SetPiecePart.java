@@ -254,7 +254,8 @@ public final class SetPiecePart extends StructurePiece {
                     data.get("integrity").getAsDouble(), age, data.has("burned"), seed);
             return;
         }
-        StructurePlaceSettings settings = settings(data.get("rotation").getAsInt(), data.get("mirror").getAsInt()).setBoundingBox(chunkBox);
+        StructurePlaceSettings settings = settings(data.get("rotation").getAsInt(), data.get("mirror").getAsInt()).setBoundingBox(chunkBox)
+                .addProcessor(net.minecraft.world.level.levelgen.structure.templatesystem.BlockIgnoreProcessor.STRUCTURE_BLOCK);
         double integrity = data.get("integrity").getAsDouble();
         if (integrity < 1) settings.addProcessor(new BlockRotProcessor((float) integrity));
         if (data.has("processors")) {
@@ -265,6 +266,11 @@ public final class SetPiecePart extends StructurePiece {
         if (data.has("burned")) settings.addProcessor(new BurnProcessor(seed));
         if (age != null) settings.addProcessor(new AgeProcessor(age, seed, data.get("origin").getAsInt()));
         found.get().placeInWorld(level, corner, corner, settings, RandomSource.create(seed), 2);
+        for (StructureTemplate.StructureBlockInfo marker : found.get().filterBlocks(corner, settings, Blocks.STRUCTURE_BLOCK)) {
+            if (marker.nbt() == null || !"DATA".equals(marker.nbt().getStringOr("mode", ""))) continue;
+            TiltedTemplate.marker(level, chunkBox, marker.nbt().getStringOr("metadata", ""), marker.pos(), marker.pos().below(),
+                    settings.getRotation().rotate(Direction.SOUTH), seed);
+        }
         if (age != null && (age.cobweb > 0 || age.vine > 0)) grow(level, chunkBox, age, seed);
     }
 
