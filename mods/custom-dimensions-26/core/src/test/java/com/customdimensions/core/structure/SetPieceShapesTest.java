@@ -192,7 +192,7 @@ class SetPieceShapesTest {
         assertEquals("minecraft:lava", f.writes.get(Fake.key(0, 68, 1)));
         assertEquals("minecraft:lava", f.writes.get(Fake.key(0, 68, -1)));
         assertEquals("minecraft:lava", f.writes.get(Fake.key(3, 57, 0)), "pool at the foot");
-        assertEquals(3 + 13, f.count("minecraft:lava"));
+        assertEquals(3 + 21, f.count("minecraft:lava"), "three sources and a pool of radius 2");
     }
 
     @Test
