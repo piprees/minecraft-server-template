@@ -68,7 +68,7 @@
     "layered_pillar": {
       "name": "The Test Pillar",
       "seat": "ground",
-      "size": 6,
+      "size": 10,
       "support": 0.4,
       "elements": [
         {"kind": "column", "name": "pillar", "height": 6, "radius": 1, "age": "ancient", "palette": "minecraft:stone_bricks"},

@@ -53,7 +53,7 @@ final class ShapeWorld implements SetPieceShapes.World {
     }
 
     private static boolean ground(BlockState s) {
-        return s.blocksMotion() || !s.getFluidState().isEmpty();
+        return s.isSolid() || !s.getFluidState().isEmpty();
     }
 
     @Override

@@ -52,6 +52,8 @@ public final class ShapeSelfTest {
     private final List<String> lines = new ArrayList<>();
     private final List<Wait> waits = new ArrayList<>();
     private final List<String> platforms = new ArrayList<>();
+    private final List<String> walls = new ArrayList<>();
+    private int wallsSeated;
     private boolean platformsOk = true;
 
     private ShapeSelfTest(LevelManager manager) {
@@ -89,6 +91,8 @@ public final class ShapeSelfTest {
                 for (StructureRuntime.Placed p : applied.placed()) check(level, slug, p, null);
                 if (slug.equals(OVER)) check(this, "setpieces lived-in layer " + slug, () -> lived(level));
                 if (!slug.equals(NETHER)) return CompletableFuture.completedFuture(null);
+                lines.add((wallsSeated > 0 && walls.stream().filter(w -> w.contains("PASS")).count() == wallsSeated ? "PASS" : "FAIL")
+                        + " setpieces wall seat " + slug + ": " + wallsSeated + " of " + walls.size() + " sites found a face; " + walls);
                 List<BlockPos[]> falls = new ArrayList<>();
                 for (StructureRuntime.Placed p : applied.placed()) {
                     if (p.structure().endsWith("/pit_fall")) check(level, slug, p, falls);
@@ -119,6 +123,17 @@ public final class ShapeSelfTest {
             }
             return;
         }
+        if (name.startsWith("face_fall")) {
+            StructureStart start = start(level, p);
+            Structure s = structure(level, p.structure());
+            if (start != null) {
+                wallsSeated++;
+                walls.add(name + ": " + source(level, p));
+            } else {
+                walls.add(name + ": declined, " + SetPieceStructure.declined().get(((SetPieceStructure) s).spec().key() + " " + p.chunkX() + "," + p.chunkZ()));
+            }
+            return;
+        }
         check(this, "setpieces " + slug + " " + name, () -> switch (name) {
             case "crater_site" -> crater(level, p);
             case "hill_crown" -> crown(level, p);
@@ -127,7 +142,7 @@ public final class ShapeSelfTest {
             case "layered_pillar" -> layered(level, p);
             case "mooring" -> mooring(level, p);
             case "far_marker" -> marker(level, p);
-            case "pit_fall", "face_fall" -> source(level, p);
+            case "pit_fall" -> source(level, p);
             case "roof_lamp" -> roof(level, p);
             case "floor_cairn", "village_plains" -> floor(level, p);
             case "no_roof" -> declined(level, p);
@@ -340,10 +355,12 @@ public final class ShapeSelfTest {
             boolean flowing = false;
             for (int k = 0; k <= 6 && !flowing; k++) {
                 var fluid = level.getFluidState(f[1].below(k));
-                flowing = fluid.is(Fluids.LAVA) && !fluid.isSource() && k > 0;
+                flowing = fluid.is(net.minecraft.tags.FluidTags.LAVA) && !fluid.isSource() && k > 0;
             }
+            StringBuilder column = new StringBuilder();
+            for (int k = 0; k <= 3; k++) column.append(k == 0 ? "" : ", ").append(level.getBlockState(f[1].below(k)).getBlock().getDescriptionId());
             found.add("source " + f[0].toShortString() + (level.getFluidState(f[0]).isSource() ? " (source)" : " (not a source)")
-                    + (flowing ? ", flowing lava below its level in front" : ", nothing flowing in front"));
+                    + (flowing ? ", flowing lava below its level in front" : ", nothing flowing in front") + " (front down: " + column + ")");
             ok &= flowing;
         }
         return (ok ? "PASS" : "FAIL") + " within " + FLOW_TICKS + " ticks of loading: " + found;

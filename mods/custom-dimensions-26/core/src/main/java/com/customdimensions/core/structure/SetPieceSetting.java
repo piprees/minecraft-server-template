@@ -297,7 +297,7 @@ public record SetPieceSetting(int reach, int rise, int depth, boolean bed, List<
         }
 
         /**
-         * The chunks this layer places within {@code radius} blocks of spawn:
+         * The chunks this layer places whole within {@code radius} blocks of spawn:
          * at most one per 128-block cell, the cell kept at its density there
          * (per km², by radial and biome), the first of four seeded chunks in it
          * that meets the siting and {@code accepts}.
@@ -317,7 +317,7 @@ public record SetPieceSetting(int reach, int rise, int depth, boolean bed, List<
                         int x = chunkX * 16 + 8;
                         int z = chunkZ * 16 + 8;
                         double d = Math.hypot(x - spawnX, z - spawnZ);
-                        if (d > radius) continue;
+                        if (d > radius - 16) continue;
                         double lambda = density * CELL_KM2 * radialAt(d / radius);
                         if (keep >= lambda) continue;
                         if (!biomes.isEmpty() || biomeDefault != 1) {

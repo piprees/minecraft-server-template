@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "description": "Self-test fixture: set-piece shapes and seats under the Nether's roof. A lava fall set in the wall of a pit on the floor, a lamp hanging from the roof, a fall on the nearest face, a pinned platform, a filtered ground cairn and a forced plains village whose site filter keeps them to heights 36 to 100, which must stand on the floor and not the roof.",
+  "description": "Self-test fixture: set-piece shapes and seats under the Nether's roof. A lava fall set in the wall of a pit on the floor, a lamp hanging from the roof, a fall on the nearest face from each of three sites (one is enough), a pinned platform, a filtered ground cairn and a forced plains village whose site filter keeps them to heights 36 to 100, which must stand on the floor and not the roof.",
   "seed": 20261041,
   "spawn": [0, 64, 0],
   "generator": {
@@ -16,6 +16,8 @@
       {"structure": "adventure:set_piece/selftest_shapes_nether/pit_fall", "x": 8, "z": 8, "radius": 96},
       {"structure": "adventure:set_piece/selftest_shapes_nether/roof_lamp", "x": -150, "z": 90, "radius": 96},
       {"structure": "adventure:set_piece/selftest_shapes_nether/face_fall", "x": 150, "z": -150, "radius": 128},
+      {"structure": "adventure:set_piece/selftest_shapes_nether/face_fall_b", "x": -100, "z": 160, "radius": 64},
+      {"structure": "adventure:set_piece/selftest_shapes_nether/face_fall_c", "x": 220, "z": 40, "radius": 64},
       {"structure": "adventure:set_piece/selftest_shapes_nether/overlook", "x": 200, "z": 200, "y": 100},
       {"structure": "adventure:set_piece/selftest_shapes_nether/floor_cairn", "x": 60, "z": -60, "radius": 96},
       {"structure": "minecraft:village_plains", "x": -150, "z": -150, "radius": 128}
@@ -31,34 +33,26 @@
       "seat": "floor",
       "support": 0.3,
       "clear": 4,
-      "size": 12,
+      "size": 16,
       "age": "recent",
       "elements": [
         {"kind": "pit", "radius": 5, "depth": 10, "walls": "minecraft:blackstone"},
-        {"kind": "fall", "liquid": "lava", "pool": 0, "offset": [6, 0, 0]}
+        {"kind": "fall", "liquid": "lava", "pool": 0, "offset": [6, 0, 0], "on": 0, "at": "inside"}
       ]
     },
     "roof_lamp": {
       "name": "The Test Roof Lamp",
       "seat": "roof",
-      "support": 0.3,
+      "support": 0.2,
+      "reach": 96,
       "size": 6,
       "elements": [
         {"kind": "column", "height": -4, "radius": 0, "palette": "minecraft:shroomlight"}
       ]
     },
-    "face_fall": {
-      "name": "The Test Face Fall",
-      "seat": "wall",
-      "band": [32, 110],
-      "rise": 5,
-      "reach": 64,
-      "size": 12,
-      "age": "recent",
-      "elements": [
-        {"kind": "fall", "liquid": "lava", "pool": 2}
-      ]
-    },
+    "face_fall": {"like": "selftest_face_fall", "name": "The Test Face Fall"},
+    "face_fall_b": {"like": "selftest_face_fall", "name": "The Second Test Face Fall"},
+    "face_fall_c": {"like": "selftest_face_fall", "name": "The Third Test Face Fall"},
     "overlook": {
       "name": "The Test Nether Overlook",
       "seat": "pinned",

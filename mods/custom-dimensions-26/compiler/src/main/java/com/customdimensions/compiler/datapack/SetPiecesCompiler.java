@@ -118,7 +118,8 @@ public final class SetPiecesCompiler {
                 files.put(DatapackCompiler.dataPath(id, "tags/worldgen/biome"), tag);
                 structure.addProperty("biomes", "#" + id);
             }
-            structure.addProperty("step", "surface_structures");
+            structure.addProperty("step", spec.elements().stream().anyMatch(el -> com.customdimensions.core.structure.SetPieceShapes.KINDS.contains(el.kind()))
+                    ? "top_layer_modification" : "surface_structures");
             structure.add("spawn_overrides", new JsonObject());
             structure.addProperty("terrain_adaptation", (Set.of("footing", "terrace").contains(spec.terrainAdaptation()) ? "none" : spec.terrainAdaptation()));
             structure.add("set_piece", spec.toJson());

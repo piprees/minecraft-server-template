@@ -723,8 +723,8 @@ public final class StructureRuntime {
         });
         FOOTINGS.put(level, footings);
         Map<Structure, List<com.customdimensions.core.structure.SetPieceSetting.Approach>> approachesHere = new IdentityHashMap<>();
-        approachRules.getOrDefault(level, Map.of()).forEach((target, list) -> members(structures, target)
-                .forEach(h -> approachesHere.put(h.value(), list)));
+        approachRules.getOrDefault(level, Map.of()).forEach((target, rules) -> members(structures, target)
+                .forEach(h -> approachesHere.put(h.value(), rules)));
         APPROACHES.put(level, approachesHere);
         long millis = (System.nanoTime() - started) / 1_000_000;
         Applied applied = new Applied(level, out.size(), dropped, List.copyOf(droppedIds), replaced, groupSites, List.copyOf(placed), millis);

@@ -84,11 +84,12 @@ final class SetPieceSeats {
         return best;
     }
 
-    /** The water surface (its bed with {@code bed}) where the water is the spec's depth or more, or null. */
+    /** The water surface (its bed with {@code bed}) where the column's top is water the spec's depth or more deep, or null. */
     static Integer water(SetPieceSpec spec, ChunkGenerator generator, LevelHeightAccessor height, RandomState random, int x, int z) {
         int top = generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, height, random);
         int bed = generator.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, height, random);
-        if (top - bed < spec.setting().depth()) return null;
+        if (top - bed < spec.setting().depth() || top - 1 < height.getMinY()) return null;
+        if (!generator.getBaseColumn(x, z, height, random).getBlock(top - 1).getFluidState().is(net.minecraft.tags.FluidTags.WATER)) return null;
         return spec.setting().bed() ? bed : top;
     }
 
@@ -105,30 +106,45 @@ final class SetPieceSeats {
     }
 
     /**
-     * The nearest face along the four axes within the spec's reach: a column
-     * whose ground stands {@code rise} or more above its neighbour's. The
+     * The nearest face along the four axes within the spec's reach, looked for
+     * from the origin's ground or, where it has none, the first of its
+     * footprint's samples that has: a column
+     * whose ground stands {@code rise} or more above one of the two before it. The
      * origin moves onto that face's lip, its height the lip's, turned so the
      * piece's local x points out over the drop.
      */
     static SetPieceStructure.Seat wall(SetPieceSpec spec, ChunkGenerator generator, LevelHeightAccessor height, RandomState random, int x, int z) {
         int reach = spec.setting().reach();
         int rise = spec.setting().rise();
-        Integer h0 = base(spec, generator, height, random, x, z, null);
-        if (h0 == null) return new SetPieceStructure.Seat(null, "no ground under its origin to look for a face from");
+        int r = Math.min(spec.size(), 32);
+        Integer h0 = null;
+        for (int k = 0; k < 9 && h0 == null; k++) {
+            int dx = k == 0 ? 0 : (k - 1) % 3 - 1;
+            int dz = k == 0 ? 0 : (k - 1) / 3 - 1;
+            if (k > 0 && dx == 0 && dz == 0) continue;
+            h0 = base(spec, generator, height, random, x + dx * r, z + dz * r, null);
+            if (h0 != null) {
+                x += dx * r;
+                z += dz * r;
+            }
+        }
+        if (h0 == null) return new SetPieceStructure.Seat(null, "no ground under its origin or its footprint to look for a face from");
         int best = -1;
         int[] dir = null;
         int lip = 0;
         for (int[] d : new int[][] {{1, 0}, {0, 1}, {-1, 0}, {0, -1}}) {
             int prev = h0;
+            int before = h0;
             for (int k = 1; k <= reach && (best < 0 || k < best); k++) {
                 Integer hk = base(spec, generator, height, random, x + d[0] * k, z + d[1] * k, prev);
                 if (hk == null) break;
-                if (hk - prev >= rise) {
+                if (hk - Math.min(prev, before) >= rise) {
                     best = k;
                     dir = d;
                     lip = hk;
                     break;
                 }
+                before = prev;
                 prev = hk;
             }
         }
