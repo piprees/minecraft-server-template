@@ -27,10 +27,10 @@
         {
           "biomes": [
             {
-              "biome": "adventure:glowing_grasslands",
+              "biome": "adventure:sheared_highlands",
               "parameters": {
-                "temperature": [0.3, 1.0],
-                "humidity": [-0.3, 0.3],
+                "temperature": [0.4, 1.0],
+                "humidity": [-1.0, -0.2],
                 "continentalness": [-2.0, 2.0],
                 "erosion": [-2.0, 2.0],
                 "weirdness": [-2.0, 2.0],
@@ -171,10 +171,10 @@
         {
           "biomes": [
             {
-              "biome": "adventure:glowing_grasslands",
+              "biome": "adventure:umbral_wastes",
               "parameters": {
-                "temperature": [0.3, 1.0],
-                "humidity": [-0.3, 0.3],
+                "temperature": [-1.0, -0.4],
+                "humidity": [-1.0, -0.3],
                 "continentalness": [-2.0, 2.0],
                 "erosion": [-2.0, 2.0],
                 "weirdness": [-2.0, 2.0],
@@ -187,9 +187,9 @@
         {
           "biomes": [
             {
-              "biome": "adventure:foggy_mushroomland",
+              "biome": "adventure:painted_mountains",
               "parameters": {
-                "temperature": [-0.3, 0.3],
+                "temperature": [0.2, 1.0],
                 "humidity": [-0.3, 0.3],
                 "continentalness": [-2.0, 2.0],
                 "erosion": [-2.0, 2.0],

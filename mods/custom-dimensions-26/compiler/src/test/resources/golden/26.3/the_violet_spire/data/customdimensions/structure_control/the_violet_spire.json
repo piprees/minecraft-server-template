@@ -32,7 +32,6 @@
   },
   "mode": "allow",
   "list": [
-    "mss:large_tower",
     "mss:small_tower",
     "mes:enderwatch_tower",
     "mes:mystical_archway",
@@ -43,7 +42,6 @@
   "include": [],
   "rarity": {
     "mss:small_tower": "common",
-    "mss:large_tower": "common",
     "mes:enderwatch_tower": "common",
     "mes:mystical_archway": "common"
   },
@@ -75,9 +73,18 @@
       "structure": "nova_structures:shrine_tower",
       "min": 100,
       "max": 500
+    },
+    {
+      "name": "mes:enderwatch_tower",
+      "structure": "mes:enderwatch_tower",
+      "min": 300,
+      "max": 650
     }
   ],
-  "shuns": [],
+  "shuns": [
+    "mss:large_tower",
+    "ati_structures:fortified_temple"
+  ],
   "replace": {},
   "terrainAdaptation": {}
 }

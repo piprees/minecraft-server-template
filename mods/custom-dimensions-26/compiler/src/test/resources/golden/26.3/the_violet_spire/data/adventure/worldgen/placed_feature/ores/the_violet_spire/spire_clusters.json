@@ -1,0 +1,24 @@
+{
+  "feature": "adventure:ores/the_violet_spire/spire_clusters",
+  "placement": [
+    {
+      "count": 40,
+      "type": "minecraft:count"
+    },
+    {
+      "type": "minecraft:in_square"
+    },
+    {
+      "height": {
+        "max_inclusive": {
+          "absolute": 250
+        },
+        "min_inclusive": {
+          "absolute": 140
+        },
+        "type": "minecraft:uniform"
+      },
+      "type": "minecraft:height_range"
+    }
+  ]
+}

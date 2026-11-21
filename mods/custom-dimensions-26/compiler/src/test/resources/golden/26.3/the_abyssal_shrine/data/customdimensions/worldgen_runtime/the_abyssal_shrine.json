@@ -5,5 +5,9 @@
     "fluid": "minecraft:water",
     "level": 150
   },
-  "level": "adventure:the_abyssal_shrine"
+  "level": "adventure:the_abyssal_shrine",
+  "remove_features": [
+    "adventure:biome/umbral_wastes/obsidian_spikes",
+    "minecraft:end_gateway_return"
+  ]
 }

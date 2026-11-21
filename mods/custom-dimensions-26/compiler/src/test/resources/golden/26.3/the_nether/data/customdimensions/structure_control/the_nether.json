@@ -40,12 +40,6 @@
   "list": [
     "minecraft:nether_complexes",
     "mns:mega_fortress",
-    "mns:bridge_1",
-    "mns:bridge_2",
-    "mns:bridge_3",
-    "mns:bridge_4",
-    "mns:bridge_5",
-    "mns:bridge_6",
     "minecraft:nether_fossils"
   ],
   "exclude": [],
@@ -61,7 +55,24 @@
       "max": 1000
     }
   ],
-  "shuns": [],
+  "shuns": [
+    "mns:bridge_1",
+    "mns:bridge_2",
+    "mns:bridge_3",
+    "mns:bridge_4",
+    "mns:bridge_5",
+    "mns:bridge_6",
+    "towns_and_towers:exclusives/village_piglin"
+  ],
   "replace": {},
-  "terrainAdaptation": {}
+  "terrainAdaptation": {},
+  "sites": {
+    "minecraft:bastion_remnant": {
+      "slope": 16,
+      "radius": 24,
+      "height": {
+        "min": 36
+      }
+    }
+  }
 }

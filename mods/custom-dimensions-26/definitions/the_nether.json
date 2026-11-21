@@ -85,13 +85,22 @@
       }
     },
     "shuns": {
-      "towns_and_towers:exclusives/village_piglin": {},
       "mns:bridge_1": {},
       "mns:bridge_2": {},
       "mns:bridge_3": {},
       "mns:bridge_4": {},
       "mns:bridge_5": {},
-      "mns:bridge_6": {}
+      "mns:bridge_6": {},
+      "towns_and_towers:exclusives/village_piglin": {}
+    },
+    "sites": {
+      "minecraft:bastion_remnant": {
+        "height": {
+          "min": 36
+        },
+        "slope": 16,
+        "radius": 24
+      }
     }
   }
 }

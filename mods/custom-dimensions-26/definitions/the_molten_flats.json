@@ -77,6 +77,15 @@
       "mns:bridge_1": {},
       "mns:crimson_lava_well": {},
       "mns:crimson_forge": {}
+    },
+    "sites": {
+      "nova_structures:piglin_outstation": {
+        "slope": 8,
+        "radius": 40,
+        "height": {
+          "min": 40
+        }
+      }
     }
   },
   "portals": [
