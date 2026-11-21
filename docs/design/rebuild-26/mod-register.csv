@@ -159,7 +159,7 @@ otterlib,OtterLib,library,library,waiting,Library for sit!.,—,,,0.4.0.0+26.2,M
 playeranimator,playerAnimator,library,library,cut,Library only for projects we cut.,Nothing needed,,,,MIT
 prickle,Prickle,library,library,kept,"Library for attributefix, enchantment-descriptions.",—,,26.3.0.2,26.2.0.3,LGPL-2.1-only
 puzzles-lib,Puzzles Lib,library,library,kept,"Library for mindful-darkness, pick-up-notifier.",—,,26.3.6,26.2.4,MPL-2.0
-resourceful-config,Resourceful Config,library,library,cut,Library only for projects we cut.,Nothing needed,,6.0.1,5.0.0,MIT
+resourceful-config,Resourceful Config,library,library,joining,Library for structure-layout-optimizer (RB-46).,Joins through dep-review,,6.0.1,5.0.0,MIT
 resourceful-lib,Resourceful Lib,library,library,kept,Library for friends-and-foes.,—,,6.0.1,5.0.4,MIT
 terrablender,TerraBlender,library,library,cut,Library only for projects we cut.,Nothing needed,,26.3.0.0.7,26.2.0.0.2,LGPL-3.0-only
 trinkets,Trinkets,library,library,cut,Library only for projects we cut.,Nothing needed,library: accessory slots,,,MIT
@@ -234,3 +234,11 @@ wilder-wild,Wilder Wild,worldgen,required,rebuilt by us,Needs its client; change
 wwoo,William Wythers' Overhauled Overworld,worldgen,server,rebuilt by us,"Rewrites every vanilla biome's features; CC-BY-NC-ND, so we can't adapt it.","Our worldgen kit: per-biome feature sets (W4, W7)",,3.0.1,2.7.1,CC-BY-NC-ND-4.0
 yungs-better-caves,YUNG's Better Caves,worldgen,server,rebuilt by us,"Replaces vanilla carvers, so it is worldgen; no 26.x build.",Our worldgen kit: cave networks per dimension (W1),,,,LGPL-3.0-only
 yungs-cave-biomes,YUNG's Cave Biomes,worldgen,required,rebuilt by us,Needs its client for frosted and lost caves; no 26.x build.,Our worldgen kit: frosted and overgrown cave biomes (W7),frosted + lost caves,,,LicenseRef-All-Rights-Reserved
+structure-layout-optimizer,Structure Layout Optimizer,performance,server,joining,Faster jigsaw and template placement; layouts unchanged at default settings (RB-46).,Joins through dep-review,,1.1.5+26.3,,MIT
+wits,WITS,admin,server,joining,Admin /wits names the structure at a position; a review aid (RB-46).,Joins through dep-review,,1.4.3+26.3,,MIT
+cinchs-abandoned-houses,Cinch's Abandoned Houses,structures,server,joining,"Houses in states of ruin with modest loot; lived-in remnants (RB-44, RB-46).",Joins through dep-review,,2.1.0,,MIT
+cinchs-villager-statues,Cinch's Villager Statues,structures,server,joining,"Small wordless statues of local stone hiding a pot; rare (RB-43, RB-46).",Joins through dep-review,,3.8.0,,MIT
+lush-cave-ruins,Braytonk's Lush Cave Ruins,structures,server,joining,Buried archaeology ruin with a surface tell; its add-on mob stays out (RB-46).,Joins through dep-review,,2.3.2+mod,,LicenseRef-All-Rights-Reserved
+piglin-outposts,Piglin Outposts,structures,server,joining,"Nether piglin camps tiered by risk (RB-39, RB-46).",Joins through dep-review,,0.1.1,,MIT
+mmv-moogs-missing-villages,MMV - Moog's Missing Villages,structures,server,joining,Vanilla-style jungle and swamp villages; Moog's library already shipped (RB-46).,Joins through dep-review,,2.2.0,,AGPL-3.0
+dungeons-and-taverns-ancient-city-overhaul,D&T Ancient City Overhaul,structures,server,joining,Richer ancient city for the ancient builders' trail (RB-46).,Joins through dep-review,,4+mod,,LicenseRef-All-Rights-Reserved

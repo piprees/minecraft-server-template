@@ -3,6 +3,7 @@ package com.customdimensions.server.structure;
 import com.customdimensions.core.structure.Age;
 import com.customdimensions.core.structure.SetPiecePlan;
 import com.customdimensions.core.structure.SetPieceSpec;
+import com.customdimensions.core.structure.Tilt;
 import com.customdimensions.server.CustomDimensions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -124,6 +125,10 @@ public final class SetPiecePart extends StructurePiece {
         BoundingBox at0 = template.getBoundingBox(settings, BlockPos.ZERO);
         BlockPos corner = new BlockPos(x - (at0.minX() + at0.maxX()) / 2, y - embed - at0.minY(), z - (at0.minZ() + at0.maxZ()) / 2);
         BoundingBox box = template.getBoundingBox(settings, corner);
+        String tiltKind = p.source().string("tilt", "none");
+        Tilt tilt = "none".equals(tiltKind) ? null
+                : Tilt.of(tiltKind, p.source().number("angle"), box.getXSpan(), box.getYSpan(), box.getZSpan());
+        if (tilt != null) box = TiltedTemplate.box(tilt, new BlockPos(box.minX(), box.minY(), box.minZ()));
         JsonObject data = new JsonObject();
         data.addProperty("kind", "template");
         data.addProperty("set", spec.key());
@@ -134,6 +139,11 @@ public final class SetPiecePart extends StructurePiece {
         data.addProperty("integrity", integrity);
         if (p.source().params().has("processors")) data.addProperty("processors", p.source().string("processors", ""));
         if (age != null) data.addProperty("age", age.id());
+        if (tilt != null) {
+            data.addProperty("tilt", tilt.kind());
+            data.addProperty("angle", tilt.angle());
+        }
+        if (p.source().params().has("burned")) data.addProperty("burned", true);
         data.addProperty("seed", p.seed());
         JsonArray c = new JsonArray();
         c.add(corner.getX());
@@ -141,6 +151,24 @@ public final class SetPiecePart extends StructurePiece {
         c.add(corner.getZ());
         data.add("corner", c);
         return Optional.of(new SetPiecePart(data, box, templates));
+    }
+
+    /** The set piece's things (places/set-pieces.md § Things inside) in one piece, each placed whole by {@link SetPieceThings}. */
+    static SetPiecePart things(SetPieceSpec spec, BlockPos origin, List<JsonObject> things) {
+        JsonObject data = new JsonObject();
+        data.addProperty("kind", "things");
+        data.addProperty("set", spec.key());
+        data.addProperty("origin", origin.getY());
+        JsonArray a = new JsonArray();
+        List<BlockPos> corners = new ArrayList<>();
+        for (JsonObject t : things) {
+            a.add(t);
+            int r = SetPieceThings.extent(t);
+            corners.add(new BlockPos(t.get("x").getAsInt() - r, t.get("y").getAsInt() - 8, t.get("z").getAsInt() - r));
+            corners.add(new BlockPos(t.get("x").getAsInt() + r, t.get("y").getAsInt() + 2, t.get("z").getAsInt() + r));
+        }
+        data.add("things", a);
+        return new SetPiecePart(data, BoundingBox.encapsulatingPositions(corners).orElseThrow(), null);
     }
 
     /**
@@ -180,8 +208,11 @@ public final class SetPiecePart extends StructurePiece {
     }
 
     private static StructurePlaceSettings settings(int rotation, int mirror) {
-        return new StructurePlaceSettings().setRotation(Rotation.values()[rotation & 3])
-                .setMirror(mirror == 1 ? Mirror.LEFT_RIGHT : mirror == 2 ? Mirror.FRONT_BACK : Mirror.NONE);
+        return new StructurePlaceSettings().setRotation(Rotation.values()[rotation & 3]).setMirror(mirror(mirror));
+    }
+
+    private static Mirror mirror(int mirror) {
+        return mirror == 1 ? Mirror.LEFT_RIGHT : mirror == 2 ? Mirror.FRONT_BACK : Mirror.NONE;
     }
 
     @Override
@@ -194,6 +225,8 @@ public final class SetPiecePart extends StructurePiece {
                             BoundingBox chunkBox, ChunkPos chunk, BlockPos pivot) {
         if ("template".equals(data.get("kind").getAsString())) {
             placeTemplate(level, chunkBox);
+        } else if ("things".equals(data.get("kind").getAsString())) {
+            for (var e : data.getAsJsonArray("things")) SetPieceThings.place(level, chunkBox, e.getAsJsonObject());
         } else if (drawsShape()) {
             ShapeWorld world = new ShapeWorld(level, chunkBox, generator, data.get("scan").getAsBoolean(), data.get("origin").getAsInt());
             com.customdimensions.core.structure.SetPieceShapes.draw(com.customdimensions.core.structure.SetPieceShapes.Shape.fromJson(
@@ -212,7 +245,17 @@ public final class SetPiecePart extends StructurePiece {
         BlockPos corner = new BlockPos(c.get(0).getAsInt(), c.get(1).getAsInt(), c.get(2).getAsInt());
         long seed = data.get("seed").getAsLong();
         Age age = data.has("age") ? Age.parse(data.get("age").getAsString()) : null;
-        StructurePlaceSettings settings = settings(data.get("rotation").getAsInt(), data.get("mirror").getAsInt()).setBoundingBox(chunkBox);
+        if (data.has("tilt")) {
+            StructureTemplate template = found.get();
+            BoundingBox level0 = template.getBoundingBox(settings(data.get("rotation").getAsInt(), data.get("mirror").getAsInt()), corner);
+            Tilt tilt = Tilt.of(data.get("tilt").getAsString(), data.get("angle").getAsDouble(), level0.getXSpan(), level0.getYSpan(), level0.getZSpan());
+            TiltedTemplate.place(level, chunkBox, template, Rotation.values()[data.get("rotation").getAsInt() & 3],
+                    mirror(data.get("mirror").getAsInt()), new BlockPos(level0.minX(), level0.minY(), level0.minZ()), tilt,
+                    data.get("integrity").getAsDouble(), age, data.has("burned"), seed);
+            return;
+        }
+        StructurePlaceSettings settings = settings(data.get("rotation").getAsInt(), data.get("mirror").getAsInt()).setBoundingBox(chunkBox)
+                .addProcessor(net.minecraft.world.level.levelgen.structure.templatesystem.BlockIgnoreProcessor.STRUCTURE_BLOCK);
         double integrity = data.get("integrity").getAsDouble();
         if (integrity < 1) settings.addProcessor(new BlockRotProcessor((float) integrity));
         if (data.has("processors")) {
@@ -220,8 +263,14 @@ public final class SetPiecePart extends StructurePiece {
                     .get(ResourceKey.create(Registries.PROCESSOR_LIST, Identifier.parse(data.get("processors").getAsString())))
                     .ifPresent(list -> list.value().list().forEach(settings::addProcessor));
         }
-        if (age != null) settings.addProcessor(new AgeProcessor(age, seed));
+        if (data.has("burned")) settings.addProcessor(new BurnProcessor(seed));
+        if (age != null) settings.addProcessor(new AgeProcessor(age, seed, data.get("origin").getAsInt()));
         found.get().placeInWorld(level, corner, corner, settings, RandomSource.create(seed), 2);
+        for (StructureTemplate.StructureBlockInfo marker : found.get().filterBlocks(corner, settings, Blocks.STRUCTURE_BLOCK)) {
+            if (marker.nbt() == null || !"DATA".equals(marker.nbt().getStringOr("mode", ""))) continue;
+            TiltedTemplate.marker(level, chunkBox, marker.nbt().getStringOr("metadata", ""), marker.pos(), marker.pos().below(),
+                    settings.getRotation().rotate(Direction.SOUTH), seed);
+        }
         if (age != null && (age.cobweb > 0 || age.vine > 0)) grow(level, chunkBox, age, seed);
     }
 

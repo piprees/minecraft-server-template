@@ -292,7 +292,7 @@ public final class DatapackCompiler {
         }
 
         String controlLevel = BASE_WORLDS.containsKey(slug) && !BASE_WORLDS.get(slug).isEmpty() ? BASE_WORLDS.get(slug) : typeId;
-        SetPiecesCompiler.Compiled setPieces = SetPiecesCompiler.files(namespace, slug, def, setPieceLibrary, vanilla, entry);
+        SetPiecesCompiler.Compiled setPieces = SetPiecesCompiler.files(namespace, slug, def, setPieceLibrary, vanilla, entry, definitions);
         setPieces.files().forEach((path, json) -> put(path, json, entry));
         StructuresCompiler.files(slug, controlLevel, def, structureCatalogue, entry, setPieces.control())
                 .forEach((path, json) -> put(path, json, entry));

@@ -26,10 +26,11 @@ public record SetPieceSpec(String key, String name, String seat, double support,
     public static final Set<String> FIELDS = union(Set.of("name", "like", "seat", "support", "slope", "biomes", "site", "band", "clear",
             "elements", "palette", "group", "rarity", "repetition", "terrainAdaptation", "size", "age"), SetPieceSetting.FIELDS);
     public static final Set<String> SEATS = Set.of("ground", "floor", "pinned", "roof", "wall", "water");
-    public static final Set<String> KINDS = union(Set.of("template", "scatter", "block", "chest", "spawner"), SetPieceShapes.KINDS);
+    public static final Set<String> KINDS = union(Set.of("template", "scatter", "block", "chest", "spawner"), SetPieceShapes.KINDS, SetPieceKinds.ASSEMBLIES,
+            SetPieceKinds.THINGS);
     public static final Set<String> ELEMENT_FIELDS = union(Set.of("kind", "offset", "count", "chance", "around", "age", "weight",
             "id", "rotation", "mirror", "processors", "integrity", "embed",
-            "radius", "items", "spacing", "block", "loot", "entity", "delay", "range", "name", "on", "at"), SetPieceShapes.FIELDS);
+            "radius", "items", "spacing", "block", "loot", "entity", "delay", "range", "name", "on", "at"), SetPieceShapes.FIELDS, SetPieceKinds.FIELDS);
     /** Where an element seated {@code on} another stands: on its top, or inside its footprint at its own seat (lore/placement.md G7). */
     public static final Set<String> ON = Set.of("top", "inside");
     public static final Set<String> ROTATIONS = Set.of("random", "none", "clockwise_90", "180", "counterclockwise_90");
@@ -112,6 +113,21 @@ public record SetPieceSpec(String key, String name, String seat, double support,
         boolean lootTable(String id);
 
         boolean processorList(String id);
+
+        /** Whether registry {@code registry} (an item, attribute, mob effect, trim, banner pattern or map decoration) holds {@code id}. */
+        default boolean known(String registry, String id) {
+            return true;
+        }
+
+        /** Every dimension's slug, for the words check (RB-43). */
+        default Set<String> dimensions() {
+            return Set.of();
+        }
+
+        /** The first portal of dimension {@code slug}, or null: what a gate's {@code target} takes its frame from. */
+        default JsonObject portal(String slug) {
+            return null;
+        }
     }
 
     /** Every check passes and every template measures 16 cubed: for tests of the shape alone. */
@@ -331,10 +347,11 @@ public record SetPieceSpec(String key, String name, String seat, double support,
                 if (!palette.containsKey(block)) checkBlock(where, block, catalogue);
             }
             case "chest" -> {
-                String loot = required(where, o, "loot");
+                String loot = o.has("arrangement") && !o.has("loot") ? "" : required(where, o, "loot");
                 if (loot.startsWith("minecraft:") && !catalogue.lootTable(loot)) throw bad(where, "loot `" + loot + "` is not a vanilla loot table");
                 String k = o.has("block") ? o.get("block").getAsString() : "chest";
                 if (!CHEST_KINDS.contains(k)) throw bad(where, "a chest's block must be one of " + CHEST_KINDS);
+                if (o.has("arrangement")) SetPieceKinds.arrangement(where, o, k, catalogue);
             }
             case "spawner" -> {
                 String entity = required(where, o, "entity");
@@ -344,15 +361,18 @@ public record SetPieceSpec(String key, String name, String seat, double support,
                 }
             }
             default -> {
-                if (!SetPieceShapes.KINDS.contains(kind)) throw bad(where, "kind `" + kind + "` is not built");
-                if (item) throw bad(where, "a scatter's items are blocks, templates, chests and spawners, not shapes");
-                SetPieceShapes.validate(where, kind, o, b -> {
-                    if (!palette.containsKey(b)) checkBlock(where, b, catalogue);
-                });
+                if (SetPieceShapes.KINDS.contains(kind)) {
+                    if (item) throw bad(where, "a scatter's items are blocks, templates, chests and spawners, not shapes");
+                    SetPieceShapes.validate(where, kind, o, b -> {
+                        if (!palette.containsKey(b)) checkBlock(where, b, catalogue);
+                    });
+                } else {
+                    SetPieceKinds.check(where, kind, o, palette, catalogue);
+                }
             }
         }
         if (o.has("on") && item) throw bad(where, "a scatter's items cannot be seated on an element");
-        if ("spawner".equals(kind)) count = 1;
+        if ("spawner".equals(kind) || "cell".equals(kind)) count = 1;
         return new Element(kind, offset, count, chance, around, age, weight, o.deepCopy(), items);
     }
 
@@ -378,14 +398,11 @@ public record SetPieceSpec(String key, String name, String seat, double support,
                 across += e.integer("radius", 0) + itemAcross;
                 up += itemUp;
             }
+            case "block", "chest", "spawner" -> up += 1;
             default -> {
-                if (SetPieceShapes.KINDS.contains(e.kind())) {
-                    int[] r = SetPieceShapes.reach(e.kind(), e.params());
-                    across += r[0];
-                    up += r[1];
-                } else {
-                    up += 1;
-                }
+                int[] r = SetPieceShapes.KINDS.contains(e.kind()) ? SetPieceShapes.reach(e.kind(), e.params()) : SetPieceKinds.reach(e, catalogue);
+                across += r[0];
+                up += r[1];
             }
         }
         return new int[] {across, up};

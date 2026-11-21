@@ -174,3 +174,15 @@ Why: the server is where players tell their own stories; the world gives them a 
 **RB-45 — Every structure fits where it stands.**
 Every place, whatever it is (dungeon, lair, village, town, dense city, factory, lab, hold, castle, fortress, cavern, ship, outpost), reads as built for, or worn into, its setting. It sits on its ground (footings, cut terraces, buried lower storeys; never perched on stilts of air or sliced by a cliff), on a site its builders would choose (a pass, a ford, a summit, a sheltered hollow), of the materials around it or brought from where its makers came, weathered to its age, scaled to the dimension, and reached by something: a path, a stair, a bridge, a wreck line. Structures from the pack's mods get the same treatment: re-skinned to the dimension's palette where their own does not fit, adapted to the terrain, and filtered to sites that suit them; one that cannot be made to fit is not placed there.
 Why: a structure that ignores its ground is the clearest sign of an algorithm; one that fits makes the world feel lived in (RB-44).
+
+**RB-46 — Eight more server-side structure mods and the layout optimizer join through dep-review.**
+Cinch's Abandoned Houses and Villager Statues, Braytonk's Lush Cave Ruins, Piglin Outposts, Moog's Missing Villages, the Dungeons and Taverns Ancient City Overhaul, WITS, and Structure Layout Optimizer with its library Resourceful Config. Each passes the dependency checklist, is curated per dimension (RB-45) and re-skinned where its palette does not fit; a mod's add-on that needs a client (Lush Cave Ruins' mob) stays out.
+Why: they add the lived-in remnants and settlements the places plan needs, with no client mod, and the optimizer eases first generation across the pack's many structures.
+
+**RB-47 — Server-side mods that fit may join without a separate ask.**
+A mod joins the 26.3 pack on the lead's judgement when it is server-side only (unmodded Java, Bedrock and mobile see all of it), passes the dependency checklist, respects RB-13 and the register's cuts, and fits the pack's direction (RB-39 to RB-45: lived in, understated, wordless, every place fitting its setting). Each is recorded in the register with its reason and reported to the owner.
+Why: the owner wants the pack full of fitting places and is happy to delegate the choice within these criteria.
+
+**RB-48 — Progression stays simple, conventional and speedrunnable.**
+A progression gate (strongholds and their End portal, a dimension's portal, a key structure) may move or change as long as it still makes sense and is reached by simple rules a player can work out from Minecraft's own conventions. No progression by time invested or grind: no brewing chains, farming quotas or crafting puzzles standing between a player and a gate. Someone who knows the rules could still speedrun it with little gear; finishing is not the point of the pack. Portal recipes (RB-40, RB-41) stay this simple: a frame of one block and a familiar igniter, found through exploring.
+Why: the pack is about exploring and telling one's own stories; a gate that demands a grind turns it into a different game.
