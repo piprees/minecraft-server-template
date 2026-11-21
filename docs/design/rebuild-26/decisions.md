@@ -178,3 +178,7 @@ Why: a structure that ignores its ground is the clearest sign of an algorithm; o
 **RB-46 — Eight more server-side structure mods and the layout optimizer join through dep-review.**
 Cinch's Abandoned Houses and Villager Statues, Braytonk's Lush Cave Ruins, Piglin Outposts, Moog's Missing Villages, the Dungeons and Taverns Ancient City Overhaul, WITS, and Structure Layout Optimizer with its library Resourceful Config. Each passes the dependency checklist, is curated per dimension (RB-45) and re-skinned where its palette does not fit; a mod's add-on that needs a client (Lush Cave Ruins' mob) stays out.
 Why: they add the lived-in remnants and settlements the places plan needs, with no client mod, and the optimizer eases first generation across the pack's many structures.
+
+**RB-47 — Server-side mods that fit may join without a separate ask.**
+A mod joins the 26.3 pack on the lead's judgement when it is server-side only (unmodded Java, Bedrock and mobile see all of it), passes the dependency checklist, respects RB-13 and the register's cuts, and fits the pack's direction (RB-39 to RB-45: lived in, understated, wordless, every place fitting its setting). Each is recorded in the register with its reason and reported to the owner.
+Why: the owner wants the pack full of fitting places and is happy to delegate the choice within these criteria.
