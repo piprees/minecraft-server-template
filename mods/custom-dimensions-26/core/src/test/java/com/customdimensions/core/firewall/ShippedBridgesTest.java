@@ -36,6 +36,8 @@ class ShippedBridgesTest {
 
     private static final Path BRIDGES = Path.of("../bridges");
     private static final Set<String> OWN = Set.of("minecraft", "adventure", "customdimensions", "fantasy");
+    /** Mods whose bridge adopts their worldgen mixins and nothing else: their structures stay off until curated. */
+    private static final Set<String> MIXIN_ONLY = Set.of("friendsandfoes", "sswaystones", "structure_layout_optimizer");
 
     private static Schema schema;
     private static Map<String, Set<String>> unbridged;
@@ -71,7 +73,7 @@ class ShippedBridgesTest {
     @Test
     void everyBridgeValidatesLoadsAndIsReviewed() throws IOException {
         List<Path> files = files();
-        assertEquals(12, files.size(), "bridges in bridges/");
+        assertEquals(16, files.size(), "bridges in bridges/");
         List<String> failures = new ArrayList<>();
         for (Path file : files) {
             String text = Files.readString(file);
@@ -79,7 +81,12 @@ class ShippedBridgesTest {
             Bridge bridge = BridgeReader.read(file);
             assertTrue(bridge.reviewed(), file.toString());
             assertEquals(text, BridgeReader.write(bridge), file + " is not in the writer's form");
-            assertTrue(bridge.mixins().isEmpty() && bridge.registries().isEmpty(), file + " adopts mixins or registries");
+            assertTrue(bridge.registries().isEmpty(), file + " adopts registries");
+            assertTrue(bridge.mixins().isEmpty() || MIXIN_ONLY.contains(bridge.mod()), file + " adopts mixins");
+            if (MIXIN_ONLY.contains(bridge.mod())) {
+                assertTrue(bridge.structureSets().isEmpty() && bridge.structures().isEmpty() && bridge.features().isEmpty()
+                        && bridge.spawns().isEmpty() && !bridge.mixins().isEmpty(), file + " adopts more than mixins");
+            }
             for (Bridge.Structure s : bridge.structures()) {
                 assertTrue(s.set() == null || bridge.structureSets().contains(s.set()), file + ": " + s.id() + " names a set the bridge does not adopt");
             }

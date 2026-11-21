@@ -1,0 +1,170 @@
+{
+  "mod": "mr_dungeons",
+  "reviewed": true,
+  "structureSets": [
+    "decubed_dungeons:dungeons",
+    "decubed_dungeons:ruins"
+  ],
+  "structures": [
+    {
+      "id": "decubed_dungeons:ancient_city_remnant",
+      "set": "decubed_dungeons:dungeons",
+      "size": {
+        "x": 39,
+        "y": 34,
+        "z": 42
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "decubed_dungeons:cold_dungeon",
+      "set": "decubed_dungeons:dungeons",
+      "size": {
+        "x": 39,
+        "y": 35,
+        "z": 47
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "decubed_dungeons:deepwater_dungeon",
+      "set": "decubed_dungeons:dungeons",
+      "size": {
+        "x": 37,
+        "y": 35,
+        "z": 37
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "decubed_dungeons:dungeon_ruins",
+      "set": "decubed_dungeons:ruins",
+      "size": {
+        "x": 31,
+        "y": 29,
+        "z": 31
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "decubed_dungeons:dusty_tomb",
+      "set": "decubed_dungeons:dungeons",
+      "size": {
+        "x": 35,
+        "y": 35,
+        "z": 37
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "decubed_dungeons:frozen_dungeon",
+      "set": "decubed_dungeons:dungeons",
+      "size": {
+        "x": 39,
+        "y": 38,
+        "z": 41
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "decubed_dungeons:infested_dungeon",
+      "set": "decubed_dungeons:dungeons",
+      "size": {
+        "x": 37,
+        "y": 35,
+        "z": 36
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "decubed_dungeons:insidious_dungeon",
+      "set": "decubed_dungeons:dungeons",
+      "size": {
+        "x": 37,
+        "y": 37,
+        "z": 37
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "decubed_dungeons:lush_dungeon",
+      "set": "decubed_dungeons:dungeons",
+      "size": {
+        "x": 37,
+        "y": 34,
+        "z": 37
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "decubed_dungeons:mouldy_dungeon",
+      "set": "decubed_dungeons:dungeons",
+      "size": {
+        "x": 37,
+        "y": 35,
+        "z": 35
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "decubed_dungeons:muddy_dungeon",
+      "set": "decubed_dungeons:dungeons",
+      "size": {
+        "x": 39,
+        "y": 35,
+        "z": 41
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "decubed_dungeons:scorched_tomb",
+      "set": "decubed_dungeons:dungeons",
+      "size": {
+        "x": 35,
+        "y": 35,
+        "z": 36
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    },
+    {
+      "id": "decubed_dungeons:webbed_dungeon",
+      "set": "decubed_dungeons:dungeons",
+      "size": {
+        "x": 35,
+        "y": 35,
+        "z": 35
+      },
+      "mood": [],
+      "climate": [],
+      "depth": []
+    }
+  ],
+  "features": [],
+  "spawns": [],
+  "mixins": [],
+  "registries": []
+}

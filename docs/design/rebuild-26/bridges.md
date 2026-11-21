@@ -46,6 +46,17 @@ ids nobody registers and changes nothing.
 | `mes`, `mns`, `mss`, `mtr`, `mvs` | Moog's End, Nether, Soaring, Temples and Voyager structures | |
 | `farmersdelight` | Farmer's Delight Refabricated | |
 | `clucking-ducks` | the clucking-ducks datapack (its Modrinth slug) | `minecraft:chicken` in `spawns`: the duck is a chicken variant its `minecraft:river` override spawns |
+| `mr_dungeons` | DeCubed Dungeons | its two dungeon sets, in place of the vanilla monster rooms it sets to count 0 |
+| `friendsandfoes`, `sswaystones`, `structure_layout_optimizer` | Friends & Foes, Server-Side Waystones, Structure Layout Optimizer | `mixins` only: their template-pool, jigsaw and template mixins; their structure sets stay off, and the village and stronghold pool injections are off by config |
+
+The other structure mods on the 26.3 list (Explorify, Hopo Better Mineshaft,
+Cinch's Villager Statues, Lush Cave Ruins, Piglin Outposts, Moog's Missing Villages, Trek)
+have no bridge yet, so their sets are off in every dimension until curated.
+Mods that override a `minecraft:` set or template (Dungeons and Taverns' Ancient
+City Overhaul, Biome Strongholds, Trek's villages, outposts, End cities and
+mansion, DeCubed's and Trek's monster rooms) need no bridge and are live
+everywhere; `config/datapacks/wordless-strongholds/` makes Biome Strongholds the
+one owner of `minecraft:strongholds`.
 
 `core`'s `ShippedBridgesTest` checks every file against the schema and the reader,
 and that together they adopt every id in `firewall/unbridged-26.3.txt`, what the

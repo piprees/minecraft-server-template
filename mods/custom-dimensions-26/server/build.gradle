@@ -50,12 +50,14 @@ dependencies {
 	if (project.hasProperty('dh')) {
 		localRuntime "maven.modrinth:distanthorizons:${project.distant_horizons_version}"
 	}
-	// -PstructureMods=<dir>: the 26.3 list's structure mods (the jars the committed bridges adopt, their libraries), for measuring sizes.
+	// -PstructureMods=<dir>: the 26.3 list's structure mods (those the bridges adopt, those that override vanilla's structures, their libraries), for measuring sizes.
 	if (project.hasProperty('structureMods')) {
 		def dir = file(project.property('structureMods'))
 		def wanted = ['ATi Structure', 'Epic Dungeons', 'deadly-deadly-dungeon', 'dungeons-and-taverns', 't_and_t-fabric',
 				'MoogsEndStructures', 'MoogsNetherStructures', 'MoogsSoaringStructures', 'MoogsTemplesReimagined',
-				'MoogsVoyagerStructures', 'MoogsStructureLib', 'cristellib']
+				'MoogsVoyagerStructures', 'MoogsStructureLib', 'cristellib', 'dungeons+', 'biome-strongholds', 'Explorify',
+				'HopoBetterMineshaft', 'cinchsvillagerstatues', 'lush-cave-ruins', 'piglin_outposts',
+				'MoogsMissingVillages', 'trek']
 		localRuntime files(dir.listFiles().findAll { f -> f.name.endsWith('.jar') && wanted.any { f.name.startsWith(it) } }.sort())
 	}
 

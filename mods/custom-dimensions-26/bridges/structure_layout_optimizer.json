@@ -1,0 +1,12 @@
+{
+  "mod": "structure_layout_optimizer",
+  "reviewed": true,
+  "structureSets": [],
+  "structures": [],
+  "features": [],
+  "spawns": [],
+  "mixins": [
+    "structure_layout_optimizer.mixins.json"
+  ],
+  "registries": []
+}

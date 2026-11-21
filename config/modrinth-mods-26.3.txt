@@ -51,7 +51,6 @@ decubed-dungeons:iys4iiPH
 # hopo-better-mineshaft - its RemoveVanillaMineshaft folder is not a
 # registered overlay, so vanilla mineshafts stay.
 hopo-better-mineshaft:avIdkeZp
-cinchs-abandoned-houses:CgkQLjrv
 cinchs-villager-statues:pfUTyZ5d
 # lush-cave-ruins - the structure mod only; its add-on mob pack needs a client
 lush-cave-ruins:m4ragooF
@@ -213,6 +212,7 @@ floodgate:m9eO07Zi
 # modernfix                                   # No 26
 # adventure-dungeons                          # Vanilla blocks only, so it is welcome; no 26
 # repurposed-structures-fabric               # Its trade maps point at structures that are off until SP5 curation
+# cinchs-abandoned-houses                    # Its 26.3 jar declares the mod id cinchsvillagerstatues, so Fabric drops it beside Villager Statues
 # midnightlib                                # Library for repurposed-structures-fabric
 # hellish-trials                              # Vanilla blocks only, so it is welcome; no 26
 # medieval-buildings-end-edition              # Vanilla blocks only, so it is welcome; no 26

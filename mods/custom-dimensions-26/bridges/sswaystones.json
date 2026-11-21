@@ -1,0 +1,12 @@
+{
+  "mod": "sswaystones",
+  "reviewed": true,
+  "structureSets": [],
+  "structures": [],
+  "features": [],
+  "spawns": [],
+  "mixins": [
+    "sswaystones.mixins.json"
+  ],
+  "registries": []
+}
