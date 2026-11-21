@@ -190,3 +190,7 @@ Why: the pack is about exploring and telling one's own stories; a gate that dema
 **RB-49 — No natural waystones, and no player teleporting.**
 Server-Side Waystones is in the pack, but none generate naturally and players cannot craft them; only admins place them, or a dimension's definition places one as a set piece (a storytelling piece, a server meeting place). Teleport commands stay off for players, as they are today.
 Why: travel is where encounters happen; a network of waystones lets players skip the walking and flying the world is built for.
+
+**RB-50 — Trek joins, beta builds accepted; Biome Strongholds joins.**
+Trek's 26.3 beta is accepted, with its overrides of vanilla's End cities, villages, strongholds and pillager outposts. Where Trek and Biome Strongholds both claim strongholds, one owner is chosen and the other's override switched off, so a stronghold stays findable by eyes of ender and its portal lights with 12 eyes (RB-48). The End keeps about 57 cities with elytra at 8% a chest; the overworld keeps its rim mansion.
+Why: the owner reviewed Trek and wants its structures; a beta is acceptable before the switch, and the checks above keep the verified progression intact.
