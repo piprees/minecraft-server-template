@@ -17,6 +17,7 @@ abstract class ChunkMapStructuresMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/ChunkGenerator;createState(Lnet/minecraft/core/HolderLookup;Lnet/minecraft/world/level/levelgen/RandomState;J)Lnet/minecraft/world/level/chunk/ChunkGeneratorStructureState;"))
     private ChunkGeneratorStructureState customdimensions$structureControl(ChunkGeneratorStructureState state,
             @Local(argsOnly = true) ServerLevel level, @Local(argsOnly = true) ChunkGenerator generator) {
-        return StructureRuntime.apply(level.dimension(), level.registryAccess(), generator, state);
+        return StructureRuntime.apply(level.dimension(), level.registryAccess(), generator, state,
+                net.minecraft.world.level.LevelHeightAccessor.create(level.dimensionType().minY(), level.dimensionType().height()));
     }
 }

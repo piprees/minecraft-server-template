@@ -68,10 +68,9 @@
   "terrainAdaptation": {},
   "sites": {
     "minecraft:bastion_remnant": {
-      "slope": 16,
-      "radius": 24,
+      "radius": 8,
       "height": {
-        "min": 36
+        "min": 33
       }
     }
   }

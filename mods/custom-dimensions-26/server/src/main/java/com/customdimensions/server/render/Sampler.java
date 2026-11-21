@@ -227,7 +227,7 @@ public final class Sampler {
         if (c == null) {
             ChunkGeneratorStructureState raw = generator.createState(access.lookupOrThrow(Registries.STRUCTURE_SET), random, seed);
             c = levelKey == null ? StructureRuntime.Controlled.none(raw)
-                    : StructureRuntime.control(levelKey, access, generator, raw, templates);
+                    : StructureRuntime.control(levelKey, access, generator, raw, templates, heights);
             control = c;
         }
         return c;

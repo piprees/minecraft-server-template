@@ -460,8 +460,9 @@ public final class StructureRuntime {
 
     /** The level's structure state with its control applied and recorded for the level; the state itself when the pack has none for it. */
     public static ChunkGeneratorStructureState apply(ResourceKey<Level> levelKey, net.minecraft.core.RegistryAccess registries,
-                                                     ChunkGenerator generator, ChunkGeneratorStructureState original) {
-        Controlled c = control(levelKey, registries, generator, original, templates);
+                                                     ChunkGenerator generator, ChunkGeneratorStructureState original,
+                                                     net.minecraft.world.level.LevelHeightAccessor levelHeight) {
+        Controlled c = control(levelKey, registries, generator, original, templates, levelHeight);
         if (c.applied() == null) {
             return original;
         }
@@ -484,18 +485,20 @@ public final class StructureRuntime {
      */
     public static Controlled control(ResourceKey<Level> levelKey, net.minecraft.core.RegistryAccess registries,
                                      ChunkGenerator generator, ChunkGeneratorStructureState original) {
-        return control(levelKey, registries, generator, original, null);
+        return control(levelKey, registries, generator, original, null, null);
     }
 
     /**
      * As above; with {@code templates}, each forced start's and want's
      * candidates are generated until one stands (its own rules start it, it
-     * has ground under it, its floor fits its site filter), else it is not
-     * placed and the log says why.
+     * has ground under it, its floor fits its site filter) in the level's
+     * own height ({@code levelHeight}, the generator's when null), else it is
+     * not placed and the log says why.
      */
     public static Controlled control(ResourceKey<Level> levelKey, net.minecraft.core.RegistryAccess registries,
                                      ChunkGenerator generator, ChunkGeneratorStructureState original,
-                                     net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager templates) {
+                                     net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager templates,
+                                     net.minecraft.world.level.LevelHeightAccessor levelHeight) {
         String level = levelKey.identifier().toString();
         StructureSpec spec = specs.get(level);
         if (spec == null) {
@@ -711,8 +714,8 @@ public final class StructureRuntime {
         Map<Long, Set<Structure>> bypass = new HashMap<>();
         Map<Long, Map<Structure, Integer>> ground = new HashMap<>();
         int border = spec.radiusChunks() * 16;
-        net.minecraft.world.level.LevelHeightAccessor height = net.minecraft.world.level.LevelHeightAccessor.create(generator.getMinY(),
-                generator.getGenDepth());
+        net.minecraft.world.level.LevelHeightAccessor height = levelHeight != null ? levelHeight
+                : net.minecraft.world.level.LevelHeightAccessor.create(generator.getMinY(), generator.getGenDepth());
         for (StructureSpec.Force f : spec.force()) {
             Optional<Holder.Reference<Structure>> s = structure(structures, f.structure());
             if (s.isEmpty()) {

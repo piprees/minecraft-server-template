@@ -12,7 +12,8 @@
 #   4. `customdim survey <slug> 1 1` for the same five: the post-survey WARN of each asked-for structure without a start.
 # Each wait is bounded. Results -> /tmp/claude-0/k14/lane/<tag>/: server.log, driver.log, control.log, warns.log,
 # starts.log, bastions.log.
-# Usage: P=<mods/custom-dimensions-26 checkout carrying the k14 commits> [MODS=<structure mod jar dir>] lane.sh <tag>
+# Usage: P=<mods/custom-dimensions-26 checkout carrying the k14 commits> [MODS=<structure mod jar dir>] [STRIP=0 keeps the
+# bastion filter] [SLUGS="<slug> ..."] lane.sh <tag>
 set -u
 TAG=${1:-l1}
 P=${P:-/home/user/minecraft-server-template/.claude/worktrees/agent-a2a8f36a8aee3d66f/mods/custom-dimensions-26}
@@ -27,7 +28,7 @@ cd "$P" || exit 1
 
 rm -rf "$OUT/defs"
 cp -r definitions "$OUT/defs"
-python3 -I -c 'import json,sys
+[ "${STRIP:-1}" = 1 ] && python3 -I -c 'import json,sys
 p=sys.argv[1]; d=json.load(open(p)); d["structures"].get("sites", {}).pop("minecraft:bastion_remnant", None)
 json.dump(d, open(p, "w"), indent=2)' "$OUT/defs/the_nether.json"
 
@@ -59,7 +60,7 @@ await() {
   done
   echo "$label: $(( $(date +%s) - start )) s: $(grep "$pattern" "$LOG" | tail -1 | cut -c1-200)" >> "$OUT/driver.log"
 }
-SLUGS="the_sunken_temple the_abyssal_shrine the_violet_spire the_forged_depths the_nether"
+SLUGS=${SLUGS:-"the_sunken_temple the_abyssal_shrine the_violet_spire the_forged_depths the_nether"}
 
 for s in $SLUGS; do
   before=$(grep -c "Starts in $s within\|Could not count structure starts in $s" "$LOG")

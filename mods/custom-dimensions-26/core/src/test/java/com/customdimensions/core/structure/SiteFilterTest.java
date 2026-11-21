@@ -148,7 +148,8 @@ class SiteFilterTest {
     @Test
     void aStartsFloorOutsideTheHeightWindowIsRefused() {
         SiteFilter f = filter("{\"height\": {\"min\": 36, \"max\": 100}}");
-        assertNotNull(f.floorRefusal(33));
+        assertNotNull(f.floorRefusal(36 - SiteFilter.FOUNDATION_DEPTH - 1));
+        assertNull(f.floorRefusal(36 - SiteFilter.FOUNDATION_DEPTH), "its foundations may reach below the window");
         assertNotNull(f.floorRefusal(101));
         assertNull(f.floorRefusal(36));
         assertNull(filter("{\"slope\": 6}").floorRefusal(-40));
