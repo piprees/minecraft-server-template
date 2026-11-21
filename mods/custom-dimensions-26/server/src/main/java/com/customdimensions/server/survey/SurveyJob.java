@@ -283,6 +283,12 @@ public final class SurveyJob {
         dossier.add("placeness", placeness);
         long tc = System.nanoTime();
         dossier.add("structures", withCensus(dossier.getAsJsonObject("structures"), level, definition, area(definition, border, false).radius()));
+        try {
+            dossier.getAsJsonObject("structures").add("unstarted", AskedStarts.check(sampler, level.dimension().identifier().toString(),
+                    area(definition, border, false).radius()));
+        } catch (RuntimeException e) {
+            CustomDimensions.LOG.warn("{}: the asked-for structures' starts were not counted: {}", slug, e.toString());
+        }
         com.google.gson.JsonArray named = NamedPlaces.named(level, area(definition, border, false).radius());
         if (!named.isEmpty()) {
             JsonObject places = dossier.has("places") && dossier.get("places").isJsonObject() ? dossier.getAsJsonObject("places") : new JsonObject();

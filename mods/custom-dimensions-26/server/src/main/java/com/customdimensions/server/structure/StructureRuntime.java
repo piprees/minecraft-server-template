@@ -62,9 +62,13 @@ public final class StructureRuntime {
     /** A forced start or a want as placed: its chunk, and whether its biome is there. */
     public record Placed(String kind, String structure, int chunkX, int chunkZ, boolean matched) {}
 
-    /** What one level's control did, for the self-test and the log. */
+    /**
+     * What one level's control did, for the self-test and the log;
+     * {@code unplaced} names each forced start or want that found nowhere to
+     * stand ({@code "force mtr:ocean_temple"}) with the chooser's account.
+     */
     public record Applied(String level, int kept, int dropped, List<String> droppedSets, int replaced,
-                          Map<String, Integer> groupSites, List<Placed> placed, long millis) {}
+                          Map<String, Integer> groupSites, List<Placed> placed, long millis, Map<String, String> unplaced) {}
 
     private static volatile Map<String, StructureSpec> specs = Map.of();
     private static volatile Map<String, ZoneStructureRules> zoneRules = Map.of();
@@ -79,6 +83,10 @@ public final class StructureRuntime {
     private static final Map<String, Map<Structure, com.customdimensions.core.structure.SiteFilter>> FILTERS = new ConcurrentHashMap<>();
     private static final Map<String, Map<Structure, Set<Long>>> CAPS = new ConcurrentHashMap<>();
     private static final Set<String> FILTER_LOGGED = ConcurrentHashMap.newKeySet();
+    /** The control's warnings already logged in this process: every sampler of a level builds its control again. */
+    private static final Set<String> WARNED = ConcurrentHashMap.newKeySet();
+    /** The server's templates, so a forced start's or a want's candidates are generated before one is chosen. */
+    private static volatile net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager templates;
     private static final Map<String, Map<Structure, String>> FOOTINGS = new ConcurrentHashMap<>();
     private static final Map<String, Map<Structure, List<com.customdimensions.core.structure.SetPieceSetting.Approach>>> APPROACHES = new ConcurrentHashMap<>();
     private static final Map<String, List<int[]>> TARGETS = new ConcurrentHashMap<>();
@@ -118,20 +126,37 @@ public final class StructureRuntime {
     /**
      * Whether a start of {@code structure} at {@code chunk} is refused by its
      * level's site filter or a set piece's repetition ceiling. A forced start's
-     * or a want's own chunk was chosen with the filter and is never refused here.
+     * or a want's own chunk was chosen with the filter and is never refused
+     * here; an included set's start, whose biomes are bypassed everywhere, is.
      */
     public static String refusal(ResourceKey<Level> level, Structure structure, ChunkPos chunk, ChunkGenerator generator,
                                  net.minecraft.world.level.levelgen.RandomState random) {
         String id = level.identifier().toString();
-        if (bypassesBiome(level, structure, chunk)) return null;
-        Map<Structure, Set<Long>> caps = CAPS.get(id);
-        Set<Long> allowed = caps == null ? null : caps.get(structure);
+        return refusal(BYPASS.getOrDefault(id, Map.of()), FILTERS.getOrDefault(id, Map.of()), CAPS.getOrDefault(id, Map.of()),
+                structure, chunk, generator, random);
+    }
+
+    static String refusal(Map<Long, Set<Structure>> fixed, Map<Structure, com.customdimensions.core.structure.SiteFilter> filters,
+                          Map<Structure, Set<Long>> caps, Structure structure, ChunkPos chunk, ChunkGenerator generator,
+                          net.minecraft.world.level.levelgen.RandomState random) {
+        Set<Structure> here = fixed.get(chunk.pack());
+        if (here != null && here.contains(structure)) return null;
+        Set<Long> allowed = caps.get(structure);
         if (allowed != null && !allowed.contains(chunk.pack())) return "its repetition ceiling is taken by the group's nearer sites";
-        Map<Structure, com.customdimensions.core.structure.SiteFilter> filters = FILTERS.get(id);
-        com.customdimensions.core.structure.SiteFilter f = filters == null ? null : filters.get(structure);
+        com.customdimensions.core.structure.SiteFilter f = filters.get(structure);
         if (f == null) return null;
         GeneratorTerrain terrain = GeneratorTerrain.of(generator, random, generator.getBiomeSource().createUncachedResolver(random));
         return f.refusal(terrain, chunk.getMiddleBlockX(), chunk.getMiddleBlockZ());
+    }
+
+    /** Why a generated start of {@code structure} is refused by its box's floor against its site filter's height, or null. */
+    public static String floorRefusal(ResourceKey<Level> level, Structure structure, net.minecraft.world.level.levelgen.structure.BoundingBox box) {
+        Map<Structure, com.customdimensions.core.structure.SiteFilter> filters = FILTERS.get(level.identifier().toString());
+        return floorRefusal(filters == null ? null : filters.get(structure), box);
+    }
+
+    static String floorRefusal(com.customdimensions.core.structure.SiteFilter filter, net.minecraft.world.level.levelgen.structure.BoundingBox box) {
+        return filter == null ? null : filter.floorRefusal(box.minY());
     }
 
     /**
@@ -153,9 +178,18 @@ public final class StructureRuntime {
         return caps == null ? null : caps.get(structure);
     }
 
+    /** The surface a site filter reads at a block column of this generator: the floor under a roof. */
+    public static int siteSurface(ChunkGenerator generator, net.minecraft.world.level.levelgen.RandomState random, int x, int z) {
+        return GeneratorTerrain.of(generator, random, generator.getBiomeSource().createUncachedResolver(random)).height(x, z);
+    }
+
     /** Whether this is the first refusal by site of {@code structure} in {@code level}, so the log names each once. */
     public static boolean firstSiteRefusal(String level, String structure) {
         return FILTER_LOGGED.add(level + " " + structure);
+    }
+
+    private static void warnOnce(String message) {
+        if (WARNED.add(message)) CustomDimensions.LOG.warn(message);
     }
 
     /** Whether {@code structure} may stand in {@code biome}: a set piece naming no biomes stands in every one. */
@@ -201,7 +235,10 @@ public final class StructureRuntime {
     }
 
     public static void register() {
-        ServerLifecycleEvents.SERVER_STARTING.register(server -> specs = load(server));
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+            templates = server.getStructureTemplateManager();
+            specs = load(server);
+        });
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             APPLIED.clear();
             BYPASS.clear();
@@ -212,6 +249,8 @@ public final class StructureRuntime {
             FILTERS.clear();
             CAPS.clear();
             FILTER_LOGGED.clear();
+            WARNED.clear();
+            templates = null;
             FOOTINGS.clear();
             APPROACHES.clear();
             TARGETS.clear();
@@ -358,6 +397,24 @@ public final class StructureRuntime {
             return here != null && here.contains(structure);
         }
 
+        /** As {@link StructureRuntime#refusal}, under this control. */
+        public String refusal(Structure structure, ChunkPos chunk, ChunkGenerator generator,
+                              net.minecraft.world.level.levelgen.RandomState random) {
+            return StructureRuntime.refusal(bypass, filters, caps, structure, chunk, generator, random);
+        }
+
+        /** The ground a start is generated on as its level generates it: a forced start's height, else a filtered start's roofed floor. */
+        public Integer seat(Structure structure, ChunkPos chunk, ChunkGenerator generator, net.minecraft.world.level.levelgen.RandomState random) {
+            Integer y = groundAt(structure, chunk);
+            return y != null || !filters.containsKey(structure) ? y
+                    : SetPieceSeats.roofedFloor(generator, random, chunk.getMiddleBlockX(), chunk.getMiddleBlockZ());
+        }
+
+        /** As {@link StructureRuntime#floorRefusal}, under this control. */
+        public String floorRefusal(Structure structure, net.minecraft.world.level.levelgen.structure.BoundingBox box) {
+            return StructureRuntime.floorRefusal(filters.get(structure), box);
+        }
+
         /** The height a forced start of {@code structure} finds its ground at in {@code chunk}, or null. */
         public Integer groundAt(Structure structure, ChunkPos chunk) {
             Map<Structure, Integer> here = ground.get(chunk.pack());
@@ -403,8 +460,9 @@ public final class StructureRuntime {
 
     /** The level's structure state with its control applied and recorded for the level; the state itself when the pack has none for it. */
     public static ChunkGeneratorStructureState apply(ResourceKey<Level> levelKey, net.minecraft.core.RegistryAccess registries,
-                                                     ChunkGenerator generator, ChunkGeneratorStructureState original) {
-        Controlled c = control(levelKey, registries, generator, original);
+                                                     ChunkGenerator generator, ChunkGeneratorStructureState original,
+                                                     net.minecraft.world.level.LevelHeightAccessor levelHeight) {
+        Controlled c = control(levelKey, registries, generator, original, templates, levelHeight);
         if (c.applied() == null) {
             return original;
         }
@@ -427,6 +485,20 @@ public final class StructureRuntime {
      */
     public static Controlled control(ResourceKey<Level> levelKey, net.minecraft.core.RegistryAccess registries,
                                      ChunkGenerator generator, ChunkGeneratorStructureState original) {
+        return control(levelKey, registries, generator, original, null, null);
+    }
+
+    /**
+     * As above; with {@code templates}, each forced start's and want's
+     * candidates are generated until one stands (its own rules start it, it
+     * has ground under it, its floor fits its site filter) in the level's
+     * own height ({@code levelHeight}, the generator's when null), else it is
+     * not placed and the log says why.
+     */
+    public static Controlled control(ResourceKey<Level> levelKey, net.minecraft.core.RegistryAccess registries,
+                                     ChunkGenerator generator, ChunkGeneratorStructureState original,
+                                     net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager templates,
+                                     net.minecraft.world.level.LevelHeightAccessor levelHeight) {
         String level = levelKey.identifier().toString();
         StructureSpec spec = specs.get(level);
         if (spec == null) {
@@ -474,6 +546,11 @@ public final class StructureRuntime {
             }
         }
 
+        for (String id : spec.list()) {
+            if (present.contains(id) || setRegistry.containsKey(Identifier.parse(id))) continue;
+            warnOnce(level + ": structures.list " + id + " names no structure set"
+                    + (structures.containsKey(Identifier.parse(id)) ? " (it is a structure; list takes set ids)" : ""));
+        }
         Map<String, SetPieceEntry> ourSets = new HashMap<>();
         for (SetPieceEntry p : setPieceEntries.getOrDefault(level, List.of())) {
             if (p.set() != null) ourSets.put(p.set(), p);
@@ -633,18 +710,29 @@ public final class StructureRuntime {
 
         long indexedAt = System.nanoTime();
         List<Placed> placed = new ArrayList<>();
+        Map<String, String> unplaced = new LinkedHashMap<>();
         Map<Long, Set<Structure>> bypass = new HashMap<>();
         Map<Long, Map<Structure, Integer>> ground = new HashMap<>();
+        int border = spec.radiusChunks() * 16;
+        net.minecraft.world.level.LevelHeightAccessor height = levelHeight != null ? levelHeight
+                : net.minecraft.world.level.LevelHeightAccessor.create(generator.getMinY(), generator.getGenDepth());
         for (StructureSpec.Force f : spec.force()) {
             Optional<Holder.Reference<Structure>> s = structure(structures, f.structure());
             if (s.isEmpty()) {
                 CustomDimensions.LOG.warn("{}: forced structure {} is not in the registry", level, f.structure());
                 continue;
             }
-            StructureSites.Site site = StructureSites.choosePlaced(StructureSites.seed(original.getLevelSeed(), "force:" + f.structure()),
-                    f.x(), f.z(), 0, f.radius(), (cx, cz) -> startBiomeAt(s.get().value(), generator, original.randomState(), sampler,
-                            cx, cz, seaLevel) && passes(filters.get(s.get().value()), terrain, cx, cz));
-            fixed(out, bypass, placed, "force", f.structure(), s.get(), site);
+            if (shunned.contains(s.get().value())) {
+                warnOnce(level + ": forced structure " + f.structure() + " is also shunned; the shun wins and it is not placed");
+                unplaced.put("force " + f.structure(), "it is shunned");
+                continue;
+            }
+            StructureSites.Placement site = StructureSites.place(StructureSites.seed(original.getLevelSeed(), "force:" + f.structure()),
+                    f.x(), f.z(), 0, f.radius(), border, (cx, cz) -> passes(filters.get(s.get().value()), terrain, cx, cz),
+                    (cx, cz) -> startBiomeAt(s.get().value(), generator, original.randomState(), sampler, terrain, cx, cz, seaLevel),
+                    templates == null ? null : trial(levelKey, registries, generator, original.randomState(), original.getLevelSeed(),
+                            templates, height, s.get(), f.y(), filters.get(s.get().value())));
+            if (!fixed(out, bypass, placed, unplaced, level, "force", f.structure(), s.get(), site)) continue;
             if (f.y() != null) {
                 ground.computeIfAbsent(ChunkPos.pack(site.chunk().x(), site.chunk().z()), k -> new IdentityHashMap<>())
                         .put(s.get().value(), f.y());
@@ -660,13 +748,15 @@ public final class StructureRuntime {
             Holder<Structure> pick = candidates.stream().filter(h -> hasBiomeIn(h.value(), biomes)).findFirst().orElse(candidates.getFirst());
             ZoneStructureRules rules = zoneRules.getOrDefault(level, ZoneStructureRules.NONE);
             ZoneStructureRules.ZoneQuery query = zoneQueries.apply(level);
-            StructureSites.Site site = StructureSites.choosePlaced(StructureSites.seed(original.getLevelSeed(), "want:" + w.name()),
-                    spec.spawnChunkX() * 16 + 8, spec.spawnChunkZ() * 16 + 8, w.min(), w.max(),
+            StructureSites.Placement site = StructureSites.place(StructureSites.seed(original.getLevelSeed(), "want:" + w.name()),
+                    spec.spawnChunkX() * 16 + 8, spec.spawnChunkZ() * 16 + 8, w.min(), w.max(), border,
                     (cx, cz) -> (query == null || rules.wantAccepts(name -> matches(pick, name), cx * 16 + 8, cz * 16 + 8, query))
-                            && startBiomeAt(pick.value(), generator, original.randomState(), sampler, cx, cz, seaLevel)
-                            && passes(filters.get(pick.value()), terrain, cx, cz));
+                            && passes(filters.get(pick.value()), terrain, cx, cz),
+                    (cx, cz) -> startBiomeAt(pick.value(), generator, original.randomState(), sampler, terrain, cx, cz, seaLevel),
+                    templates == null ? null : trial(levelKey, registries, generator, original.randomState(), original.getLevelSeed(),
+                            templates, height, pick, null, filters.get(pick.value())));
             String id = pick.unwrapKey().map(k -> k.identifier().toString()).orElse(w.structure());
-            fixed(out, bypass, placed, "want", id, pick, site);
+            fixed(out, bypass, placed, unplaced, level, "want", id, pick, site);
         }
 
         int spawnX = spec.spawnChunkX() * 16 + 8;
@@ -727,7 +817,8 @@ public final class StructureRuntime {
                 .forEach(h -> approachesHere.put(h.value(), rules)));
         APPROACHES.put(level, approachesHere);
         long millis = (System.nanoTime() - started) / 1_000_000;
-        Applied applied = new Applied(level, out.size(), dropped, List.copyOf(droppedIds), replaced, groupSites, List.copyOf(placed), millis);
+        Applied applied = new Applied(level, out.size(), dropped, List.copyOf(droppedIds), replaced, groupSites, List.copyOf(placed), millis,
+                Map.copyOf(unplaced));
         String summary = String.format(Locale.ROOT, "density %s, %d set(s) kept, %d dropped %s, %d replaced, groups %s, %d fixed start(s), "
                         + "%d adaptation override(s), %d ms (sets %d ms, noise sites %d ms)", spec.density(), out.size(), dropped, droppedIds,
                 replaced, groupSites, placed.size(), adaptation.size(), millis, (pooledAt - started) / 1_000_000, (indexedAt - pooledAt) / 1_000_000);
@@ -740,15 +831,55 @@ public final class StructureRuntime {
         return filter == null || filter.accepts(terrain, cx * 16 + 8, cz * 16 + 8);
     }
 
-    private static void fixed(List<Holder<StructureSet>> out, Map<Long, Set<Structure>> bypass, List<Placed> placed,
-                              String kind, String id, Holder<Structure> structure, StructureSites.Site site) {
+    /** Places a forced start or a want where its chooser found it stands, and says so when it found nowhere; whether it was placed. */
+    private static boolean fixed(List<Holder<StructureSet>> out, Map<Long, Set<Structure>> bypass, List<Placed> placed,
+                                 Map<String, String> unplaced, String level, String kind, String id, Holder<Structure> structure,
+                                 StructureSites.Placement site) {
+        if (!site.stands()) {
+            warnOnce(level + ": " + kind + " " + id + " is not placed: nothing in its ring stands (" + site.account() + ")");
+            unplaced.put(kind + " " + id, site.account());
+            return false;
+        }
         out.add(Holder.direct(new StructureSet(structure, new StructurePlacements.Fixed(site.chunk().x(), site.chunk().z()))));
         bypass.computeIfAbsent(ChunkPos.pack(site.chunk().x(), site.chunk().z()), k -> new HashSet<>()).add(structure.value());
         placed.add(new Placed(kind, id, site.chunk().x(), site.chunk().z(), site.matched()));
         if (!site.matched()) {
-            CustomDimensions.LOG.warn("{} {}: none of up to {} tested chunks has its biome; it starts at chunk {}, {} with the biome check "
-                    + "bypassed (T53)", kind, id, StructureSites.PLACED_TESTS, site.chunk().x(), site.chunk().z());
+            warnOnce(level + ": " + kind + " " + id + ": no chunk where it stands has its biome; it starts at chunk " + site.chunk().x()
+                    + ", " + site.chunk().z() + " with the biome check bypassed (T53; " + site.account() + ")");
         }
+        return true;
+    }
+
+    /**
+     * Generates {@code structure} at a candidate chunk as its level would, its
+     * biome bypassed there and its ground pinned at {@code y} when given: why
+     * it does not stand, or null.
+     */
+    static StructureSites.Trial trial(ResourceKey<Level> levelKey, net.minecraft.core.RegistryAccess registries, ChunkGenerator generator,
+                                      net.minecraft.world.level.levelgen.RandomState random, long seed,
+                                      net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager templates,
+                                      net.minecraft.world.level.LevelHeightAccessor height, Holder<Structure> structure, Integer y,
+                                      com.customdimensions.core.structure.SiteFilter filter) {
+        return (cx, cz) -> {
+            net.minecraft.world.level.levelgen.structure.StructureStart start;
+            try {
+                Integer seat = y != null || filter == null ? y : SetPieceSeats.roofedFloor(generator, random, cx * 16 + 8, cz * 16 + 8);
+                start = structure.value().generate(structure, levelKey, registries, ground(generator, seat), generator.getBiomeSource(),
+                        random.createClimateSampler(net.minecraft.world.level.levelgen.densityfunction.SamplerContext.builder().enableCaches().build()),
+                        random, templates, seed, new ChunkPos(cx, cz), 0, height, b -> true);
+            } catch (RuntimeException e) {
+                return "its generation threw " + e;
+            }
+            if (!start.isValid()) {
+                String why = structure.value() instanceof SetPieceStructure piece
+                        ? SetPieceStructure.declined().get(piece.spec().key() + " " + cx + "," + cz) : null;
+                return "its own rules start none there" + (why == null ? "" : ": " + why);
+            }
+            if (y == null && UndergroundGround.floats(structure.value(), start.getBoundingBox(), generator, random, height)) {
+                return "no ground under it";
+            }
+            return floorRefusal(filter, start.getBoundingBox());
+        };
     }
 
     /** The group's index, its exclusion widened until the sites stay within the group's repetition ceiling per pooled structure. */
@@ -826,7 +957,6 @@ public final class StructureRuntime {
         return false;
     }
 
-    /** The structure's biome at the chunk's centre, near sea level. */
     /**
      * Whether a forced start or a want of {@code structure} would stand in one
      * of its biomes at this chunk: its biome near sea level ({@link #biomeAt}),
@@ -835,14 +965,31 @@ public final class StructureRuntime {
      */
     static boolean startBiomeAt(Structure structure, ChunkGenerator generator, net.minecraft.world.level.levelgen.RandomState random,
                                 BiomeResolver sampler, int cx, int cz, int seaLevel) {
-        if (!biomeAt(structure, sampler, cx, cz, seaLevel)) return false;
-        if (UndergroundGround.underground(structure)) return true;
+        return startBiomeAt(structure, generator, random, sampler, GeneratorTerrain.of(generator, random, sampler), cx, cz, seaLevel);
+    }
+
+    /**
+     * As above, reading the surface through {@code terrain}: a structure
+     * above ground takes the biome at the surface of the chunk's centre (the
+     * floor under a roof), where its own check reads it; an underground one
+     * the biome near sea level where the column's terrain spans that band,
+     * else across its own start heights ({@link UndergroundGround#startHeights}).
+     */
+    static boolean startBiomeAt(Structure structure, ChunkGenerator generator, net.minecraft.world.level.levelgen.RandomState random,
+                                BiomeResolver sampler, GeneratorTerrain terrain, int cx, int cz, int seaLevel) {
         int x = cx * 16 + 8;
         int z = cz * 16 + 8;
-        net.minecraft.world.level.LevelHeightAccessor height = net.minecraft.world.level.LevelHeightAccessor.create(generator.getMinY(),
-                generator.getGenDepth());
-        int y = generator.getBaseHeight(x, z, net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE_WG, height, random);
-        return biomeFits(structure, sampler.getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(y), QuartPos.fromBlock(z)));
+        if (!UndergroundGround.underground(structure)) {
+            int y = terrain.height(x, z);
+            return biomeFits(structure, sampler.getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(y), QuartPos.fromBlock(z)));
+        }
+        int[] own = UndergroundGround.spans(generator, random, terrain.height(), x, z, seaLevel - 24, seaLevel + 24) ? null
+                : UndergroundGround.startHeights(structure, generator, terrain.height());
+        if (own == null) return biomeAt(structure, sampler, cx, cz, seaLevel);
+        for (int y : own) {
+            if (biomeFits(structure, sampler.getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(y), QuartPos.fromBlock(z)))) return true;
+        }
+        return false;
     }
 
     static boolean biomeAt(Structure structure, BiomeResolver sampler, int cx, int cz, int seaLevel) {

@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.function.Predicate;
 
-/** A forced start or a want generates in its own chunk whatever the biome there, a forced start with a {@code y} on ground at that height; a structure a zone shuns does not start inside it; an underground structure does not start over the void ({@link UndergroundGround}); every other start keeps vanilla's check. */
+/** A forced start or a want generates in its own chunk whatever the biome there, a forced start with a {@code y} on ground at that height; a structure a zone shuns does not start inside it; an underground structure does not start over the void ({@link UndergroundGround}); a start whose box's floor lies outside its site filter's height does not start; every other start keeps vanilla's check. */
 @Mixin(ChunkGenerator.class)
 abstract class StructureBiomeBypassMixin {
     @WrapOperation(method = "tryGenerateStructure",
@@ -57,6 +57,14 @@ abstract class StructureBiomeBypassMixin {
             if (UndergroundGround.firstRefusal(level.identifier().toString(), holder.getRegisteredName())) {
                 com.customdimensions.server.CustomDimensions.LOG.info("{}: underground {} at chunk {} did not start: no ground under it "
                         + "(logged once per structure)", level.identifier(), holder.getRegisteredName(), chunk);
+            }
+            return StructureStart.INVALID_START;
+        }
+        String low = start.isValid() ? StructureRuntime.floorRefusal(level, structure, start.getBoundingBox()) : null;
+        if (low != null) {
+            if (StructureRuntime.firstSiteRefusal(level.identifier().toString(), holder.getRegisteredName())) {
+                com.customdimensions.server.CustomDimensions.LOG.info("{}: {} at chunk {} did not start: {} (logged once per structure)",
+                        level.identifier(), holder.getRegisteredName(), chunk, low);
             }
             return StructureStart.INVALID_START;
         }

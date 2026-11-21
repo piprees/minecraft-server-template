@@ -227,7 +227,7 @@ public final class Sampler {
         if (c == null) {
             ChunkGeneratorStructureState raw = generator.createState(access.lookupOrThrow(Registries.STRUCTURE_SET), random, seed);
             c = levelKey == null ? StructureRuntime.Controlled.none(raw)
-                    : StructureRuntime.control(levelKey, access, generator, raw);
+                    : StructureRuntime.control(levelKey, access, generator, raw, templates, heights);
             control = c;
         }
         return c;
@@ -243,7 +243,9 @@ public final class Sampler {
      * level's generation starts it: the structure's own generation point and
      * checks, its biomes there unless the control bypasses them, the
      * dimension's zone shuns, and an underground structure's ground
-     * ({@link com.customdimensions.server.structure.UndergroundGround}).
+     * ({@link com.customdimensions.server.structure.UndergroundGround}),
+     * its site filter and repetition ceiling, and its box's floor against the
+     * filter's height.
      */
     public boolean starts(Holder<Structure> structure, ChunkPos chunk) {
         return footprint(structure, chunk) != null;
@@ -257,6 +259,7 @@ public final class Sampler {
         if (templates == null) throw new IllegalStateException(dimension + ": a sampler made without a server cannot generate starts");
         if (StructureRuntime.zoneShunned(levelKey, structure, chunk)) return null;
         StructureRuntime.Controlled c = control();
+        if (c.refusal(structure.value(), chunk, generator, random) != null) return null;
         Predicate<Holder<Biome>> valid = c.bypasses(structure.value(), chunk) ? b -> true : structure.value().biomes()::contains;
         try {
             return generate(structure, chunk, c, valid);
@@ -276,10 +279,10 @@ public final class Sampler {
     private BoundingBox generate(Holder<Structure> structure, ChunkPos chunk, StructureRuntime.Controlled c,
                                  Predicate<Holder<Biome>> valid) {
         StructureStart start = structure.value().generate(structure, levelKey, access,
-                StructureRuntime.ground(generator, c.groundAt(structure.value(), chunk)), generator.getBiomeSource(),
+                StructureRuntime.ground(generator, c.seat(structure.value(), chunk, generator, random)), generator.getBiomeSource(),
                 random.createClimateSampler(SamplerContext.builder().enableCaches().build()), random, templates,
                 c.state().getLevelSeed(), chunk, 0, heights, valid);
-        if (!start.isValid()) return null;
+        if (!start.isValid() || c.floorRefusal(structure.value(), start.getBoundingBox()) != null) return null;
         boolean pinned = c.groundAt(structure.value(), chunk) != null;
         return pinned || !com.customdimensions.server.structure.UndergroundGround.floats(structure.value(), start.getBoundingBox(),
                 generator, random, heights) ? start.getBoundingBox() : null;

@@ -72,6 +72,87 @@ public final class StructureSites {
         return new Site(ring.get(0), false);
     }
 
+    /** At most this many candidates of a forced start or a want are generated to confirm they stand, per pass. */
+    public static final int TRIALS = 24;
+
+    /** Why a start in a chunk does not stand once generated (its own rules, its ground), or null when it stands. */
+    @FunctionalInterface
+    public interface Trial {
+        String refusal(int chunkX, int chunkZ);
+    }
+
+    /**
+     * Where a forced start or a want lands: {@code chunk} is null when nothing
+     * in its ring stands. The counts say why: candidates tested, those inside
+     * the border, those passing the site filter, those with the structure's
+     * biome, generations tried, and the first refusal a generation gave.
+     */
+    public record Placement(ChunkPos chunk, boolean matched, int tested, int inside, int sited, int fitting, int tried,
+                            String refusal) {
+        public boolean stands() {
+            return chunk != null;
+        }
+
+        /** The counts as one clause, for the log. */
+        public String account() {
+            return "of " + tested + " chunk(s) tested, " + inside + " inside the border, " + sited + " pass its site filter, " + fitting
+                    + " have its biome; " + tried + " generated" + (refusal == null ? "" : ", the first refused: " + refusal);
+        }
+    }
+
+    /**
+     * A forced start's or a want's chunk: candidates as {@link #choosePlaced}
+     * orders them, inside the border ({@code border} blocks of 0, 0 on either
+     * axis; 0 is no border) and passing {@code sited}. The first that also
+     * has its biome ({@code fits}) and stands when generated ({@code trial},
+     * at most {@link #TRIALS}) wins; else the first of the rest that stands,
+     * its biome check bypassed (T53); else none.
+     */
+    public static Placement place(long seed, int centreX, int centreZ, int minBlocks, int maxBlocks, int border,
+                                  BiPredicate<Integer, Integer> sited, BiPredicate<Integer, Integer> fits, Trial trial) {
+        List<ChunkPos> ring;
+        if (maxBlocks <= 0) {
+            ring = List.of(new ChunkPos(Math.floorDiv(centreX, 16), Math.floorDiv(centreZ, 16)));
+        } else {
+            ring = ring(centreX, centreZ, minBlocks, maxBlocks);
+            SplittableRandom random = new SplittableRandom(seed);
+            for (int i = ring.size() - 1; i > 0; i--) {
+                int j = random.nextInt(i + 1);
+                ChunkPos t = ring.get(i);
+                ring.set(i, ring.get(j));
+                ring.set(j, t);
+            }
+        }
+        int tests = Math.min(PLACED_TESTS, ring.size());
+        int inside = 0, sitedCount = 0, fitting = 0, tried = 0;
+        String first = null;
+        List<ChunkPos> unfit = new ArrayList<>();
+        for (int i = 0; i < tests; i++) {
+            ChunkPos c = ring.get(i);
+            if (border > 0 && (Math.abs(c.x() * 16 + 8) > border || Math.abs(c.z() * 16 + 8) > border)) continue;
+            inside++;
+            if (!sited.test(c.x(), c.z())) continue;
+            sitedCount++;
+            if (!fits.test(c.x(), c.z())) {
+                if (unfit.size() < TRIALS) unfit.add(c);
+                continue;
+            }
+            fitting++;
+            if (tried >= TRIALS) continue;
+            tried++;
+            String why = trial == null ? null : trial.refusal(c.x(), c.z());
+            if (why == null) return new Placement(c, true, i + 1, inside, sitedCount, fitting, tried, first);
+            if (first == null) first = why;
+        }
+        for (ChunkPos c : unfit) {
+            tried++;
+            String why = trial == null ? null : trial.refusal(c.x(), c.z());
+            if (why == null) return new Placement(c, false, tests, inside, sitedCount, fitting, tried, first);
+            if (first == null) first = why;
+        }
+        return new Placement(null, false, tests, inside, sitedCount, fitting, tried, first);
+    }
+
     /**
      * A noise group's sites settled where they can be filled: a site the
      * predicate accepts (a pooled structure's biome is there) stays; any

@@ -109,6 +109,22 @@ public record SiteFilter(Integer slope, int radius, Integer minHeight, Integer m
         return null;
     }
 
+    /** How far a start's box may reach below the height window's minimum: its buried foundations. */
+    public static final int FOUNDATION_DEPTH = 8;
+
+    /**
+     * Why a start whose box's floor is at {@code floorY} fails this filter's
+     * height window, or null when it lies inside it (down to
+     * {@value #FOUNDATION_DEPTH} below the minimum, for its foundations).
+     */
+    public String floorRefusal(int floorY) {
+        if (minHeight != null && floorY < minHeight - FOUNDATION_DEPTH) {
+            return "its floor y " + floorY + " is more than " + FOUNDATION_DEPTH + " below " + minHeight;
+        }
+        if (maxHeight != null && floorY > maxHeight) return "its floor y " + floorY + " is above " + maxHeight;
+        return null;
+    }
+
     public boolean accepts(Terrain t, int x, int z) {
         return refusal(t, x, z) == null;
     }

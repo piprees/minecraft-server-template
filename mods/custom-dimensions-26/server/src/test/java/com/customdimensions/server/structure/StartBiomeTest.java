@@ -73,4 +73,24 @@ class StartBiomeTest {
         }
         throw new AssertionError("no chunk on the fixture's line has a surface biome other than its sea-level band's");
     }
+
+    @Test
+    void aStructureAboveGroundIsNotGatedOnTheSeaLevelBand() {
+        // Sky worlds put sea level in the void, so the band never holds a surface structure's biome.
+        int sea = generator.getSeaLevel();
+        LevelHeightAccessor height = LevelHeightAccessor.create(generator.getMinY(), generator.getGenDepth());
+        for (int cx = 0; cx < 4000; cx += 7) {
+            int x = cx * 16 + 8;
+            int z = 8;
+            int y = generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, height, random);
+            Holder<Biome> top = biome(x, y, z);
+            if (top.equals(biome(x, sea, z)) || top.equals(biome(x, sea + 24, z)) || top.equals(biome(x, sea - 24, z))) continue;
+            Structure topOnly = surfaceStructureIn(top);
+            assertFalse(StructureRuntime.biomeAt(topOnly, sampler, cx, 0, sea), "the sea-level band refuses it");
+            assertTrue(StructureRuntime.startBiomeAt(topOnly, generator, random, sampler, cx, 0, sea),
+                    "chunk " + cx + ",0: surface " + top.getRegisteredName());
+            return;
+        }
+        throw new AssertionError("no chunk on the fixture's line has a surface biome outside its sea-level band");
+    }
 }

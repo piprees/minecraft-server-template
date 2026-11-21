@@ -96,10 +96,8 @@
     "sites": {
       "minecraft:bastion_remnant": {
         "height": {
-          "min": 36
-        },
-        "slope": 16,
-        "radius": 24
+          "min": 33
+        }
       }
     }
   }

@@ -19,8 +19,10 @@ import java.util.List;
 /**
  * A level's base terrain as a {@link SiteFilter} reads it: heights from the
  * generator's base columns (no features, as a structure's own siting reads
- * them), biomes from the level's biome resolver. Every answer is computed from
- * noise, so it is the same before and after the chunk generates.
+ * them), biomes from the level's biome resolver. Under a roof the surface is
+ * the floor a seat stands on ({@link #roofedSurface}), not the roof.
+ * Every answer is computed from noise, so it is the same before and after the
+ * chunk generates.
  */
 record GeneratorTerrain(ChunkGenerator generator, LevelHeightAccessor height, RandomState random, BiomeResolver biomes)
         implements SiteFilter.Terrain {
@@ -31,12 +33,29 @@ record GeneratorTerrain(ChunkGenerator generator, LevelHeightAccessor height, Ra
 
     @Override
     public int height(int x, int z) {
-        return generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, height, random);
+        int h = generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, height, random);
+        return roofed(h) ? roofedSurface(generator, random, x, z) : h;
     }
 
     @Override
     public int floor(int x, int z) {
-        return generator.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, height, random);
+        int h = generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, height, random);
+        return roofed(h) ? roofedSurface(generator, random, x, z)
+                : generator.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, height, random);
+    }
+
+    /** As {@link SetPieceSeats#roofedFloor} decides it: a surface within {@value SetPieceSeats#ROOF} of the top is a roof. */
+    private boolean roofed(int surface) {
+        return surface >= height.getMaxY() - SetPieceSeats.ROOF;
+    }
+
+    /**
+     * The surface under a roof: the floor a seat stands on ({@link SetPieceSeats#roofedFloor}), or sea level where
+     * there is none, so an open lava or water sea reads as its own surface.
+     */
+    static int roofedSurface(ChunkGenerator generator, RandomState random, int x, int z) {
+        Integer floor = SetPieceSeats.roofedFloor(generator, random, x, z);
+        return floor != null ? floor : generator.getSeaLevel();
     }
 
     @Override

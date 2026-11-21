@@ -268,8 +268,9 @@ public final class SetPiecePart extends StructurePiece {
         found.get().placeInWorld(level, corner, corner, settings, RandomSource.create(seed), 2);
         for (StructureTemplate.StructureBlockInfo marker : found.get().filterBlocks(corner, settings, Blocks.STRUCTURE_BLOCK)) {
             if (marker.nbt() == null || !"DATA".equals(marker.nbt().getStringOr("mode", ""))) continue;
-            TiltedTemplate.marker(level, chunkBox, marker.nbt().getStringOr("metadata", ""), marker.pos(), marker.pos().below(),
-                    settings.getRotation().rotate(Direction.SOUTH), seed);
+            TiltedTemplate.Marker m = new TiltedTemplate.Marker(marker.nbt().getStringOr("metadata", ""), marker.pos(), marker.pos().below(),
+                    settings.getRotation().rotate(Direction.SOUTH));
+            if (chunkBox.isInside(m.owner())) TiltedTemplate.marker(level, chunkBox, m.metadata(), m.pos(), m.below(), m.facing(), seed);
         }
         if (age != null && (age.cobweb > 0 || age.vine > 0)) grow(level, chunkBox, age, seed);
     }

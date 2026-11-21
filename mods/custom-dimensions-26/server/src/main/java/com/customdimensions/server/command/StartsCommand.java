@@ -18,11 +18,13 @@ import net.minecraft.commands.Commands;
 import net.minecraft.util.Util;
 
 /**
- * {@code /customdim starts <dimension> [radius]}: every structure start within
- * {@code radius} blocks of 0, 0 (the dimension's border by default), counted by
- * structure, confirmed as generation confirms them ({@link StructureStarts})
- * without generating a chunk, under the server's registry and the dimension's
- * structure control. The count runs off the server thread.
+ * {@code /customdim starts <dimension> [radius] [structure]}: every structure
+ * start within {@code radius} blocks of 0, 0 (the dimension's border by
+ * default), counted by structure, confirmed as generation confirms them
+ * ({@link StructureStarts}) without generating a chunk, under the server's
+ * registry and the dimension's structure control. With a structure, each of
+ * its starts instead: its chunk centre, its box's floor and the surface a site
+ * filter reads there. The count runs off the server thread.
  */
 final class StartsCommand {
     static final int DEFAULT_RADIUS = 4096;
@@ -34,7 +36,42 @@ final class StartsCommand {
                 .executes(c -> starts(c.getSource(), c.getArgument("dimension", String.class), null))
                 .then(Commands.argument("radius", IntegerArgumentType.integer(16, 65536))
                         .executes(c -> starts(c.getSource(), c.getArgument("dimension", String.class),
-                                IntegerArgumentType.getInteger(c, "radius"))))));
+                                IntegerArgumentType.getInteger(c, "radius")))
+                        .then(Commands.argument("structure", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+                                .executes(c -> each(c.getSource(), c.getArgument("dimension", String.class),
+                                        IntegerArgumentType.getInteger(c, "radius"),
+                                        com.mojang.brigadier.arguments.StringArgumentType.getString(c, "structure")))))));
+    }
+
+    private static int each(CommandSourceStack source, String slug, int radius, String structure) {
+        Optional<LevelManager> manager = CustomDimCommands.manager(source);
+        if (manager.isEmpty()) return 0;
+        if (CustomDimCommands.dimension(source, manager.get(), slug).isEmpty()) return 0;
+        var server = source.getServer();
+        Sampler sampler;
+        try {
+            sampler = Sampler.forDimension(server, manager.get(), slug, null);
+        } catch (RuntimeException e) {
+            CustomDimCommands.fail(source, "customdim.starts.failed", "dimension", slug, "reason", CustomDimCommands.reason(e));
+            return 0;
+        }
+        CustomDimCommands.ok(source, "customdim.starts.started", "dimension", slug, "radius", String.valueOf(radius));
+        CompletableFuture.supplyAsync(() -> {
+            List<String> rows = new java.util.ArrayList<>();
+            StructureStarts.find(sampler, sampler.structureState(), structure::equals, 0, 0, radius, null, id -> Integer.MAX_VALUE,
+                    id -> radius, null, (start, box) -> rows.add(start.x() + "," + start.z() + " floor " + box.minY() + " surface "
+                            + com.customdimensions.server.structure.StructureRuntime.siteSurface(sampler.generator(), sampler.random(),
+                            start.x(), start.z())));
+            return rows;
+        }, Util.backgroundExecutor()).whenComplete((rows, error) -> server.execute(() -> {
+            if (error != null) {
+                CustomDimCommands.fail(source, "customdim.starts.failed", "dimension", slug, "reason", CustomDimCommands.reason(error));
+                return;
+            }
+            CustomDimCommands.ok(source, "customdim.starts.each", "structure", structure, "dimension", slug, "radius", String.valueOf(radius),
+                    "total", String.valueOf(rows.size()), "each", String.join("; ", rows));
+        }));
+        return 1;
     }
 
     private static int starts(CommandSourceStack source, String slug, Integer radius) {
