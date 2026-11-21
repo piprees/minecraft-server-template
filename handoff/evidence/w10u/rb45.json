@@ -1,0 +1,646 @@
+{
+ "the_nether": [
+  {
+   "structure": "minecraft:fortress",
+   "status": "kept (vanilla)",
+   "shot": "the_nether-structure-fortress",
+   "onItsGround": "causeway on piers across a gorge; one detached slab",
+   "site": "across a gorge over lava",
+   "materialsAndAge": "nether brick, vanilla",
+   "scale": "vanilla",
+   "approach": {
+    "yes": true,
+    "line": "the causeway ends on the gorge sides"
+   }
+  },
+  {
+   "structure": "minecraft:bastion_remnant",
+   "status": "kept (vanilla); the lava-sea start waits on SP2's shore filter",
+   "shot": "the_nether-structure-bastion_remnant",
+   "onItsGround": "rises from the lava sea",
+   "site": "lava sea",
+   "materialsAndAge": "blackstone, vanilla",
+   "scale": "vanilla",
+   "approach": {
+    "yes": false,
+    "line": "no shore or path at this start"
+   }
+  },
+  {
+   "structure": "minecraft:bastion_remnant (starts 2-3)",
+   "status": "kept (vanilla)",
+   "shot": "the_nether-structure-bastion_remnant-2",
+   "onItsGround": "stands on a soul sand valley floor; start 3 on a netherrack valley floor",
+   "site": "valley floors",
+   "materialsAndAge": "blackstone, vanilla",
+   "scale": "vanilla",
+   "approach": {
+    "yes": true,
+    "line": "open valley floor round it"
+   }
+  },
+  {
+   "structure": "mns:mega_fortress",
+   "status": "kept",
+   "shot": "the_nether-structure-mega_fortress",
+   "onItsGround": "polished blackstone plinth in a lava lake",
+   "site": "a soul sand cavern's lava lake",
+   "materialsAndAge": "stone and red brick, brought",
+   "scale": "large",
+   "approach": {
+    "yes": false,
+    "line": "no causeway to the plinth"
+   }
+  },
+  {
+   "structure": "minecraft:nether_fossil",
+   "status": "kept (vanilla)",
+   "shot": "the_nether-structure-nether_fossil",
+   "onItsGround": "on a soul soil terrace",
+   "site": "soul sand valley",
+   "materialsAndAge": "bone, vanilla",
+   "scale": "small",
+   "approach": {
+    "yes": true,
+    "line": "open ground"
+   }
+  },
+  {
+   "structure": "nova_structures:sealing_halls",
+   "status": "kept",
+   "shot": "the_nether-structure-sealing_halls",
+   "onItsGround": "a hall in the rock",
+   "site": "near the rim (707 blocks out)",
+   "materialsAndAge": "polished blackstone and nether brick",
+   "scale": "large interior",
+   "approach": {
+    "yes": false,
+    "line": "the outside is framed in s2"
+   }
+  },
+  {
+   "structure": "mns:bridge_1..6",
+   "status": "removed and shunned",
+   "shot": null,
+   "onItsGround": "fragments joining nothing",
+   "site": "-",
+   "materialsAndAge": "-",
+   "scale": "-",
+   "approach": {
+    "yes": false,
+    "line": "re-skin candidate: a span set piece"
+   }
+  },
+  {
+   "structure": "towns_and_towers:exclusives/village_piglin",
+   "status": "removed and shunned; returns with SP2's maximum-height site filter",
+   "shot": null,
+   "onItsGround": "stood on the roof",
+   "site": "-",
+   "materialsAndAge": "-",
+   "scale": "-",
+   "approach": {
+    "yes": false,
+    "line": "-"
+   }
+  }
+ ],
+ "the_wailing_narrows": [
+  {
+   "structure": "minecraft:fortress",
+   "status": "kept (vanilla), wanted within 260 of spawn",
+   "shot": "the_wailing_narrows-structure-fortress-r2",
+   "onItsGround": "in the chasm network; not visible from its frames",
+   "site": "among the chasms",
+   "materialsAndAge": "nether brick, vanilla",
+   "scale": "vanilla",
+   "approach": {
+    "yes": false,
+    "line": "not shown in a frame"
+   }
+  },
+  {
+   "structure": "mns:giant_skull",
+   "status": "kept, buried",
+   "shot": "the_wailing_narrows-structure-giant_skull",
+   "onItsGround": "sunk into the ground (bury)",
+   "site": "a crevice side",
+   "materialsAndAge": "blackstone and basalt",
+   "scale": "medium",
+   "approach": {
+    "yes": true,
+    "line": "open crevice floor"
+   }
+  },
+  {
+   "structure": "minecraft:ancient_city",
+   "status": "kept (forced 210,-180)",
+   "shot": null,
+   "onItsGround": "deep under the floor",
+   "site": "under the chasms",
+   "materialsAndAge": "deepslate, vanilla",
+   "scale": "vanilla",
+   "approach": {
+    "yes": false,
+    "line": "no frame: no open space reaches it"
+   }
+  },
+  {
+   "structure": "mns:bridge_1..6",
+   "status": "removed and shunned",
+   "shot": null,
+   "onItsGround": "fragments crossing nothing",
+   "site": "-",
+   "materialsAndAge": "-",
+   "scale": "-",
+   "approach": {
+    "yes": false,
+    "line": "re-skin candidate: a span set piece"
+   }
+  },
+  {
+   "structure": "mns:large_blackstone_pillars",
+   "status": "removed and shunned",
+   "shot": null,
+   "onItsGround": "knee-high stumps",
+   "site": "-",
+   "materialsAndAge": "-",
+   "scale": "-",
+   "approach": {
+    "yes": false,
+    "line": "-"
+   }
+  }
+ ],
+ "the_gilded_pit": [
+  {
+   "structure": "minecraft:bastion_remnant",
+   "status": "kept (forced 278,31)",
+   "shot": "the_gilded_pit-structure-bastion_remnant",
+   "onItsGround": "on a blackstone hill in the pit",
+   "site": "the pit floor",
+   "materialsAndAge": "blackstone",
+   "scale": "vanilla",
+   "approach": {
+    "yes": true,
+    "line": "open ground round it"
+   }
+  },
+  {
+   "structure": "mns:mega_fortress",
+   "status": "kept (forced)",
+   "shot": "the_gilded_pit-structure-mega_fortress",
+   "onItsGround": "halls over lava channels",
+   "site": "the pit floor",
+   "materialsAndAge": "stone and red brick, brought",
+   "scale": "large",
+   "approach": {
+    "yes": true,
+    "line": "lava channels and halls"
+   }
+  },
+  {
+   "structure": "nova_structures:piglin_donjon",
+   "status": "kept (forced, beard_box)",
+   "shot": "the_gilded_pit-structure-piglin_donjon",
+   "onItsGround": "walls down to the ground",
+   "site": "the pit floor",
+   "materialsAndAge": "blackstone",
+   "scale": "large",
+   "approach": {
+    "yes": true,
+    "line": "a gate on the ground"
+   }
+  },
+  {
+   "structure": "nova_structures:hamlet",
+   "status": "kept",
+   "shot": "the_gilded_pit-structure-hamlet",
+   "onItsGround": "set into the pit wall",
+   "site": "the pit edge",
+   "materialsAndAge": "nether brick",
+   "scale": "medium",
+   "approach": {
+    "yes": true,
+    "line": "from the pit floor"
+   }
+  },
+  {
+   "structure": "nova_structures:nether_port / piglin_outstation / sealing_halls",
+   "status": "kept",
+   "shot": "the_gilded_pit-structure-nether_port",
+   "onItsGround": "not visible from their frames (walls of rock)",
+   "site": "in the pit walls",
+   "materialsAndAge": "nether brick, blackstone",
+   "scale": "medium",
+   "approach": {
+    "yes": false,
+    "line": "not shown"
+   }
+  },
+  {
+   "structure": "minecraft:fortress",
+   "status": "kept (vanilla)",
+   "shot": null,
+   "onItsGround": "near the border",
+   "site": "-",
+   "materialsAndAge": "nether brick",
+   "scale": "vanilla",
+   "approach": {
+    "yes": false,
+    "line": "no frame passed (border)"
+   }
+  },
+  {
+   "structure": "ati_structures:dark_keep",
+   "status": "kept (forced 372,411)",
+   "shot": null,
+   "onItsGround": "-",
+   "site": "near the border",
+   "materialsAndAge": "-",
+   "scale": "-",
+   "approach": {
+    "yes": false,
+    "line": "no frame passed"
+   }
+  },
+  {
+   "structure": "mns:large_blackstone_walls, mns:nether_tower, mns:crimson_forge, nova_structures:nether_keep",
+   "status": "removed and shunned",
+   "shot": null,
+   "onItsGround": "a lone spire; a purple tower; a sandstone hut; a keep sliced by an overhang",
+   "site": "-",
+   "materialsAndAge": "-",
+   "scale": "-",
+   "approach": {
+    "yes": false,
+    "line": "re-skin candidates: walls, a forge and a keep in gold-seamed blackstone"
+   }
+  }
+ ],
+ "the_forged_depths": [
+  {
+   "structure": "mns:crimson_forge",
+   "status": "kept, wanted 0-120",
+   "shot": "the_forged_depths-structure-crimson_forge",
+   "onItsGround": "a domed forge among blackstone crags",
+   "site": "beside the landing",
+   "materialsAndAge": "red brick and blackstone",
+   "scale": "small",
+   "approach": {
+    "yes": true,
+    "line": "over the crags"
+   }
+  },
+  {
+   "structure": "minecraft:bastion_remnant",
+   "status": "kept",
+   "shot": "the_forged_depths-structure-bastion_remnant",
+   "onItsGround": "on the flat at the deep's edge, in haze",
+   "site": "the deep",
+   "materialsAndAge": "blackstone",
+   "scale": "vanilla",
+   "approach": {
+    "yes": true,
+    "line": "open ground"
+   }
+  },
+  {
+   "structure": "minecraft:fortress",
+   "status": "kept",
+   "shot": "the_forged_depths-structure-fortress",
+   "onItsGround": "along lava channels in the crags",
+   "site": "the crags",
+   "materialsAndAge": "nether brick",
+   "scale": "vanilla",
+   "approach": {
+    "yes": true,
+    "line": "channel banks"
+   }
+  },
+  {
+   "structure": "nova_structures:hamlet / nether_port",
+   "status": "kept",
+   "shot": "the_forged_depths-structure-nether_port",
+   "onItsGround": "ruins among blackstone crags",
+   "site": "the crags",
+   "materialsAndAge": "blackstone, nether brick",
+   "scale": "medium",
+   "approach": {
+    "yes": true,
+    "line": "between crags"
+   }
+  },
+  {
+   "structure": "nova_structures:piglin_donjon",
+   "status": "kept",
+   "shot": "the_forged_depths-structure-piglin_donjon",
+   "onItsGround": "a blackstone shaft from the floor",
+   "site": "the crags",
+   "materialsAndAge": "blackstone",
+   "scale": "large",
+   "approach": {
+    "yes": true,
+    "line": "from the floor"
+   }
+  },
+  {
+   "structure": "nova_structures:sealing_halls",
+   "status": "kept",
+   "shot": "the_forged_depths-structure-sealing_halls",
+   "onItsGround": "an interior hall",
+   "site": "in the rock",
+   "materialsAndAge": "blackstone, nether brick",
+   "scale": "large interior",
+   "approach": {
+    "yes": false,
+    "line": "interior only"
+   }
+  },
+  {
+   "structure": "nova_structures:nether_keep",
+   "status": "removed and shunned",
+   "shot": null,
+   "onItsGround": "terrain heaped over its storeys",
+   "site": "-",
+   "materialsAndAge": "-",
+   "scale": "-",
+   "approach": {
+    "yes": false,
+    "line": "-"
+   }
+  }
+ ],
+ "the_molten_flats": [
+  {
+   "structure": "mns:mega_fortress",
+   "status": "kept",
+   "shot": "the_molten_flats-structure-mega_fortress",
+   "onItsGround": "on a blackstone shelf over a lava channel",
+   "site": "the flat's edge",
+   "materialsAndAge": "blackstone and red brick",
+   "scale": "large",
+   "approach": {
+    "yes": false,
+    "line": "no causeway over the channel"
+   }
+  },
+  {
+   "structure": "nova_structures:piglin_outstation",
+   "status": "kept",
+   "shot": null,
+   "onItsGround": "not visible from its frames",
+   "site": "the flat",
+   "materialsAndAge": "nether brick",
+   "scale": "medium",
+   "approach": {
+    "yes": false,
+    "line": "no frame shows it"
+   }
+  },
+  {
+   "structure": "mns:bridge_1, mns:crimson_lava_well, mns:crimson_forge",
+   "status": "removed and shunned",
+   "shot": null,
+   "onItsGround": "a sunken pit; a kiosk; a dome",
+   "site": "-",
+   "materialsAndAge": "-",
+   "scale": "-",
+   "approach": {
+    "yes": false,
+    "line": "re-skin candidates: a pipeline, a well yard, a reactor"
+   }
+  }
+ ],
+ "the_violet_spire": [
+  {
+   "structure": "ddd:wizard_tower",
+   "status": "kept, wanted 150-500",
+   "shot": "the_violet_spire-structure-wizard_tower",
+   "onItsGround": "on grass at the foot of an amethyst-veined slot",
+   "site": "a slot canyon",
+   "materialsAndAge": "stone",
+   "scale": "tall",
+   "approach": {
+    "yes": true,
+    "line": "the slot floor"
+   }
+  },
+  {
+   "structure": "mss:castle_ruin",
+   "status": "kept, wanted 450-650",
+   "shot": "the_violet_spire-structure-castle_ruin",
+   "onItsGround": "on its own island, grown over",
+   "site": "an island top",
+   "materialsAndAge": "stone, ruined",
+   "scale": "small",
+   "approach": {
+    "yes": false,
+    "line": "no bridge to its island"
+   }
+  },
+  {
+   "structure": "mss:large_tower, ati_structures:fortified_temple",
+   "status": "removed and shunned",
+   "shot": null,
+   "onItsGround": "on a rock cone with walkways over the void; floating free",
+   "site": "-",
+   "materialsAndAge": "-",
+   "scale": "-",
+   "approach": {
+    "yes": false,
+    "line": "re-skin candidate: the aurel tower as a set piece"
+   }
+  }
+ ],
+ "the_abyssal_shrine": [
+  {
+   "structure": "minecraft:monument",
+   "status": "kept (forced 0,0)",
+   "shot": "old-the_abyssal_shrine-structure-monument-r2-nv",
+   "onItsGround": "on the lake floor",
+   "site": "the lake's centre",
+   "materialsAndAge": "prismarine, vanilla",
+   "scale": "vanilla",
+   "approach": {
+    "yes": false,
+    "line": "swim down"
+   }
+  }
+ ],
+ "the_sunken_temple": [
+  {
+   "structure": "nova_structures:conduit_ruin / small_conduit_ruin_warm",
+   "status": "kept",
+   "shot": null,
+   "onItsGround": "under the basin water",
+   "site": "basin floors",
+   "materialsAndAge": "prismarine",
+   "scale": "small",
+   "approach": {
+    "yes": false,
+    "line": "no frame passes under water"
+   }
+  },
+  {
+   "structure": "ati_structures:sinking_temple, mss:castle_ruin",
+   "status": "removed and shunned",
+   "shot": null,
+   "onItsGround": "dry on a sky meadow; a stump on a sky island",
+   "site": "-",
+   "materialsAndAge": "-",
+   "scale": "-",
+   "approach": {
+    "yes": false,
+    "line": "re-skin candidate: a temple at the water line"
+   }
+  }
+ ],
+ "the_end": [
+  {
+   "structure": "minecraft:end_city",
+   "status": "kept (vanilla)",
+   "shot": "the_end-structure-end_city",
+   "onItsGround": "on an island",
+   "site": "outer islands",
+   "materialsAndAge": "purpur, vanilla",
+   "scale": "vanilla",
+   "approach": {
+    "yes": true,
+    "line": "island ground"
+   }
+  },
+  {
+   "structure": "mes:phantom_citadel",
+   "status": "kept",
+   "shot": "the_end-structure-phantom_citadel",
+   "onItsGround": "on a chorus crest",
+   "site": "outer islands",
+   "materialsAndAge": "purpur and end stone brick",
+   "scale": "large",
+   "approach": {
+    "yes": true,
+    "line": "a bridge and the crest"
+   }
+  },
+  {
+   "structure": "mes:mystical_archway",
+   "status": "kept",
+   "shot": "the_end-structure-mystical_archway",
+   "onItsGround": "on a terraced crest",
+   "site": "outer islands",
+   "materialsAndAge": "end stone, purpur, amethyst",
+   "scale": "medium",
+   "approach": {
+    "yes": true,
+    "line": "up the terraces"
+   }
+  },
+  {
+   "structure": "nova_structures:end_lighthouse",
+   "status": "kept",
+   "shot": "the_end-structure-end_lighthouse",
+   "onItsGround": "on an island's edge facing the void",
+   "site": "island edge",
+   "materialsAndAge": "purpur, end stone brick",
+   "scale": "medium",
+   "approach": {
+    "yes": true,
+    "line": "an entrance stair"
+   }
+  },
+  {
+   "structure": "mes:monolith, mes:ender_spire, mes:astral_meteorite",
+   "status": "kept",
+   "shot": "the_end-structure-monolith",
+   "onItsGround": "on end stone plains",
+   "site": "outer islands",
+   "materialsAndAge": "end stone, obsidian",
+   "scale": "small",
+   "approach": {
+    "yes": true,
+    "line": "open ground"
+   }
+  },
+  {
+   "structure": "mes:mega_ship",
+   "status": "kept",
+   "shot": "the_end-structure-mega_ship",
+   "onItsGround": "nose-down on an island",
+   "site": "outer islands",
+   "materialsAndAge": "end stone, purpur",
+   "scale": "large",
+   "approach": {
+    "yes": true,
+    "line": "its own wreck line"
+   }
+  },
+  {
+   "structure": "nova_structures:end_castle, mes:enderskog, mes:enderbloom_grove, mes:placid_prairie",
+   "status": "removed and shunned",
+   "shot": null,
+   "onItsGround": "over the void on stilts; single props",
+   "site": "-",
+   "materialsAndAge": "-",
+   "scale": "-",
+   "approach": {
+    "yes": false,
+    "line": "-"
+   }
+  }
+ ],
+ "the_bloodroot_wastes": [
+  {
+   "structure": "mns:mega_fortress",
+   "status": "kept",
+   "shot": "the_bloodroot_wastes-structure-mega_fortress",
+   "onItsGround": "halls in the forest",
+   "site": "the forest",
+   "materialsAndAge": "stone and red brick",
+   "scale": "large",
+   "approach": {
+    "yes": true,
+    "line": "from the forest floor"
+   }
+  },
+  {
+   "structure": "mns:medium_crimson_well",
+   "status": "kept",
+   "shot": "the_bloodroot_wastes-structure-medium_crimson_well-r2",
+   "onItsGround": "lost among fungi",
+   "site": "the forest",
+   "materialsAndAge": "-",
+   "scale": "small",
+   "approach": {
+    "yes": false,
+    "line": "hidden by the canopy"
+   }
+  },
+  {
+   "structure": "nova_structures:piglin_camp",
+   "status": "kept, wanted 100-800",
+   "shot": "the_bloodroot_wastes-structure-piglin_camp",
+   "onItsGround": "on a nylium floor",
+   "site": "the forest floor",
+   "materialsAndAge": "-",
+   "scale": "small",
+   "approach": {
+    "yes": true,
+    "line": "open floor"
+   }
+  },
+  {
+   "structure": "mns:crimson_forge, mns:crimson_lava_well, mns:medium_crimson_fungus, nova_structures:piglin_camp_collony",
+   "status": "removed and shunned",
+   "shot": null,
+   "onItsGround": "not visible from their boxes; glued under an overhang",
+   "site": "-",
+   "materialsAndAge": "-",
+   "scale": "-",
+   "approach": {
+    "yes": false,
+    "line": "re-skin candidates: a forge and a camp in a clearing"
+   }
+  }
+ ]
+}
