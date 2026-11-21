@@ -186,3 +186,19 @@ Why: the owner wants the pack full of fitting places and is happy to delegate th
 **RB-48 — Progression stays simple, conventional and speedrunnable.**
 A progression gate (strongholds and their End portal, a dimension's portal, a key structure) may move or change as long as it still makes sense and is reached by simple rules a player can work out from Minecraft's own conventions. No progression by time invested or grind: no brewing chains, farming quotas or crafting puzzles standing between a player and a gate. Someone who knows the rules could still speedrun it with little gear; finishing is not the point of the pack. Portal recipes (RB-40, RB-41) stay this simple: a frame of one block and a familiar igniter, found through exploring.
 Why: the pack is about exploring and telling one's own stories; a gate that demands a grind turns it into a different game.
+
+**RB-49 — No natural waystones, and no player teleporting.**
+Server-Side Waystones is in the pack, but none generate naturally and players cannot craft them; only admins place them, or a dimension's definition places one as a set piece (a storytelling piece, a server meeting place). Teleport commands stay off for players, as they are today.
+Why: travel is where encounters happen; a network of waystones lets players skip the walking and flying the world is built for.
+
+**RB-50 — Trek joins, beta builds accepted; Biome Strongholds joins.**
+Trek's 26.3 beta is accepted, with its overrides of vanilla's End cities, villages, strongholds and pillager outposts. Where Trek and Biome Strongholds both claim strongholds, one owner is chosen and the other's override switched off, so a stronghold stays findable by eyes of ender and its portal lights with 12 eyes (RB-48). The End keeps about 57 cities with elytra at 8% a chest; the overworld keeps its rim mansion.
+Why: the owner reviewed Trek and wants its structures; a beta is acceptable before the switch, and the checks above keep the verified progression intact.
+
+**RB-51 — Where mods compete for the same structure, the pack blends them by weight.**
+When two or more installed mods override the same vanilla structure or structure set (Trek and Biome Strongholds both replace strongholds), custom-dimensions keeps every version instead of letting load order pick one: each mod's version is registered under its own id, and the contested set draws from all of them with weights set in config (strongholds: Biome Strongholds' variants 11 in 12, Trek's 1 in 12). The blend is listed and checkable: a command and the boot log name every contested entry, its versions and their weights.
+Why: the mod is a bridge between other mods, so a conflict becomes variety rather than a silent winner; the weights let the more interesting versions dominate.
+
+**RB-52 — Our spacing decides where structures go; a mod's placement does not.**
+A structure set's placement (spacing, separation, frequency, rings) comes from the dimension's definition, the base worlds included: its `structures` spacing overrides, noise groups, density and radials, and otherwise vanilla's own placement for vanilla's sets. A mod that overrides a vanilla set's placement (Trek's villages at spacing 48, the Ancient City Overhaul's separation 20) contributes its structures and pools, never its placement. A mod's own new sets keep the placement they ship with until a definition sets one.
+Why: placement is part of configuring a dimension; letting load order decide it takes that control away silently.
