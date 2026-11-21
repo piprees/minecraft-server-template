@@ -49,7 +49,7 @@ Radius 8192, about 211 km². Distance from spawn reads as age: the present at th
 
 The highest summit's birdcage (trail 7) is placed by height, not band. Band edges are noise-jittered so the map never shows a ring.
 
-Means: `structures.wants` with `min`/`max` rings (**exists**; the overworld definition has no wants yet, PL0 wires them); `structures.radial` per group, ten points spawn to border (**exists**): settlements falling outward, ruins and dungeons rising; zones with an `inner`/`outer` ring and `structures.wants`/`shuns` lists (**exists**); `age` by band (**gap** G5); lived-in density by band (**gap** G6).
+Means: `structures.wants` with `min`/`max` rings (**exists**; the overworld definition has no wants yet, PL0 wires them); `structures.radial` per group, ten points spawn to border (**exists**): settlements falling outward, ruins and dungeons rising; zones with an `inner`/`outer` ring and `structures.wants`/`shuns` lists (**exists**); `age` per place and per dimension (**exists**, `structures.age`), by band (**gap**, SP3); lived-in density by band (**gap** G6).
 
 ## Anchor and satellites
 
@@ -66,7 +66,7 @@ A trail's anchor is placed first, by `force` or a `want` (**exists**). Inside on
 
 Across dimensions, satellites have no distance: they are linked by marks alone. Two anchors of different trails keep at least a quarter of the dimension's radius apart (1024 in the overworld), and the ground between them stays quiet.
 
-Means: `structures.force` and `wants` for the anchor (**exists**); `story` on a set piece (**planned**, named in set-pieces.md § Deep-time links); satellite placement relative to the anchor, relations and anchor separation (**gap** G1, G2, G4); terrain predicates (**gap** G3).
+Means: `structures.force` and `wants` for the anchor (**exists**); `story` on a set piece (**planned**, named in set-pieces.md § Deep-time links); satellite placement relative to the anchor, relations and anchor separation (**gap** G1, G2, G4); terrain predicates (**exists**: `structures.sites` and a set piece's `site`).
 
 ## Age, shown the same way everywhere
 
@@ -81,7 +81,7 @@ Four ages. Every place of one age wears the same way, whichever kit built it, so
 
 **Layering:** a younger place may stand on an older one, each at its own age: a camp (recent) on a trail ruin (old) on a buried hall (ancient). It is rare; a layered site is a find in itself.
 
-Means: template `integrity`, `embed` and `processors` (**planned**, SP2); `terrainAdaptation` `bury`, `encapsulate`, `pedestal`, `platform_skirt`, `ground_blend` (**exists**); camp `state` (**planned**, SP4); `archaeology` (**planned**, SP4); one `age` value driving all columns, per element and by band (**gap** G5); seating one element on another (**gap** G7); applying age to mod structures (**gap** G13).
+Means: template `integrity`, `embed` and `processors` (**exists**); `terrainAdaptation` `bury`, `encapsulate`, `pedestal`, `platform_skirt`, `ground_blend` (**exists**); camp `state` (**planned**, SP4); `archaeology` (**planned**, SP4); one `age` value driving integrity, burial, weathering and growth, per element, set piece and dimension (**exists**), by band and with its archaeology share (**gap** G5); seating one element on another (**gap** G7); applying age to mod structures (**gap** G13).
 
 ## Small dimensions
 
@@ -133,8 +133,9 @@ Each small world's way onward is its portal study and its found recipes, never a
 | Portal aura on studies | `portals[].aura.palette` | exists |
 | Loot additions | `structures.loot` (item id, chance, structures) | exists, id only |
 | Mob scaling | `difficulty.mobMultiplier`, `depthScaling`, `attributes` | exists, no proximity |
-| Our places, seats, support, slope | `setPieces`, `seat`, `support`, `slope` | planned (SP2) |
-| Aged templates | `template` `integrity`, `embed`, `tilt`, `processors` | planned (SP2) |
+| Our places, seats, support, slope | `setPieces`, `seat` (`ground`, `floor`, `pinned`), `support`, `slope` | exists; seats `roof`, `wall`, `water` planned (SP3) |
+| Aged templates | `template` `integrity`, `embed`, `processors`, `age` | exists; `tilt` planned (SP4, with `wreck`) |
+| Site filters | `structures.sites.<id>`, a set piece's `site`: slope, height, relative height, water, cliff, shelter, biome | exists |
 | Camps, hovels, gates, studies | `camp`, `hovel`, `gate` (`attempt` with `study`) | planned (SP4) |
 | Archaeology, mobs, chests | `archaeology`, `mob`, `chest` | planned (SP4) |
 | Story membership | `story` | planned, unspecified |
