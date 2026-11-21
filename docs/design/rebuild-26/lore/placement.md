@@ -49,7 +49,7 @@ Radius 8192, about 211 km². Distance from spawn reads as age: the present at th
 
 The highest summit's birdcage (trail 7) is placed by height, not band. Band edges are noise-jittered so the map never shows a ring.
 
-Means: `structures.wants` with `min`/`max` rings (**exists**; the overworld definition has no wants yet, PL0 wires them); `structures.radial` per group, ten points spawn to border (**exists**): settlements falling outward, ruins and dungeons rising; zones with an `inner`/`outer` ring and `structures.wants`/`shuns` lists (**exists**); `age` per place and per dimension (**exists**, `structures.age`), by band (**gap**, SP3); lived-in density by band (**gap** G6).
+Means: `structures.wants` with `min`/`max` rings (**exists**; the overworld definition has no wants yet, PL0 wires them); `structures.radial` per group, ten points spawn to border (**exists**): settlements falling outward, ruins and dungeons rising; zones with an `inner`/`outer` ring and `structures.wants`/`shuns` lists (**exists**); `age` per place and per dimension (**exists**, `structures.age`), by band (**exists**, `structures.age` as ages by inner radius); lived-in density by band (**exists**, a set piece's `lived` with its `radial`).
 
 ## Anchor and satellites
 
@@ -81,7 +81,7 @@ Four ages. Every place of one age wears the same way, whichever kit built it, so
 
 **Layering:** a younger place may stand on an older one, each at its own age: a camp (recent) on a trail ruin (old) on a buried hall (ancient). It is rare; a layered site is a find in itself.
 
-Means: template `integrity`, `embed` and `processors` (**exists**); `terrainAdaptation` `bury`, `encapsulate`, `pedestal`, `platform_skirt`, `ground_blend` (**exists**); camp `state` (**planned**, SP4); `archaeology` (**planned**, SP4); one `age` value driving integrity, burial, weathering and growth, per element, set piece and dimension (**exists**), by band and with its archaeology share (**gap** G5); seating one element on another (**gap** G7); applying age to mod structures (**gap** G13).
+Means: template `integrity`, `embed` and `processors` (**exists**); `terrainAdaptation` `bury`, `encapsulate`, `pedestal`, `platform_skirt`, `ground_blend` (**exists**); camp `state` (**planned**, SP4); `archaeology` (**planned**, SP4); one `age` value driving integrity, burial, weathering and growth, per element, set piece and dimension (**exists**), by band and with its archaeology share (**gap** G5); seating one element on another (**exists**, an element's `on` and `at`); applying age to mod structures (**gap** G13).
 
 ## Small dimensions
 
@@ -129,11 +129,15 @@ Each small world's way onward is its portal study and its found recipes, never a
 | Fixed anchors | `structures.force` (`x`, `z`, `y`, `radius`) | exists |
 | Copy ceilings | `structures.repetition`, `rarity` | exists |
 | Ground fit | `structures.terrainAdaptation` (incl. `bury`, `pedestal`, `platform_skirt`, `ground_blend`) | exists |
+| Footings (G9) | `structures.terrainAdaptation` and a set piece's `terrainAdaptation`: `footing` (fill under every piece to the ground in the dimension's own stone), `terrace` (footing and a stepped bank round each piece); slope limits by `slope` | exists |
+| Approach (G8) | a set piece's `approach`, `structures.approaches.<id>`: path, steps, bridge, ladder, chain, debris | exists |
+| Lived-in layer (G6) | a set piece's `lived`: density per km², `radial`, `biomes`, `siting` (path, view, water, hollow); `line` style `path` | exists |
+| Shapes | `crater`, `pit`, `fall`, `wall`, `line`, `column`, `field`, `crown`, `platform` | exists |
 | Dimension palettes | `materials` | exists |
 | Portal aura on studies | `portals[].aura.palette` | exists |
 | Loot additions | `structures.loot` (item id, chance, structures) | exists, id only |
 | Mob scaling | `difficulty.mobMultiplier`, `depthScaling`, `attributes` | exists, no proximity |
-| Our places, seats, support, slope | `setPieces`, `seat` (`ground`, `floor`, `pinned`), `support`, `slope` | exists; seats `roof`, `wall`, `water` planned (SP3) |
+| Our places, seats, support, slope | `setPieces`, `seat` (`ground`, `floor`, `pinned`, `roof`, `wall`, `water`), `support`, `slope` | exists |
 | Aged templates | `template` `integrity`, `embed`, `processors`, `age` | exists; `tilt` planned (SP4, with `wreck`) |
 | Site filters | `structures.sites.<id>`, a set piece's `site`: slope, height, relative height, water, cliff, shelter, biome | exists |
 | Camps, hovels, gates, studies | `camp`, `hovel`, `gate` (`attempt` with `study`) | planned (SP4) |
@@ -153,12 +157,7 @@ Requirements only; the design of each is its package's.
 - **G4 Separation.** A minimum distance between anchors of different stories, and a quiet radius round each anchor where groups place nothing beyond its satellites.
 - **G5 Age.** One `age` value (`recent`, `old`, `ancient`, `deep`) on a set piece or element that sets integrity, burial, weathering swaps (stone to mossy or cracked, copper oxidation stage, planks dropped, wool removed), cobwebs, vines and archaeology share; a dimension default and a default by band (a radial).
 
-**SP3 (shapes, seats)**
-
-- **G6 The lived-in layer.** Tiny set pieces (half-size 8 or less) in a group whose density is per km², by band (a radial) and by biome, with siting relations: on a path line, at a view edge (a local high point with a drop), by water, in a hollow. A `line` style `path` that follows the terrain between two sites as worn path and coarse dirt.
-- **G7 Layering.** An element seated on another element's top or inside its footprint, each with its own age.
-- **G8 Approach.** An `approach` any place can carry, ours or a mod's: a path to the nearest path or site, steps cut into a slope, a bridge over a gap, a ladder or chain down a face, a debris line along a vector.
-- **G9 Footings.** For ours and mods' alike: fill under a footprint down to ground in the dimension's own stone (never air stilts), cut terraces on a slope, and decline when the footprint's spread exceeds its slope limit rather than slice a cliff. A terrain-adaptation override per structure, beyond the vanilla set.
+**SP3 (shapes, seats)**: G6 (the lived-in layer), G7 (layering), G8 (approach) and G9 (footings) are in § Means and their fields.
 
 **SP4 (assemblies, things inside)**
 

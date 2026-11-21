@@ -46,8 +46,9 @@ abstract class StructureBiomeBypassMixin {
             return StructureStart.INVALID_START;
         }
         Integer ground = StructureRuntime.forcedGround(level, structure, chunk);
-        StructureStart start = original.call(structure, holder, level, registries, StructureRuntime.ground(generator, ground), biomes,
-                sampler, random, templates, seed, chunk, references, height, test);
+        Integer floor = ground == null ? StructureRuntime.roofedGround(level, structure, chunk, generator, random) : null;
+        StructureStart start = original.call(structure, holder, level, registries, StructureRuntime.ground(generator, ground != null ? ground : floor),
+                biomes, sampler, random, templates, seed, chunk, references, height, test);
         if (ground != null && !start.isValid()) {
             com.customdimensions.server.CustomDimensions.LOG.warn("{}: forced {} at chunk {} did not start on ground at y {}: "
                     + "its own rules refuse that height", level.identifier(), holder.getRegisteredName(), chunk, ground);
@@ -59,14 +60,14 @@ abstract class StructureBiomeBypassMixin {
             }
             return StructureStart.INVALID_START;
         }
-        String floor = start.isValid() ? StructureRuntime.floorRefusal(level, structure, start.getBoundingBox()) : null;
-        if (floor != null) {
+        String low = start.isValid() ? StructureRuntime.floorRefusal(level, structure, start.getBoundingBox()) : null;
+        if (low != null) {
             if (StructureRuntime.firstSiteRefusal(level.identifier().toString(), holder.getRegisteredName())) {
                 com.customdimensions.server.CustomDimensions.LOG.info("{}: {} at chunk {} did not start: {} (logged once per structure)",
-                        level.identifier(), holder.getRegisteredName(), chunk, floor);
+                        level.identifier(), holder.getRegisteredName(), chunk, low);
             }
             return StructureStart.INVALID_START;
         }
-        return start;
+        return com.customdimensions.server.structure.Approaches.with(level, holder, start, generator, random, height);
     }
 }

@@ -103,6 +103,17 @@ public final class StructuresCompiler {
                 entry.structure("sites: " + sites.size() + " structure(s) filtered by slope, height, water, cliff, shelter or biome");
             }
         }
+        if (def.structures() != null && def.structures().has("approaches")) {
+            JsonObject a = new JsonObject();
+            def.structures().getAsJsonObject("approaches").entrySet().forEach(e -> {
+                com.google.gson.JsonArray list = new com.google.gson.JsonArray();
+                com.customdimensions.core.structure.SetPieceSetting.Approach.readAll(slug + ": structures.approaches." + e.getKey(), e.getValue())
+                        .forEach(p -> list.add(p.toJson()));
+                a.add(e.getKey(), list);
+            });
+            json.add("approaches", a);
+            entry.structure("approaches: " + a.size() + " structure(s) reached by a path, steps, bridge, ladder, chain or debris line");
+        }
         com.customdimensions.core.structure.ZoneStructureRules zones =
                 com.customdimensions.core.structure.ZoneStructureRules.read(slug, def.zones());
         if (!zones.rules().isEmpty()) {

@@ -1,0 +1,11 @@
+{
+  "seat": "wall",
+  "band": [32, 110],
+  "rise": 5,
+  "reach": 64,
+  "size": 12,
+  "age": "recent",
+  "elements": [
+    {"kind": "fall", "liquid": "lava", "pool": 2}
+  ]
+}

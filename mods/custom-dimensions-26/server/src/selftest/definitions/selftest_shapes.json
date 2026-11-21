@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: set-piece shapes on overworld ground. A crater with a path approach, a crown of growth on the tops round a hill, a pinned platform over the ground, a house pinned above the ground standing on its footings, a pillar with a lantern seated on its top, a mooring on water, a marker far out whose age comes from the distance bands, and a tiny cairn in the lived-in layer sited by water.",
+  "seed": 20261042,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "borders": {
+    "player": 512
+  },
+  "structures": {
+    "age": {"recent": 0, "old": 200, "ancient": 400, "jitter": 0},
+    "force": [
+      {"structure": "adventure:set_piece/selftest_shapes/crater_site", "x": 40, "z": 40, "radius": 96},
+      {"structure": "adventure:set_piece/selftest_shapes/hill_crown", "x": -120, "z": 80, "radius": 160},
+      {"structure": "adventure:set_piece/selftest_shapes/overlook", "x": 100, "z": -100, "y": 120},
+      {"structure": "adventure:set_piece/selftest_shapes/stilt_house", "x": -60, "z": -140, "y": 110},
+      {"structure": "adventure:set_piece/selftest_shapes/layered_pillar", "x": 140, "z": 140, "radius": 96},
+      {"structure": "adventure:set_piece/selftest_shapes/mooring", "x": 0, "z": 0, "radius": 400},
+      {"structure": "adventure:set_piece/selftest_shapes/far_marker", "x": 440, "z": 0, "radius": 32}
+    ],
+    "sites": {
+      "adventure:set_piece/selftest_shapes/mooring": {"water": {"max": 0}}
+    }
+  },
+  "setPieces": {
+    "crater_site": {
+      "name": "The Test Crater",
+      "seat": "ground",
+      "size": 24,
+      "support": 0.5,
+      "palette": {"scorch": ["minecraft:basalt", "minecraft:blackstone"]},
+      "approach": {"kind": "path", "to": "spawn", "length": 40},
+      "elements": [
+        {"kind": "crater", "radius": 12, "depth": 5, "rim": 2, "scorch": 18, "lining": "scorch"}
+      ]
+    },
+    "hill_crown": {
+      "name": "The Test Crown",
+      "seat": "ground",
+      "size": 24,
+      "support": 0.5,
+      "elements": [
+        {"kind": "crown", "radius": 22, "window": 4, "rise": 2, "growth": "minecraft:amethyst_block"}
+      ]
+    },
+    "overlook": {
+      "name": "The Test Overlook",
+      "seat": "pinned",
+      "size": 8,
+      "age": "recent",
+      "elements": [
+        {"kind": "platform", "width": 5, "depth": 4, "palette": "minecraft:polished_andesite"}
+      ]
+    },
+    "stilt_house": {
+      "name": "The Test House",
+      "seat": "pinned",
+      "size": 12,
+      "age": "recent",
+      "terrainAdaptation": "footing",
+      "elements": [
+        {"kind": "template", "id": "minecraft:village/plains/houses/plains_small_house_1", "integrity": 1.0, "embed": 0}
+      ]
+    },
+    "layered_pillar": {
+      "name": "The Test Pillar",
+      "seat": "ground",
+      "size": 10,
+      "support": 0.4,
+      "elements": [
+        {"kind": "column", "name": "pillar", "height": 6, "radius": 1, "age": "ancient", "palette": "minecraft:stone_bricks"},
+        {"kind": "block", "block": "minecraft:lantern", "on": "pillar", "age": "recent"}
+      ]
+    },
+    "mooring": {
+      "name": "The Test Mooring",
+      "seat": "water",
+      "depth": 2,
+      "size": 4,
+      "support": 0.3,
+      "elements": [
+        {"kind": "column", "height": 2, "radius": 0, "palette": "minecraft:spruce_log", "footing": false}
+      ]
+    },
+    "far_marker": {
+      "name": "The Test Marker",
+      "seat": "ground",
+      "size": 4,
+      "support": 0.3,
+      "elements": [
+        {"kind": "column", "height": 3, "radius": 0, "palette": "minecraft:cobblestone"}
+      ]
+    },
+    "cairn": {
+      "name": "A Test Cairn",
+      "seat": "ground",
+      "size": 3,
+      "support": 0.3,
+      "lived": {"density": 40, "siting": "water"},
+      "elements": [
+        {"kind": "column", "height": 2, "radius": 0, "palette": "minecraft:cobblestone"}
+      ]
+    }
+  }
+}

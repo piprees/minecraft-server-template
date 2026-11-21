@@ -85,7 +85,7 @@ class PlacementTrialTest {
         for (int x = 0; x < 20000; x += 16) {
             NoiseColumn c = nether.getBaseColumn(x, 0, h, netherRandom);
             if (!c.getBlock(sea - 1).getFluidState().isEmpty() && c.getBlock(sea).isAir() && c.getBlock(sea + 8).isAir()
-                    && GeneratorTerrain.roofedFloor(nether, netherRandom, h, x, 0) == sea) {
+                    && GeneratorTerrain.roofedSurface(nether, netherRandom, x, 0) == sea) {
                 return x;
             }
         }
@@ -97,7 +97,7 @@ class PlacementTrialTest {
         int x = lavaSea();
         GeneratorTerrain terrain = GeneratorTerrain.of(nether, netherRandom, nether.getBiomeSource().createUncachedResolver(netherRandom));
         int roof = nether.getBaseHeight(x, 0, Heightmap.Types.WORLD_SURFACE_WG, height(nether), netherRandom);
-        assertTrue(roof >= nether.getMinY() + nether.getGenDepth() - GeneratorTerrain.ROOF_MARGIN, "the column is roofed: " + roof);
+        assertTrue(roof >= nether.getMinY() + nether.getGenDepth() - 1 - SetPieceSeats.ROOF, "the column is roofed: " + roof);
         assertEquals(nether.getSeaLevel(), terrain.height(x, 0), "the open lava sea reads as its own surface");
         SiteFilter offTheLava = SiteFilter.read("t", JsonParser.parseString("{\"height\": {\"min\": 36}}").getAsJsonObject());
         assertNotNull(offTheLava.refusal(terrain, x, 0), "a bastion's height filter keeps it off the lava sea");
@@ -108,11 +108,11 @@ class PlacementTrialTest {
         LevelHeightAccessor h = height(nether);
         int found = 0;
         for (int x = 0; x < 4000 && found < 20; x += 8) {
-            int y = GeneratorTerrain.roofedFloor(nether, netherRandom, h, x, 0);
+            int y = GeneratorTerrain.roofedSurface(nether, netherRandom, x, 0);
             if (y == nether.getSeaLevel()) continue;
             NoiseColumn c = nether.getBaseColumn(x, 0, h, netherRandom);
             assertTrue(!c.getBlock(y - 1).isAir() && c.getBlock(y - 1).getFluidState().isEmpty(), x + ": solid under " + y);
-            for (int k = 0; k < GeneratorTerrain.HEADROOM; k++) assertTrue(c.getBlock(y + k).isAir(), x + ": air at " + (y + k));
+            for (int k = 0; k < SetPieceSeats.HEADROOM; k++) assertTrue(c.getBlock(y + k).isAir(), x + ": air at " + (y + k));
             found++;
         }
         assertTrue(found > 0, "some columns of the fixture's line have land under the roof");
