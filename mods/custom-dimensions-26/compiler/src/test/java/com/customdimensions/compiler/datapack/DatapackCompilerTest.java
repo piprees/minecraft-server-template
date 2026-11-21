@@ -147,6 +147,26 @@ class DatapackCompilerTest {
     }
 
     @Test
+    void aFogDistanceOpensTheFogAndHoldsOverAListedBiomesOwn() {
+        DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"nether\"}, "
+                + "\"biomes\": [\"adventure:withered_forest\", \"minecraft:nether_wastes\"], "
+                + "\"atmosphere\": {\"fogColor\": \"#1B0B2B\", \"fogDistance\": {\"start\": 48, \"end\": 320}}");
+        JsonObject attributes = attributes(type(out, "t"));
+        assertEquals(48.0, attributes.get("minecraft:visual/fog_start_distance").getAsDouble());
+        assertEquals(320.0, attributes.get("minecraft:visual/fog_end_distance").getAsDouble());
+        for (String biome : List.of("adventure:withered_forest", "minecraft:nether_wastes")) {
+            assertEquals("320.0", layered(out, "t", biome, "minecraft:visual/fog_end_distance"), biome);
+        }
+    }
+
+    @Test
+    void aFogDistanceMustOpenOutwards() {
+        RuntimeException e = assertThrows(RuntimeException.class, () -> Fixtures.compile("t", OVERWORLD
+                + ", \"atmosphere\": {\"fogDistance\": {\"start\": 200, \"end\": 100}}"));
+        assertTrue(e.getMessage().contains("atmosphere.fogDistance"), e.getMessage());
+    }
+
+    @Test
     void aFogColourHoldsOverTheBiomesByDefault() {
         DatapackCompiler.Output out = Fixtures.compile("t", "\"generator\": {\"type\": \"noise\", \"preset\": \"nether\"}, "
                 + "\"biomes\": [\"adventure:withered_forest\"], \"atmosphere\": {\"fogColor\": \"#1B0B2B\"}");

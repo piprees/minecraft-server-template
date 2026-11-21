@@ -467,7 +467,7 @@ public final class DatapackCompiler {
             if (d != null) applyDayLength(type, d, entry);
         }
         applyRules(type, def.rules());
-        if (overBiomes(a)) applyOverBiomes(slug, type, entry);
+        if (overBiomes(a)) applyOverBiomes(slug, type, a.fogDistance() != null, entry);
         return type;
     }
 
@@ -478,19 +478,23 @@ public final class DatapackCompiler {
         return a.skyColor() != null || a.fogColor() != null;
     }
 
-    /** The environment attributes {@code atmosphere.overBiomes} holds over the biomes. */
+    /** The environment attributes {@code atmosphere.overBiomes} holds over the biomes; a fog distance only when the definition sets one. */
     static final List<String> OVER_BIOMES = List.of("minecraft:visual/sky_color", "minecraft:visual/fog_color");
+    static final List<String> OVER_BIOMES_FOG = List.of("minecraft:visual/fog_start_distance", "minecraft:visual/fog_end_distance");
 
     /**
      * {@code atmosphere.overBiomes}: the dimension type's sky and fog colours as the timeline
-     * {@code <ns>:atmosphere/<slug>}, one constant override track each, first in the type's timelines. The game
+     * {@code <ns>:atmosphere/<slug>}, one constant override track each (and the fog's start and end when the definition sets
+     * {@code fogDistance}), first in the type's timelines. The game
      * applies a dimension's attributes, then its biomes', then its timelines in order, so the colours win over every
      * biome's own and the day's timelines still darken them at night.
      */
-    private void applyOverBiomes(String slug, JsonObject type, CompileReport.Entry entry) {
+    private void applyOverBiomes(String slug, JsonObject type, boolean fogDistance, CompileReport.Entry entry) {
         JsonObject attributes = attributes(type);
         JsonObject tracks = new JsonObject();
-        for (String key : OVER_BIOMES) {
+        List<String> keys = new ArrayList<>(OVER_BIOMES);
+        if (fogDistance) keys.addAll(OVER_BIOMES_FOG);
+        for (String key : keys) {
             JsonElement v = attributes.get(key);
             if (v == null) continue;
             JsonObject keyframe = new JsonObject();
@@ -611,6 +615,10 @@ public final class DatapackCompiler {
         }
         if (a.fogColor() != null) {
             attributes.addProperty("minecraft:visual/fog_color", colour(a.fogColor()));
+        }
+        if (a.fogDistance() != null) {
+            attributes.addProperty("minecraft:visual/fog_start_distance", a.fogDistance().start());
+            attributes.addProperty("minecraft:visual/fog_end_distance", a.fogDistance().end());
         }
         if (a.ambientLight() != null) {
             type.addProperty("ambient_light", a.ambientLight());

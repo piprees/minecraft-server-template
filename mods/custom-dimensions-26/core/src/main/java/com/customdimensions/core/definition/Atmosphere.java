@@ -5,10 +5,16 @@ import com.google.gson.JsonObject;
 
 /**
  * Schema v2 {@code atmosphere}: sky, fog and ambient light, a fixed time of day or a day length, a vanilla sky to
- * borrow, and whether the dimension's sky and fog colours win over its biomes' own ({@code overBiomes}).
+ * borrow, whether the dimension's sky and fog colours win over its biomes' own ({@code overBiomes}), and how far the fog
+ * starts and ends ({@code fogDistance}).
  */
 public record Atmosphere(String skyColor, String fogColor, Double ambientLight, Long fixedTime, String effects, DayLength dayLength,
-                         Boolean overBiomes) {
+                         Boolean overBiomes, FogDistance fogDistance) {
+
+    public Atmosphere(String skyColor, String fogColor, Double ambientLight, Long fixedTime, String effects, DayLength dayLength,
+                      Boolean overBiomes) {
+        this(skyColor, fogColor, ambientLight, fixedTime, effects, dayLength, overBiomes, null);
+    }
 
     public Atmosphere(String skyColor, String fogColor, Double ambientLight, Long fixedTime, String effects) {
         this(skyColor, fogColor, ambientLight, fixedTime, effects, null, null);
@@ -16,6 +22,18 @@ public record Atmosphere(String skyColor, String fogColor, Double ambientLight, 
 
     public Atmosphere(String skyColor, String fogColor, Double ambientLight, Long fixedTime, String effects, DayLength dayLength) {
         this(skyColor, fogColor, ambientLight, fixedTime, effects, dayLength, null);
+    }
+
+    /** {@code fogDistance}: blocks from the eye where the fog starts and where it is opaque. */
+    public record FogDistance(double start, double end) {
+        public static final double MAX_BLOCKS = 1024;
+
+        public FogDistance {
+            if (!(start >= 0 && end > start && end <= MAX_BLOCKS)) {
+                throw new IllegalArgumentException("atmosphere.fogDistance needs 0 <= start < end <= " + (int) MAX_BLOCKS
+                        + ", got start " + start + ", end " + end);
+            }
+        }
     }
 
     /** {@code dayLength}: real minutes from sunrise to sunset ({@code dayMinutes}) and from sunset to sunrise ({@code nightMinutes}). */

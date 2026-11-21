@@ -665,6 +665,16 @@
         "ambientLight": { "type": "number", "minimum": 0, "maximum": 1 },
         "fixedTime": { "type": "integer", "minimum": 0 },
         "effects": { "$ref": "#/$defs/id" },
+        "fogDistance": {
+          "description": "Blocks from the eye where the fog starts and where it is opaque, over the preset's (the Nether's 10 and 96) and, with overBiomes, over every biome's own.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["start", "end"],
+          "properties": {
+            "start": { "type": "number", "minimum": 0, "maximum": 1024 },
+            "end": { "type": "number", "minimum": 1, "maximum": 1024 }
+          }
+        },
         "overBiomes": {
           "description": "true: the dimension's sky and fog colours (skyColor, fogColor, or those effects brings) win over every biome's own, as the first of its timelines, whose override the day and night still darken; false: a biome's own colours win where it has them. Default: true when the dimension sets skyColor or fogColor, false otherwise.",
           "type": "boolean"
