@@ -1,0 +1,554 @@
+[
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone1-chorus_forest",
+  "x": 1113.6,
+  "y": "open+14",
+  "z": 324.8,
+  "at": [
+   1156,
+   60,
+   340
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:chorus_forest",
+  "landPixels": 49,
+  "why": "zone 1 (adventure:chorus_forest, centre 1194 369): its densest land at 1152 336 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": 1140.8,
+    "y": "open+14",
+    "z": 374.4
+   },
+   {
+    "x": 1163.2,
+    "y": "open+14",
+    "z": 297.6
+   },
+   {
+    "x": 1190.4,
+    "y": "open+14",
+    "z": 347.2
+   },
+   {
+    "x": 1116.9,
+    "y": "open+14",
+    "z": 355.2
+   },
+   {
+    "x": 1132.8,
+    "y": "open+14",
+    "z": 300.9
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone2-glowing_grasslands",
+  "x": 193.6,
+  "y": "open+14",
+  "z": 1192.5,
+  "at": [
+   204,
+   60,
+   1236
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:glowing_grasslands",
+  "landPixels": 49,
+  "why": "zone 2 (adventure:glowing_grasslands, centre 277 1219): its densest land at 200 1232 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": 160.5,
+    "y": "open+14",
+    "z": 1238.4
+   },
+   {
+    "x": 239.5,
+    "y": "open+14",
+    "z": 1225.6
+   },
+   {
+    "x": 206.4,
+    "y": "open+14",
+    "z": 1271.5
+   },
+   {
+    "x": 167.5,
+    "y": "open+14",
+    "z": 1208.6
+   },
+   {
+    "x": 223.4,
+    "y": "open+14",
+    "z": 1199.5
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone3-foggy_mushroomland",
+  "x": -835.3,
+  "y": "open+14",
+  "z": 812.1,
+  "at": [
+   -860,
+   60,
+   844
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:foggy_mushroomland",
+  "landPixels": 49,
+  "why": "zone 3 (adventure:foggy_mushroomland, centre -917 849): its densest land at -864 840 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": -891.9,
+    "y": "open+14",
+    "z": 811.3
+   },
+   {
+    "x": -836.1,
+    "y": "open+14",
+    "z": 868.7
+   },
+   {
+    "x": -892.7,
+    "y": "open+14",
+    "z": 867.9
+   },
+   {
+    "x": -863.4,
+    "y": "open+14",
+    "z": 800.0
+   },
+   {
+    "x": -824.0,
+    "y": "open+14",
+    "z": 840.6
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone4-lantern_woods",
+  "x": -1129.2,
+  "y": "open+14",
+  "z": -286.2,
+  "at": [
+   -1164,
+   60,
+   -292
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:lantern_woods",
+  "landPixels": 49,
+  "why": "zone 4 (adventure:lantern_woods, centre -1194 -369): its densest land at -1168 -296 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": -1158.2,
+    "y": "open+14",
+    "z": -334.8
+   },
+   {
+    "x": -1177.8,
+    "y": "open+14",
+    "z": -257.2
+   },
+   {
+    "x": -1206.8,
+    "y": "open+14",
+    "z": -305.8
+   },
+   {
+    "x": -1133.6,
+    "y": "open+14",
+    "z": -316.5
+   },
+   {
+    "x": -1147.5,
+    "y": "open+14",
+    "z": -261.6
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone5-sulphur_springs",
+  "x": -232.5,
+  "y": "open+14",
+  "z": -1224.7,
+  "at": [
+   -236,
+   60,
+   -1260
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:sulphur_springs",
+  "landPixels": 49,
+  "why": "zone 5 (adventure:sulphur_springs, centre -277 -1219): its densest land at -240 -1264 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": -200.7,
+    "y": "open+14",
+    "z": -1271.5
+   },
+   {
+    "x": -279.3,
+    "y": "open+14",
+    "z": -1256.5
+   },
+   {
+    "x": -247.5,
+    "y": "open+14",
+    "z": -1303.3
+   },
+   {
+    "x": -206.9,
+    "y": "open+14",
+    "z": -1241.5
+   },
+   {
+    "x": -262.5,
+    "y": "open+14",
+    "z": -1230.9
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone6-megalake",
+  "x": 866.9,
+  "y": "open+14",
+  "z": -820.5,
+  "at": [
+   900,
+   60,
+   -844
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:megalake",
+  "landPixels": 49,
+  "why": "zone 6 (adventure:megalake, centre 917 -849): its densest land at 896 -848 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": 923.5,
+    "y": "open+14",
+    "z": -818.9
+   },
+   {
+    "x": 868.5,
+    "y": "open+14",
+    "z": -877.1
+   },
+   {
+    "x": 925.1,
+    "y": "open+14",
+    "z": -875.5
+   },
+   {
+    "x": 894.9,
+    "y": "open+14",
+    "z": -808.0
+   },
+   {
+    "x": 856.0,
+    "y": "open+14",
+    "z": -849.1
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone7-lantern_woods",
+  "x": 1180.7,
+  "y": "open+14",
+  "z": 1266.7,
+  "at": [
+   1212,
+   60,
+   1300
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:lantern_woods",
+  "landPixels": 49,
+  "why": "zone 7 (adventure:lantern_woods, centre 1194 1280): its densest land at 1208 1296 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": 1178.7,
+    "y": "open+14",
+    "z": 1323.3
+   },
+   {
+    "x": 1237.3,
+    "y": "open+14",
+    "z": 1268.7
+   },
+   {
+    "x": 1235.3,
+    "y": "open+14",
+    "z": 1325.3
+   },
+   {
+    "x": 1168.0,
+    "y": "open+14",
+    "z": 1294.6
+   },
+   {
+    "x": 1209.4,
+    "y": "open+14",
+    "z": 1256.0
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone8-sulphur_springs",
+  "x": -460.9,
+  "y": "open+14",
+  "z": 1593.6,
+  "at": [
+   -468,
+   60,
+   1636
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:sulphur_springs",
+  "landPixels": 49,
+  "why": "zone 8 (adventure:sulphur_springs, centre -511 1674): its densest land at -472 1632 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": -510.4,
+    "y": "open+14",
+    "z": 1620.9
+   },
+   {
+    "x": -433.6,
+    "y": "open+14",
+    "z": 1643.1
+   },
+   {
+    "x": -483.1,
+    "y": "open+14",
+    "z": 1670.4
+   },
+   {
+    "x": -491.3,
+    "y": "open+14",
+    "z": 1597.0
+   },
+   {
+    "x": -437.0,
+    "y": "open+14",
+    "z": 1612.7
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone9-megalake",
+  "x": -1664.9,
+  "y": "open+14",
+  "z": 359.6,
+  "at": [
+   -1700,
+   60,
+   372
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:megalake",
+  "landPixels": 49,
+  "why": "zone 9 (adventure:megalake, centre -1705 394): its densest land at -1704 368 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": -1712.4,
+    "y": "open+14",
+    "z": 328.9
+   },
+   {
+    "x": -1695.6,
+    "y": "open+14",
+    "z": 407.1
+   },
+   {
+    "x": -1743.1,
+    "y": "open+14",
+    "z": 376.4
+   },
+   {
+    "x": -1682.3,
+    "y": "open+14",
+    "z": 334.4
+   },
+   {
+    "x": -1670.4,
+    "y": "open+14",
+    "z": 389.7
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone10-chorus_forest",
+  "x": -1187.8,
+  "y": "open+14",
+  "z": -1195.6,
+  "at": [
+   -1212,
+   60,
+   -1220
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:chorus_forest",
+  "landPixels": 49,
+  "why": "zone 10 (adventure:chorus_forest, centre -1194 -1280): its densest land at -1216 -1224 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": -1187.6,
+    "y": "open+14",
+    "z": -1252.2
+   },
+   {
+    "x": -1244.4,
+    "y": "open+14",
+    "z": -1195.8
+   },
+   {
+    "x": -1244.2,
+    "y": "open+14",
+    "z": -1252.4
+   },
+   {
+    "x": -1176.0,
+    "y": "open+14",
+    "z": -1223.9
+   },
+   {
+    "x": -1216.1,
+    "y": "open+14",
+    "z": -1184.0
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone11-glowing_grasslands",
+  "x": 500.3,
+  "y": "open+14",
+  "z": -1633.8,
+  "at": [
+   516,
+   60,
+   -1668
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:glowing_grasslands",
+  "landPixels": 49,
+  "why": "zone 11 (adventure:glowing_grasslands, centre 511 -1674): its densest land at 512 -1672 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": 550.2,
+    "y": "open+14",
+    "z": -1660.3
+   },
+   {
+    "x": 473.8,
+    "y": "open+14",
+    "z": -1683.7
+   },
+   {
+    "x": 523.7,
+    "y": "open+14",
+    "z": -1710.2
+   },
+   {
+    "x": 530.8,
+    "y": "open+14",
+    "z": -1636.7
+   },
+   {
+    "x": 476.7,
+    "y": "open+14",
+    "z": -1653.2
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone12-foggy_mushroomland",
+  "x": 1736.7,
+  "y": "open+14",
+  "z": -320.7,
+  "at": [
+   1780,
+   60,
+   -324
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:foggy_mushroomland",
+  "landPixels": 49,
+  "why": "zone 12 (adventure:foggy_mushroomland, centre 1705 -394): its densest land at 1776 -328 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": 1783.3,
+    "y": "open+14",
+    "z": -288.7
+   },
+   {
+    "x": 1768.7,
+    "y": "open+14",
+    "z": -367.3
+   },
+   {
+    "x": 1815.3,
+    "y": "open+14",
+    "z": -335.3
+   },
+   {
+    "x": 1753.3,
+    "y": "open+14",
+    "z": -295.0
+   },
+   {
+    "x": 1743.0,
+    "y": "open+14",
+    "z": -350.7
+   }
+  ]
+ }
+]

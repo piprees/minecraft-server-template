@@ -1,0 +1,1273 @@
+[
+ {
+  "slug": "the_violet_spire",
+  "terrain": "floating islands with flat-topped spires, three bands of places, night only",
+  "changed": "Structure shots now stand among the islands and spires instead of on top of them. The forced large tower and the fortified temple are gone: both stood in the void. The castle ruin and the wizard tower stay. The wisteria/lavender share and cliff targets still miss; the region targets are now measured by place.",
+  "targets": {
+   "description": "8/10",
+   "placeness": "7/7"
+  },
+  "misses": [
+   "Wisteria and lavender 23.9% of the surface (target 25). A variant at 48 wisteria reaches the target, but the crystal place falls from 6.7% to 2.1%. The owner asked for crystals, so this stays a named exception.",
+   "Cliffs 3.6% of slopes (target 15): the spires have flat tops so growth can stand on them (the owner's note). Thinner spires measured 5.9%. Named exception."
+  ],
+  "ownersEye": [
+   "Is the crystal place (amethyst ground) the crystals you meant, or should crystal clusters stand on the spire tops themselves?",
+   "The relic temple and palace ruin stand-ins (fortified temple, castle ruin) are overworld stone buildings: keep, or re-skin?"
+  ],
+  "why": "Night-only; amethyst 8.9% of the top blocks, crystal hollows 6.7%. Measured by place, the three bands pass: the largest three hold 79.4% of the land, 7 major regions, specks 0.8%, each island 65.5% one place. Spires reach y 236.",
+  "exception": "The description's cliff share and the wisteria share both trade against the owner's crystals and flat spire tops.",
+  "rb45": [
+   {
+    "structure": "mss:castle_ruin",
+    "status": "kept",
+    "shot": "the_violet_spire-structure-castle_ruin.jpg",
+    "onItsGround": "yes: on the top of its own small island, grass to its walls",
+    "site": "a lone islet among the spires",
+    "materialsAndAge": "grey stone and deepslate, ruined; an overworld palette, not the violet one",
+    "scale": "small against the spires",
+    "approach": {
+     "yes": false,
+     "line": "no bridge or path: it stands on a separate islet"
+    }
+   },
+   {
+    "structure": "ddd:wizard_tower",
+    "status": "kept",
+    "shot": "the_violet_spire-structure-wizard_tower.jpg",
+    "onItsGround": "yes: stands on the floor of a cut between two spire walls",
+    "site": "a sheltered hollow",
+    "materialsAndAge": "grey stone brick, intact; not the violet palette",
+    "scale": "tall, near the height of the walls round it",
+    "approach": {
+     "yes": true,
+     "line": "the floor of the cut leads to its door"
+    }
+   },
+   {
+    "structure": "ati_structures:fortified_temple",
+    "status": "removed",
+    "shot": "the_violet_spire-structure-fortified_temple.jpg",
+    "onItsGround": "no: stands in the void below the islands (box y -65 to -18)",
+    "site": "none",
+    "materialsAndAge": "red and white timber temple, intact",
+    "scale": "large",
+    "approach": {
+     "yes": false,
+     "line": "none: nothing reaches it"
+    }
+   },
+   {
+    "structure": "mss:large_tower",
+    "status": "removed",
+    "shot": "the_violet_spire-structure-large_tower.jpg",
+    "onItsGround": "no: the forced start sits on a stone pedestal hanging in the void, its outer stair ring in the air",
+    "site": "over the void beside spawn",
+    "materialsAndAge": "stone and timber",
+    "scale": "large",
+    "approach": {
+     "yes": false,
+     "line": "none"
+    }
+   }
+  ],
+  "shotsAdded": [
+   "the_violet_spire-structure-castle_ruin-nv.jpg",
+   "the_violet_spire-structure-castle_ruin.jpg",
+   "the_violet_spire-structure-fortified_temple-nv.jpg",
+   "the_violet_spire-structure-fortified_temple.jpg",
+   "the_violet_spire-structure-large_tower-nv.jpg",
+   "the_violet_spire-structure-large_tower.jpg",
+   "the_violet_spire-structure-wizard_tower-nv.jpg",
+   "the_violet_spire-structure-wizard_tower.jpg"
+  ]
+ },
+ {
+  "slug": "the_sunken_temple",
+  "terrain": "sky islands joined into drowned basins, a second tier of islands dipping to the water",
+  "changed": "Structure shots taken from under the islands. The sinking temple stands on an island edge over the water, and a castle ruin stands on a high island. The forced ocean temple and the monument have no start that passes generation's terrain checks on this seed.",
+  "targets": {
+   "description": "6/10",
+   "placeness": "4/6"
+  },
+  "misses": [
+   "Land regions: the largest three 16.9% (target 60), 18 major (8), specks 15.1% (5). The owner's raised water drowns the skyland bases, so the land is island tops. Measured by place it is still scattered (19.7%, 17 major). Named exception.",
+   "Hanging gardens 10.5% (target 10 or less).",
+   "Ocean temple, monument and underwater dungeon: no start passes generation's checks on this seed.",
+   "The conduit ruins are under water, and every frame there is occluded."
+  ],
+  "ownersEye": [
+   "The sinking temple stands on an island edge with its water volume over the void: does it fit, or is it a re-skin candidate?"
+  ],
+  "why": "Water 56.7% of the map (48.9% before) with the basin level at the rim (165); temples placed: ocean temple x2 (nearest 357 blocks), sinking temple 213, monument 936, underwater dungeon 833 (`structures.census`). Misses: land regions 16.9% in the top three (island scatter).",
+  "exception": "The land metrics assume a few large regions; the raised water leaves many island tops. Closing it needs larger skyland islands or fewer of them.",
+  "rb45": [
+   {
+    "structure": "ati_structures:sinking_temple",
+    "status": "kept",
+    "shot": "the_sunken_temple-structure-sinking_temple.jpg",
+    "onItsGround": "yes: on grass at an island edge, leaning over the drop",
+    "site": "an island edge over the water",
+    "materialsAndAge": "brick and verdigris copper domes, worn",
+    "scale": "large, the island's landmark",
+    "approach": {
+     "yes": true,
+     "line": "across the island's grass"
+    }
+   },
+   {
+    "structure": "mss:castle_ruin",
+    "status": "kept",
+    "shot": "the_sunken_temple-structure-castle_ruin.jpg",
+    "onItsGround": "yes: on the top of a hanging island",
+    "site": "a high island over the water",
+    "materialsAndAge": "grey stone, ruined",
+    "scale": "small",
+    "approach": {
+     "yes": false,
+     "line": "no way up: a separate island"
+    }
+   },
+   {
+    "structure": "nova_structures:conduit_ruin",
+    "status": "unshown",
+    "shot": "the_sunken_temple-structure-conduit_ruin.jpg",
+    "onItsGround": "not judged: under water below the islands, the frame shows water and the island underside",
+    "site": "",
+    "materialsAndAge": "",
+    "scale": "",
+    "approach": {
+     "yes": false,
+     "line": ""
+    }
+   },
+   {
+    "structure": "nova_structures:small_conduit_ruin_warm",
+    "status": "unshown",
+    "shot": null,
+    "onItsGround": "not judged: every frame under water was occluded",
+    "site": "",
+    "materialsAndAge": "",
+    "scale": "",
+    "approach": {
+     "yes": false,
+     "line": ""
+    }
+   }
+  ],
+  "shotsAdded": [
+   "the_sunken_temple-structure-castle_ruin.jpg",
+   "the_sunken_temple-structure-conduit_ruin.jpg",
+   "the_sunken_temple-structure-sinking_temple.jpg"
+  ]
+ },
+ {
+  "slug": "the_abyssal_shrine",
+  "terrain": "a ring of plateau land round one deep lake, void beyond",
+  "changed": "The lake is wider: ring radius 440, falloff 110, a shelf of 32. Water covers 29.1% of the map (16.5% before). The shelf meets the ring all round (render). The forced monument stands on the lake floor and is shot there.",
+  "targets": {
+   "description": "9/10",
+   "placeness": "6/6"
+  },
+  "misses": [
+   "Plateaus 4.3% of landforms (target 15). The ring land is rolling highland, and the classifier reads it as hills. Named exception.",
+   "The vault and shrine stand-ins (underwater dungeon, warden monument, castle ruin) have no start that passes generation's checks."
+  ],
+  "ownersEye": [
+   "Is the shelf between lake and ring the right join, or should the ring land run straight to the water?"
+  ],
+  "why": "Water 29.1%, deep oceans 31.5%, void 29.5%. All five biomes are present; 9 of 10 description and 6 of 6 placeness targets pass.",
+  "rb45": [
+   {
+    "structure": "minecraft:monument",
+    "status": "kept",
+    "shot": "the_abyssal_shrine-structure-monument-r2.jpg",
+    "onItsGround": "yes: on the lake floor, the water over it",
+    "site": "the deep middle of the lake",
+    "materialsAndAge": "prismarine, intact",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "down through the lake"
+    }
+   }
+  ],
+  "shotsAdded": [
+   "the_abyssal_shrine-structure-monument-r2-nv.jpg",
+   "the_abyssal_shrine-structure-monument-r2.jpg"
+  ]
+ },
+ {
+  "slug": "the_molten_flats",
+  "terrain": "a flat crust at 35 under a high roof, lava pools in it",
+  "changed": "Five structures shot on the flats. The mega fortress and the piglin outstation stand in open lava.",
+  "targets": {
+   "description": "7/9",
+   "placeness": "4/4"
+  },
+  "misses": [
+   "Lava 16.8% (target 20-45): the owner asked for magma in boxed pockets with lava only at the centres of the larger pools. The owner's note supersedes the description's share; named exception.",
+   "Trees 2.7 a hectare (target 2): every counted stem is stripped crimson stem, the timber of the placed structures. No Nether tree grows them, so the flats have no natural trees. Restated: the miss counts structures, not trees."
+  ],
+  "ownersEye": [
+   "Magma is now 3.6% of the top blocks: enough pockets, or too few?"
+  ],
+  "why": "Floor 35 from p25 to p75 and p95 41 (53 before), lava 16.8% in pools, blackstone 39.9% of the top, magma 3.6% (29.8%), no fire; all five biomes expressed. Misses: lava under the 20% target (the owner asked for pockets), trees 2.7/ha.",
+  "rb45": [
+   {
+    "structure": "mns:mega_fortress",
+    "status": "kept",
+    "shot": "the_molten_flats-structure-mega_fortress-r2.jpg",
+    "onItsGround": "yes: walls and arches standing in the lava sea",
+    "site": "the lava below the crust",
+    "materialsAndAge": "stone brick and red, worn",
+    "scale": "very large",
+    "approach": {
+     "yes": false,
+     "line": "only over lava"
+    }
+   },
+   {
+    "structure": "nova_structures:piglin_outstation",
+    "status": "kept",
+    "shot": "the_molten_flats-structure-piglin_outstation-r2.jpg",
+    "onItsGround": "partly: a walled platform standing in open lava",
+    "site": "the lava sea",
+    "materialsAndAge": "blackstone, worn",
+    "scale": "large",
+    "approach": {
+     "yes": false,
+     "line": "only over lava"
+    }
+   },
+   {
+    "structure": "mns:bridge_1",
+    "status": "kept",
+    "shot": "the_molten_flats-structure-bridge_1.jpg",
+    "onItsGround": "yes: a blackstone pad on the crust among magma and lava pools",
+    "site": "the open flats",
+    "materialsAndAge": "blackstone and basalt, broken",
+    "scale": "low, a platform",
+    "approach": {
+     "yes": true,
+     "line": "the crust runs to it"
+    }
+   },
+   {
+    "structure": "mns:crimson_forge",
+    "status": "kept",
+    "shot": "the_molten_flats-structure-crimson_forge.jpg",
+    "onItsGround": "yes: on the crust beyond a lava pool",
+    "site": "the flats' edge",
+    "materialsAndAge": "netherrack brick house, intact",
+    "scale": "small in the frame",
+    "approach": {
+     "yes": true,
+     "line": "over the crust round the pool"
+    }
+   },
+   {
+    "structure": "mns:crimson_lava_well",
+    "status": "kept",
+    "shot": "the_molten_flats-structure-crimson_lava_well.jpg",
+    "onItsGround": "yes: on the crust, far off",
+    "site": "the flats near spawn",
+    "materialsAndAge": "brick and crimson",
+    "scale": "small",
+    "approach": {
+     "yes": true,
+     "line": "flat crust all round"
+    }
+   }
+  ],
+  "shotsAdded": [
+   "the_molten_flats-structure-bridge_1-nv.jpg",
+   "the_molten_flats-structure-bridge_1.jpg",
+   "the_molten_flats-structure-crimson_forge-nv.jpg",
+   "the_molten_flats-structure-crimson_forge.jpg",
+   "the_molten_flats-structure-crimson_lava_well-nv.jpg",
+   "the_molten_flats-structure-crimson_lava_well.jpg",
+   "the_molten_flats-structure-mega_fortress-nv.jpg",
+   "the_molten_flats-structure-mega_fortress-r2-nv.jpg",
+   "the_molten_flats-structure-mega_fortress-r2.jpg",
+   "the_molten_flats-structure-mega_fortress.jpg",
+   "the_molten_flats-structure-piglin_outstation-r2-nv.jpg",
+   "the_molten_flats-structure-piglin_outstation-r2.jpg"
+  ]
+ },
+ {
+  "slug": "the_forged_depths",
+  "terrain": "a craggy floor at 72 cut by chasms and pillars, a deep to the south with magma at its bottom",
+  "changed": "Structures shot among the crags: a fortress built into them, a ruined keep with a bridge, a forge tower on a crag, the piglin donjon.",
+  "exception": "The survey should judge a biome whose trees a definition removed by its ground.",
+  "targets": {
+   "description": "6/8",
+   "placeness": "2/4"
+  },
+  "misses": [
+   "Largest land region 39.7% (target 50), specks 6.9% (5): the owner asked for crags, and they break the pinewood region. Named exception.",
+   "Pinewood and crimson forest are placed but judged unexpressed without their trees (the owner removed the trees). The survey judges them by trees, not ground."
+  ],
+  "ownersEye": [
+   "Is the craggy crimson floor dead enough, or should the nylium give way to netherrack and ash?"
+  ],
+  "why": "Trees 0.1/ha (78.1), cliffs 16.1%, lava 18.5%, the deep keeps magma. Misses: pinewood and crimson forest are judged unexpressed without their trees (kit gap 2), the craggy floor breaks the pinewood region (largest 39.7%, specks 6.9%).",
+  "rb45": [
+   {
+    "structure": "minecraft:fortress",
+    "status": "kept",
+    "shot": "the_forged_depths-structure-fortress-r2.jpg",
+    "onItsGround": "yes: nether brick walls built into the crags",
+    "site": "among the crags",
+    "materialsAndAge": "nether brick, intact",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "walkways along the crags"
+    }
+   },
+   {
+    "structure": "nova_structures:nether_keep",
+    "status": "kept",
+    "shot": "the_forged_depths-structure-nether_keep-r2.jpg",
+    "onItsGround": "yes: a ruined keep on a crag, a bridge to the next",
+    "site": "a crag top",
+    "materialsAndAge": "brick, ruined",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "a bridge between crags"
+    }
+   },
+   {
+    "structure": "mns:crimson_forge",
+    "status": "kept",
+    "shot": "the_forged_depths-structure-crimson_forge-r2.jpg",
+    "onItsGround": "yes: a ruined tower on a crag",
+    "site": "a crag top",
+    "materialsAndAge": "brick, ruined",
+    "scale": "medium",
+    "approach": {
+     "yes": false,
+     "line": "no path: the crag is sheer"
+    }
+   },
+   {
+    "structure": "minecraft:bastion_remnant",
+    "status": "unshown",
+    "shot": "the_forged_depths-structure-bastion_remnant-r2.jpg",
+    "onItsGround": "not judged: far off in the fog, too small to read",
+    "site": "",
+    "materialsAndAge": "",
+    "scale": "",
+    "approach": {
+     "yes": false,
+     "line": ""
+    }
+   },
+   {
+    "structure": "nova_structures:piglin_donjon",
+    "status": "kept",
+    "shot": "the_forged_depths-structure-piglin_donjon.jpg",
+    "onItsGround": "yes: blackstone walls rise from the floor, a lavafall beside",
+    "site": "a deep cut in the crags",
+    "materialsAndAge": "polished blackstone, gilded, worn",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "a stair and gate in the walls"
+    }
+   }
+  ],
+  "shotsAdded": [
+   "the_forged_depths-structure-bastion_remnant-nv.jpg",
+   "the_forged_depths-structure-bastion_remnant-r2-nv.jpg",
+   "the_forged_depths-structure-bastion_remnant-r2.jpg",
+   "the_forged_depths-structure-bastion_remnant.jpg",
+   "the_forged_depths-structure-crimson_forge-nv.jpg",
+   "the_forged_depths-structure-crimson_forge-r2-nv.jpg",
+   "the_forged_depths-structure-crimson_forge-r2.jpg",
+   "the_forged_depths-structure-crimson_forge.jpg",
+   "the_forged_depths-structure-fortress-nv.jpg",
+   "the_forged_depths-structure-fortress-r2-nv.jpg",
+   "the_forged_depths-structure-fortress-r2.jpg",
+   "the_forged_depths-structure-fortress.jpg",
+   "the_forged_depths-structure-nether_keep-nv.jpg",
+   "the_forged_depths-structure-nether_keep-r2-nv.jpg",
+   "the_forged_depths-structure-nether_keep-r2.jpg",
+   "the_forged_depths-structure-nether_keep.jpg",
+   "the_forged_depths-structure-piglin_donjon-nv.jpg",
+   "the_forged_depths-structure-piglin_donjon.jpg"
+  ]
+ },
+ {
+  "slug": "the_wailing_narrows",
+  "terrain": "a floor at 80 riddled with crevices down to 17, basalt and soul sand, violet fog",
+  "changed": "The six bridges are removed: their decks hang in the air at y 30-34 on thin pillars and cross no crevice. The quartz targets follow the owner's removal of quartz.",
+  "targets": {
+   "description": "9/9",
+   "placeness": "4/4"
+  },
+  "misses": [
+   "Bridges: the description's 'narrow bridged chasms' needs a bridge that spans a crevice wall to wall. That waits on a set piece; none of the pack's bridges can be placed that way.",
+   "An ancient city start lies below the floor at y -64 to -10, in rock, with no way to it. It is not in the dimension's list; where it comes from is unresolved."
+  ],
+  "ownersEye": [
+   "Vile enough without the zombies, until the spawn list exists?"
+  ],
+  "why": "Quartz flats removed (owner); soul sand valley 52% and basalt deltas 48% of the surface, both expressed; half the floor in the chasms. Zombies need a dimension spawn list (kit gap 1).",
+  "rb45": [
+   {
+    "structure": "mns:bridge_1",
+    "status": "removed",
+    "shot": "the_wailing_narrows-structure-bridge_1.jpg",
+    "onItsGround": "no: the deck hangs in the air at y 30-34 on thin pillars, spanning no crevice",
+    "site": "mid-air, not a crossing",
+    "materialsAndAge": "blackstone",
+    "scale": "small",
+    "approach": {
+     "yes": false,
+     "line": "none: it joins no wall"
+    }
+   },
+   {
+    "structure": "mns:bridge_4",
+    "status": "removed",
+    "shot": "the_wailing_narrows-structure-bridge_4.jpg",
+    "onItsGround": "no: the deck hangs in the air on thin pillars",
+    "site": "mid-air over the floor",
+    "materialsAndAge": "blackstone",
+    "scale": "small",
+    "approach": {
+     "yes": false,
+     "line": "none"
+    }
+   },
+   {
+    "structure": "mns:bridge_5",
+    "status": "removed",
+    "shot": "the_wailing_narrows-structure-bridge_5.jpg",
+    "onItsGround": "no: one end against a wall, the rest in the air",
+    "site": "beside a wall, spanning nothing",
+    "materialsAndAge": "blackstone",
+    "scale": "small",
+    "approach": {
+     "yes": false,
+     "line": "none"
+    }
+   },
+   {
+    "structure": "mns:bridge_6",
+    "status": "removed",
+    "shot": "the_wailing_narrows-structure-bridge_6.jpg",
+    "onItsGround": "no: a fragment in the air far below the camera",
+    "site": "mid-air",
+    "materialsAndAge": "blackstone",
+    "scale": "small",
+    "approach": {
+     "yes": false,
+     "line": "none"
+    }
+   },
+   {
+    "structure": "mns:bridge_2",
+    "status": "removed",
+    "shot": null,
+    "onItsGround": "no frame: the box lies in rock",
+    "site": "",
+    "materialsAndAge": "",
+    "scale": "",
+    "approach": {
+     "yes": false,
+     "line": ""
+    }
+   },
+   {
+    "structure": "mns:bridge_3",
+    "status": "removed",
+    "shot": null,
+    "onItsGround": "no frame: the box lies in rock",
+    "site": "",
+    "materialsAndAge": "",
+    "scale": "",
+    "approach": {
+     "yes": false,
+     "line": ""
+    }
+   },
+   {
+    "structure": "mns:giant_skull",
+    "status": "kept",
+    "shot": "the_wailing_narrows-structure-giant_skull.jpg",
+    "onItsGround": "yes: rests on the rock of the floor, half lost in the fog",
+    "site": "on the high floor",
+    "materialsAndAge": "bone, weathered",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "the floor runs to it"
+    }
+   },
+   {
+    "structure": "mns:large_blackstone_pillars",
+    "status": "kept",
+    "shot": "the_wailing_narrows-structure-large_blackstone_pillars.jpg",
+    "onItsGround": "yes: rises from the floor",
+    "site": "the floor beside a crevice",
+    "materialsAndAge": "blackstone, weathered",
+    "scale": "medium",
+    "approach": {
+     "yes": true,
+     "line": "across the floor"
+    }
+   },
+   {
+    "structure": "minecraft:ancient_city",
+    "status": "unshown",
+    "shot": null,
+    "onItsGround": "not judged: its box lies at y -64 to -10, below the floor in rock; no ray reached it",
+    "site": "",
+    "materialsAndAge": "",
+    "scale": "",
+    "approach": {
+     "yes": false,
+     "line": ""
+    }
+   }
+  ],
+  "shotsAdded": [
+   "the_wailing_narrows-structure-bridge_1-nv.jpg",
+   "the_wailing_narrows-structure-bridge_1.jpg",
+   "the_wailing_narrows-structure-bridge_4-nv.jpg",
+   "the_wailing_narrows-structure-bridge_4.jpg",
+   "the_wailing_narrows-structure-bridge_5-nv.jpg",
+   "the_wailing_narrows-structure-bridge_5.jpg",
+   "the_wailing_narrows-structure-bridge_6-nv.jpg",
+   "the_wailing_narrows-structure-bridge_6.jpg",
+   "the_wailing_narrows-structure-giant_skull-nv.jpg",
+   "the_wailing_narrows-structure-giant_skull.jpg",
+   "the_wailing_narrows-structure-large_blackstone_pillars-nv.jpg",
+   "the_wailing_narrows-structure-large_blackstone_pillars.jpg"
+  ]
+ },
+ {
+  "slug": "the_gilded_pit",
+  "terrain": "a ledge country at 84 round a pit 470 across with its floor near 24",
+  "changed": "Eleven structures shot on the ledges and in the pit: bastion, fortress, mega fortress, keep, donjon with cart rails, hamlet, port, tower, forge, walls, sealing halls.",
+  "exception": "From the landing the pit is lost in the red fog, and the ledge is only as close as the warp allows. Needs a pinned landing (kit gap, or the places kit's platform) and a clearer view.",
+  "targets": {
+   "description": "8/9",
+   "placeness": "3/4"
+  },
+  "misses": [
+   "Spawn 48 blocks from the biome edge (target 64): the landing belongs at the lip. Restated.",
+   "The dark keep (y 103-161) and the piglin outstation could not be seen from any camera.",
+   "The pit is not visible from the landing in the fog."
+  ],
+  "ownersEye": [
+   "Should the fog thin over the pit so the capital shows from the ledge?"
+  ],
+  "why": "Spawn on the ledge 16-21 blocks behind the lip on this seed (render), pit p25 34, all six biomes expressed, nine forced structures kept. Misses: the pit is not visible from the landing in the fog; spawn is 48 blocks from the biome edge (target 64, restated: the landing belongs at the lip).",
+  "rb45": [
+   {
+    "structure": "nova_structures:piglin_donjon",
+    "status": "kept",
+    "shot": "the_gilded_pit-structure-piglin_donjon-r2.jpg",
+    "onItsGround": "yes: blackstone walls on the rock, cart rails running out",
+    "site": "the pit edge",
+    "materialsAndAge": "blackstone, worn",
+    "scale": "very large",
+    "approach": {
+     "yes": true,
+     "line": "rails and a road"
+    }
+   },
+   {
+    "structure": "ati_structures:dark_keep",
+    "status": "unshown",
+    "shot": null,
+    "onItsGround": "not judged: no ray reached its box (y 103-161) from any of 30 cameras",
+    "site": "",
+    "materialsAndAge": "",
+    "scale": "",
+    "approach": {
+     "yes": false,
+     "line": ""
+    }
+   },
+   {
+    "structure": "nova_structures:piglin_outstation",
+    "status": "unshown",
+    "shot": null,
+    "onItsGround": "not judged: no open space or no sight line at any camera",
+    "site": "",
+    "materialsAndAge": "",
+    "scale": "",
+    "approach": {
+     "yes": false,
+     "line": ""
+    }
+   },
+   {
+    "structure": "minecraft:bastion_remnant",
+    "status": "kept",
+    "shot": "the_gilded_pit-structure-bastion_remnant.jpg",
+    "onItsGround": "yes: on the ledge country's rock",
+    "site": "a rise on the ledges",
+    "materialsAndAge": "blackstone, ruined",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "over the ledges"
+    }
+   },
+   {
+    "structure": "mns:crimson_forge",
+    "status": "kept",
+    "shot": "the_gilded_pit-structure-crimson_forge.jpg",
+    "onItsGround": "yes: on a ridge, far in the fog",
+    "site": "a ridge top",
+    "materialsAndAge": "brick and crimson",
+    "scale": "small",
+    "approach": {
+     "yes": true,
+     "line": "the ridge"
+    }
+   },
+   {
+    "structure": "minecraft:fortress",
+    "status": "kept",
+    "shot": "the_gilded_pit-structure-fortress.jpg",
+    "onItsGround": "yes: nether brick walls on the netherrack floor",
+    "site": "the floor",
+    "materialsAndAge": "nether brick, intact",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "open floor"
+    }
+   },
+   {
+    "structure": "nova_structures:hamlet",
+    "status": "kept",
+    "shot": "the_gilded_pit-structure-hamlet.jpg",
+    "onItsGround": "yes: arches and a hall on the pit floor",
+    "site": "the pit floor among lava",
+    "materialsAndAge": "blackstone, worn",
+    "scale": "medium",
+    "approach": {
+     "yes": true,
+     "line": "the floor"
+    }
+   },
+   {
+    "structure": "mns:large_blackstone_walls",
+    "status": "kept",
+    "shot": "the_gilded_pit-structure-large_blackstone_walls.jpg",
+    "onItsGround": "yes: a spire on the floor, far in the red fog",
+    "site": "the floor",
+    "materialsAndAge": "blackstone",
+    "scale": "small in the frame",
+    "approach": {
+     "yes": true,
+     "line": "the floor"
+    }
+   },
+   {
+    "structure": "mns:mega_fortress",
+    "status": "kept",
+    "shot": "the_gilded_pit-structure-mega_fortress.jpg",
+    "onItsGround": "yes: arches and walls on rock over lava",
+    "site": "the pit edge over lava",
+    "materialsAndAge": "stone brick and red, worn",
+    "scale": "very large",
+    "approach": {
+     "yes": true,
+     "line": "lava shore and rock"
+    }
+   },
+   {
+    "structure": "nova_structures:nether_keep",
+    "status": "kept",
+    "shot": "the_gilded_pit-structure-nether_keep.jpg",
+    "onItsGround": "yes: keep walls under an overhang",
+    "site": "under the ledge wall",
+    "materialsAndAge": "blackstone and brick, worn",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "a walled approach"
+    }
+   },
+   {
+    "structure": "nova_structures:nether_port",
+    "status": "kept",
+    "shot": "the_gilded_pit-structure-nether_port.jpg",
+    "onItsGround": "yes: a blackstone house on a cavern floor",
+    "site": "a cavern by lava",
+    "materialsAndAge": "blackstone, intact",
+    "scale": "small",
+    "approach": {
+     "yes": true,
+     "line": "cavern floor"
+    }
+   },
+   {
+    "structure": "mns:nether_tower",
+    "status": "kept",
+    "shot": "the_gilded_pit-structure-nether_tower.jpg",
+    "onItsGround": "yes: beyond a ridge in the fog",
+    "site": "behind a ridge",
+    "materialsAndAge": "brick",
+    "scale": "medium",
+    "approach": {
+     "yes": true,
+     "line": "over the ridge"
+    }
+   },
+   {
+    "structure": "nova_structures:sealing_halls",
+    "status": "kept",
+    "shot": "the_gilded_pit-structure-sealing_halls.jpg",
+    "onItsGround": "yes: halls dug into the rock, lava in the floor",
+    "site": "underground",
+    "materialsAndAge": "blackstone and gold, worn",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "interior stairs"
+    }
+   }
+  ],
+  "shotsAdded": [
+   "the_gilded_pit-structure-bastion_remnant-nv.jpg",
+   "the_gilded_pit-structure-bastion_remnant.jpg",
+   "the_gilded_pit-structure-crimson_forge-nv.jpg",
+   "the_gilded_pit-structure-crimson_forge.jpg",
+   "the_gilded_pit-structure-fortress-nv.jpg",
+   "the_gilded_pit-structure-fortress.jpg",
+   "the_gilded_pit-structure-hamlet-nv.jpg",
+   "the_gilded_pit-structure-hamlet.jpg",
+   "the_gilded_pit-structure-large_blackstone_walls-nv.jpg",
+   "the_gilded_pit-structure-large_blackstone_walls.jpg",
+   "the_gilded_pit-structure-mega_fortress-nv.jpg",
+   "the_gilded_pit-structure-mega_fortress.jpg",
+   "the_gilded_pit-structure-nether_keep-nv.jpg",
+   "the_gilded_pit-structure-nether_keep.jpg",
+   "the_gilded_pit-structure-nether_port-nv.jpg",
+   "the_gilded_pit-structure-nether_port.jpg",
+   "the_gilded_pit-structure-nether_tower-nv.jpg",
+   "the_gilded_pit-structure-nether_tower.jpg",
+   "the_gilded_pit-structure-piglin_donjon-nv.jpg",
+   "the_gilded_pit-structure-piglin_donjon-r2-nv.jpg",
+   "the_gilded_pit-structure-piglin_donjon-r2.jpg",
+   "the_gilded_pit-structure-piglin_donjon.jpg",
+   "the_gilded_pit-structure-piglin_outstation-nv.jpg",
+   "the_gilded_pit-structure-piglin_outstation.jpg",
+   "the_gilded_pit-structure-sealing_halls-nv.jpg",
+   "the_gilded_pit-structure-sealing_halls.jpg"
+  ]
+ },
+ {
+  "slug": "the_bloodroot_wastes",
+  "terrain": "the vanilla Nether caverns, crimson country",
+  "changed": "Structures shot in the crimson caverns: the forge at a lava shore, the wells and the giant fungus in the forest. The piglin camp colony hangs on chains under a rock ceiling.",
+  "targets": {
+   "description": "7/7",
+   "placeness": "6/6"
+  },
+  "misses": [
+   "The piglin camp and the second giant fungus could not be shot: every camera is in rock."
+  ],
+  "ownersEye": [],
+  "why": "Crimson forest 57.6%, nether jungle 22.2%, inverted forest 9.1%; the map now draws the crimson kin in distinct colours (nether jungle olive, pinewood wine, inverted magenta) where they were three reds.",
+  "rb45": [
+   {
+    "structure": "nova_structures:piglin_camp",
+    "status": "unshown",
+    "shot": null,
+    "onItsGround": "not judged: every camera inside rock or without a sight line",
+    "site": "",
+    "materialsAndAge": "",
+    "scale": "",
+    "approach": {
+     "yes": false,
+     "line": ""
+    }
+   },
+   {
+    "structure": "mns:medium_crimson_fungus_2",
+    "status": "unshown",
+    "shot": null,
+    "onItsGround": "not judged: every camera inside rock",
+    "site": "",
+    "materialsAndAge": "",
+    "scale": "",
+    "approach": {
+     "yes": false,
+     "line": ""
+    }
+   },
+   {
+    "structure": "mns:crimson_forge",
+    "status": "kept",
+    "shot": "the_bloodroot_wastes-structure-crimson_forge.jpg",
+    "onItsGround": "yes: at a lava shore under crimson cliffs",
+    "site": "a lava shore",
+    "materialsAndAge": "brick and crimson, worn",
+    "scale": "medium",
+    "approach": {
+     "yes": true,
+     "line": "the shore"
+    }
+   },
+   {
+    "structure": "mns:crimson_lava_well",
+    "status": "kept",
+    "shot": "the_bloodroot_wastes-structure-crimson_lava_well.jpg",
+    "onItsGround": "yes, half hidden: among huge crimson fungi",
+    "site": "a fungus forest",
+    "materialsAndAge": "crimson",
+    "scale": "small",
+    "approach": {
+     "yes": true,
+     "line": "between the fungi"
+    }
+   },
+   {
+    "structure": "mns:medium_crimson_fungus",
+    "status": "kept",
+    "shot": "the_bloodroot_wastes-structure-medium_crimson_fungus.jpg",
+    "onItsGround": "yes: a giant fungus grown on a terraced bank",
+    "site": "the forest",
+    "materialsAndAge": "crimson stem and wart, shroomlight",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "the bank"
+    }
+   },
+   {
+    "structure": "mns:medium_crimson_well",
+    "status": "kept",
+    "shot": "the_bloodroot_wastes-structure-medium_crimson_well.jpg",
+    "onItsGround": "yes, faint: among the fungi",
+    "site": "the forest",
+    "materialsAndAge": "crimson",
+    "scale": "small",
+    "approach": {
+     "yes": true,
+     "line": "forest floor"
+    }
+   },
+   {
+    "structure": "nova_structures:piglin_camp_collony",
+    "status": "kept",
+    "shot": "the_bloodroot_wastes-structure-piglin_camp_collony.jpg",
+    "onItsGround": "partly: platforms hang on chains under a rock ceiling",
+    "site": "under an overhang over a drop",
+    "materialsAndAge": "crimson planks and chain",
+    "scale": "medium",
+    "approach": {
+     "yes": false,
+     "line": "no path: reached only from the ceiling"
+    }
+   }
+  ],
+  "shotsAdded": [
+   "the_bloodroot_wastes-structure-crimson_forge-nv.jpg",
+   "the_bloodroot_wastes-structure-crimson_forge.jpg",
+   "the_bloodroot_wastes-structure-crimson_lava_well-nv.jpg",
+   "the_bloodroot_wastes-structure-crimson_lava_well.jpg",
+   "the_bloodroot_wastes-structure-medium_crimson_fungus-nv.jpg",
+   "the_bloodroot_wastes-structure-medium_crimson_fungus.jpg",
+   "the_bloodroot_wastes-structure-medium_crimson_well-nv.jpg",
+   "the_bloodroot_wastes-structure-medium_crimson_well.jpg",
+   "the_bloodroot_wastes-structure-piglin_camp_collony-nv.jpg",
+   "the_bloodroot_wastes-structure-piglin_camp_collony.jpg"
+  ]
+ },
+ {
+  "slug": "the_end",
+  "terrain": "vanilla End on its own seed",
+  "changed": "All twelve outer-island zones are now shot: each frame stands on its own zone's land. Twelve End structures are shot on their islands.",
+  "targets": {
+   "description": "7/8",
+   "placeness": "4/4"
+  },
+  "misses": [
+   "Largest land region 0.3% (target 20): the outer End is many islands, and the owner keeps the central island classic. Named exception."
+  ],
+  "ownersEye": [
+   "Zones are fixed spots: should the variety follow the islands instead?"
+  ],
+  "why": "Central island unchanged; six library End biomes in twelve zones on the outer islands hold 21.2% of the r2048 render (3.4-3.7% each); end cities and phantom citadel wanted 900-1500 out. The shots do not show a library zone.",
+  "rb45": [
+   {
+    "structure": "mes:astral_meteorite",
+    "status": "kept",
+    "shot": "the_end-structure-astral_meteorite.jpg",
+    "onItsGround": "yes: a lit crater among chorus",
+    "site": "an outer island",
+    "materialsAndAge": "end stone, scorched",
+    "scale": "small",
+    "approach": {
+     "yes": true,
+     "line": "island ground"
+    }
+   },
+   {
+    "structure": "nova_structures:end_castle",
+    "status": "kept",
+    "shot": "the_end-structure-end_castle.jpg",
+    "onItsGround": "partly: a sky castle whose underside overhangs the void",
+    "site": "an island edge",
+    "materialsAndAge": "purpur and end stone",
+    "scale": "very large",
+    "approach": {
+     "yes": true,
+     "line": "bridges from its island"
+    }
+   },
+   {
+    "structure": "minecraft:end_city",
+    "status": "kept",
+    "shot": "the_end-structure-end_city.jpg",
+    "onItsGround": "yes: rises from the island ground",
+    "site": "an outer island",
+    "materialsAndAge": "purpur, intact",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "island ground"
+    }
+   },
+   {
+    "structure": "nova_structures:end_lighthouse",
+    "status": "kept",
+    "shot": "the_end-structure-end_lighthouse.jpg",
+    "onItsGround": "yes: at an island edge",
+    "site": "an island edge, a beacon over the void",
+    "materialsAndAge": "purpur, intact",
+    "scale": "medium",
+    "approach": {
+     "yes": true,
+     "line": "island ground"
+    }
+   },
+   {
+    "structure": "mes:ender_spire",
+    "status": "kept",
+    "shot": "the_end-structure-ender_spire.jpg",
+    "onItsGround": "yes",
+    "site": "open ground",
+    "materialsAndAge": "end stone and purpur",
+    "scale": "small",
+    "approach": {
+     "yes": true,
+     "line": "island ground"
+    }
+   },
+   {
+    "structure": "mes:enderbloom_grove",
+    "status": "kept",
+    "shot": "the_end-structure-enderbloom_grove.jpg",
+    "onItsGround": "yes: a single tree on the ground",
+    "site": "open ground",
+    "materialsAndAge": "natural",
+    "scale": "small",
+    "approach": {
+     "yes": true,
+     "line": "island ground"
+    }
+   },
+   {
+    "structure": "mes:enderskog",
+    "status": "kept",
+    "shot": "the_end-structure-enderskog.jpg",
+    "onItsGround": "yes: a small hut among chorus",
+    "site": "a chorus grove",
+    "materialsAndAge": "stone",
+    "scale": "small",
+    "approach": {
+     "yes": true,
+     "line": "island ground"
+    }
+   },
+   {
+    "structure": "mes:mega_ship",
+    "status": "kept",
+    "shot": "the_end-structure-mega_ship.jpg",
+    "onItsGround": "yes: stands on end on the island, as if crashed",
+    "site": "an outer island",
+    "materialsAndAge": "end stone and purpur, wrecked",
+    "scale": "very large",
+    "approach": {
+     "yes": true,
+     "line": "island ground"
+    }
+   },
+   {
+    "structure": "mes:monolith",
+    "status": "kept",
+    "shot": "the_end-structure-monolith.jpg",
+    "onItsGround": "yes",
+    "site": "open ground",
+    "materialsAndAge": "purpur and obsidian",
+    "scale": "medium",
+    "approach": {
+     "yes": true,
+     "line": "island ground"
+    }
+   },
+   {
+    "structure": "mes:mystical_archway",
+    "status": "kept",
+    "shot": "the_end-structure-mystical_archway.jpg",
+    "onItsGround": "yes: on a rise",
+    "site": "a rise among chorus",
+    "materialsAndAge": "end stone, purpur and crystals",
+    "scale": "medium",
+    "approach": {
+     "yes": true,
+     "line": "island ground"
+    }
+   },
+   {
+    "structure": "mes:phantom_citadel",
+    "status": "kept",
+    "shot": "the_end-structure-phantom_citadel.jpg",
+    "onItsGround": "yes: towers and a gate on the ground",
+    "site": "an outer island",
+    "materialsAndAge": "purpur and end stone",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "a gate on the island"
+    }
+   },
+   {
+    "structure": "mes:placid_prairie",
+    "status": "kept",
+    "shot": "the_end-structure-placid_prairie.jpg",
+    "onItsGround": "yes: a single large tree",
+    "site": "open ground",
+    "materialsAndAge": "natural",
+    "scale": "medium",
+    "approach": {
+     "yes": true,
+     "line": "island ground"
+    }
+   }
+  ],
+  "shotsAdded": [
+   "the_end-structure-astral_meteorite.jpg",
+   "the_end-structure-end_castle.jpg",
+   "the_end-structure-end_city.jpg",
+   "the_end-structure-end_lighthouse.jpg",
+   "the_end-structure-ender_spire.jpg",
+   "the_end-structure-enderbloom_grove.jpg",
+   "the_end-structure-enderskog.jpg",
+   "the_end-structure-mega_ship.jpg",
+   "the_end-structure-monolith.jpg",
+   "the_end-structure-mystical_archway.jpg",
+   "the_end-structure-phantom_citadel.jpg",
+   "the_end-structure-placid_prairie.jpg",
+   "the_end-zone1-chorus_forest.jpg",
+   "the_end-zone10-chorus_forest.jpg",
+   "the_end-zone11-glowing_grasslands.jpg",
+   "the_end-zone12-foggy_mushroomland.jpg",
+   "the_end-zone2-glowing_grasslands.jpg",
+   "the_end-zone3-foggy_mushroomland.jpg",
+   "the_end-zone4-lantern_woods.jpg",
+   "the_end-zone5-sulphur_springs.jpg",
+   "the_end-zone6-megalake.jpg",
+   "the_end-zone7-lantern_woods.jpg",
+   "the_end-zone8-sulphur_springs.jpg",
+   "the_end-zone9-megalake.jpg"
+  ]
+ },
+ {
+  "slug": "the_nether",
+  "terrain": "vanilla Nether, six biomes as places",
+  "changed": "The piglin village want is removed: its start stands on the roof (y 115-158). Bridges are shot on the lava sea, plus the fortress, bastion, mega fortress, fossil and sealing halls.",
+  "targets": {
+   "description": "10/10",
+   "placeness": "5/5"
+  },
+  "misses": [
+   "Bridge 2 shows no deck in its frame; bridge 5 could not be shot."
+  ],
+  "ownersEye": [],
+  "why": "Quartz flats weight 5 of 100 (8 before): 3.7% of the surveyed surface; the other five biomes as before, 10/10 description targets.",
+  "rb45": [
+   {
+    "structure": "minecraft:bastion_remnant",
+    "status": "kept",
+    "shot": "the_nether-structure-bastion_remnant.jpg",
+    "onItsGround": "yes: rises from the lava sea shore",
+    "site": "the lava sea",
+    "materialsAndAge": "blackstone, ruined",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "shore"
+    }
+   },
+   {
+    "structure": "mns:bridge_1",
+    "status": "kept",
+    "shot": "the_nether-structure-bridge_1.jpg",
+    "onItsGround": "yes: a deck on the lava sea between walls",
+    "site": "a lava channel",
+    "materialsAndAge": "blackstone",
+    "scale": "small",
+    "approach": {
+     "yes": true,
+     "line": "from the channel walls"
+    }
+   },
+   {
+    "structure": "mns:bridge_3",
+    "status": "kept",
+    "shot": "the_nether-structure-bridge_3.jpg",
+    "onItsGround": "yes: a deck on the lava sea",
+    "site": "the lava sea under a soul sand valley",
+    "materialsAndAge": "blackstone",
+    "scale": "small",
+    "approach": {
+     "yes": false,
+     "line": "stands alone on the lava"
+    }
+   },
+   {
+    "structure": "mns:bridge_4",
+    "status": "kept",
+    "shot": "the_nether-structure-bridge_4.jpg",
+    "onItsGround": "yes: a deck on the lava between walls",
+    "site": "a lava channel",
+    "materialsAndAge": "blackstone",
+    "scale": "small",
+    "approach": {
+     "yes": true,
+     "line": "from the walls"
+    }
+   },
+   {
+    "structure": "mns:bridge_6",
+    "status": "kept",
+    "shot": "the_nether-structure-bridge_6.jpg",
+    "onItsGround": "yes: on the lava sea by a wall",
+    "site": "a lava shore",
+    "materialsAndAge": "blackstone",
+    "scale": "small",
+    "approach": {
+     "yes": true,
+     "line": "from the shore"
+    }
+   },
+   {
+    "structure": "mns:bridge_2",
+    "status": "unshown",
+    "shot": "the_nether-structure-bridge_2.jpg",
+    "onItsGround": "not judged: the frame shows a soul sand valley floor, no deck",
+    "site": "",
+    "materialsAndAge": "",
+    "scale": "",
+    "approach": {
+     "yes": false,
+     "line": ""
+    }
+   },
+   {
+    "structure": "minecraft:fortress",
+    "status": "kept",
+    "shot": "the_nether-structure-fortress.jpg",
+    "onItsGround": "yes: nether brick halls and walkways over the drop",
+    "site": "a gorge",
+    "materialsAndAge": "nether brick, intact",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "walkways"
+    }
+   },
+   {
+    "structure": "mns:mega_fortress",
+    "status": "kept",
+    "shot": "the_nether-structure-mega_fortress.jpg",
+    "onItsGround": "yes: on the lava sea shore",
+    "site": "a shore",
+    "materialsAndAge": "stone brick and red",
+    "scale": "very large",
+    "approach": {
+     "yes": true,
+     "line": "shore"
+    }
+   },
+   {
+    "structure": "minecraft:nether_fossil",
+    "status": "kept",
+    "shot": "the_nether-structure-nether_fossil.jpg",
+    "onItsGround": "yes: bones in a lava hollow",
+    "site": "a hollow",
+    "materialsAndAge": "bone",
+    "scale": "small",
+    "approach": {
+     "yes": true,
+     "line": "warped bank"
+    }
+   },
+   {
+    "structure": "nova_structures:sealing_halls",
+    "status": "kept",
+    "shot": "the_nether-structure-sealing_halls.jpg",
+    "onItsGround": "yes: halls dug into rock",
+    "site": "underground",
+    "materialsAndAge": "blackstone and gold, worn",
+    "scale": "large",
+    "approach": {
+     "yes": true,
+     "line": "interior stairs"
+    }
+   },
+   {
+    "structure": "towns_and_towers:exclusives/village_piglin",
+    "status": "removed",
+    "shot": "the_nether-structure-exclusives_village_piglin.jpg",
+    "onItsGround": "no: on the roof (box y 115-158) under a pink sky",
+    "site": "above the roof",
+    "materialsAndAge": "piglin village, intact",
+    "scale": "large",
+    "approach": {
+     "yes": false,
+     "line": "none from below"
+    }
+   }
+  ],
+  "shotsAdded": [
+   "the_nether-structure-bastion_remnant-nv.jpg",
+   "the_nether-structure-bastion_remnant.jpg",
+   "the_nether-structure-bridge_1-nv.jpg",
+   "the_nether-structure-bridge_1.jpg",
+   "the_nether-structure-bridge_2-nv.jpg",
+   "the_nether-structure-bridge_2.jpg",
+   "the_nether-structure-bridge_3-nv.jpg",
+   "the_nether-structure-bridge_3.jpg",
+   "the_nether-structure-bridge_4-nv.jpg",
+   "the_nether-structure-bridge_4.jpg",
+   "the_nether-structure-bridge_6-nv.jpg",
+   "the_nether-structure-bridge_6.jpg",
+   "the_nether-structure-exclusives_village_piglin-nv.jpg",
+   "the_nether-structure-exclusives_village_piglin.jpg",
+   "the_nether-structure-fortress-nv.jpg",
+   "the_nether-structure-fortress.jpg",
+   "the_nether-structure-mega_fortress-nv.jpg",
+   "the_nether-structure-mega_fortress.jpg",
+   "the_nether-structure-nether_fossil-nv.jpg",
+   "the_nether-structure-nether_fossil.jpg",
+   "the_nether-structure-sealing_halls-nv.jpg",
+   "the_nether-structure-sealing_halls.jpg"
+  ]
+ }
+]

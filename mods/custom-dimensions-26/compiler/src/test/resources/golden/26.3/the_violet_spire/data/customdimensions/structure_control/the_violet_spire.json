@@ -50,13 +50,6 @@
   "spacing": {},
   "force": [
     {
-      "structure": "mss:large_tower",
-      "x": 60,
-      "z": 60,
-      "radius": 0,
-      "exclusive": false
-    },
-    {
       "structure": "mes:mystical_archway",
       "x": -300,
       "z": 180,
@@ -65,12 +58,6 @@
     }
   ],
   "wants": [
-    {
-      "name": "ati_structures:fortified_temple",
-      "structure": "ati_structures:fortified_temple",
-      "min": 450,
-      "max": 650
-    },
     {
       "name": "mss:castle_ruin",
       "structure": "mss:castle_ruin",
@@ -92,7 +79,5 @@
   ],
   "shuns": [],
   "replace": {},
-  "terrainAdaptation": {
-    "mss:large_tower": "beard_box"
-  }
+  "terrainAdaptation": {}
 }
