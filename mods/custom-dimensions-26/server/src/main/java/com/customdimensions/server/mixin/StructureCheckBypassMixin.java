@@ -30,7 +30,8 @@ abstract class StructureCheckBypassMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/levelgen/structure/Structure;findValidGenerationPoint(Lnet/minecraft/world/level/levelgen/structure/Structure$GenerationContext;)Ljava/util/Optional;"))
     private Optional<Structure.GenerationStub> customdimensions$bypassBiome(Structure structure, Structure.GenerationContext context,
             Operation<Optional<Structure.GenerationStub>> original, @Local(argsOnly = true) ChunkPos pos) {
-        boolean bypass = StructureRuntime.bypassesBiome(dimension, structure, pos);
+        boolean bypass = StructureRuntime.bypassesBiome(dimension, structure, pos)
+                || structure instanceof com.customdimensions.server.structure.SetPieceStructure piece && piece.anyBiome();
         Integer ground = StructureRuntime.forcedGround(dimension, structure, pos);
         if (!bypass && ground == null) {
             return original.call(structure, context);

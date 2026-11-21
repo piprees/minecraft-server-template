@@ -810,8 +810,24 @@
               "structures": { "description": "Structure ids, #tags or group names.", "type": "array", "minItems": 1, "items": { "type": "string" } }
             }
           }
+        },
+        "sites": {
+          "description": "Where each structure may stand (lore/placement.md G3), by structure id or #tag, ours and the mods': forced starts and wants choose a chunk that passes; group and grid starts that fail do not start.",
+          "type": "object",
+          "propertyNames": { "pattern": "^#?[a-z0-9_.-]+:[a-z0-9_./-]+$" },
+          "additionalProperties": { "$ref": "#/$defs/site" }
+        },
+        "age": {
+          "description": "The age a set piece wears when neither it nor its element names one (lore/placement.md § Age).",
+          "$ref": "#/$defs/age"
         }
       }
+    },
+    "setPieces": {
+      "description": "Places of our own built from vanilla blocks and vanilla templates by id (places/set-pieces.md), by name; each compiles to the structure <namespace>:set_piece/<slug>/<name>, placed by structures.force, wants or its group.",
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z0-9_]+$" },
+      "additionalProperties": { "$ref": "#/$defs/setPiece" }
     },
     "portals": {
       "description": "The ways in. The first entry is the primary portal.",
@@ -878,6 +894,122 @@
     }
   },
   "$defs": {
+    "age": { "enum": ["recent", "old", "ancient", "deep"] },
+    "site": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "slope": { "description": "Largest height spread over the footprint's centre, corners and edges, in blocks.", "type": "integer", "minimum": 0 },
+        "radius": { "description": "The footprint's half-width in blocks (default 8; a set piece's is its size).", "type": "integer", "minimum": 1 },
+        "height": {
+          "description": "The surface height window at the centre.",
+          "type": "object", "additionalProperties": false,
+          "properties": { "min": { "type": "integer" }, "max": { "type": "integer" } }
+        },
+        "relative": {
+          "description": "Height against a ring of ground reach blocks out (default 48): summit (lower by rise on every side), spur (on five to seven), valley (higher on six or more); rise defaults to 8.",
+          "oneOf": [
+            { "enum": ["summit", "spur", "valley"] },
+            {
+              "type": "object", "additionalProperties": false, "required": ["kind"],
+              "properties": {
+                "kind": { "enum": ["summit", "spur", "valley"] },
+                "rise": { "type": "integer", "minimum": 1 },
+                "reach": { "type": "integer", "minimum": 4 }
+              }
+            }
+          ]
+        },
+        "water": {
+          "description": "Distance window in blocks to the nearest water (any), river, ocean, or shore (the nearest land from water, the nearest water from land); searched to 128.",
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "kind": { "enum": ["water", "river", "ocean", "shore"] },
+            "min": { "type": "integer", "minimum": 0, "maximum": 128 },
+            "max": { "type": "integer", "minimum": 0, "maximum": 128 }
+          }
+        },
+        "cliff": {
+          "description": "Distance window in blocks to a cliff face: a drop of rise (default 10) between columns four blocks apart.",
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "min": { "type": "integer", "minimum": 0, "maximum": 128 },
+            "max": { "type": "integer", "minimum": 0, "maximum": 128 },
+            "rise": { "type": "integer", "minimum": 2 }
+          }
+        },
+        "shelter": {
+          "description": "Any of: overhang (rock over the site or within eight blocks), hollow (ground four higher on six of eight sides at 24), lee (ground twelve higher within 32), canopy (a forest, jungle or taiga biome).",
+          "oneOf": [
+            { "enum": ["overhang", "hollow", "lee", "canopy"] },
+            { "type": "array", "minItems": 1, "items": { "enum": ["overhang", "hollow", "lee", "canopy"] } }
+          ]
+        },
+        "biomes": { "description": "Biome ids or #tags the surface at the centre must be in.", "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "setPieceElement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["template", "scatter", "block", "chest", "spawner"] },
+        "offset": { "description": "Blocks from the origin in the piece's rotation; y above the seat found there.", "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "integer" } },
+        "count": { "description": "Copies (a scatter's item count; a spawner's spawn count).", "type": "integer", "minimum": 1 },
+        "chance": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "around": { "description": "Copies on a ring of this radius.", "type": "integer", "minimum": 0 },
+        "age": { "$ref": "#/$defs/age" },
+        "weight": { "description": "A scatter item's weight.", "type": "integer", "minimum": 1 },
+        "id": { "description": "template: a vanilla structure template id.", "type": "string" },
+        "rotation": { "enum": ["random", "none", "clockwise_90", "180", "counterclockwise_90"] },
+        "mirror": { "enum": ["none", "left_right", "front_back", "random"] },
+        "processors": { "description": "template: a vanilla processor list id.", "type": "string" },
+        "integrity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "embed": { "description": "template: blocks sunk below the seat.", "type": "integer", "minimum": 0 },
+        "radius": { "description": "scatter: radius in blocks.", "type": "integer", "minimum": 0 },
+        "items": { "description": "scatter: weighted elements.", "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/setPieceElement" } },
+        "spacing": { "description": "scatter: the least distance between items.", "type": "integer", "minimum": 0 },
+        "block": { "description": "block: a block state or palette name; chest: chest, barrel, trapped_chest or decorated_pot.", "type": "string" },
+        "loot": { "description": "chest: a loot table id.", "type": "string" },
+        "entity": { "description": "spawner: an entity type id.", "type": "string" },
+        "delay": { "type": "integer", "minimum": 1 },
+        "range": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "setPiece": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "description": "The display name the survey, shots and map use.", "type": "string" },
+        "like": { "description": "A spec in definitions/set-pieces/ this one extends.", "type": "string" },
+        "seat": { "enum": ["ground", "floor", "pinned"] },
+        "support": { "description": "Share of the nine footprint samples that must find a seat (default 0.8).", "type": "number", "minimum": 0, "maximum": 1 },
+        "slope": { "type": "integer", "minimum": 0 },
+        "biomes": { "type": "array", "items": { "type": "string" } },
+        "site": { "$ref": "#/$defs/site" },
+        "band": { "description": "floor: the [minY, maxY] the floor is searched in (default sea level to the top less 8).", "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer" } },
+        "clear": { "description": "floor: headroom in blocks (default 6).", "type": "integer", "minimum": 1 },
+        "elements": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/setPieceElement" } },
+        "palette": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "oneOf": [
+                { "type": "string" },
+                { "type": "object", "additionalProperties": false, "required": ["block"], "properties": { "block": { "type": "string" }, "weight": { "type": "integer", "minimum": 1 } } }
+              ]
+            }
+          }
+        },
+        "group": { "type": "string" },
+        "rarity": { "enum": ["common", "uncommon", "rare", "endgame"] },
+        "repetition": { "description": "At most this many copies among the group's sites nearest spawn.", "type": "integer", "minimum": 1 },
+        "terrainAdaptation": { "enum": ["none", "beard_thin", "beard_box", "bury", "encapsulate"] },
+        "size": { "description": "Bounding half-extent in blocks; the compiler refuses elements that reach past it.", "type": "integer", "minimum": 1, "maximum": 64 },
+        "age": { "$ref": "#/$defs/age" }
+      }
+    },
     "palette": {
       "type": "object",
       "additionalProperties": false,

@@ -23,11 +23,11 @@ import java.util.List;
  * chunk's centre (or that structure control lets past its biome). No chunk is
  * generated, so terrain checks a structure makes are not applied.
  */
-final class StructureCensus {
+public final class StructureCensus {
     private StructureCensus() {
     }
 
-    static List<SurveyMetrics.Site> sites(ServerLevel level, int radius) {
+    public static List<SurveyMetrics.Site> sites(ServerLevel level, int radius) {
         ChunkGeneratorStructureState state = level.getChunkSource().getGeneratorState();
         RandomState random = state.randomState();
         BiomeSource biomes = level.getChunkSource().getGenerator().getBiomeSource();
@@ -48,7 +48,7 @@ final class StructureCensus {
                     for (StructureSet.StructureSelectionEntry e : s.structures()) {
                         Holder<Structure> structure = e.structure();
                         if (StructureRuntime.zoneShunned(level.dimension(), structure, chunk)) continue;
-                        if (!structure.value().biomes().contains(biome)
+                        if (!StructureRuntime.biomeFits(structure.value(), biome)
                                 && !StructureRuntime.bypassesBiome(level.dimension(), structure.value(), chunk)) continue;
                         out.add(new SurveyMetrics.Site(structure.unwrapKey().map(k -> k.identifier().toString()).orElse("?"),
                                 chunk.getMiddleBlockX(), chunk.getMiddleBlockZ()));

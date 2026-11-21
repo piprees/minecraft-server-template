@@ -37,7 +37,8 @@ public final class VanillaForms {
             TerrainShaping.LAND_SHARE_TYPE, o -> o.get("argument"),
             ZonesCompiler.SOURCE_TYPE, o -> o.get("base"),
             DatapackCompiler.CHECKER_CELLS, o -> new JsonPrimitive(0),
-            ZoneDensity.DISTANCE_TYPE, o -> new JsonPrimitive(ZoneDensity.REACH));
+            ZoneDensity.DISTANCE_TYPE, o -> new JsonPrimitive(ZoneDensity.REACH),
+            SetPiecesCompiler.TYPE, SetPiecesCompiler::vanillaForm);
 
     /** Folders under the runtime's namespace that vanilla does not read. */
     static final Set<String> MOD_ONLY_FOLDERS = Set.of(DatapackCompiler.LAZY_FOLDER, RuntimeWorldgen.FOLDER,

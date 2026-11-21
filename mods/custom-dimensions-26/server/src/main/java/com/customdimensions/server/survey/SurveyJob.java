@@ -283,6 +283,12 @@ public final class SurveyJob {
         dossier.add("placeness", placeness);
         long tc = System.nanoTime();
         dossier.add("structures", withCensus(dossier.getAsJsonObject("structures"), level, definition, area(definition, border, false).radius()));
+        com.google.gson.JsonArray named = NamedPlaces.named(level, area(definition, border, false).radius());
+        if (!named.isEmpty()) {
+            JsonObject places = dossier.has("places") && dossier.get("places").isJsonObject() ? dossier.getAsJsonObject("places") : new JsonObject();
+            places.add("named", named);
+            dossier.add("places", places);
+        }
         timings.put("census", (System.nanoTime() - tc) / 1_000_000);
         if (dossier.has("landforms")) {
             dossier.getAsJsonObject("landforms").add("highGroundFine", highGroundFine != null ? highGroundFine

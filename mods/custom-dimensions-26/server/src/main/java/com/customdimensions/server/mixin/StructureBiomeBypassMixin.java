@@ -35,7 +35,16 @@ abstract class StructureBiomeBypassMixin {
         if (StructureRuntime.zoneShunned(level, holder, chunk)) {
             return StructureStart.INVALID_START;
         }
-        Predicate<Holder<Biome>> test = StructureRuntime.bypassesBiome(level, structure, chunk) ? b -> true : valid;
+        Predicate<Holder<Biome>> test = StructureRuntime.bypassesBiome(level, structure, chunk)
+                || structure instanceof com.customdimensions.server.structure.SetPieceStructure piece && piece.anyBiome() ? b -> true : valid;
+        String refused = StructureRuntime.refusal(level, structure, chunk, generator, random);
+        if (refused != null) {
+            if (StructureRuntime.firstSiteRefusal(level.identifier().toString(), holder.getRegisteredName())) {
+                com.customdimensions.server.CustomDimensions.LOG.info("{}: {} at chunk {} did not start: {} (logged once per structure)",
+                        level.identifier(), holder.getRegisteredName(), chunk, refused);
+            }
+            return StructureStart.INVALID_START;
+        }
         Integer ground = StructureRuntime.forcedGround(level, structure, chunk);
         StructureStart start = original.call(structure, holder, level, registries, StructureRuntime.ground(generator, ground), biomes,
                 sampler, random, templates, seed, chunk, references, height, test);

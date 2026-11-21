@@ -26,6 +26,9 @@ public interface VanillaSource {
     /** Where the files come from, for messages. */
     String describe();
 
+    /** The bytes of the file at {@code path} (a structure template's {@code .nbt}), or empty when there is none. */
+    Optional<byte[]> bytes(String path);
+
     /** The files under {@code root}, laid out as {@code :compiler:vanillaData} extracts them. */
     static VanillaSource directory(Path root) {
         return new VanillaSource() {
@@ -49,7 +52,23 @@ public interface VanillaSource {
             public String describe() {
                 return root.toString();
             }
+
+            @Override
+            public Optional<byte[]> bytes(String path) {
+                return VanillaSource.bytes(root, path);
+            }
         };
+    }
+
+    /** The bytes of {@code root}/{@code path}, any file system; empty when it is not a file. */
+    static Optional<byte[]> bytes(Path root, String path) {
+        Path file = root.resolve(path);
+        if (!Files.isRegularFile(file)) return Optional.empty();
+        try {
+            return Optional.of(Files.readAllBytes(file));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /** The sorted file names directly inside {@code dir}, any file system; empty when it is not a directory. */

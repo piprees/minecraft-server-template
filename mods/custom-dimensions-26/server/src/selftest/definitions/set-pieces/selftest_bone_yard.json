@@ -1,0 +1,14 @@
+{
+  "seat": "ground",
+  "size": 16,
+  "support": 0.8,
+  "palette": {
+    "bone": ["minecraft:bone_block", {"block": "minecraft:bone_block[axis=x]", "weight": 2}]
+  },
+  "elements": [
+    {"kind": "template", "id": "minecraft:fossil/skull_2", "rotation": "random", "integrity": 1.0, "embed": 0},
+    {"kind": "scatter", "count": 10, "radius": 10, "spacing": 2, "items": [{"block": "bone", "weight": 3}, {"block": "minecraft:stone_bricks"}]},
+    {"kind": "chest", "loot": "minecraft:chests/simple_dungeon", "offset": [6, 0, 0]},
+    {"kind": "spawner", "entity": "minecraft:skeleton", "delay": 300, "range": 3, "count": 2, "offset": [-6, 0, 0]}
+  ]
+}
