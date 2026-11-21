@@ -26,9 +26,9 @@
       "ringLakes": 0,
       "gaps": 0,
       "islandShare": 0.02,
-      "hollowApron": 32,
+      "hollowApron": 44,
       "hollowJitter": 40,
-      "coverage": 0.55
+      "coverage": 0.7
     }
   },
   "biomes": [

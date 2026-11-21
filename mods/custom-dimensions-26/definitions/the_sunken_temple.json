@@ -18,9 +18,9 @@
       "size": 2,
       "coverage": 0.55,
       "tiers": 2,
-      "tierSpacing": 36,
+      "tierSpacing": 32,
       "tierGap": 16,
-      "tierShrink": 0.6,
+      "tierShrink": 0.8,
       "underside": 50
     },
     "scales": {
@@ -111,10 +111,6 @@
         "min": 1200,
         "max": 2000
       },
-      "ati_structures:sinking_temple": {
-        "min": 200,
-        "max": 1200
-      },
       "ati_structures:underwater_dungeon": {
         "min": 200,
         "max": 1500
@@ -123,14 +119,14 @@
         "min": 300,
         "max": 1200
       },
-      "mss:castle_ruin": {
-        "min": 1200,
-        "max": 2000
-      },
       "mss:large_tower": {
         "min": 0,
         "max": 300
       }
+    },
+    "shuns": {
+      "ati_structures:sinking_temple": {},
+      "mss:castle_ruin": {}
     }
   },
   "portals": [

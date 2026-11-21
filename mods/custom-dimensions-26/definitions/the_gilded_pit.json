@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "description": "The piglin capital. Every portal drops you at the same ledge overlooking what remains: a bastion, a forge, a palace, a forbidden castle — gold in every wall, treasure in every ruin. Nothing within arm's reach of the landing. Greed pays and costs.",
   "seed": -7161067373243224201,
-  "spawn": [0, 86, -500],
+  "spawn": [0, 86, -540],
   "generator": {
     "type": "noise",
     "preset": "nether"
@@ -91,8 +91,7 @@
   "structures": {
     "density": "dense",
     "terrainAdaptation": {
-      "nova_structures:piglin_donjon": "pedestal",
-      "nova_structures:nether_keep": "pedestal",
+      "nova_structures:piglin_donjon": "beard_box",
       "ati_structures:dark_keep": "platform_skirt"
     },
     "force": [
@@ -107,16 +106,6 @@
         "z": -47
       },
       {
-        "structure": "nova_structures:nether_keep",
-        "x": 52,
-        "z": 326
-      },
-      {
-        "structure": "mns:crimson_forge",
-        "x": -38,
-        "z": -342
-      },
-      {
         "structure": "minecraft:trial_chambers",
         "x": 237,
         "z": 218
@@ -125,11 +114,6 @@
         "structure": "nova_structures:piglin_donjon",
         "x": -263,
         "z": 229
-      },
-      {
-        "structure": "mns:crimson_forge",
-        "x": 241,
-        "z": -234
       },
       {
         "structure": "ati_structures:dark_keep",
@@ -146,24 +130,19 @@
     "mode": "allow",
     "list": [
       "minecraft:nether_complexes",
-      "mns:crimson_forge",
-      "mns:large_blackstone_walls",
-      "mns:nether_tower",
       "nova_structures:nether_structures"
     ],
     "wants": {
       "nova_structures:sealing_halls": {
         "min": 450,
         "max": 650
-      },
-      "mns:large_blackstone_walls": {
-        "min": 450,
-        "max": 650
-      },
-      "mns:nether_tower": {
-        "min": 450,
-        "max": 650
       }
+    },
+    "shuns": {
+      "mns:large_blackstone_walls": {},
+      "mns:nether_tower": {},
+      "mns:crimson_forge": {},
+      "nova_structures:nether_keep": {}
     }
   },
   "portals": [
@@ -176,7 +155,7 @@
       "cooldown": 40,
       "shape": "doorway",
       "anchor": {
-        "pos": [-412, 64, 217],
+        "pos": "spawn",
         "exit": "bed"
       },
       "sounds": {
@@ -202,14 +181,49 @@
       "minecraft:basalt_deltas"
     ],
     "wants": {
-      "nova_structures:sealing_halls": "near_border",
-      "blackstone_walls": "near_border",
-      "mns:nether_tower": "near_border"
+      "nova_structures:sealing_halls": "near_border"
     }
   },
   "exitPortal": {
     "enabled": true,
     "pos": "spawn",
     "target": "bed"
+  },
+  "atmosphere": {
+    "fogColor": "#3B2410",
+    "ambientLight": 0.1,
+    "fogDistance": {
+      "start": 64,
+      "end": 384
+    }
+  },
+  "materials": {
+    "bands": [
+      {
+        "below": 76,
+        "filler": "minecraft:blackstone",
+        "cliffs": "minecraft:blackstone"
+      }
+    ]
+  },
+  "ores": {
+    "add": [
+      {
+        "id": "gilded_seams",
+        "block": "minecraft:gilded_blackstone",
+        "size": 14,
+        "count": 20,
+        "minY": 18,
+        "maxY": 100
+      },
+      {
+        "id": "gold_seams",
+        "block": "minecraft:nether_gold_ore",
+        "size": 10,
+        "count": 16,
+        "minY": 18,
+        "maxY": 100
+      }
+    ]
   }
 }

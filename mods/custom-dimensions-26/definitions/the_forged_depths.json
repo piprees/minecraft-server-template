@@ -11,16 +11,16 @@
     "base": "roofed",
     "params": {
       "floorHeight": 72,
-      "floorRelief": 18,
-      "ceilingGap": 40,
-      "roughness": 0.6,
+      "floorRelief": 26,
+      "ceilingGap": 48,
+      "roughness": 0.85,
       "pit": 0.04,
       "pitDepth": 34,
-      "ledges": 0.5,
+      "ledges": 0.4,
       "ledgeStep": 8,
-      "chasms": 0.08,
-      "chasmDepth": 24,
-      "pillars": 0.05
+      "chasms": 0.14,
+      "chasmDepth": 30,
+      "pillars": 0.08
     },
     "layout": {
       "type": "radial",
@@ -38,35 +38,27 @@
     }
   },
   "biomes": [
-    "adventure:quartz_flats",
-    "adventure:crimson_pinewood",
+    "adventure:blackstone_basin",
     "minecraft:basalt_deltas",
-    "minecraft:crimson_forest",
+    "adventure:ash_barrens",
     "minecraft:nether_wastes",
-    {
-      "id": "adventure:magma_land",
-      "climate": {
-        "depth": [0.2, 1]
-      }
-    }
+    "adventure:magma_land"
   ],
   "biomeLayout": {
     "mode": "regions",
     "weights": {
-      "adventure:crimson_pinewood": 52,
-      "adventure:quartz_flats": 15,
+      "adventure:blackstone_basin": 58,
       "minecraft:basalt_deltas": 18,
-      "minecraft:crimson_forest": 8,
-      "minecraft:nether_wastes": 7
+      "adventure:ash_barrens": 14,
+      "minecraft:nether_wastes": 10
     },
     "places": {
       "groups": {
         "forge": [
-          "adventure:quartz_flats",
-          "minecraft:crimson_forest"
+          "adventure:blackstone_basin"
         ],
-        "basalt": [
-          "minecraft:basalt_deltas",
+        "ash": [
+          "adventure:ash_barrens",
           "minecraft:nether_wastes"
         ]
       },
@@ -75,6 +67,9 @@
         "blocks": 76,
         "wavelength": 512
       }
+    },
+    "belowFloor": {
+      "adventure:magma_land": 24
     }
   },
   "atmosphere": {
@@ -122,14 +117,13 @@
         "min": 100,
         "max": 600
       },
-      "nova_structures:nether_keep": {
-        "min": 100,
-        "max": 600
-      },
       "minecraft:bastion_remnant": {
         "min": 150,
         "max": 650
       }
+    },
+    "shuns": {
+      "nova_structures:nether_keep": {}
     }
   },
   "portals": [
@@ -159,9 +153,9 @@
     "mood": "hard",
     "allowHazardousSpawn": true,
     "spawnFilter": [
+      "adventure:blackstone_basin",
       "minecraft:basalt_deltas",
-      "adventure:magma_land",
-      "adventure:quartz_flats"
+      "adventure:magma_land"
     ],
     "wants": {
       "crimson_forge": "near_spawn",
@@ -183,9 +177,9 @@
   },
   "ores": {
     "remove": [
-      "adventure:biome/crimson_pinewood/crimson_pines",
+      "minecraft:ore_quartz_nether",
+      "minecraft:ore_quartz_deltas",
       "minecraft:crimson_fungi",
-      "minecraft:crimson_forest_vegetation",
       "minecraft:weeping_vines"
     ]
   },

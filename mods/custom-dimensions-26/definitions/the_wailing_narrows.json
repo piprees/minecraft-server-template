@@ -9,18 +9,20 @@
   },
   "terrain": {
     "base": "roofed",
+    "scale": 0.5,
     "params": {
       "floorHeight": 80,
-      "floorRelief": 8,
-      "ceilingGap": 26,
-      "roughness": 0.5,
-      "chasms": 0.22,
+      "floorRelief": 6,
+      "ceilingGap": 30,
+      "roughness": 0.6,
+      "chasms": 0.1,
       "chasmDepth": 62
     }
   },
   "biomes": [
     "minecraft:soul_sand_valley",
-    "minecraft:basalt_deltas"
+    "minecraft:basalt_deltas",
+    "adventure:bone_reef"
   ],
   "biomeLayout": {
     "mode": "regions",
@@ -36,6 +38,9 @@
         "blocks": 76,
         "wavelength": 512
       }
+    },
+    "belowFloor": {
+      "adventure:bone_reef": 24
     }
   },
   "liquids": {
@@ -68,24 +73,34 @@
         "z": -180
       }
     ],
-    "terrainAdaptation": {
-      "mns:bridge_1": "pedestal"
-    },
     "mode": "allow",
     "list": [
       "mns:mega_fortress",
       "mns:giant_skull",
-      "mns:large_blackstone_pillars"
+      "minecraft:nether_complexes"
     ],
     "wants": {
-      "mns:large_blackstone_pillars": {
-        "min": 450,
-        "max": 650
-      },
       "mns:giant_skull": {
         "min": 100,
         "max": 600
+      },
+      "minecraft:fortress": {
+        "min": 0,
+        "max": 260
       }
+    },
+    "terrainAdaptation": {
+      "mns:giant_skull": "bury"
+    },
+    "shuns": {
+      "minecraft:bastion_remnant": {},
+      "mns:large_blackstone_pillars": {},
+      "mns:bridge_1": {},
+      "mns:bridge_2": {},
+      "mns:bridge_3": {},
+      "mns:bridge_4": {},
+      "mns:bridge_5": {},
+      "mns:bridge_6": {}
     }
   },
   "portals": [
@@ -119,10 +134,9 @@
       "minecraft:basalt_deltas"
     ],
     "wants": {
-      "nether_bridge": "near_spawn",
+      "minecraft:fortress": "near_spawn",
       "mns:mega_fortress": "spread",
-      "giant_skull": "spread",
-      "blackstone_pillars": "near_border"
+      "giant_skull": "spread"
     },
     "shuns": [
       "towns_and_towers:exclusives/village_piglin",
@@ -134,5 +148,14 @@
     "enabled": true,
     "pos": "spawn",
     "target": "bed"
+  },
+  "materials": {
+    "cliffs": "minecraft:blackstone"
+  },
+  "ores": {
+    "remove": [
+      "minecraft:ore_quartz_nether",
+      "minecraft:ore_quartz_deltas"
+    ]
   }
 }

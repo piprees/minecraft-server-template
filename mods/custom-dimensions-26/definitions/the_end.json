@@ -68,7 +68,7 @@
       "blend": 48,
       "edgeJitter": 90,
       "biomes": [
-        "adventure:glowing_grasslands"
+        "adventure:sheared_highlands"
       ]
     },
     {
@@ -158,7 +158,7 @@
       "blend": 48,
       "edgeJitter": 90,
       "biomes": [
-        "adventure:glowing_grasslands"
+        "adventure:umbral_wastes"
       ]
     },
     {
@@ -168,7 +168,7 @@
       "blend": 48,
       "edgeJitter": 90,
       "biomes": [
-        "adventure:foggy_mushroomland"
+        "adventure:painted_mountains"
       ]
     }
   ],
@@ -179,13 +179,9 @@
       "mes:phantom_citadel",
       "mes:enderkeep_courtyard",
       "mes:monolith",
-      "mes:enderskog",
-      "mes:enderbloom_grove",
-      "mes:placid_prairie",
       "mes:ender_spire",
       "mes:mystical_archway",
       "nova_structures:end_lighthouses",
-      "nova_structures:end_castle",
       "mes:astral_meteorite",
       "mes:mega_ship"
     ],
@@ -198,6 +194,12 @@
         "min": 900,
         "max": 1500
       }
+    },
+    "shuns": {
+      "nova_structures:end_castle": {},
+      "mes:enderskog": {},
+      "mes:enderbloom_grove": {},
+      "mes:placid_prairie": {}
     }
   }
 }

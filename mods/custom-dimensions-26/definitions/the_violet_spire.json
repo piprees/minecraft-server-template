@@ -140,7 +140,6 @@
     ],
     "rarity": {
       "mss:small_tower": "common",
-      "mss:large_tower": "common",
       "mes:enderwatch_tower": "common",
       "mes:mystical_archway": "common"
     },
@@ -149,7 +148,6 @@
     },
     "mode": "allow",
     "list": [
-      "mss:large_tower",
       "mss:small_tower",
       "mes:enderwatch_tower",
       "mes:mystical_archway",
@@ -168,7 +166,15 @@
       "nova_structures:shrine_tower": {
         "min": 100,
         "max": 500
+      },
+      "mes:enderwatch_tower": {
+        "min": 300,
+        "max": 650
       }
+    },
+    "shuns": {
+      "mss:large_tower": {},
+      "ati_structures:fortified_temple": {}
     }
   },
   "portals": [
@@ -225,5 +231,25 @@
       "monument"
     ],
     "terrain": "islands"
+  },
+  "ores": {
+    "add": [
+      {
+        "id": "spire_amethyst",
+        "block": "minecraft:amethyst_block",
+        "size": 16,
+        "count": 14,
+        "minY": 140,
+        "maxY": 250
+      },
+      {
+        "id": "spire_budding",
+        "block": "minecraft:budding_amethyst",
+        "size": 6,
+        "count": 6,
+        "minY": 140,
+        "maxY": 250
+      }
+    ]
   }
 }

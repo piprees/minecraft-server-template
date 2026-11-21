@@ -14,10 +14,10 @@
    "from": "place kind one place: no scatter of biome specks"
   },
   {
-   "key": "placeness.places.byPlace.adventure:crimson_pinewood.landPercent",
+   "key": "placeness.places.byPlace.forge.landPercent",
    "op": ">=",
    "value": 45,
-   "from": "\"crimson forges ... crimson pinewood\": the pinewood place holds about half the land"
+   "from": "\"crimson forges and reactors\": the blackstone forge place holds about half the land. Restated from the pinewood place: the owner asked for no trees"
   },
   {
    "key": "placeness.places.landRegions.specksPercent",

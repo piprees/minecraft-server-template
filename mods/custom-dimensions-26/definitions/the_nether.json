@@ -67,9 +67,7 @@
     "wants": {
       "mns:mega_fortress": "spread",
       "bastion": "spread",
-      "towns_and_towers:exclusives/village_piglin": "spread",
-      "nova_structures:sealing_halls": "near_border",
-      "nether_bridge": "spread"
+      "nova_structures:sealing_halls": "near_border"
     },
     "shuns": []
   },
@@ -78,12 +76,6 @@
     "list": [
       "minecraft:nether_complexes",
       "mns:mega_fortress",
-      "mns:bridge_1",
-      "mns:bridge_2",
-      "mns:bridge_3",
-      "mns:bridge_4",
-      "mns:bridge_5",
-      "mns:bridge_6",
       "minecraft:nether_fossils"
     ],
     "wants": {
@@ -91,6 +83,15 @@
         "min": 700,
         "max": 1000
       }
+    },
+    "shuns": {
+      "towns_and_towers:exclusives/village_piglin": {},
+      "mns:bridge_1": {},
+      "mns:bridge_2": {},
+      "mns:bridge_3": {},
+      "mns:bridge_4": {},
+      "mns:bridge_5": {},
+      "mns:bridge_6": {}
     }
   }
 }

@@ -10,8 +10,8 @@
   "terrain": {
     "base": "roofed",
     "params": {
-      "floorHeight": 36,
-      "floorRelief": 8,
+      "floorHeight": 40,
+      "floorRelief": 9,
       "ceilingGap": 80,
       "roughness": 0,
       "flats": 0.65
@@ -59,25 +59,11 @@
     "playerLuck": 1.4
   },
   "structures": {
-    "terrainAdaptation": {
-      "mns:crimson_forge": "platform_skirt",
-      "mns:bridge_1": "platform_skirt"
-    },
     "mode": "allow",
     "list": [
-      "mns:bridge_1",
-      "mns:mega_fortress",
-      "mns:crimson_lava_well"
+      "mns:mega_fortress"
     ],
     "wants": {
-      "mns:crimson_lava_well": {
-        "min": 0,
-        "max": 200
-      },
-      "mns:crimson_forge": {
-        "min": 700,
-        "max": 1000
-      },
       "nova_structures:piglin_outstation": {
         "min": 200,
         "max": 900
@@ -85,11 +71,12 @@
       "mns:mega_fortress": {
         "min": 200,
         "max": 900
-      },
-      "mns:bridge_1": {
-        "min": 100,
-        "max": 700
       }
+    },
+    "shuns": {
+      "mns:bridge_1": {},
+      "mns:crimson_lava_well": {},
+      "mns:crimson_forge": {}
     }
   },
   "portals": [
@@ -129,6 +116,10 @@
     ]
   },
   "materials": {
+    "top": "minecraft:blackstone",
+    "filler": "minecraft:blackstone",
+    "beaches": "minecraft:magma_block",
+    "cliffs": "minecraft:obsidian",
     "biomes": {
       "adventure:magma_land": {
         "top": "minecraft:blackstone",
@@ -147,5 +138,9 @@
       "minecraft:basalt_blobs",
       "minecraft:blackstone_blobs"
     ]
+  },
+  "atmosphere": {
+    "fogColor": "#4B1B0B",
+    "ambientLight": 0.1
   }
 }
