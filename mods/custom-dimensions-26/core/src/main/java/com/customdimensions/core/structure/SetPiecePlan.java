@@ -174,7 +174,7 @@ public final class SetPiecePlan {
                 case "template" -> sink.set(x, y, z, "template:" + p.source().string("id", "") + "|" + p.rotation() + "|" + p.mirror());
                 case "chest" -> sink.set(x, y, z, blockAt(p, x, y, z) + "|" + p.source().string("loot", ""));
                 case "spawner" -> sink.set(x, y, z, blockAt(p, x, y, z) + "|" + p.source().string("entity", ""));
-                default -> sink.set(x, y, z, blockAt(p, x, y, z));
+                default -> sink.set(x, y, z, p.block() == null ? "thing:" + p.kind() : blockAt(p, x, y, z));
             }
         }
     }

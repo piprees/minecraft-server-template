@@ -31,10 +31,17 @@ final class AgeProcessor implements StructureProcessor {
 
     private final Age age;
     private final long seed;
+    private final int seatY;
 
     AgeProcessor(Age age, long seed) {
+        this(age, seed, Integer.MIN_VALUE);
+    }
+
+    /** With the seat's height: sand and gravel below it are the buried storey, part turned to archaeology at the age's share. */
+    AgeProcessor(Age age, long seed, int seatY) {
         this.age = age;
         this.seed = seed;
+        this.seatY = seatY;
     }
 
     @Override
@@ -44,6 +51,14 @@ final class AgeProcessor implements StructureProcessor {
         if (current == null || current.state().isAir()) return current;
         BlockPos p = current.pos();
         String id = BuiltInRegistries.BLOCK.getKey(current.state().getBlock()).toString();
+        if (p.getY() < seatY && (id.equals("minecraft:sand") || id.equals("minecraft:gravel"))
+                && SetPiecePlan.roll(seed, p.getX(), p.getY(), p.getZ(), 5) < age.archaeology()) {
+            net.minecraft.nbt.CompoundTag nbt = new net.minecraft.nbt.CompoundTag();
+            nbt.putString("LootTable", age.archaeologyLoot());
+            nbt.putLong("LootTableSeed", seed ^ p.asLong());
+            Block suspicious = id.equals("minecraft:sand") ? Blocks.SUSPICIOUS_SAND : Blocks.SUSPICIOUS_GRAVEL;
+            return new StructureTemplate.StructureBlockInfo(p, suspicious.defaultBlockState(), nbt);
+        }
         String to = age.weather(id, SetPiecePlan.roll(seed, p.getX(), p.getY(), p.getZ(), 1), SetPiecePlan.roll(seed, p.getX(), p.getY(), p.getZ(), 2));
         if (to.equals(id)) return current;
         if (to.equals(Age.AIR)) return new StructureTemplate.StructureBlockInfo(p, Blocks.AIR.defaultBlockState(), null);

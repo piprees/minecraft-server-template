@@ -106,19 +106,20 @@ public final class SetPieceStructure extends Structure {
     private void pieces(StructurePiecesBuilder builder, GenerationContext context, BlockPos origin, long seed, int rotation) {
         List<SetPiecePlan.Placement> plan = SetPiecePlan.plan(spec, seed, rotation);
         List<SetPiecePart.Item> items = new ArrayList<>();
+        SetPieceAssembly.Sink sink = new SetPieceAssembly.Sink(builder, context, spec, origin, items, new ArrayList<>());
         for (SetPiecePlan.Placement p : plan) {
+            if (com.customdimensions.core.structure.Assemblies.expands(p.kind())) {
+                SetPieceAssembly.expand(sink, p);
+                continue;
+            }
             int x = origin.getX() + p.dx();
             int z = origin.getZ() + p.dz();
             Integer ground = groundAt(spec, context.chunkGenerator(), context.heightAccessor(), context.randomState(), x, z, origin.getY());
             if (ground == null) continue;
-            int y = ground + p.dy();
-            if ("template".equals(p.kind())) {
-                SetPiecePart.template(context.structureTemplateManager(), spec, origin, p, x, y, z).ifPresent(builder::addPiece);
-            } else {
-                items.add(SetPiecePart.Item.of(p, x, y, z));
-            }
+            SetPieceAssembly.route(sink, p, x, ground + p.dy(), z);
         }
         if (!items.isEmpty()) builder.addPiece(SetPiecePart.blocks(spec, origin, items));
+        if (!sink.things().isEmpty()) builder.addPiece(SetPiecePart.things(spec, origin, sink.things()));
     }
 
     /** An origin height, or null and why not. */

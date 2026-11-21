@@ -61,7 +61,7 @@ public record StructureSpec(
     public static final Set<String> UNSUPPORTED_ADAPTATIONS = Set.of("moat", "drain");
     public static final Set<String> FIELDS = Set.of("density", "wants", "shuns", "spacing", "mode", "list", "force",
             "clearSpawnRadius", "terrainAdaptation", "noise", "radial", "rarity", "exclude", "include", "replace", "repetition",
-            "loot", "sites", "age");
+            "loot", "sites", "age", "reskin");
 
     /**
      * One noise group: its profile, radial curve (null is even), exclusion in chunks, cleared spawn disc, and its

@@ -63,6 +63,21 @@ public enum Age {
         return name().toLowerCase(Locale.ROOT);
     }
 
+    /** The share of sand and gravel in a template's buried storey turned suspicious, with archaeology loot (placement.md § Age). */
+    public double archaeology() {
+        return switch (this) {
+            case RECENT -> 0;
+            case OLD -> 0.05;
+            case ANCIENT -> 0.25;
+            case DEEP -> 0.5;
+        };
+    }
+
+    /** The archaeology loot table of this age's buried storeys. */
+    public String archaeologyLoot() {
+        return this == DEEP ? "minecraft:archaeology/trail_ruins_rare" : "minecraft:archaeology/trail_ruins_common";
+    }
+
     /** The integrity at {@code roll} (0–1) across this age's range. */
     public double integrity(double roll) {
         return integrityMin + (integrityMax - integrityMin) * roll;

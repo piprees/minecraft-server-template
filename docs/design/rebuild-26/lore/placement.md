@@ -81,7 +81,7 @@ Four ages. Every place of one age wears the same way, whichever kit built it, so
 
 **Layering:** a younger place may stand on an older one, each at its own age: a camp (recent) on a trail ruin (old) on a buried hall (ancient). It is rare; a layered site is a find in itself.
 
-Means: template `integrity`, `embed` and `processors` (**exists**); `terrainAdaptation` `bury`, `encapsulate`, `pedestal`, `platform_skirt`, `ground_blend` (**exists**); camp `state` (**planned**, SP4); `archaeology` (**planned**, SP4); one `age` value driving integrity, burial, weathering and growth, per element, set piece and dimension (**exists**), by band and with its archaeology share (**gap** G5); seating one element on another (**gap** G7); applying age to mod structures (**gap** G13).
+Means: template `integrity`, `embed` and `processors` (**exists**); `terrainAdaptation` `bury`, `encapsulate`, `pedestal`, `platform_skirt`, `ground_blend` (**exists**); camp `state` (**exists**); `archaeology` (**exists**); one `age` value driving integrity, burial, weathering, growth and its archaeology share (sand and gravel in a template's buried storey turned suspicious: none, 0.05, 0.25, 0.5), per element, set piece and dimension (**exists**), by band (**gap** G5); seating one element on another (**gap** G7); applying age to mod structures (**exists**, `structures.reskin`).
 
 ## Small dimensions
 
@@ -134,10 +134,14 @@ Each small world's way onward is its portal study and its found recipes, never a
 | Loot additions | `structures.loot` (item id, chance, structures) | exists, id only |
 | Mob scaling | `difficulty.mobMultiplier`, `depthScaling`, `attributes` | exists, no proximity |
 | Our places, seats, support, slope | `setPieces`, `seat` (`ground`, `floor`, `pinned`), `support`, `slope` | exists; seats `roof`, `wall`, `water` planned (SP3) |
-| Aged templates | `template` `integrity`, `embed`, `processors`, `age` | exists; `tilt` planned (SP4, with `wreck`) |
+| Aged templates | `template` `integrity`, `embed`, `processors`, `age`; `wreck` `tilt` | exists |
 | Site filters | `structures.sites.<id>`, a set piece's `site`: slope, height, relative height, water, cliff, shelter, biome | exists |
-| Camps, hovels, gates, studies | `camp`, `hovel`, `gate` (`attempt` with `study`) | planned (SP4) |
-| Archaeology, mobs, chests | `archaeology`, `mob`, `chest` | planned (SP4) |
+| Camps, hovels, gates, studies | `camp`, `hovel`, `farm`, `works`, `cell`, `skeleton`, `wreck`, `gate` (`attempt` with `study`, `target`, `marker`) | exists |
+| Archaeology, mobs, chests | `archaeology`, `mob`, `chest` with `arrangement` | exists |
+| Things and remains (G10, G12) | `banner`, `stand`, `frame`, `lectern`, `pot`, `remains` | exists |
+| Items with components (G11) | an item's `trim`, `dye`, `banner`, `map`, checked at compile | exists |
+| Re-skin of placed structures (G13) | `structures.reskin` by id, #tag or group: `swap` to a block or `materials.<slot>`, `age` | exists |
+| Words checked (G20) | every lectern line and title and every mob name, at compile | exists |
 | Story membership | `story` | planned, unspecified |
 | Everything in the gaps below | — | gap |
 
