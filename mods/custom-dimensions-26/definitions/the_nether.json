@@ -82,10 +82,6 @@
       "nova_structures:sealing_halls": {
         "min": 700,
         "max": 1000
-      },
-      "towns_and_towers:exclusives/village_piglin": {
-        "min": 150,
-        "max": 700
       }
     },
     "shuns": {
@@ -94,7 +90,8 @@
       "mns:bridge_3": {},
       "mns:bridge_4": {},
       "mns:bridge_5": {},
-      "mns:bridge_6": {}
+      "mns:bridge_6": {},
+      "towns_and_towers:exclusives/village_piglin": {}
     },
     "sites": {
       "minecraft:bastion_remnant": {
@@ -102,14 +99,6 @@
           "min": 36
         },
         "slope": 16,
-        "radius": 24
-      },
-      "towns_and_towers:exclusives/village_piglin": {
-        "height": {
-          "min": 36,
-          "max": 100
-        },
-        "slope": 6,
         "radius": 24
       }
     }
