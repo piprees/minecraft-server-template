@@ -294,7 +294,10 @@ public final class SetPieceSelfTest {
             }
             refused += r;
             predicted += a;
-            parts.add(piece.name() + ": " + r + " of " + noise.sites().size() + " site(s) refused, " + a + " predicted present");
+            long named = NamedPlaces.named(level, 1024).asList().stream().map(JsonElement::getAsJsonObject)
+                    .filter(o -> o.get("kind").getAsString().equals("group") && o.get("id").getAsString().equals(piece.structure())).count();
+            if (named > noise.sites().size() - r) wrong.add(piece.name() + " named at " + named + " sites, more than the " + (noise.sites().size() - r) + " left to it");
+            parts.add(piece.name() + ": " + r + " of " + noise.sites().size() + " site(s) refused, " + a + " predicted present, " + named + " named");
         }
         boolean ok = refused > 0 && wrong.isEmpty() && (!present || predicted > 0);
         return (ok ? "PASS " : "FAIL ") + String.join("; ", parts) + (wrong.isEmpty() ? "" : "; predicted present though refused: " + wrong);

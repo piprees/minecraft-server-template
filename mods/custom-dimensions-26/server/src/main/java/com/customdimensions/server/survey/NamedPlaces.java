@@ -22,7 +22,7 @@ import java.util.Map;
  * The dossier's {@code places.named} for a level's set pieces
  * (places/set-pieces.md § Finding places): each forced or wanted start at its
  * chosen chunk, and each site of a set piece's group the census gives it
- * (only those its repetition ceiling leaves it),
+ * (only those its site filter and repetition ceiling leave it),
  * inside the border; with its id, name, source, coordinates, size, and the
  * seat height once its chunk has generated.
  */
@@ -48,9 +48,10 @@ public final class NamedPlaces {
             for (SurveyMetrics.Site s : StructureCensus.sites(level, radius)) {
                 StructureRuntime.SetPieceEntry piece = byId.get(s.structure());
                 if (piece == null || piece.set() == null) continue;
-                java.util.Set<Long> cap = StructureRuntime.cap(id, level.registryAccess().lookupOrThrow(Registries.STRUCTURE)
-                        .getValue(ResourceKey.create(Registries.STRUCTURE, Identifier.parse(piece.structure()))));
-                if (cap != null && !cap.contains(net.minecraft.world.level.ChunkPos.pack(s.x() >> 4, s.z() >> 4))) continue;
+                Structure structure = level.registryAccess().lookupOrThrow(Registries.STRUCTURE)
+                        .getValue(ResourceKey.create(Registries.STRUCTURE, Identifier.parse(piece.structure())));
+                if (structure == null || StructureRuntime.refusal(level.dimension(), structure, new net.minecraft.world.level.ChunkPos(s.x() >> 4,
+                        s.z() >> 4), level.getChunkSource().getGenerator(), level.getChunkSource().randomState()) != null) continue;
                 out.add(entry(level, piece, "group", s.x(), s.z()));
             }
         }
