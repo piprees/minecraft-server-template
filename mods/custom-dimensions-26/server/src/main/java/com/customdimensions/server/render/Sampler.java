@@ -279,7 +279,7 @@ public final class Sampler {
     private BoundingBox generate(Holder<Structure> structure, ChunkPos chunk, StructureRuntime.Controlled c,
                                  Predicate<Holder<Biome>> valid) {
         StructureStart start = structure.value().generate(structure, levelKey, access,
-                StructureRuntime.ground(generator, c.groundAt(structure.value(), chunk)), generator.getBiomeSource(),
+                StructureRuntime.ground(generator, c.seat(structure.value(), chunk, generator, random)), generator.getBiomeSource(),
                 random.createClimateSampler(SamplerContext.builder().enableCaches().build()), random, templates,
                 c.state().getLevelSeed(), chunk, 0, heights, valid);
         if (!start.isValid() || c.floorRefusal(structure.value(), start.getBoundingBox()) != null) return null;

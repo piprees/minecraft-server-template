@@ -403,6 +403,13 @@ public final class StructureRuntime {
             return StructureRuntime.refusal(bypass, filters, caps, structure, chunk, generator, random);
         }
 
+        /** The ground a start is generated on as its level generates it: a forced start's height, else a filtered start's roofed floor. */
+        public Integer seat(Structure structure, ChunkPos chunk, ChunkGenerator generator, net.minecraft.world.level.levelgen.RandomState random) {
+            Integer y = groundAt(structure, chunk);
+            return y != null || !filters.containsKey(structure) ? y
+                    : SetPieceSeats.roofedFloor(generator, random, chunk.getMiddleBlockX(), chunk.getMiddleBlockZ());
+        }
+
         /** As {@link StructureRuntime#floorRefusal}, under this control. */
         public String floorRefusal(Structure structure, net.minecraft.world.level.levelgen.structure.BoundingBox box) {
             return StructureRuntime.floorRefusal(filters.get(structure), box);
@@ -853,7 +860,8 @@ public final class StructureRuntime {
         return (cx, cz) -> {
             net.minecraft.world.level.levelgen.structure.StructureStart start;
             try {
-                start = structure.value().generate(structure, levelKey, registries, ground(generator, y), generator.getBiomeSource(),
+                Integer seat = y != null || filter == null ? y : SetPieceSeats.roofedFloor(generator, random, cx * 16 + 8, cz * 16 + 8);
+                start = structure.value().generate(structure, levelKey, registries, ground(generator, seat), generator.getBiomeSource(),
                         random.createClimateSampler(net.minecraft.world.level.levelgen.densityfunction.SamplerContext.builder().enableCaches().build()),
                         random, templates, seed, new ChunkPos(cx, cz), 0, height, b -> true);
             } catch (RuntimeException e) {
