@@ -103,6 +103,13 @@ public final class StructuresCompiler {
                 entry.structure("sites: " + sites.size() + " structure(s) filtered by slope, height, water, cliff, shelter or biome");
             }
         }
+        if (def.structures() != null && def.structures().has("reskin")) {
+            List<com.customdimensions.core.structure.Reskin> reskin = com.customdimensions.core.structure.Reskin.read(slug,
+                    def.structures().get("reskin"), def.materials(), id -> true);
+            json.add("reskin", com.customdimensions.core.structure.Reskin.toJson(reskin));
+            reskin.forEach(r -> entry.structure("reskin " + r.target() + ": " + r.swap().size() + " swap(s)"
+                    + (r.age() != null ? ", age " + r.age().id() : "")));
+        }
         if (def.structures() != null && def.structures().has("approaches")) {
             JsonObject a = new JsonObject();
             def.structures().getAsJsonObject("approaches").entrySet().forEach(e -> {

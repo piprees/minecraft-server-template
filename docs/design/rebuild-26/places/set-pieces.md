@@ -40,7 +40,8 @@ A definition gains `setPieces`: name to spec. A spec either stands alone or exte
 | `group`, `rarity`, `repetition` | Join a structure-control group (`deco`, `landmarks`, `dungeons`, …) at that rarity share, at most `repetition` copies |
 | `terrainAdaptation` | Default adjustment (`none`, `beard_thin`, `beard_box`, `bury`, `encapsulate`, or our `footing` and `terrace`, G9): `none` for a piece with shapes, `bury` for an ancient or deep one, else `beard_thin`; the definition's `structures.terrainAdaptation` overrides it. The beardifier never adapts terrain to a shape's or an approach's box |
 | `size` | Bounding half-extent in blocks, checked against what the elements can reach; the compiler refuses a spec whose elements can exceed it. At most 64 (a 9 by 9 chunk box) |
-| `marker` | `true` places an `ExitShrines` beacon-and-frame at the element named `gate` |
+
+Mod structures are re-skinned through `structures.reskin`: by structure id, #tag or group name, a `swap` of block ids or #block tags to a block or a `materials.<slot>` of the dimension, and an `age` whose weathering they wear, applied to every template block and every block a hard-coded piece places inside a matching start.
 
 Placement stays in `structures`: `force: [{structure: "adventure:set_piece/the_boneyard/bone_pit", x, z, radius}]`, `wants: {"adventure:set_piece/the_boneyard/crater": {min, max}}`, zone `structures.wants`, `shuns`, `replace` (a set piece may stand in for a mod's structure that is missing). A set piece placed only by `force` or `wants` needs no `group`.
 
@@ -83,14 +84,14 @@ A shape is drawn column by column: what a column receives follows from the ancho
 | Kind | Parameters | Builds |
 | --- | --- | --- |
 | `template` | `id` (a vanilla structure template, below), `rotation` (`random` or fixed), `mirror`, `processors` (a vanilla processor list id), `integrity` (0–1, blocks kept), `tilt` (`none`, `nose`, `side`), `embed` (blocks sunk below the seat) | One vanilla template placed whole, aged, broken or half-buried |
-| `wreck` | A `template` plus `crater` and `scatter` of its own blocks round it | A crash site: the ship, the trench it ploughed, debris |
-| `skeleton` | `length`, `parts` (vanilla fossil templates by id), `curve` | A giant's or dragon's bones laid as a chain of fossil spines with a skull at the head |
-| `camp` | `state` (`living`, `abandoned`, `burned`), `tents` (count; vanilla `abandoned_camp/tent/*` or our `hovel`), `fire`, `stores` (chests with loot tables) | A camp or its remnants; `burned` swaps wood for charcoal-coloured blocks and leaves fire and ash |
-| `hovel` | `size`, `palette`, `roof` (`flat`, `pitched`, `dome`), `state` | A small dwelling of the dimension's own materials: a piglin hovel of blackstone and wart blocks, a shack |
-| `farm` | `crop` (`nether_wart`, `crimson_fungus`, `warped_fungus`, `wheat`, `mushroom`), `plots`, `irrigation` (`water`, `lava`, `none`), `fence` | Tilled plots, rows of crop, channels, composters and a hovel or two |
-| `works` | `columns` (chimneys), `lines` (pipes, chains), `machines` (levers, pistons, observers, hoppers, cauldrons, blast furnaces in a palette), `slag` (a `field`) | Industry: chimneys, pipe runs, chain hoists, a quench pool, slag heaps |
-| `cell` | `count`, `bars`, `captive` (entity type, `persistent`, `name`), `holder` (`floor`, `minecart`, `boat`) | Cages and cells; an enderman is held in a minecart behind bars, since a riding enderman does not teleport (SP4 tests it on 26.3) |
-| `gate` | `frame` (`nether`, `end`, `custom` block list), `state` (`broken`, `attempt`), `marker` | A portal frame left broken, or an attempted gateway (frame, end rods, a bedrock plinth, brewing stands); with `marker` it is a working exit |
+| `wreck` | A `template`'s fields, `tilt` (`none`, `nose`, `side`) and `angle` (degrees; nose 35, side 25), `trench` (blocks behind it), `debris` (count), `radius` | A crash site: the ship tilted about its floor's centre (each tilted block takes the nearest block of the level template, so the hull has no gaps; its item frames turn to the nearest face and keep a block behind them), the trench it ploughed along its long axis, and debris of the template's own blocks |
+| `skeleton` | `length`, `parts` (vanilla fossil templates by id), `skull`, `curve` (degrees a segment), `step` | A giant's or dragon's bones laid as a chain of fossil spines with a skull at the head |
+| `camp` | `state` (`living`, `abandoned`, `burned`), `tents` (count), `tent` (template ids; default the pillager outpost tents, or vanilla `abandoned_camp/tent/*`), `radius`, `fire`, `stores` (chests with `loot`, `block`, `arrangement`) | A camp or its remnants round a fire ring, log seats and a woodpile; `burned` swaps wood for the `burned` palette (coal, blackstone, basalt), drops cloth and most thin wood, burns its tents the same way, and leaves fire in the pit and ash (`ash` palette) round it |
+| `hovel` | `width` (interior half-width), `height`, `roof` (`flat`, `pitched`, `dome`), `state`; palette names `walls`, `floor`, `roof`, `corners`, `door` | A small dwelling of the dimension's own materials: a piglin hovel of blackstone and wart blocks, a shack |
+| `farm` | `crop` (`nether_wart`, `crimson_fungus`, `warped_fungus`, `wheat`, `carrots`, `potatoes`, `beetroots`, `mushroom`), `plots`, `plot` (side), `irrigation` (`water`, `lava`, `none`), `fence` (a block, a palette name or `false`), `hovel` | Tilled plots, rows of crop, channels, composters and a hovel or two |
+| `works` | `columns` (chimneys), `height`, `lines` (pipe runs on trestles), `machines` (count, from the `machines` palette), `slag` (the slag field's radius), `pool` (a quench pool); palette names `chimney`, `pipe`, `trestle`, `slag` | Industry: chimneys, pipe runs, chain hoists, a quench pool, slag heaps |
+| `cell` | `count` (cells in a row), `bars`, `captive` (a `mob`), `holder` (`floor`, `minecart`, `boat`); palette name `floor` | Cages and cells; an enderman is held in a minecart behind bars, since a riding enderman does not teleport |
+| `gate` | `frame` (`nether`, `end`, `custom` with `blocks`), `state` (`broken`, `attempt`), `width`, `height`, `target` (a dimension: its first portal's frame block, its igniter's precursor and its aura palette, resolved at compile), `precursor`, `study` (`attempt` only: `true` or `{lines, pool, pick, title, loot}`), `marker` | A portal frame left broken, or an attempted gateway (a partial frame, end rods, a bedrock plinth, brewing stands, the ground part-turned to the target's aura); a study is an enchanting table, bookshelves, a lectern of notes that stop short and a chest with the precursor in its middle slot. With `marker` the frame is whole over a beacon (the `ExitShrines` contract: a 2 by 3 opening) and registers as an exit; the definition needs `exitShrines` |
 
 ### Things inside
 
@@ -99,9 +100,17 @@ Each is an element of its own `kind`, placed at its offset on the seat, or one o
 | Thing | Parameters | Notes |
 | --- | --- | --- |
 | `spawner` | `entity`, `delay`, `range`, `count` | A spawner block with its entity, delay, range and spawn count set in `postProcess` |
-| `chest` | `loot` (a vanilla or pack loot table id), `block` (`chest`, `barrel`, `trapped_chest`, `decorated_pot`; default `chest`) | Per-player through slashloot like any structure chest; `structures.loot` rules add to it |
-| `mob` | `entity`, `name`, `count`, `persistent`, `attributes` (`max_health`, `attack_damage`, `armor`, `scale`…), `equipment`, `effects` | Spawned into the world in `postProcess`, as vanilla's swamp hut spawns its witch; the easter eggs are these: a buffed iron golem with a chest of iron beside it |
-| `archaeology` | `share`, `loot` | Suspicious sand or gravel with a loot table, as vanilla's trail ruins processor lays it |
+| `chest` | `loot` (a vanilla or pack loot table id), `block` (`chest`, `barrel`, `trapped_chest`, `decorated_pot`; default `chest`), `arrangement` (`[{slot, item}]`, fixed items in fixed slots; `loot` may then be left out) | Per-player through slashloot like any structure chest; the loot table fills the slots the arrangement leaves; `structures.loot` rules add to it |
+| `mob` | `entity`, `name`, `count`, `persistent` (default true), `attributes` (`max_health`, `attack_damage`, `armor`, `scale`…), `equipment` (slot to item), `effects` (`{id, amplifier, duration}`), `ride` (`minecart`, `boat`), `drops` | Spawned into the world in `postProcess`, as vanilla's swamp hut spawns its witch; the easter eggs are these: a buffed iron golem with a chest of iron beside it |
+| `archaeology` | `share`, `loot`, `radius`, `depth`, `block` (`auto` turns only sand and gravel, `sand` and `gravel` any ground) | Suspicious sand or gravel with a loot table, as vanilla's trail ruins processor lays it |
+| `banner` | `color`, `patterns` (`[{pattern, color}]`), `facing` (a wall banner) or `turn` (a standing one, 0–15) | A banner of vanilla patterns: a trail's mark |
+| `stand` | `equipment`, `facing`, `arms`, `plate` | An armour stand in gear |
+| `frame` | `item`, `facing`, `glow`, `behind` (the block set behind it when there is none) | An item frame; a filled map in it is drawn round the frame when the frame first loads, its decorations kept |
+| `lectern` | `lines` (1–8) or `pool` and `pick`, `title`, `facing` | A written book of a few fragmentary lines, four to a page, with no author |
+| `pot` | `sherds` (`front`, `back`, `left`, `right`), `item` or `loot`, `facing` | A decorated pot with its sherds and contents |
+| `remains` | `pose` (`lying`, `seated`), `gear`, `skull`, `wearer` (`stand`, `skeleton`, `none`) | Bones and a skull, and an armour stand in the gear or a persistent skeleton holding it |
+
+An item, wherever one appears (an arrangement, a frame, a pot, gear, a gate's `precursor`), is an id or `{id, count, trim: {pattern, material}, dye, banner, map: {scale, decorations}}`; every id is checked against vanilla at compile, and an item carries no name. Every lectern line and title and every mob name is held to the words check: none may name a dimension (its slug, its display name, or that name without "The" when the rest is two words or five letters; a shorter one only capitalised) or a people (piglin, enderman, villager, human, illager, witch, singular or plural) (RB-43).
 
 ## Vanilla templates reused by id
 

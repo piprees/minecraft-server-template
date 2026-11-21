@@ -34,6 +34,8 @@ public final class CustomDimensions implements ModInitializer {
         com.customdimensions.server.structure.SetPieceStructure.register();
         com.customdimensions.server.structure.StructureRuntime.register();
         com.customdimensions.server.structure.StructureLoot.register();
+        com.customdimensions.server.structure.StructureReskin.register();
+        com.customdimensions.server.structure.SetPieceThings.register();
         com.customdimensions.server.structure.StructureSizes.register();
         CustomDimCommands.register();
         Portals.register();

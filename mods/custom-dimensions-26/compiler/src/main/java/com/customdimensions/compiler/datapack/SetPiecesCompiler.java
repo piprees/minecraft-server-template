@@ -2,6 +2,7 @@ package com.customdimensions.compiler.datapack;
 
 import com.customdimensions.core.definition.Definition;
 import com.customdimensions.core.structure.Age;
+import com.customdimensions.core.structure.Reskin;
 import com.customdimensions.core.structure.SetPieceSpec;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -81,13 +82,22 @@ public final class SetPiecesCompiler {
 
     static Compiled files(String namespace, String slug, Definition def, Map<String, JsonObject> library, VanillaData vanilla,
                           CompileReport.Entry entry) {
+        return files(namespace, slug, def, library, vanilla, entry, Map.of(slug, def));
+    }
+
+    /** As above, with every definition of the compile by slug: the words check's names and a gate's target portal. */
+    static Compiled files(String namespace, String slug, Definition def, Map<String, JsonObject> library, VanillaData vanilla,
+                          CompileReport.Entry entry, Map<String, Definition> all) {
+        if (def.structures() != null && def.structures().has("reskin")) {
+            Reskin.read(slug, def.structures().get("reskin"), def.materials(), id -> vanilla.registry("minecraft:block").contains(id));
+        }
         JsonObject pieces = def.setPieces();
         if (pieces == null || pieces.isEmpty()) return Compiled.NONE;
         com.google.gson.JsonElement ageField = def.structures() != null ? def.structures().get("age") : null;
         com.customdimensions.core.structure.SetPieceSetting.AgeBands bands = com.customdimensions.core.structure.SetPieceSetting.AgeBands.read(
                 slug + ": structures.age", ageField, def.spawn() != null ? def.spawn().x() : 0, def.spawn() != null ? def.spawn().z() : 0);
         Age dimensionAge = ageField != null && bands == null ? Age.parse(ageField.getAsString()) : null;
-        SetPieceSpec.Catalogue catalogue = catalogue(vanilla);
+        SetPieceSpec.Catalogue catalogue = catalogue(vanilla, all);
         Map<String, JsonObject> files = new LinkedHashMap<>();
         JsonArray control = new JsonArray();
         for (Map.Entry<String, JsonElement> e : pieces.entrySet()) {
@@ -95,6 +105,12 @@ public final class SetPiecesCompiler {
             if (!name.matches("[a-z0-9_]+")) throw new IllegalArgumentException(slug + ": setPieces." + name + ": a name is lower case, digits and _");
             if (!e.getValue().isJsonObject()) throw new IllegalArgumentException(slug + ": setPieces." + name + " must be an object");
             SetPieceSpec spec = SetPieceSpec.resolve(slug, name, e.getValue().getAsJsonObject(), library, dimensionAge, catalogue);
+            boolean marker = spec.elements().stream().anyMatch(el -> "gate".equals(el.kind()) && el.params().has("marker")
+                    && el.params().get("marker").getAsBoolean());
+            boolean shrines = def.exitShrines() != null && !(def.exitShrines().has("enabled") && !def.exitShrines().get("enabled").getAsBoolean());
+            if (marker && !shrines) {
+                throw new IllegalArgumentException(slug + ": setPieces." + name + ": a gate with marker is a working exit, and needs exitShrines enabled");
+            }
             if (bands != null && spec.age() == null) spec = spec.withBands(bands);
             String id = structureId(namespace, slug, name);
             JsonObject structure = new JsonObject();
@@ -178,7 +194,30 @@ public final class SetPiecesCompiler {
     private static final Map<String, Optional<int[]>> SIZES = new ConcurrentHashMap<>();
 
     static SetPieceSpec.Catalogue catalogue(VanillaData vanilla) {
+        return catalogue(vanilla, Map.of());
+    }
+
+    /** Builtin registries read from vanilla's registries report; trims and banner patterns from its datapack files. */
+    static SetPieceSpec.Catalogue catalogue(VanillaData vanilla, Map<String, Definition> all) {
         return new SetPieceSpec.Catalogue() {
+            public boolean known(String registry, String id) {
+                if (!id.startsWith("minecraft:")) return true;
+                return switch (registry) {
+                    case "minecraft:trim_pattern", "minecraft:trim_material", "minecraft:banner_pattern" ->
+                            vanilla.hasFile(registry.substring("minecraft:".length()), id);
+                    default -> vanilla.registry(registry).contains(id);
+                };
+            }
+
+            public java.util.Set<String> dimensions() {
+                return all.keySet();
+            }
+
+            public JsonObject portal(String target) {
+                Definition d = all.get(target);
+                return d == null || d.portals() == null || d.portals().isEmpty() ? null : d.portals().getFirst();
+            }
+
             public int[] templateSize(String id) {
                 String key = vanilla.source().describe() + "|" + id;
                 return SIZES.computeIfAbsent(key, k -> vanilla.source().bytes("data/minecraft/structure/" + id.substring(id.indexOf(':') + 1)

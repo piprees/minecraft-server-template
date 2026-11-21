@@ -114,9 +114,14 @@ public final class SetPieceStructure extends Structure {
                 : spec.setting().bands().at(origin.getX(), origin.getZ(), seed);
         List<SetPiecePlan.Placement> plan = SetPiecePlan.plan(spec, seed, rotation, fallback);
         List<SetPiecePart.Item> items = new ArrayList<>();
+        SetPieceAssembly.Sink sink = new SetPieceAssembly.Sink(builder, context, spec, origin, items, new ArrayList<>());
         Integer[] tops = new Integer[spec.elements().size()];
         Integer[] seats = new Integer[spec.elements().size()];
         for (SetPiecePlan.Placement p : plan) {
+            if (com.customdimensions.core.structure.Assemblies.expands(p.kind())) {
+                SetPieceAssembly.expand(sink, p);
+                continue;
+            }
             int x = origin.getX() + p.dx();
             int z = origin.getZ() + p.dz();
             Integer on = p.source().on();
@@ -139,6 +144,10 @@ public final class SetPieceStructure extends Structure {
                         SetPieceSeats.scans(spec) || context.chunkGenerator() instanceof PinnedGround));
                 if (seats[i] == null) seats[i] = y;
                 if (tops[i] == null) tops[i] = com.customdimensions.core.structure.SetPieceShapes.top(shape);
+            } else if (SetPieceAssembly.thing(p)) {
+                SetPieceAssembly.route(sink, p, x, y, z);
+                if (seats[i] == null) seats[i] = y;
+                if (tops[i] == null) tops[i] = y + 1;
             } else {
                 items.add(SetPiecePart.Item.of(p, x, y, z));
                 if (seats[i] == null) seats[i] = y;
@@ -146,6 +155,7 @@ public final class SetPieceStructure extends Structure {
             }
         }
         if (!items.isEmpty()) builder.addPiece(SetPiecePart.blocks(spec, origin, items));
+        if (!sink.things().isEmpty()) builder.addPiece(SetPiecePart.things(spec, origin, sink.things()));
     }
 
     /** An origin height, or null and why not; a wall seat also moves the origin onto its face and turns it to face out. */

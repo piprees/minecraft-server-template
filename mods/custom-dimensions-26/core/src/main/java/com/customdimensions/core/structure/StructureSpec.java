@@ -61,7 +61,7 @@ public record StructureSpec(
     public static final Set<String> UNSUPPORTED_ADAPTATIONS = Set.of("moat", "drain");
     public static final Set<String> FIELDS = Set.of("density", "wants", "shuns", "spacing", "mode", "list", "force",
             "clearSpawnRadius", "terrainAdaptation", "noise", "radial", "rarity", "exclude", "include", "replace", "repetition",
-            "loot", "sites", "age", "approaches");
+            "loot", "sites", "age", "approaches", "reskin");
     /** Our own adjustments: the vanilla one is none, and the footing pass fills under the pieces (G9); terrace also cuts steps round them. */
     public static final Set<String> FOOTING_ADAPTATIONS = Set.of("footing", "terrace");
 

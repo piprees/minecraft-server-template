@@ -67,7 +67,8 @@ public final class SetPieceSelfTest {
             return (ok ? "PASS" : "FAIL") + " customdimensions:set_piece is " + BuiltInRegistries.STRUCTURE_TYPE.getKey(SetPieceStructure.TYPE)
                     + ", customdimensions:set_piece_part is " + BuiltInRegistries.STRUCTURE_PIECE.getKey(SetPiecePart.TYPE);
         });
-        return test.level(END).thenCompose(v -> test.level(FLOOR)).handle((v, error) -> {
+        return test.level(END).thenCompose(v -> test.level(FLOOR)).thenCompose(v -> AssemblySelfTest.run(server)).thenAccept(test.lines::addAll)
+                .handle((v, error) -> {
             if (error != null) test.lines.add("FAIL setpieces: the check chain broke: " + error);
             return List.copyOf(test.lines);
         });
