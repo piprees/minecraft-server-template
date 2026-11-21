@@ -19,8 +19,11 @@ import java.util.List;
 /**
  * A level's base terrain as a {@link SiteFilter} reads it: heights from the
  * generator's base columns (no features, as a structure's own siting reads
- * them), biomes from the level's biome resolver. Every answer is computed from
- * noise, so it is the same before and after the chunk generates.
+ * them), biomes from the level's biome resolver. Under a roof (a column whose
+ * surface lies within {@value #ROOF_MARGIN} of the generator's top) the
+ * surface is the floor a seat stands on ({@link #roofedFloor}), not the roof.
+ * Every answer is computed from noise, so it is the same before and after the
+ * chunk generates.
  */
 record GeneratorTerrain(ChunkGenerator generator, LevelHeightAccessor height, RandomState random, BiomeResolver biomes)
         implements SiteFilter.Terrain {
@@ -29,14 +32,46 @@ record GeneratorTerrain(ChunkGenerator generator, LevelHeightAccessor height, Ra
         return new GeneratorTerrain(generator, LevelHeightAccessor.create(generator.getMinY(), generator.getGenDepth()), random, biomes);
     }
 
+    /** A column whose surface lies within this many blocks of the generator's top is under a roof. */
+    static final int ROOF_MARGIN = 8;
+    /** The air a floor under a roof needs above it. */
+    static final int HEADROOM = 4;
+
     @Override
     public int height(int x, int z) {
-        return generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, height, random);
+        int h = generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, height, random);
+        return roofed(h) ? roofedFloor(generator, random, height, x, z) : h;
     }
 
     @Override
     public int floor(int x, int z) {
-        return generator.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, height, random);
+        int h = generator.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, height, random);
+        return roofed(h) ? roofedFloor(generator, random, height, x, z)
+                : generator.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, height, random);
+    }
+
+    private boolean roofed(int surface) {
+        return surface >= generator.getMinY() + generator.getGenDepth() - ROOF_MARGIN;
+    }
+
+    /**
+     * The floor under a roof: from sea level up, the first air over solid
+     * ground (not air, no fluid) with {@value #HEADROOM} blocks of air; sea
+     * level itself when there is none, so an open lava or water sea reads as
+     * its own surface.
+     */
+    static int roofedFloor(ChunkGenerator generator, RandomState random, LevelHeightAccessor height, int x, int z) {
+        NoiseColumn column = generator.getBaseColumn(x, z, height, random);
+        int sea = generator.getSeaLevel();
+        int top = height.getMaxY() - HEADROOM + 1;
+        for (int y = Math.max(sea, height.getMinY() + 1); y <= top; y++) {
+            var below = column.getBlock(y - 1);
+            if (below.isAir() || !below.getFluidState().isEmpty()) continue;
+            boolean open = true;
+            for (int k = 0; k < HEADROOM && open; k++) open = column.getBlock(y + k).isAir();
+            if (open) return y;
+        }
+        return sea;
     }
 
     @Override

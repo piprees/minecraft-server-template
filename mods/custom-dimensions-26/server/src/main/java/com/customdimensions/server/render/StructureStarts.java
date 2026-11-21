@@ -213,6 +213,16 @@ public final class StructureStarts {
     }
 
 
+    /** How many chunks {@code placement} picks whose centre lies within {@code radius} blocks of 0, 0. */
+    public static int sitesWithin(ChunkGeneratorStructureState state, StructurePlacement placement, int radius) {
+        int lo = Math.floorDiv(-radius, 16), hi = Math.floorDiv(radius, 16);
+        int n = 0;
+        for (ChunkPos c : candidates(state, placement, state.getLevelSeed(), lo, hi, lo, hi)) {
+            if (Math.hypot(c.getMiddleBlockX(), c.getMiddleBlockZ()) <= radius) n++;
+        }
+        return n;
+    }
+
     static List<ChunkPos> candidates(ChunkGeneratorStructureState state, StructurePlacement placement, long seed,
                                      int minX, int maxX, int minZ, int maxZ) {
         List<ChunkPos> out = new ArrayList<>();

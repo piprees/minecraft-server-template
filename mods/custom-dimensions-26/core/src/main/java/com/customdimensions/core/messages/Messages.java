@@ -100,6 +100,7 @@ public final class Messages {
             Map.entry("customdim.survey.failed", "Could not survey {dimension}: {reason}"),
             Map.entry("customdim.starts.started", "Counting structure starts in {dimension} within {radius} blocks of 0, 0."),
             Map.entry("customdim.starts.done", "Starts in {dimension} within {radius} blocks of 0, 0: {total} in {seconds} s: {counts}"),
+            Map.entry("customdim.starts.each", "Starts of {structure} in {dimension} within {radius} blocks of 0, 0: {total}: {each}"),
             Map.entry("customdim.starts.failed", "Could not count structure starts in {dimension}: {reason}"),
             Map.entry("customdim.pick.done", "Wrote seed {seed} into {path}; {dimension} uses it after the next restart."),
             Map.entry("customdim.pick.no_rank", "The last roll of {dimension} has no rank {rank}; roll it first."),

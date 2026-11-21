@@ -100,6 +100,7 @@
   "customdim.survey.failed": "Could not survey {dimension}: {reason}",
   "customdim.starts.started": "Counting structure starts in {dimension} within {radius} blocks of 0, 0.",
   "customdim.starts.done": "Starts in {dimension} within {radius} blocks of 0, 0: {total} in {seconds} s: {counts}",
+  "customdim.starts.each": "Starts of {structure} in {dimension} within {radius} blocks of 0, 0: {total}: {each}",
   "customdim.starts.failed": "Could not count structure starts in {dimension}: {reason}",
   "customdim.pick.done": "Wrote seed {seed} into {path}; {dimension} uses it after the next restart.",
   "customdim.pick.no_rank": "The last roll of {dimension} has no rank {rank}; roll it first.",

@@ -109,6 +109,13 @@ public record SiteFilter(Integer slope, int radius, Integer minHeight, Integer m
         return null;
     }
 
+    /** Why a start whose box's floor is at {@code floorY} fails this filter's height range, or null when it lies inside it. */
+    public String floorRefusal(int floorY) {
+        if (minHeight != null && floorY < minHeight) return "its floor y " + floorY + " is below " + minHeight;
+        if (maxHeight != null && floorY > maxHeight) return "its floor y " + floorY + " is above " + maxHeight;
+        return null;
+    }
+
     public boolean accepts(Terrain t, int x, int z) {
         return refusal(t, x, z) == null;
     }

@@ -144,4 +144,13 @@ class SiteFilterTest {
                 + "\"max\": 64}, \"cliff\": {\"min\": 8, \"rise\": 12}, \"shelter\": [\"lee\", \"hollow\"], \"biomes\": [\"#minecraft:is_hill\"]}");
         assertEquals(f, SiteFilter.fromJson(f.toJson()));
     }
+
+    @Test
+    void aStartsFloorOutsideTheHeightWindowIsRefused() {
+        SiteFilter f = filter("{\"height\": {\"min\": 36, \"max\": 100}}");
+        assertNotNull(f.floorRefusal(33));
+        assertNotNull(f.floorRefusal(101));
+        assertNull(f.floorRefusal(36));
+        assertNull(filter("{\"slope\": 6}").floorRefusal(-40));
+    }
 }
