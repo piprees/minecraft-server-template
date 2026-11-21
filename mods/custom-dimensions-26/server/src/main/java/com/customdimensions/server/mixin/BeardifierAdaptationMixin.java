@@ -25,6 +25,15 @@ abstract class BeardifierAdaptationMixin {
         return original.call(manager, x, z, (Predicate<Structure>) s -> StructureAdaptation.of(manager, s) != TerrainAdjustment.NONE);
     }
 
+    /** A set piece's shapes and any structure's approach shape the ground themselves; the terrain is never bearded to their boxes. */
+    @WrapOperation(method = "forStructuresInChunk",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/levelgen/structure/StructurePiece;isCloseToChunk(Lnet/minecraft/world/level/ChunkPos;I)Z"))
+    private static boolean customdimensions$skipShapes(net.minecraft.world.level.levelgen.structure.StructurePiece piece,
+            net.minecraft.world.level.ChunkPos chunk, int distance, Operation<Boolean> original) {
+        return !(piece instanceof com.customdimensions.server.structure.SetPiecePart part && part.drawsShape())
+                && original.call(piece, chunk, distance);
+    }
+
     @WrapOperation(method = "forStructuresInChunk",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/levelgen/structure/Structure;terrainAdaptation()Lnet/minecraft/world/level/levelgen/structure/TerrainAdjustment;"))
     private static TerrainAdjustment customdimensions$adaptation(Structure structure, Operation<TerrainAdjustment> original,

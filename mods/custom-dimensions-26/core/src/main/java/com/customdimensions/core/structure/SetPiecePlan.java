@@ -32,18 +32,32 @@ public final class SetPiecePlan {
 
     /** The placements of {@code spec} for a start with {@code seed}, the whole piece turned {@code rotation} quarter turns clockwise. */
     public static List<Placement> plan(SetPieceSpec spec, long seed, int rotation) {
+        return plan(spec, seed, rotation, spec.age());
+    }
+
+    /**
+     * As above, with {@code fallback} as the age of elements that name none
+     * (the spec's own, or its dimension's age at the start's distance). An
+     * element seated {@code on} another takes its offset from that element's
+     * first copy, and is left out when that one was.
+     */
+    public static List<Placement> plan(SetPieceSpec spec, long seed, int rotation, Age fallback) {
         List<Placement> out = new ArrayList<>();
         SplittableRandom random = new SplittableRandom(seed);
+        int[][] local = new int[spec.elements().size()][];
         for (int i = 0; i < spec.elements().size(); i++) {
             SetPieceSpec.Element e = spec.elements().get(i);
             SplittableRandom er = random.split();
+            Integer on = e.on();
+            if (on != null && local[on] == null) continue;
             for (int c = 0; c < e.count(); c++) {
                 boolean kept = er.nextDouble() < e.chance();
                 double angle = e.around() > 0 ? 2 * Math.PI * c / e.count() : 0;
                 if (!kept) continue;
-                int ox = e.offset()[0] + (int) Math.round(e.around() * Math.cos(angle));
-                int oz = e.offset()[2] + (int) Math.round(e.around() * Math.sin(angle));
-                Age age = e.age() != null ? e.age() : spec.age();
+                int ox = e.offset()[0] + (int) Math.round(e.around() * Math.cos(angle)) + (on != null ? local[on][0] : 0);
+                int oz = e.offset()[2] + (int) Math.round(e.around() * Math.sin(angle)) + (on != null ? local[on][1] : 0);
+                if (local[i] == null) local[i] = new int[] {ox, oz};
+                Age age = e.age() != null ? e.age() : fallback;
                 if ("scatter".equals(e.kind())) {
                     scatter(out, i, spec, e, ox, e.offset()[1], oz, rotation, age, er.split());
                 } else {
@@ -104,7 +118,7 @@ public final class SetPiecePlan {
         } else if ("spawner".equals(e.kind())) {
             block = "minecraft:spawner";
         }
-        int own = switch (e.string("rotation", "random")) {
+        int own = switch (e.string("rotation", SetPieceShapes.KINDS.contains(e.kind()) ? "none" : "random")) {
             case "none" -> 0;
             case "clockwise_90" -> 1;
             case "180" -> 2;

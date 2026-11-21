@@ -79,6 +79,17 @@ public final class StructureRuntime {
     private static final Map<String, Map<Structure, com.customdimensions.core.structure.SiteFilter>> FILTERS = new ConcurrentHashMap<>();
     private static final Map<String, Map<Structure, Set<Long>>> CAPS = new ConcurrentHashMap<>();
     private static final Set<String> FILTER_LOGGED = ConcurrentHashMap.newKeySet();
+    private static final Map<String, Map<Structure, String>> FOOTINGS = new ConcurrentHashMap<>();
+    private static final Map<String, Map<Structure, List<com.customdimensions.core.structure.SetPieceSetting.Approach>>> APPROACHES = new ConcurrentHashMap<>();
+    private static final Map<String, List<int[]>> TARGETS = new ConcurrentHashMap<>();
+    private static final Map<String, int[]> SPAWNS = new ConcurrentHashMap<>();
+    private static final Map<String, Map<String, Integer>> LIVED = new ConcurrentHashMap<>();
+    /** Starts refused at generation because their box floor fell outside their filter's height window, by level, structure and chunk. */
+    private static final Set<String> BOX_REFUSED = ConcurrentHashMap.newKeySet();
+    /** How far below a filter's minimum height a start's box floor may lie: foundations sit under the surface. */
+    public static final int FLOOR_SLACK = 4;
+    /** {@code structures.approaches} per level: structure id or #tag to its approaches. */
+    private static volatile Map<String, Map<String, List<com.customdimensions.core.structure.SetPieceSetting.Approach>>> approachRules = Map.of();
     /** {@code structures.sites} per level: structure id or #tag to its filter. */
     private static volatile Map<String, Map<String, com.customdimensions.core.structure.SiteFilter>> siteFilters = Map.of();
     /** The set pieces each level's control file names. */
@@ -123,8 +134,47 @@ public final class StructureRuntime {
         Map<Structure, com.customdimensions.core.structure.SiteFilter> filters = FILTERS.get(id);
         com.customdimensions.core.structure.SiteFilter f = filters == null ? null : filters.get(structure);
         if (f == null) return null;
+        if (BOX_REFUSED.contains(id + " " + System.identityHashCode(structure) + " " + chunk.pack())) {
+            return "its box floor fell outside its height window when it generated";
+        }
         GeneratorTerrain terrain = GeneratorTerrain.of(generator, random, generator.getBiomeSource().createUncachedResolver(random));
         return f.refusal(terrain, chunk.getMiddleBlockX(), chunk.getMiddleBlockZ());
+    }
+
+    /**
+     * The floor a filtered start stands on under a roof: the height its site
+     * filter measured at the chunk's centre, so a start that seats itself on
+     * the ground or a heightmap stands on the floor rather than the roof. Null
+     * without a filter, or where the column has no roof.
+     */
+    public static Integer roofedGround(ResourceKey<Level> level, Structure structure, ChunkPos chunk, ChunkGenerator generator,
+                                       net.minecraft.world.level.levelgen.RandomState random) {
+        Map<Structure, com.customdimensions.core.structure.SiteFilter> filters = FILTERS.get(level.identifier().toString());
+        if (filters == null || !filters.containsKey(structure)) return null;
+        GeneratorTerrain terrain = GeneratorTerrain.of(generator, random, generator.getBiomeSource().createUncachedResolver(random));
+        int x = chunk.getMiddleBlockX();
+        int z = chunk.getMiddleBlockZ();
+        return terrain.roofed(x, z) ? terrain.roofedFloor(x, z) : null;
+    }
+
+    /**
+     * Why a generated start is refused by its filter's height window: its box
+     * floor lies above the maximum or more than {@value #FLOOR_SLACK} blocks
+     * below the minimum (a forced start pinned to a {@code y} is never
+     * refused here). The refusal is remembered, so the fast check answers
+     * the same for that chunk afterwards.
+     */
+    public static String boxRefusal(ResourceKey<Level> level, Structure structure, ChunkPos chunk,
+                                    net.minecraft.world.level.levelgen.structure.BoundingBox box) {
+        String id = level.identifier().toString();
+        Map<Structure, com.customdimensions.core.structure.SiteFilter> filters = FILTERS.get(id);
+        com.customdimensions.core.structure.SiteFilter f = filters == null ? null : filters.get(structure);
+        if (f == null || f.minHeight() == null && f.maxHeight() == null) return null;
+        String why = null;
+        if (f.maxHeight() != null && box.minY() > f.maxHeight()) why = "its box floor " + box.minY() + " is above " + f.maxHeight();
+        if (f.minHeight() != null && box.minY() < f.minHeight() - FLOOR_SLACK) why = "its box floor " + box.minY() + " is below " + f.minHeight();
+        if (why != null) BOX_REFUSED.add(id + " " + System.identityHashCode(structure) + " " + chunk.pack());
+        return why;
     }
 
     /** The group sites a set piece's repetition ceiling leaves it in this level, or null when it has none. */
@@ -143,6 +193,43 @@ public final class StructureRuntime {
         return structure instanceof SetPieceStructure s && s.anyBiome() || structure.biomes().contains(biome);
     }
 
+    /** The footing adaptation ({@code footing} or {@code terrace}) of {@code structure} in this level, or null. */
+    public static String footing(ResourceKey<Level> level, Structure structure) {
+        Map<Structure, String> m = FOOTINGS.get(level.identifier().toString());
+        return m == null ? null : m.get(structure);
+    }
+
+    /** The approaches {@code structures.approaches} gives {@code structure} in this level. */
+    public static List<com.customdimensions.core.structure.SetPieceSetting.Approach> approaches(ResourceKey<Level> level, Structure structure) {
+        Map<Structure, List<com.customdimensions.core.structure.SetPieceSetting.Approach>> m = APPROACHES.get(level.identifier().toString());
+        return m == null ? List.of() : m.getOrDefault(structure, List.of());
+    }
+
+    /** The level's spawn as its structure control placed round it, block x and z. */
+    public static int[] spawn(ResourceKey<Level> level) {
+        return SPAWNS.getOrDefault(level.identifier().toString(), new int[] {0, 0});
+    }
+
+    /** The nearest forced, wanted or lived-in site to ({@code x}, {@code z}) outside {@code box}, or null. */
+    public static int[] nearestTarget(ResourceKey<Level> level, int x, int z, net.minecraft.world.level.levelgen.structure.BoundingBox box) {
+        int[] best = null;
+        double d = Double.MAX_VALUE;
+        for (int[] t : TARGETS.getOrDefault(level.identifier().toString(), List.of())) {
+            if (t[0] >= box.minX() - 16 && t[0] <= box.maxX() + 16 && t[1] >= box.minZ() - 16 && t[1] <= box.maxZ() + 16) continue;
+            double e = Math.hypot(t[0] - x, t[1] - z);
+            if (e < d) {
+                d = e;
+                best = t;
+            }
+        }
+        return best;
+    }
+
+    /** Sites the lived-in layer drew per set piece in this level. */
+    public static Map<String, Integer> lived(String level) {
+        return LIVED.getOrDefault(level, Map.of());
+    }
+
     public static void register() {
         ServerLifecycleEvents.SERVER_STARTING.register(server -> specs = load(server));
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
@@ -155,6 +242,12 @@ public final class StructureRuntime {
             FILTERS.clear();
             CAPS.clear();
             FILTER_LOGGED.clear();
+            FOOTINGS.clear();
+            APPROACHES.clear();
+            TARGETS.clear();
+            SPAWNS.clear();
+            LIVED.clear();
+            BOX_REFUSED.clear();
         });
     }
 
@@ -236,6 +329,7 @@ public final class StructureRuntime {
         Map<String, ZoneStructureRules> zones = new HashMap<>();
         Map<String, Map<String, com.customdimensions.core.structure.SiteFilter>> sites = new HashMap<>();
         Map<String, List<SetPieceEntry>> pieces = new HashMap<>();
+        Map<String, Map<String, List<com.customdimensions.core.structure.SetPieceSetting.Approach>>> approaches = new HashMap<>();
         Map<Identifier, Resource> files = server.getResourceManager().listResources(StructuresCompiler.FOLDER,
                 id -> id.getNamespace().equals(DatapackCompiler.RUNTIME_NAMESPACE) && id.getPath().endsWith(".json"));
         for (Map.Entry<Identifier, Resource> file : files.entrySet()) {
@@ -257,6 +351,12 @@ public final class StructureRuntime {
                     json.getAsJsonArray("setPieces").forEach(e -> l.add(SetPieceEntry.fromJson(e.getAsJsonObject())));
                     pieces.put(spec.level(), List.copyOf(l));
                 }
+                if (json.has("approaches")) {
+                    Map<String, List<com.customdimensions.core.structure.SetPieceSetting.Approach>> m = new LinkedHashMap<>();
+                    json.getAsJsonObject("approaches").entrySet().forEach(e -> m.put(e.getKey(),
+                            com.customdimensions.core.structure.SetPieceSetting.Approach.readAll(e.getKey(), e.getValue())));
+                    approaches.put(spec.level(), Map.copyOf(m));
+                }
             } catch (Exception e) {
                 CustomDimensions.LOG.warn("structure control file {} is unreadable: {}", file.getKey(), e.toString());
             }
@@ -264,6 +364,7 @@ public final class StructureRuntime {
         zoneRules = Map.copyOf(zones);
         siteFilters = Map.copyOf(sites);
         setPieceEntries = Map.copyOf(pieces);
+        approachRules = Map.copyOf(approaches);
         return Map.copyOf(out);
     }
 
@@ -599,19 +700,63 @@ public final class StructureRuntime {
             fixed(out, bypass, placed, "want", id, pick, site);
         }
 
+        int spawnX = spec.spawnChunkX() * 16 + 8;
+        int spawnZ = spec.spawnChunkZ() * 16 + 8;
+        List<int[]> targets = new ArrayList<>();
+        for (Placed p : placed) targets.add(new int[] {p.chunkX() * 16 + 8, p.chunkZ() * 16 + 8});
+        List<int[]> segments = com.customdimensions.core.structure.SetPieceSetting.Lived.segments(spawnX, spawnZ, targets);
+        Map<String, Integer> livedSites = new LinkedHashMap<>();
+        for (SetPieceEntry p : setPieceEntries.getOrDefault(level, List.of())) {
+            Optional<Holder.Reference<Structure>> h = structure(structures, p.structure());
+            if (h.isEmpty() || !(h.get().value() instanceof SetPieceStructure piece) || piece.spec().setting().lived() == null) continue;
+            Holder.Reference<Structure> ref = h.get();
+            List<int[]> chunks = piece.spec().setting().lived().sites(StructureSites.seed(original.getLevelSeed(), "lived:" + p.structure()),
+                    spawnX, spawnZ, spec.radiusChunks() * 16, terrain, segments,
+                    (cx, cz) -> startBiomeAt(ref.value(), generator, original.randomState(), sampler, cx, cz, seaLevel)
+                            && passes(filters.get(ref.value()), terrain, cx, cz));
+            out.add(Holder.direct(new StructureSet(List.of(new StructureSet.StructureSelectionEntry(ref, 1)),
+                    new LivedPlacement(p.structure(), chunks))));
+            livedSites.put(p.structure(), chunks.size());
+            for (int[] c : chunks) targets.add(new int[] {c[0] * 16 + 8, c[1] * 16 + 8});
+        }
+        if (!livedSites.isEmpty()) CustomDimensions.LOG.info("{}: lived-in layer sites {}", level, livedSites);
+        LIVED.put(level, Map.copyOf(livedSites));
+        TARGETS.put(level, List.copyOf(targets));
+        SPAWNS.put(level, new int[] {spawnX, spawnZ});
+
         Map<Structure, TerrainAdjustment> adaptation = new IdentityHashMap<>();
+        Map<Structure, String> footings = new IdentityHashMap<>();
+        for (SetPieceEntry p : setPieceEntries.getOrDefault(level, List.of())) {
+            structure(structures, p.structure()).ifPresent(h -> {
+                if (h.value() instanceof SetPieceStructure piece
+                        && StructureSpec.FOOTING_ADAPTATIONS.contains(piece.spec().terrainAdaptation())) {
+                    footings.put(h.value(), piece.spec().terrainAdaptation());
+                }
+            });
+        }
         spec.terrainAdaptation().forEach((target, kind) -> {
-            TerrainAdjustment t = TerrainAdjustment.valueOf(kind.toUpperCase(Locale.ROOT));
+            boolean ours = StructureSpec.FOOTING_ADAPTATIONS.contains(kind);
+            TerrainAdjustment t = ours ? TerrainAdjustment.NONE : TerrainAdjustment.valueOf(kind.toUpperCase(Locale.ROOT));
             if (target.contains(":")) {
-                members(structures, target).forEach(h -> adaptation.put(h.value(), t));
+                members(structures, target).forEach(h -> {
+                    adaptation.put(h.value(), t);
+                    if (ours) footings.put(h.value(), kind);
+                    else footings.remove(h.value());
+                });
             } else {
                 groupOf.forEach((s, g) -> {
                     if (g.equals(target)) {
                         adaptation.putIfAbsent(s, t);
+                        if (ours) footings.putIfAbsent(s, kind);
                     }
                 });
             }
         });
+        FOOTINGS.put(level, footings);
+        Map<Structure, List<com.customdimensions.core.structure.SetPieceSetting.Approach>> approachesHere = new IdentityHashMap<>();
+        approachRules.getOrDefault(level, Map.of()).forEach((target, list) -> members(structures, target)
+                .forEach(h -> approachesHere.put(h.value(), list)));
+        APPROACHES.put(level, approachesHere);
         long millis = (System.nanoTime() - started) / 1_000_000;
         Applied applied = new Applied(level, out.size(), dropped, List.copyOf(droppedIds), replaced, groupSites, List.copyOf(placed), millis);
         String summary = String.format(Locale.ROOT, "density %s, %d set(s) kept, %d dropped %s, %d replaced, groups %s, %d fixed start(s), "

@@ -788,9 +788,9 @@
         },
         "clearSpawnRadius": { "description": "Blocks round spawn where the dungeons and endgame groups place nothing.", "type": "integer", "minimum": 0 },
         "terrainAdaptation": {
-          "description": "Terrain around a structure or a group's structures: a vanilla adjustment, or pedestal, platform_skirt and ground_blend as their vanilla counterparts.",
+          "description": "Terrain around a structure or a group's structures: a vanilla adjustment; footing (fill under every piece down to the ground in the dimension's own stone) or terrace (footing, and the ground round each piece cut and raised in steps); or pedestal, platform_skirt and ground_blend as their vanilla counterparts.",
           "type": "object",
-          "additionalProperties": { "enum": ["none", "beard_thin", "beard_box", "bury", "encapsulate", "pedestal", "platform_skirt", "ground_blend", "moat", "drain"] }
+          "additionalProperties": { "enum": ["none", "beard_thin", "beard_box", "bury", "encapsulate", "footing", "terrace", "pedestal", "platform_skirt", "ground_blend", "moat", "drain"] }
         },
         "noise": { "description": "A profile for every group, a map of group to profile, or false for vanilla grids.", "type": ["string", "object", "boolean"] },
         "radial": {
@@ -828,8 +828,26 @@
           "additionalProperties": { "$ref": "#/$defs/site" }
         },
         "age": {
-          "description": "The age a set piece wears when neither it nor its element names one (lore/placement.md § Age).",
-          "$ref": "#/$defs/age"
+          "description": "The age a set piece wears when neither it nor its element names one (lore/placement.md § Age): one age, or ages by distance from spawn, each from its inner radius in blocks, the edges jittered by jitter blocks (default 96).",
+          "oneOf": [
+            { "$ref": "#/$defs/age" },
+            {
+              "type": "object", "additionalProperties": false, "minProperties": 1,
+              "properties": {
+                "recent": { "type": "integer", "minimum": 0 },
+                "old": { "type": "integer", "minimum": 0 },
+                "ancient": { "type": "integer", "minimum": 0 },
+                "deep": { "type": "integer", "minimum": 0 },
+                "jitter": { "type": "integer", "minimum": 0 }
+              }
+            }
+          ]
+        },
+        "approaches": {
+          "description": "How each structure is reached (lore/placement.md G8), by structure id or #tag, ours and the mods': an approach or a list of them.",
+          "type": "object",
+          "propertyNames": { "pattern": "^#?[a-z0-9_.-]+:[a-z0-9_./-]+$" },
+          "additionalProperties": { "$ref": "#/$defs/approaches" }
         }
       }
     },
@@ -905,6 +923,48 @@
   },
   "$defs": {
     "age": { "enum": ["recent", "old", "ancient", "deep"] },
+    "approach": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "description": "path (with steps where the ground climbs two or more and a bridge over a drop of more than gap that comes back within 32), steps, bridge, ladder or chain down the first face, debris (default path).", "enum": ["path", "steps", "bridge", "ladder", "chain", "debris"] },
+        "to": { "description": "site (the nearest forced, wanted or lived-in site; default), spawn, or [dx, dz] from the box's centre.", "oneOf": [{ "enum": ["site", "spawn"] }, { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer" } }] },
+        "length": { "type": "integer", "minimum": 1, "maximum": 96 },
+        "width": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "gap": { "type": "integer", "minimum": 2 },
+        "count": { "description": "debris: pieces along the line (default 12).", "type": "integer", "minimum": 1 },
+        "direction": { "description": "debris: [dx, dz] of the line, else towards to.", "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer" } },
+        "block": { "description": "debris: palette name or block.", "type": "string" },
+        "stairs": { "description": "steps: a stairs block (default cobblestone stairs).", "type": "string" },
+        "deck": { "type": "string" },
+        "post": { "type": "string" }
+      }
+    },
+    "approaches": {
+      "oneOf": [
+        { "$ref": "#/$defs/approach" },
+        { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/approach" } }
+      ]
+    },
+    "lived": {
+      "description": "A tiny piece (size 8 or less) of the lived-in layer (lore/placement.md G6): at most one per 128-block cell.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["density"],
+      "properties": {
+        "density": { "description": "Pieces per km² before siting.", "type": "number", "exclusiveMinimum": 0, "maximum": 61 },
+        "radial": { "description": "Density factors from spawn to border, 10 points in 0-3.", "type": "array", "minItems": 10, "maxItems": 10, "items": { "type": "number", "minimum": 0, "maximum": 3 } },
+        "biomes": { "description": "Biome id or #tag (or default) to a density factor in 0-3.", "type": "object", "additionalProperties": { "type": "number", "minimum": 0, "maximum": 3 } },
+        "siting": {
+          "description": "Any of: path (within pathWidth of a line between spawn and the level's sites), view (a high point with a cliff within 12), water (within 24), hollow.",
+          "oneOf": [
+            { "enum": ["path", "view", "water", "hollow"] },
+            { "type": "array", "minItems": 1, "items": { "enum": ["path", "view", "water", "hollow"] } }
+          ]
+        },
+        "pathWidth": { "type": "integer", "minimum": 1 }
+      }
+    },
     "site": {
       "type": "object",
       "additionalProperties": false,
@@ -912,7 +972,7 @@
         "slope": { "description": "Largest height spread over the footprint's centre, corners and edges, in blocks.", "type": "integer", "minimum": 0 },
         "radius": { "description": "The footprint's half-width in blocks (default 8; a set piece's is its size).", "type": "integer", "minimum": 1 },
         "height": {
-          "description": "The surface height window at the centre.",
+          "description": "The surface height window at the centre; under a roof, the floor's height. A generated start whose box floor lies above max or more than 4 below min does not start, and a filtered start under a roof seats on that floor.",
           "type": "object", "additionalProperties": false,
           "properties": { "min": { "type": "integer" }, "max": { "type": "integer" } }
         },
@@ -964,7 +1024,10 @@
       "additionalProperties": false,
       "anyOf": [{ "required": ["kind"] }, { "required": ["block"] }],
       "properties": {
-        "kind": { "enum": ["template", "scatter", "block", "chest", "spawner"] },
+        "kind": { "enum": ["template", "scatter", "block", "chest", "spawner", "crater", "pit", "fall", "wall", "line", "column", "field", "crown", "platform"] },
+        "name": { "description": "A name a later element's on can give.", "type": "string" },
+        "on": { "description": "An earlier element, by name or index, this one is seated on (lore/placement.md G7): its offset from that element's, its y above that element's top or, with at inside, its seat.", "type": ["string", "integer"] },
+        "at": { "enum": ["top", "inside"] },
         "offset": { "description": "Blocks from the origin in the piece's rotation; y above the seat found there.", "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "integer" } },
         "count": { "description": "Copies (a scatter's item count; a spawner's spawn count).", "type": "integer", "minimum": 1 },
         "chance": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
@@ -984,7 +1047,46 @@
         "loot": { "description": "chest: a loot table id.", "type": "string" },
         "entity": { "description": "spawner: an entity type id.", "type": "string" },
         "delay": { "type": "integer", "minimum": 1 },
-        "range": { "type": "integer", "minimum": 1 }
+        "range": { "type": "integer", "minimum": 1 },
+        "depth": { "description": "crater, pit: blocks deep; platform: blocks out.", "type": "integer", "minimum": 1 },
+        "rim": { "description": "crater: blocks the broken rim rises (default 2).", "type": "integer", "minimum": 0 },
+        "lining": { "description": "crater: palette name or block lining the bowl.", "type": "string" },
+        "scorch": { "description": "crater: radius of ground re-skinned round it, with the palette scorch or the lining.", "type": "integer", "minimum": 0 },
+        "core": { "description": "crater: palette name or block of a ball at the bottom.", "type": "string" },
+        "coreRadius": { "type": "integer", "minimum": 1 },
+        "shape": { "description": "pit: round or rift.", "enum": ["round", "rift"] },
+        "fill": { "description": "pit: palette name or block on its floor.", "type": "string" },
+        "fillDepth": { "type": "integer", "minimum": 0 },
+        "walls": { "description": "pit: palette name or block dressing its sides and ledges.", "type": "string" },
+        "ledges": { "type": "integer", "minimum": 0 },
+        "liquid": { "description": "fall: lava or water.", "enum": ["lava", "water"] },
+        "drop": { "description": "fall: blocks from source to pool; 0 pools on whatever ground is in front.", "type": "integer", "minimum": 0 },
+        "width": { "description": "fall, pit (a rift's half-width), line, platform: blocks.", "type": "integer", "minimum": 1 },
+        "pool": { "description": "fall: radius of the pool at its foot (default 2).", "type": "integer", "minimum": 0 },
+        "length": { "description": "wall: blocks along the piece's local x.", "type": "integer", "minimum": 1 },
+        "height": { "description": "wall: blocks above the ground; column: blocks, below 0 hangs down.", "type": "integer" },
+        "thickness": { "type": "integer", "minimum": 1 },
+        "towers": { "description": "wall: a tower every this many blocks; 0 for none.", "type": "integer", "minimum": 0 },
+        "breaches": { "type": "integer", "minimum": 0 },
+        "palette": { "description": "wall, line, column, platform: palette name or block it is built of.", "type": "string" },
+        "from": { "description": "line: [x, y, z] from the anchor, y a number above it or ground or roof at that column.", "type": "array", "minItems": 3, "maxItems": 3 },
+        "to": { "description": "line: as from.", "type": "array", "minItems": 3, "maxItems": 3 },
+        "style": { "description": "line: chain, pipe, bars, bridge, rail, path; column: chimney, pillar, spire, stack, cage.", "enum": ["chain", "pipe", "bars", "bridge", "rail", "path", "chimney", "pillar", "spire", "stack", "cage"] },
+        "sag": { "type": "integer", "minimum": 0 },
+        "taper": { "type": "number", "minimum": 0, "maximum": 1 },
+        "top": { "description": "column: palette name or block on its top.", "type": "string" },
+        "edge": { "description": "field: how much of its radius the noisy edge takes (0-1, default 0.3).", "type": "number", "minimum": 0, "maximum": 1 },
+        "cover": { "description": "field: palette name or block the ground's top becomes.", "type": "string" },
+        "over": { "description": "field: palette name or block on half of it.", "type": "string" },
+        "find": { "enum": ["tops"] },
+        "rise": { "description": "crown: blocks a top stands over the lowest within its window (default 4).", "type": "integer", "minimum": 1 },
+        "window": { "description": "crown: blocks round a top it is highest within (default 6).", "type": "integer", "minimum": 1 },
+        "growth": { "description": "crown: palette name or block grown on each top.", "type": "string" },
+        "rail": { "description": "platform: false for none, or a block (default a stone-brick wall).", "type": ["boolean", "string"] },
+        "stairs": { "description": "platform: true, or a stairs block, for stairs down from its front to the ground.", "type": ["boolean", "string"] },
+        "footing": { "description": "column (default true), platform (default false): fill down to the ground in the dimension's own stone.", "type": "boolean" },
+        "post": { "description": "line: palette name or block of trestles and bridge rails.", "type": "string" },
+        "deck": { "description": "line: palette name or block of a bridge deck or a rail's bed.", "type": "string" }
       }
     },
     "setPiece": {
@@ -993,12 +1095,18 @@
       "properties": {
         "name": { "description": "The display name the survey, shots and map use.", "type": "string" },
         "like": { "description": "A spec in definitions/set-pieces/ this one extends.", "type": "string" },
-        "seat": { "enum": ["ground", "floor", "pinned"] },
+        "seat": { "enum": ["ground", "floor", "pinned", "roof", "wall", "water"] },
+        "reach": { "description": "roof: blocks above the floor a ceiling is searched (default 48); wall: blocks a face is searched along the four axes (default 48).", "type": "integer", "minimum": 1, "maximum": 128 },
+        "rise": { "description": "wall: blocks a face rises over its foot (default 6).", "type": "integer", "minimum": 2 },
+        "depth": { "description": "water: blocks of water the seat needs (default 1).", "type": "integer", "minimum": 1 },
+        "bed": { "description": "water: seat on the bed rather than the surface.", "type": "boolean" },
+        "approach": { "$ref": "#/$defs/approaches" },
+        "lived": { "$ref": "#/$defs/lived" },
         "support": { "description": "Share of the nine footprint samples that must find a seat (default 0.8).", "type": "number", "minimum": 0, "maximum": 1 },
         "slope": { "type": "integer", "minimum": 0 },
         "biomes": { "type": "array", "items": { "type": "string" } },
         "site": { "$ref": "#/$defs/site" },
-        "band": { "description": "floor: the [minY, maxY] the floor is searched in (default sea level to the top less 8).", "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer" } },
+        "band": { "description": "floor, roof, wall: the [minY, maxY] the floor is searched in (default sea level to the top less 8).", "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer" } },
         "clear": { "description": "floor: headroom in blocks (default 6).", "type": "integer", "minimum": 1 },
         "elements": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/setPieceElement" } },
         "palette": {
@@ -1016,7 +1124,7 @@
         "group": { "type": "string" },
         "rarity": { "enum": ["common", "uncommon", "rare", "endgame"] },
         "repetition": { "description": "At most this many copies among the group's sites nearest spawn.", "type": "integer", "minimum": 1 },
-        "terrainAdaptation": { "enum": ["none", "beard_thin", "beard_box", "bury", "encapsulate"] },
+        "terrainAdaptation": { "description": "Default none for a piece with shapes, bury for an ancient or deep one, else beard_thin.", "enum": ["none", "beard_thin", "beard_box", "bury", "encapsulate", "footing", "terrace"] },
         "size": { "description": "Bounding half-extent in blocks; the compiler refuses elements that reach past it.", "type": "integer", "minimum": 1, "maximum": 64 },
         "age": { "$ref": "#/$defs/age" }
       }
