@@ -456,3 +456,4 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 15:16 — DR2 batch A: FAIL1 old self-test bug exposed by 47 off sets; FAIL7/8 pre-existing (Clumps, YIAS) - checks fixed; FAIL5 load (idle: erosion 1.2x PASS). K14 wreck fix d349961f (markers after block pass, owner chunk = support's); lane to K14 for build+run.
 15:19 — K14 wreck fix verified (1670/0, setpieces 68/0); merged K14 at 7de2b424; lead build running in main; then DR2 resumes (merge main first)
 15:29 — lead build on 7de2b424: 1670/0, quick gate 0; pushed; lane to DR2
+15:30 — SP5 spawned (brief handoff/scratchpad/sp5-brief.md): Batches 1–2 places, K14 curation, DeCubed gap, new mods' sets per dimension; authors until lane (after DR2, BL1)
