@@ -446,3 +446,4 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 13:46 — freed disk: removed finished packages' world runs (k11/rehearsal, f3/lane+bench, w9h/runs); evidence already in handoff/evidence; m12 kept for migration
 14:21 — DR1 self-test 322/15/1: 6 harness (definitions unset), 9 real (firewall/StructureStateMixin 214 vs 241, void+checkerboard terrain in void cells, erosion perf 2.2x, zones spill 39 water, 2 keepInventory). DR2 bisect queued after K14, before BL1. Lane to K14.
 14:23 — DR1 merged (b9c35eac, quick gate 0, Gradle build pending lane); 22 added, 23 updated; End 55 is W10u's 2761cb31 End change, not mods; elytra 4/100 needs ≥300 rolls (BL1); freed disk to 6.0 GB (3 merged worktrees, dr1 world); K14 booting
+14:24 — DR2 spawned (brief handoff/scratchpad/dr2-brief.md); lane order K14 → DR2 → BL1; BL1 told to merge DR1 and add elytra ≥300 rolls and the starts-total check
