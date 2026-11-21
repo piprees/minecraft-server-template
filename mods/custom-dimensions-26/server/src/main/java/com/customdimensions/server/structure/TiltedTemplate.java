@@ -14,6 +14,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntitySpawnRequest;
 import net.minecraft.world.entity.EntityType;
@@ -168,10 +169,16 @@ final class TiltedTemplate {
             if (!level.getBlockState(block).isAir()) level.setBlock(block, Blocks.AIR.defaultBlockState(), 2);
         }
         if (tag.contains("block_pos")) tag.store("block_pos", BlockPos.CODEC, block);
-        EntityType.create(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), tag), level.getLevel(),
-                new EntitySpawnRequest(EntitySpawnReason.STRUCTURE, false)).ifPresent(entity -> {
+        var created = EntityType.create(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), tag), level.getLevel(),
+                new EntitySpawnRequest(EntitySpawnReason.STRUCTURE, false));
+        if (created.isEmpty()) {
+            com.customdimensions.server.CustomDimensions.LOG.warn("tilted template entity {} at {} was not created", tag.getStringOr("id", "?"), block.toShortString());
+            return;
+        }
+        Entity entity = created.get();
+        if (!(entity instanceof net.minecraft.world.entity.decoration.HangingEntity)) {
             entity.snapTo(world.x, world.y, world.z, entity.rotate(rotation) + entity.mirror(mirror) - entity.getYRot(), entity.getXRot());
-            level.addFreshEntityWithPassengers(entity);
-        });
+        }
+        level.addFreshEntityWithPassengers(entity);
     }
 }

@@ -137,7 +137,7 @@ final class AssemblySelfTest {
             JsonObject d = part.data();
             BoundingBox box = sp.getBoundingBox();
             int rotation = d.get("rotation").getAsInt();
-            int[] axis = SetPiecePlan.rotate(0, 1, rotation);
+            int[] axis = (rotation & 1) == 1 ? new int[] {1, 0} : new int[] {0, 1};
             double cx = (box.minX() + box.maxX()) / 2.0;
             double cz = (box.minZ() + box.maxZ()) / 2.0;
             double[] sum = new double[2];
@@ -153,6 +153,9 @@ final class AssemblySelfTest {
             double nose = sum[0] / n[0];
             double tail = sum[1] / n[1];
             List<ItemFrame> frames = level.getEntitiesOfClass(ItemFrame.class, AABB.of(box).inflate(2), f -> f.getItem().is(Items.ELYTRA));
+            int anyFrames = level.getEntitiesOfClass(ItemFrame.class, AABB.of(box).inflate(2), f -> true).size();
+            int loose = level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, AABB.of(box).inflate(4), i -> i.getItem().is(Items.ELYTRA)).size();
+            if (frames.isEmpty()) lines.add("INFO setpieces assemblies wreck: " + anyFrames + " frame(s) of any item, " + loose + " loose elytra in the box");
             boolean ok = d.has("tilt") && tail - nose > 4 && frames.size() == 1;
             return (ok ? "PASS " : "FAIL ") + "tilt " + (d.has("tilt") ? d.get("tilt").getAsString() + " " + d.get("angle").getAsDouble() : "none")
                     + ": nose half's hull at mean y " + Math.round(nose) + " (" + n[0] + " blocks), tail half's at " + Math.round(tail) + " (" + n[1]
@@ -213,9 +216,9 @@ final class AssemblySelfTest {
                 case "chest" -> {
                     var be = level.getBlockEntity(at(t));
                     ItemStack slot = be instanceof Container c ? c.getItem(13) : ItemStack.EMPTY;
-                    var loot = be instanceof RandomizableContainer r ? r.getLootTable() : null;
-                    ok &= slot.is(Items.IRON_BLOCK) && slot.getCount() == 4 && loot != null;
-                    parts.add("chest beside it: slot 13 " + slot + ", loot " + (loot == null ? "none" : loot.identifier()));
+                    int rolled = filled(be) - (slot.isEmpty() ? 0 : 1);
+                    ok &= slot.is(Items.IRON_BLOCK) && slot.getCount() == 4 && rolled > 0;
+                    parts.add("chest beside it: slot 13 " + slot + ", " + rolled + " other slot(s) of rolled loot");
                 }
                 default -> {
                 }
@@ -286,9 +289,9 @@ final class AssemblySelfTest {
                     var be = level.getBlockEntity(p);
                     ItemStack first = be instanceof Container c ? c.getItem(0) : ItemStack.EMPTY;
                     ItemStack fifth = be instanceof Container c ? c.getItem(4) : ItemStack.EMPTY;
-                    var loot = be instanceof RandomizableContainer r ? r.getLootTable() : null;
-                    parts.add("chest laid out: slot 0 " + first + ", slot 4 " + fifth + ", loot " + (loot == null ? "none" : loot.identifier()));
-                    if (!first.is(Items.IRON_PICKAXE) || !fifth.is(Items.CANDLE) || loot == null) problems.add("the chest's arrangement or loot is missing");
+                    int rolled = filled(be) - 3;
+                    parts.add("chest laid out: slot 0 " + first + ", slot 4 " + fifth + ", " + rolled + " slot(s) of rolled loot");
+                    if (!first.is(Items.IRON_PICKAXE) || !fifth.is(Items.CANDLE) || rolled <= 0) problems.add("the chest's arrangement or loot is missing");
                 }
                 case "archaeology" -> {
                     int found = 0;
@@ -398,6 +401,13 @@ final class AssemblySelfTest {
             }
         }
         return out;
+    }
+
+    private static int filled(net.minecraft.world.level.block.entity.BlockEntity be) {
+        if (!(be instanceof Container c)) return 0;
+        int n = 0;
+        for (int i = 0; i < c.getContainerSize(); i++) if (!c.getItem(i).isEmpty()) n++;
+        return n;
     }
 
     private static BlockPos at(JsonObject t) {

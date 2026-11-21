@@ -38,13 +38,13 @@
       },
       {
         "structure": "adventure:set_piece/selftest_assemblies/court",
-        "x": 56,
-        "z": 56
+        "x": 20,
+        "z": -22
       },
       {
         "structure": "adventure:set_piece/selftest_assemblies/burned_camp",
-        "x": -56,
-        "z": 56
+        "x": -28,
+        "z": 10
       },
       {
         "structure": "adventure:set_piece/selftest_assemblies/wart_farm",

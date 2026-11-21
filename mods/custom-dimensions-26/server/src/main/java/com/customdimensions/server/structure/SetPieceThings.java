@@ -13,6 +13,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -79,6 +80,8 @@ import java.util.SplittableRandom;
 public final class SetPieceThings {
 
     static final String MAP_MARK = "customdimensions_map";
+    static final String LOOT_MARK = "customdimensions_loot";
+    private static final Map<ResourceKey<net.minecraft.world.level.Level>, java.util.Set<BlockPos>> ARRANGED = new java.util.concurrent.ConcurrentHashMap<>();
     static final Map<String, EquipmentSlot> SLOTS = Map.of("head", EquipmentSlot.HEAD, "chest", EquipmentSlot.CHEST, "legs", EquipmentSlot.LEGS,
             "feet", EquipmentSlot.FEET, "mainhand", EquipmentSlot.MAINHAND, "offhand", EquipmentSlot.OFFHAND, "body", EquipmentSlot.BODY);
 
@@ -88,6 +91,19 @@ public final class SetPieceThings {
     public static void register() {
         ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
             if (entity instanceof ItemFrame frame) drawMap(frame, level);
+        });
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents.CHUNK_LOAD.register((level, chunk, generated) -> {
+            for (BlockPos pos : chunk.getBlockEntitiesPos()) {
+                BlockEntity be = chunk.getBlockEntity(pos);
+                CustomData data = be == null ? null : be.components().get(DataComponents.CUSTOM_DATA);
+                if (data != null && data.copyTag().contains(LOOT_MARK)) {
+                    ARRANGED.computeIfAbsent(level.dimension(), k -> java.util.concurrent.ConcurrentHashMap.newKeySet()).add(pos.immutable());
+                }
+            }
+        });
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_LEVEL_TICK.register(level -> {
+            var pending = ARRANGED.remove(level.dimension());
+            if (pending != null) pending.forEach(pos -> rollArranged(level, pos));
         });
     }
 
@@ -346,16 +362,43 @@ public final class SetPieceThings {
         String block = "minecraft:" + (t.has("block") ? t.get("block").getAsString() : "chest");
         if (!set(level, pos, block)) return;
         BlockEntity be = level.getBlockEntity(pos);
+        boolean loot = t.has("loot") && !t.get("loot").getAsString().isEmpty();
         if (be instanceof Container container && t.has("arrangement")) {
             for (JsonElement e : t.getAsJsonArray("arrangement")) {
                 JsonObject s = e.getAsJsonObject();
                 int slot = s.get("slot").getAsInt();
                 if (slot < container.getContainerSize()) container.setItem(slot, stack(level.registryAccess(), s.get("item")));
             }
-        }
-        if (be instanceof RandomizableContainer container && t.has("loot") && !t.get("loot").getAsString().isEmpty()) {
+            if (loot) {
+                CompoundTag mark = new CompoundTag();
+                mark.putString(LOOT_MARK, t.get("loot").getAsString());
+                mark.putLong(LOOT_MARK + "_seed", t.get("seed").getAsLong());
+                be.setComponents(DataComponentMap.builder().set(DataComponents.CUSTOM_DATA, CustomData.of(mark)).build());
+            }
+        } else if (be instanceof RandomizableContainer container && loot) {
             container.setLootTable(ResourceKey.create(Registries.LOOT_TABLE, Identifier.parse(t.get("loot").getAsString())), t.get("seed").getAsLong());
         }
+    }
+
+    /**
+     * An arranged chest's loot, rolled into the slots its arrangement leaves on
+     * the server thread once its chunk is loaded: a container saves either its
+     * items or its loot table, never both, so the table waits on the block
+     * entity as a mark.
+     */
+    private static void rollArranged(ServerLevel level, BlockPos pos) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be == null || !(be instanceof Container container)) return;
+        CustomData data = be.components().get(DataComponents.CUSTOM_DATA);
+        if (data == null || !data.copyTag().contains(LOOT_MARK)) return;
+        CompoundTag mark = data.copyTag();
+        be.setComponents(DataComponentMap.EMPTY);
+        var key = ResourceKey.create(Registries.LOOT_TABLE, Identifier.parse(mark.getStringOr(LOOT_MARK, "")));
+        net.minecraft.world.level.storage.loot.LootTable table = level.getServer().reloadableRegistries().getLootTable(key);
+        table.fill(container, new net.minecraft.world.level.storage.loot.LootParams.Builder(level)
+                .withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN, net.minecraft.world.phys.Vec3.atCenterOf(pos))
+                .create(net.minecraft.world.level.storage.loot.parameters.LootContextParamSets.CHEST), mark.getLongOr(LOOT_MARK + "_seed", 0L));
+        be.setChanged();
     }
 
     private static void archaeology(WorldGenLevel level, BoundingBox chunkBox, JsonObject t, BlockPos at) {
