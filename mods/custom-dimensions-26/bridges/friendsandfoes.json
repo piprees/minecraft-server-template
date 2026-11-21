@@ -1,0 +1,13 @@
+{
+  "mod": "friendsandfoes",
+  "reviewed": true,
+  "structureSets": [],
+  "structures": [],
+  "features": [],
+  "spawns": [],
+  "mixins": [
+    "friendsandfoes-common.mixins.json",
+    "friendsandfoes-fabric.mixins.json"
+  ],
+  "registries": []
+}

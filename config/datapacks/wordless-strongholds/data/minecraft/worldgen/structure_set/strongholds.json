@@ -1,0 +1,72 @@
+{
+ "structures": [
+  {
+   "structure": "minecraft:stronghold",
+   "weight": 1
+  },
+  {
+   "structure": "bistro:desert_stronghold",
+   "weight": 1
+  },
+  {
+   "structure": "bistro:ocean_stronghold",
+   "weight": 1
+  },
+  {
+   "structure": "bistro:jungle_stronghold",
+   "weight": 1
+  },
+  {
+   "structure": "bistro:ice_stronghold",
+   "weight": 1
+  },
+  {
+   "structure": "bistro:swamp_stronghold",
+   "weight": 1
+  },
+  {
+   "structure": "bistro:forest_stronghold/oak",
+   "weight": 1
+  },
+  {
+   "structure": "bistro:forest_stronghold/birch",
+   "weight": 1
+  },
+  {
+   "structure": "bistro:forest_stronghold/spruce",
+   "weight": 1
+  },
+  {
+   "structure": "bistro:forest_stronghold/cherry",
+   "weight": 1
+  },
+  {
+   "structure": "bistro:forest_stronghold/dark_oak",
+   "weight": 1
+  },
+  {
+   "structure": "bistro:forest_stronghold/pale_oak",
+   "weight": 1
+  },
+  {
+   "structure": "bistro:forest_stronghold/dappled",
+   "weight": 1
+  },
+  {
+   "structure": "bistro:savanna_stronghold",
+   "weight": 1
+  },
+  {
+   "structure": "bistro:plains_stronghold",
+   "weight": 1
+  }
+ ],
+ "placement": {
+  "type": "minecraft:concentric_rings",
+  "distance": 32,
+  "spread": 3,
+  "count": 128,
+  "preferred_biomes": "#minecraft:stronghold_biased_to",
+  "salt": 0
+ }
+}

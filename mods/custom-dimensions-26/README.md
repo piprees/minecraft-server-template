@@ -949,9 +949,13 @@ config. Measure with the 26.3 list's structure mods loaded:
 ./gradlew :server:runServer -PstructureMods=/path/to/mod/jars -PmeasureStructures=src/main/resources/structure-sizes.json
 ```
 
-`-PstructureMods=<dir>` adds the jars the committed bridges adopt (ATi, Epic
-Dungeons, Deadly Deadly Dungeon, Dungeons and Taverns, Towns and Towers, Moog's
-five packs and their libraries) to `runServer`. `ShippedBridgesTest` fails when
+`-PstructureMods=<dir>` adds the 26.3 list's structure mods to `runServer`: the
+jars the committed bridges adopt (ATi, Epic Dungeons, Deadly Deadly Dungeon,
+Dungeons and Taverns with its Ancient City Overhaul, Towns and Towers, Moog's
+five packs, DeCubed Dungeons), the structure mods whose sets stay off until
+curated (Explorify, Hopo Better Mineshaft, Cinch's Villager Statues, Lush Cave Ruins,
+Piglin Outposts, Moog's Missing Villages), Biome Strongholds and Trek, which
+override vanilla's, and their libraries. `ShippedBridgesTest` fails when
 a bridged structure has no size.
 
 The self-test's structure section opens `selftest_structures` and the five

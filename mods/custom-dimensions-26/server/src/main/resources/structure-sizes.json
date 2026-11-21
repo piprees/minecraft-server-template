@@ -274,6 +274,111 @@
     "y": 88,
     "z": 48
   },
+  "bistro:desert_stronghold": {
+    "x": 169,
+    "y": 68,
+    "z": 128
+  },
+  "bistro:forest_stronghold/birch": {
+    "x": 219,
+    "y": 88,
+    "z": 188
+  },
+  "bistro:forest_stronghold/cherry": {
+    "x": 219,
+    "y": 88,
+    "z": 188
+  },
+  "bistro:forest_stronghold/dappled": {
+    "x": 219,
+    "y": 88,
+    "z": 188
+  },
+  "bistro:forest_stronghold/dark_oak": {
+    "x": 219,
+    "y": 88,
+    "z": 188
+  },
+  "bistro:forest_stronghold/oak": {
+    "x": 219,
+    "y": 88,
+    "z": 188
+  },
+  "bistro:forest_stronghold/pale_oak": {
+    "x": 219,
+    "y": 88,
+    "z": 188
+  },
+  "bistro:forest_stronghold/spruce": {
+    "x": 219,
+    "y": 88,
+    "z": 188
+  },
+  "bistro:ice_stronghold": {
+    "x": 220,
+    "y": 93,
+    "z": 168
+  },
+  "bistro:jungle_stronghold": {
+    "x": 176,
+    "y": 82,
+    "z": 159
+  },
+  "bistro:ocean_stronghold": {
+    "x": 192,
+    "y": 87,
+    "z": 172
+  },
+  "bistro:plains_stronghold": {
+    "x": 104,
+    "y": 71,
+    "z": 75
+  },
+  "bistro:savanna_stronghold": {
+    "x": 177,
+    "y": 72,
+    "z": 143
+  },
+  "bistro:swamp_stronghold": {
+    "x": 229,
+    "y": 104,
+    "z": 171
+  },
+  "cinchsvillagerstatues:villager_statue_badlands": {
+    "x": 31,
+    "y": 37,
+    "z": 33
+  },
+  "cinchsvillagerstatues:villager_statue_common": {
+    "x": 31,
+    "y": 37,
+    "z": 33
+  },
+  "cinchsvillagerstatues:villager_statue_desert": {
+    "x": 31,
+    "y": 37,
+    "z": 33
+  },
+  "cinchsvillagerstatues:villager_statue_jungle": {
+    "x": 31,
+    "y": 37,
+    "z": 33
+  },
+  "cinchsvillagerstatues:villager_statue_mangrove_swamp": {
+    "x": 31,
+    "y": 37,
+    "z": 33
+  },
+  "cinchsvillagerstatues:villager_statue_snowy": {
+    "x": 31,
+    "y": 37,
+    "z": 33
+  },
+  "cinchsvillagerstatues:villager_statue_swamp": {
+    "x": 31,
+    "y": 37,
+    "z": 33
+  },
   "ddd:major_dungeon_desert": {
     "x": 201,
     "y": 111,
@@ -318,6 +423,71 @@
     "x": 57,
     "y": 137,
     "z": 57
+  },
+  "decubed_dungeons:ancient_city_remnant": {
+    "x": 39,
+    "y": 34,
+    "z": 42
+  },
+  "decubed_dungeons:cold_dungeon": {
+    "x": 39,
+    "y": 35,
+    "z": 47
+  },
+  "decubed_dungeons:deepwater_dungeon": {
+    "x": 37,
+    "y": 35,
+    "z": 37
+  },
+  "decubed_dungeons:dungeon_ruins": {
+    "x": 31,
+    "y": 29,
+    "z": 31
+  },
+  "decubed_dungeons:dusty_tomb": {
+    "x": 35,
+    "y": 35,
+    "z": 37
+  },
+  "decubed_dungeons:frozen_dungeon": {
+    "x": 39,
+    "y": 38,
+    "z": 41
+  },
+  "decubed_dungeons:infested_dungeon": {
+    "x": 37,
+    "y": 35,
+    "z": 36
+  },
+  "decubed_dungeons:insidious_dungeon": {
+    "x": 37,
+    "y": 37,
+    "z": 37
+  },
+  "decubed_dungeons:lush_dungeon": {
+    "x": 37,
+    "y": 34,
+    "z": 37
+  },
+  "decubed_dungeons:mouldy_dungeon": {
+    "x": 37,
+    "y": 35,
+    "z": 35
+  },
+  "decubed_dungeons:muddy_dungeon": {
+    "x": 39,
+    "y": 35,
+    "z": 41
+  },
+  "decubed_dungeons:scorched_tomb": {
+    "x": 35,
+    "y": 35,
+    "z": 36
+  },
+  "decubed_dungeons:webbed_dungeon": {
+    "x": 35,
+    "y": 35,
+    "z": 35
   },
   "epic:ice_obelisk": {
     "x": 32,
@@ -378,6 +548,211 @@
     "x": 47,
     "y": 47,
     "z": 47
+  },
+  "explorify:badlands_pyramid": {
+    "x": 25,
+    "y": 23,
+    "z": 25
+  },
+  "explorify:black_spiral": {
+    "x": 97,
+    "y": 48,
+    "z": 55
+  },
+  "explorify:campsite": {
+    "x": 51,
+    "y": 29,
+    "z": 45
+  },
+  "explorify:dark_forest_settlement": {
+    "x": 79,
+    "y": 38,
+    "z": 109
+  },
+  "explorify:desert_shrine": {
+    "x": 11,
+    "y": 14,
+    "z": 11
+  },
+  "explorify:end_shipwreck": {
+    "x": 12,
+    "y": 14,
+    "z": 27
+  },
+  "explorify:farmstead": {
+    "x": 49,
+    "y": 34,
+    "z": 49
+  },
+  "explorify:guide_post_cold": {
+    "x": 11,
+    "y": 25,
+    "z": 11
+  },
+  "explorify:guide_post_warm": {
+    "x": 11,
+    "y": 25,
+    "z": 11
+  },
+  "explorify:mangrove_hut": {
+    "x": 16,
+    "y": 32,
+    "z": 14
+  },
+  "explorify:mausoleum": {
+    "x": 35,
+    "y": 36,
+    "z": 35
+  },
+  "explorify:ruins": {
+    "x": 62,
+    "y": 35,
+    "z": 91
+  },
+  "explorify:supply_cache/birch": {
+    "x": 28,
+    "y": 28,
+    "z": 27
+  },
+  "explorify:supply_cache/dark": {
+    "x": 28,
+    "y": 28,
+    "z": 27
+  },
+  "explorify:supply_cache/desert": {
+    "x": 28,
+    "y": 28,
+    "z": 27
+  },
+  "explorify:supply_cache/forest": {
+    "x": 28,
+    "y": 28,
+    "z": 27
+  },
+  "explorify:supply_cache/jungle": {
+    "x": 28,
+    "y": 28,
+    "z": 27
+  },
+  "explorify:supply_cache/mangrove": {
+    "x": 28,
+    "y": 28,
+    "z": 27
+  },
+  "explorify:supply_cache/taiga": {
+    "x": 28,
+    "y": 28,
+    "z": 27
+  },
+  "explorify:tavern": {
+    "x": 45,
+    "y": 42,
+    "z": 49
+  },
+  "explorify:watchtower/plains": {
+    "x": 33,
+    "y": 49,
+    "z": 33
+  },
+  "explorify:watchtower/savanna": {
+    "x": 33,
+    "y": 49,
+    "z": 33
+  },
+  "explorify:watchtower/taiga": {
+    "x": 33,
+    "y": 49,
+    "z": 33
+  },
+  "hopo:mineshaft/acacia_mineshaft": {
+    "x": 135,
+    "y": 23,
+    "z": 134
+  },
+  "hopo:mineshaft/bamboo_mineshaft": {
+    "x": 73,
+    "y": 22,
+    "z": 71
+  },
+  "hopo:mineshaft/biomes/dripstone_mineshaft": {
+    "x": 50,
+    "y": 10,
+    "z": 48
+  },
+  "hopo:mineshaft/biomes/lush_mineshaft": {
+    "x": 11,
+    "y": 6,
+    "z": 48
+  },
+  "hopo:mineshaft/biomes/sulfur_mineshaft": {
+    "x": 59,
+    "y": 5,
+    "z": 30
+  },
+  "hopo:mineshaft/birch_mineshaft": {
+    "x": 134,
+    "y": 37,
+    "z": 125
+  },
+  "hopo:mineshaft/cherry_mineshaft": {
+    "x": 72,
+    "y": 9,
+    "z": 60
+  },
+  "hopo:mineshaft/dark_oak_mineshaft": {
+    "x": 115,
+    "y": 54,
+    "z": 126
+  },
+  "hopo:mineshaft/deepslate_mineshaft": {
+    "x": 108,
+    "y": 17,
+    "z": 143
+  },
+  "hopo:mineshaft/jungle_mineshaft": {
+    "x": 141,
+    "y": 33,
+    "z": 120
+  },
+  "hopo:mineshaft/mangrove_mineshaft": {
+    "x": 118,
+    "y": 21,
+    "z": 153
+  },
+  "hopo:mineshaft/mud_mineshaft": {
+    "x": 55,
+    "y": 13,
+    "z": 110
+  },
+  "hopo:mineshaft/oak_mineshaft": {
+    "x": 137,
+    "y": 40,
+    "z": 134
+  },
+  "hopo:mineshaft/pale_mineshaft": {
+    "x": 69,
+    "y": 10,
+    "z": 59
+  },
+  "hopo:mineshaft/poplar_mineshaft": {
+    "x": 137,
+    "y": 40,
+    "z": 134
+  },
+  "hopo:mineshaft/spruce_mineshaft": {
+    "x": 157,
+    "y": 22,
+    "z": 165
+  },
+  "hopo:mineshaft/stone_mineshaft": {
+    "x": 91,
+    "y": 51,
+    "z": 162
+  },
+  "keeb_struc_lush:keeb_struc_lush": {
+    "x": 142,
+    "y": 59,
+    "z": 214
   },
   "mes:astral_hideaway": {
     "x": 31,
@@ -595,9 +970,9 @@
     "z": 34
   },
   "minecraft:ancient_city": {
-    "x": 218,
-    "y": 55,
-    "z": 247
+    "x": 256,
+    "y": 58,
+    "z": 257
   },
   "minecraft:bastion_remnant": {
     "x": 56,
@@ -615,9 +990,9 @@
     "z": 21
   },
   "minecraft:end_city": {
-    "x": 74,
-    "y": 99,
-    "z": 96
+    "x": 44,
+    "y": 124,
+    "z": 150
   },
   "minecraft:fortress": {
     "x": 202,
@@ -635,9 +1010,9 @@
     "z": 15
   },
   "minecraft:mansion": {
-    "x": 79,
-    "y": 31,
-    "z": 61
+    "x": 61,
+    "y": 32,
+    "z": 72
   },
   "minecraft:mineshaft": {
     "x": 88,
@@ -670,9 +1045,29 @@
     "z": 7
   },
   "minecraft:pillager_outpost": {
-    "x": 72,
-    "y": 54,
-    "z": 72
+    "x": 61,
+    "y": 51,
+    "z": 63
+  },
+  "minecraft:pillager_outpost_dark_forest": {
+    "x": 73,
+    "y": 53,
+    "z": 68
+  },
+  "minecraft:pillager_outpost_forest": {
+    "x": 61,
+    "y": 41,
+    "z": 56
+  },
+  "minecraft:pillager_outpost_mangrove": {
+    "x": 73,
+    "y": 53,
+    "z": 68
+  },
+  "minecraft:pillager_outpost_swamp": {
+    "x": 73,
+    "y": 52,
+    "z": 68
   },
   "minecraft:ruined_portal": {
     "x": 14,
@@ -720,9 +1115,14 @@
     "z": 28
   },
   "minecraft:stronghold": {
-    "x": 173,
-    "y": 63,
-    "z": 174
+    "x": 167,
+    "y": 53,
+    "z": 173
+  },
+  "minecraft:stronghold_big": {
+    "x": 95,
+    "y": 50,
+    "z": 85
   },
   "minecraft:swamp_hut": {
     "x": 7,
@@ -763,6 +1163,21 @@
     "x": 126,
     "y": 41,
     "z": 141
+  },
+  "mmv:village_dark_forest": {
+    "x": 142,
+    "y": 71,
+    "z": 160
+  },
+  "mmv:village_jungle": {
+    "x": 115,
+    "y": 108,
+    "z": 134
+  },
+  "mmv:village_swamp": {
+    "x": 149,
+    "y": 102,
+    "z": 176
   },
   "mns:bridge_1": {
     "x": 5,
@@ -1939,6 +2354,11 @@
     "y": 122,
     "z": 158
   },
+  "nova_structures:dappled_witch_hut": {
+    "x": 43,
+    "y": 33,
+    "z": 40
+  },
   "nova_structures:deepslate_camp": {
     "x": 75,
     "y": 19,
@@ -2189,6 +2609,11 @@
     "y": 44,
     "z": 122
   },
+  "nova_structures:remnant_clifftree": {
+    "x": 19,
+    "y": 48,
+    "z": 19
+  },
   "nova_structures:remnant_creeper_homestead": {
     "x": 46,
     "y": 43,
@@ -2283,6 +2708,11 @@
     "x": 50,
     "y": 44,
     "z": 51
+  },
+  "nova_structures:remnant_tavern_classic": {
+    "x": 63,
+    "y": 37,
+    "z": 45
   },
   "nova_structures:remnant_woodland_hud": {
     "x": 37,
@@ -2629,6 +3059,36 @@
     "y": 58,
     "z": 142
   },
+  "piglin_outposts:piglin_camp_outpost": {
+    "x": 44,
+    "y": 34,
+    "z": 44
+  },
+  "piglin_outposts:piglin_camp_outpost_sparse": {
+    "x": 44,
+    "y": 34,
+    "z": 44
+  },
+  "piglin_outposts:piglin_camp_scout": {
+    "x": 40,
+    "y": 30,
+    "z": 40
+  },
+  "piglin_outposts:piglin_camp_scout_sparse": {
+    "x": 40,
+    "y": 30,
+    "z": 40
+  },
+  "piglin_outposts:piglin_camp_treasury": {
+    "x": 49,
+    "y": 44,
+    "z": 49
+  },
+  "piglin_outposts:piglin_camp_treasury_sparse": {
+    "x": 49,
+    "y": 44,
+    "z": 49
+  },
   "towns_and_towers:exclusives/pillager_outpost_classic": {
     "x": 47,
     "y": 37,
@@ -2928,5 +3388,670 @@
     "x": 14,
     "y": 3,
     "z": 14
+  },
+  "trek:end/medium/end_city": {
+    "x": 157,
+    "y": 101,
+    "z": 202
+  },
+  "trek:monster_room/lower/deep_dark": {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  },
+  "trek:monster_room/lower/default": {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  },
+  "trek:monster_room/lower/dripstone": {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  },
+  "trek:monster_room/lower/lush": {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  },
+  "trek:monster_room/upper/default": {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  },
+  "trek:monster_room/upper/dripstone": {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  },
+  "trek:monster_room/upper/lush": {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  },
+  "trek:monster_room/upper/oak": {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  },
+  "trek:nether/common/nether_pillar": {
+    "x": 41,
+    "y": 43,
+    "z": 38
+  },
+  "trek:nether/medium/overworld_leak_1": {
+    "x": 46,
+    "y": 43,
+    "z": 43
+  },
+  "trek:nether/medium/overworld_leak_2": {
+    "x": 45,
+    "y": 43,
+    "z": 43
+  },
+  "trek:overworld/common/cooking_pork": {
+    "x": 5,
+    "y": 3,
+    "z": 3
+  },
+  "trek:overworld/common/elven_pillars": {
+    "x": 13,
+    "y": 30,
+    "z": 16
+  },
+  "trek:overworld/common/frozen_remains": {
+    "x": 34,
+    "y": 31,
+    "z": 41
+  },
+  "trek:overworld/common/mushroom_house": {
+    "x": 35,
+    "y": 35,
+    "z": 35
+  },
+  "trek:overworld/common/ruins": {
+    "x": 6,
+    "y": 6,
+    "z": 5
+  },
+  "trek:overworld/common/small_desert_ruins": {
+    "x": 9,
+    "y": 5,
+    "z": 10
+  },
+  "trek:overworld/common/small_swamp_ruins": {
+    "x": 10,
+    "y": 5,
+    "z": 11
+  },
+  "trek:overworld/common/smoldering_altar": {
+    "x": 13,
+    "y": 5,
+    "z": 13
+  },
+  "trek:overworld/common/strange_stone": {
+    "x": 35,
+    "y": 34,
+    "z": 33
+  },
+  "trek:overworld/common/termite_hill": {
+    "x": 9,
+    "y": 5,
+    "z": 6
+  },
+  "trek:overworld/common/two_woods": {
+    "x": 10,
+    "y": 4,
+    "z": 7
+  },
+  "trek:overworld/common/well": {
+    "x": 7,
+    "y": 13,
+    "z": 7
+  },
+  "trek:overworld/common/well_pillager_small": {
+    "x": 3,
+    "y": 6,
+    "z": 4
+  },
+  "trek:overworld/medium/all_abandoned": {
+    "x": 40,
+    "y": 28,
+    "z": 40
+  },
+  "trek:overworld/medium/base_1": {
+    "x": 40,
+    "y": 35,
+    "z": 43
+  },
+  "trek:overworld/medium/base_2": {
+    "x": 31,
+    "y": 34,
+    "z": 31
+  },
+  "trek:overworld/medium/base_pillager": {
+    "x": 47,
+    "y": 40,
+    "z": 41
+  },
+  "trek:overworld/medium/beehive_house": {
+    "x": 34,
+    "y": 35,
+    "z": 37
+  },
+  "trek:overworld/medium/birch_fort": {
+    "x": 39,
+    "y": 43,
+    "z": 40
+  },
+  "trek:overworld/medium/birch_trade": {
+    "x": 25,
+    "y": 68,
+    "z": 80
+  },
+  "trek:overworld/medium/bone_dragon": {
+    "x": 37,
+    "y": 32,
+    "z": 31
+  },
+  "trek:overworld/medium/buried_village": {
+    "x": 7,
+    "y": 33,
+    "z": 8
+  },
+  "trek:overworld/medium/camp_1": {
+    "x": 32,
+    "y": 30,
+    "z": 35
+  },
+  "trek:overworld/medium/camp_2": {
+    "x": 9,
+    "y": 5,
+    "z": 8
+  },
+  "trek:overworld/medium/camp_3": {
+    "x": 31,
+    "y": 28,
+    "z": 31
+  },
+  "trek:overworld/medium/camp_4": {
+    "x": 41,
+    "y": 40,
+    "z": 43
+  },
+  "trek:overworld/medium/church": {
+    "x": 37,
+    "y": 46,
+    "z": 45
+  },
+  "trek:overworld/medium/claw_pillager": {
+    "x": 27,
+    "y": 39,
+    "z": 39
+  },
+  "trek:overworld/medium/claw_spike": {
+    "x": 32,
+    "y": 35,
+    "z": 27
+  },
+  "trek:overworld/medium/cold_hideout": {
+    "x": 37,
+    "y": 50,
+    "z": 38
+  },
+  "trek:overworld/medium/cold_red_trade": {
+    "x": 13,
+    "y": 39,
+    "z": 41
+  },
+  "trek:overworld/medium/dark_oak_trade": {
+    "x": 19,
+    "y": 39,
+    "z": 41
+  },
+  "trek:overworld/medium/desert_outpost": {
+    "x": 46,
+    "y": 44,
+    "z": 64
+  },
+  "trek:overworld/medium/desert_ranch": {
+    "x": 40,
+    "y": 32,
+    "z": 40
+  },
+  "trek:overworld/medium/destroyed_house": {
+    "x": 46,
+    "y": 36,
+    "z": 47
+  },
+  "trek:overworld/medium/dirt_hut": {
+    "x": 29,
+    "y": 29,
+    "z": 30
+  },
+  "trek:overworld/medium/enchanter": {
+    "x": 30,
+    "y": 28,
+    "z": 31
+  },
+  "trek:overworld/medium/explorer_cabin": {
+    "x": 52,
+    "y": 46,
+    "z": 54
+  },
+  "trek:overworld/medium/farm": {
+    "x": 47,
+    "y": 35,
+    "z": 41
+  },
+  "trek:overworld/medium/farm_pillager": {
+    "x": 35,
+    "y": 39,
+    "z": 43
+  },
+  "trek:overworld/medium/fort": {
+    "x": 40,
+    "y": 32,
+    "z": 40
+  },
+  "trek:overworld/medium/frozen_tree": {
+    "x": 27,
+    "y": 41,
+    "z": 26
+  },
+  "trek:overworld/medium/graveyard": {
+    "x": 39,
+    "y": 30,
+    "z": 36
+  },
+  "trek:overworld/medium/haunted_house": {
+    "x": 48,
+    "y": 62,
+    "z": 43
+  },
+  "trek:overworld/medium/hobbit_hole": {
+    "x": 35,
+    "y": 30,
+    "z": 35
+  },
+  "trek:overworld/medium/ice_fort": {
+    "x": 44,
+    "y": 53,
+    "z": 42
+  },
+  "trek:overworld/medium/igloo_village": {
+    "x": 46,
+    "y": 35,
+    "z": 48
+  },
+  "trek:overworld/medium/jungle_outpost": {
+    "x": 50,
+    "y": 52,
+    "z": 55
+  },
+  "trek:overworld/medium/jungle_trade": {
+    "x": 11,
+    "y": 22,
+    "z": 20
+  },
+  "trek:overworld/medium/jungle_treehouse": {
+    "x": 43,
+    "y": 72,
+    "z": 50
+  },
+  "trek:overworld/medium/lush_ice": {
+    "x": 38,
+    "y": 37,
+    "z": 36
+  },
+  "trek:overworld/medium/maison": {
+    "x": 52,
+    "y": 39,
+    "z": 42
+  },
+  "trek:overworld/medium/mangrove_watchtower": {
+    "x": 35,
+    "y": 47,
+    "z": 36
+  },
+  "trek:overworld/medium/oasis": {
+    "x": 30,
+    "y": 15,
+    "z": 30
+  },
+  "trek:overworld/medium/offshore_platform_pillager": {
+    "x": 21,
+    "y": 42,
+    "z": 25
+  },
+  "trek:overworld/medium/orbital": {
+    "x": 52,
+    "y": 39,
+    "z": 52
+  },
+  "trek:overworld/medium/pillager_old_camp": {
+    "x": 35,
+    "y": 29,
+    "z": 36
+  },
+  "trek:overworld/medium/pillager_weapons": {
+    "x": 37,
+    "y": 30,
+    "z": 39
+  },
+  "trek:overworld/medium/plains_cottage": {
+    "x": 68,
+    "y": 50,
+    "z": 60
+  },
+  "trek:overworld/medium/railroad": {
+    "x": 36,
+    "y": 34,
+    "z": 53
+  },
+  "trek:overworld/medium/ritual": {
+    "x": 39,
+    "y": 28,
+    "z": 39
+  },
+  "trek:overworld/medium/ruine_bateaux": {
+    "x": 54,
+    "y": 41,
+    "z": 40
+  },
+  "trek:overworld/medium/ruine_cabane": {
+    "x": 50,
+    "y": 40,
+    "z": 53
+  },
+  "trek:overworld/medium/ruine_tour": {
+    "x": 43,
+    "y": 44,
+    "z": 42
+  },
+  "trek:overworld/medium/ship_pillager": {
+    "x": 13,
+    "y": 22,
+    "z": 21
+  },
+  "trek:overworld/medium/small_pyramide": {
+    "x": 15,
+    "y": 15,
+    "z": 14
+  },
+  "trek:overworld/medium/small_red_trade": {
+    "x": 11,
+    "y": 15,
+    "z": 21
+  },
+  "trek:overworld/medium/snow_cottage": {
+    "x": 12,
+    "y": 12,
+    "z": 10
+  },
+  "trek:overworld/medium/snowman": {
+    "x": 34,
+    "y": 44,
+    "z": 36
+  },
+  "trek:overworld/medium/sorcerers_house": {
+    "x": 39,
+    "y": 33,
+    "z": 39
+  },
+  "trek:overworld/medium/spruce_camp": {
+    "x": 33,
+    "y": 30,
+    "z": 31
+  },
+  "trek:overworld/medium/spruce_cottage": {
+    "x": 10,
+    "y": 12,
+    "z": 12
+  },
+  "trek:overworld/medium/square_tower": {
+    "x": 39,
+    "y": 54,
+    "z": 39
+  },
+  "trek:overworld/medium/star_spike": {
+    "x": 39,
+    "y": 38,
+    "z": 37
+  },
+  "trek:overworld/medium/stelzen": {
+    "x": 37,
+    "y": 55,
+    "z": 36
+  },
+  "trek:overworld/medium/stonehedge": {
+    "x": 50,
+    "y": 32,
+    "z": 51
+  },
+  "trek:overworld/medium/strange_house": {
+    "x": 37,
+    "y": 48,
+    "z": 40
+  },
+  "trek:overworld/medium/street_vendor_pillager": {
+    "x": 31,
+    "y": 30,
+    "z": 34
+  },
+  "trek:overworld/medium/street_vendor_stall": {
+    "x": 32,
+    "y": 33,
+    "z": 35
+  },
+  "trek:overworld/medium/three_finger_ice": {
+    "x": 26,
+    "y": 35,
+    "z": 23
+  },
+  "trek:overworld/medium/tour": {
+    "x": 35,
+    "y": 48,
+    "z": 35
+  },
+  "trek:overworld/medium/tour_desert": {
+    "x": 35,
+    "y": 39,
+    "z": 37
+  },
+  "trek:overworld/medium/tower": {
+    "x": 33,
+    "y": 54,
+    "z": 34
+  },
+  "trek:overworld/medium/tower_of_ice": {
+    "x": 41,
+    "y": 50,
+    "z": 40
+  },
+  "trek:overworld/medium/underwater_sword": {
+    "x": 9,
+    "y": 20,
+    "z": 10
+  },
+  "trek:overworld/medium/wandering_trader_dark_oak": {
+    "x": 33,
+    "y": 30,
+    "z": 37
+  },
+  "trek:overworld/medium/wandering_trader_oak": {
+    "x": 34,
+    "y": 30,
+    "z": 37
+  },
+  "trek:overworld/medium/wandering_trader_spruce": {
+    "x": 33,
+    "y": 30,
+    "z": 37
+  },
+  "trek:overworld/medium/water_reservoir_pillager": {
+    "x": 29,
+    "y": 38,
+    "z": 29
+  },
+  "trek:overworld/medium/well_pillager_medium": {
+    "x": 7,
+    "y": 9,
+    "z": 7
+  },
+  "trek:overworld/medium/wild_stone": {
+    "x": 8,
+    "y": 12,
+    "z": 8
+  },
+  "trek:overworld/medium/witch_tower": {
+    "x": 39,
+    "y": 60,
+    "z": 37
+  },
+  "trek:overworld/rare/abandoned_castle_pillager": {
+    "x": 60,
+    "y": 71,
+    "z": 68
+  },
+  "trek:overworld/rare/castle": {
+    "x": 54,
+    "y": 59,
+    "z": 59
+  },
+  "trek:overworld/rare/cottage_island": {
+    "x": 68,
+    "y": 35,
+    "z": 54
+  },
+  "trek:overworld/rare/elven_tree": {
+    "x": 36,
+    "y": 35,
+    "z": 26
+  },
+  "trek:overworld/rare/maya": {
+    "x": 55,
+    "y": 39,
+    "z": 55
+  },
+  "trek:overworld/rare/mushroom_island": {
+    "x": 80,
+    "y": 75,
+    "z": 90
+  },
+  "trek:overworld/rare/pillager_mansion": {
+    "x": 66,
+    "y": 61,
+    "z": 57
+  },
+  "trek:overworld/rare/portal_sword": {
+    "x": 32,
+    "y": 45,
+    "z": 31
+  },
+  "trek:overworld/rare/pyramide_of_anubis": {
+    "x": 67,
+    "y": 48,
+    "z": 64
+  },
+  "trek:overworld/rare/sleepy_island": {
+    "x": 69,
+    "y": 30,
+    "z": 56
+  },
+  "trek:overworld/rare/sunken_city": {
+    "x": 48,
+    "y": 44,
+    "z": 48
+  },
+  "trek:overworld/rare/tower_island": {
+    "x": 35,
+    "y": 86,
+    "z": 37
+  },
+  "trek:overworld/rare/villager_castle": {
+    "x": 89,
+    "y": 80,
+    "z": 99
+  },
+  "trek:overworld/rare/villager_fortress": {
+    "x": 54,
+    "y": 67,
+    "z": 49
+  },
+  "trek:overworld/rare/villager_island": {
+    "x": 54,
+    "y": 49,
+    "z": 53
+  },
+  "trek:overworld/rare/wooden_manor": {
+    "x": 72,
+    "y": 70,
+    "z": 53
+  },
+  "trek:overworld/very_common/plains": {
+    "x": 5,
+    "y": 4,
+    "z": 5
+  },
+  "trek:overworld/very_common/rocks": {
+    "x": 3,
+    "y": 4,
+    "z": 3
+  },
+  "trek:overworld/very_rare/coves": {
+    "x": 206,
+    "y": 109,
+    "z": 186
+  },
+  "trek:overworld/very_rare/farm_island": {
+    "x": 123,
+    "y": 112,
+    "z": 136
+  },
+  "trek:overworld/very_rare/floating_farm_large": {
+    "x": 195,
+    "y": 154,
+    "z": 195
+  },
+  "trek:village/cherry": {
+    "x": 97,
+    "y": 71,
+    "z": 131
+  },
+  "trek:village/desert": {
+    "x": 68,
+    "y": 43,
+    "z": 47
+  },
+  "trek:village/mushroom": {
+    "x": 39,
+    "y": 32,
+    "z": 40
+  },
+  "trek:village/plains": {
+    "x": 168,
+    "y": 85,
+    "z": 171
+  },
+  "trek:village/savanna": {
+    "x": 185,
+    "y": 82,
+    "z": 137
+  },
+  "trek:village/snowy": {
+    "x": 175,
+    "y": 85,
+    "z": 141
+  },
+  "trek:village/swamp_vanilla": {
+    "x": 155,
+    "y": 94,
+    "z": 132
+  },
+  "trek:village/taiga": {
+    "x": 102,
+    "y": 80,
+    "z": 128
   }
 }
