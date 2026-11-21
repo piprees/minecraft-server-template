@@ -114,15 +114,7 @@ final class TiltedTemplate {
                     int k = t.index(src[0], src[1], src[2]);
                     BlockState state = t.states()[k];
                     if (state == null || state.is(Blocks.STRUCTURE_VOID) || state.is(Blocks.JIGSAW)) continue;
-                    if (state.is(Blocks.STRUCTURE_BLOCK)) {
-                        CompoundTag nbt = t.nbt()[k];
-                        if (nbt != null && "DATA".equals(nbt.getStringOr("mode", ""))) {
-                            int[] below = tilt.target(src[0], src[1] - 1, src[2]);
-                            marker(level, chunkBox, nbt.getStringOr("metadata", ""), new BlockPos(x, y, z),
-                                    corner.offset(below[0], below[1], below[2]), facing(tilt, rotation.rotate(Direction.SOUTH)), seed);
-                        }
-                        continue;
-                    }
+                    if (state.is(Blocks.STRUCTURE_BLOCK)) continue;
                     if (integrity < 1 && SetPiecePlan.roll(seed, src[0], src[1], src[2], 3) >= integrity) continue;
                     state = weather(state, age, burned, seed, x, y, z);
                     if (state == null) continue;
@@ -135,7 +127,43 @@ final class TiltedTemplate {
                 }
             }
         }
+        for (Marker m : markers(t, tilt, corner, rotation.rotate(Direction.SOUTH), chunkBox)) {
+            marker(level, chunkBox, m.metadata(), m.pos(), m.below(), m.facing(), seed);
+        }
         for (int i = 0; i < t.entities().size(); i++) entity(level, chunkBox, t.entities().get(i), t.entityPos().get(i), tilt, corner);
+    }
+
+    /** A data marker as placed: its metadata, its tilted position, the block below it, and the way a frame there faces. */
+    record Marker(String metadata, BlockPos pos, BlockPos below, Direction facing) {
+        /** The block an elytra frame hangs on (the one behind it), else the marker's own position. */
+        BlockPos owner() {
+            return metadata.startsWith("Elytra") ? pos.relative(facing.getOpposite()) : pos;
+        }
+    }
+
+    /**
+     * The data markers this chunk places, after its block pass: each at its
+     * template position turned by the tilt, so once; and in the chunk that
+     * holds its {@link Marker#owner}, so an elytra frame is hung by the chunk
+     * that writes the block it hangs on, whichever chunk generates first.
+     */
+    static List<Marker> markers(Turned t, Tilt tilt, BlockPos corner, Direction south, BoundingBox chunkBox) {
+        List<Marker> out = new ArrayList<>();
+        Direction facing = facing(tilt, south);
+        for (int k = 0; k < t.states().length; k++) {
+            BlockState state = t.states()[k];
+            CompoundTag nbt = t.nbt()[k];
+            if (state == null || !state.is(Blocks.STRUCTURE_BLOCK) || nbt == null || !"DATA".equals(nbt.getStringOr("mode", ""))) continue;
+            int x = k % t.sx();
+            int z = (k / t.sx()) % t.sz();
+            int y = k / (t.sx() * t.sz());
+            int[] at = tilt.target(x, y, z);
+            int[] below = tilt.target(x, y - 1, z);
+            Marker m = new Marker(nbt.getStringOr("metadata", ""), corner.offset(at[0], at[1], at[2]), corner.offset(below[0], below[1], below[2]),
+                    facing);
+            if (chunkBox.isInside(m.owner())) out.add(m);
+        }
+        return out;
     }
 
     /** {@code d} turned by the tilt, to the nearest face. */
@@ -153,11 +181,10 @@ final class TiltedTemplate {
      * marker itself is air; others are left as air.
      */
     static void marker(WorldGenLevel level, BoundingBox chunkBox, String metadata, BlockPos pos, BlockPos below, Direction facing, long seed) {
-        if (!chunkBox.isInside(pos)) return;
-        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+        if (chunkBox.isInside(pos)) level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
         if (metadata.startsWith("Elytra")) {
             BlockPos behind = pos.relative(facing.getOpposite());
-            if (chunkBox.isInside(behind) && !level.getBlockState(behind).isSolid()) level.setBlock(behind, Blocks.PURPUR_BLOCK.defaultBlockState(), 2);
+            if (!level.getBlockState(behind).isSolid()) level.setBlock(behind, Blocks.PURPUR_BLOCK.defaultBlockState(), 2);
             var frame = new net.minecraft.world.entity.decoration.ItemFrame(level.getLevel(), pos, facing);
             frame.setSilent(true);
             frame.setItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ELYTRA), false);
