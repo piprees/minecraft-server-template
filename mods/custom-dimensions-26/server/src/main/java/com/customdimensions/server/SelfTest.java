@@ -215,6 +215,16 @@ final class SelfTest {
             return null;
         }).thenCompose(v -> {
             try {
+                return exitsOnly && !setPiecesOnly ? CompletableFuture.completedFuture(List.<String>of())
+                        : com.customdimensions.server.structure.ShapeSelfTest.run(server);
+            } catch (Throwable t) {
+                return CompletableFuture.completedFuture(List.of("FAIL setpieces shapes: " + t));
+            }
+        }).handle((more, error) -> {
+            lines.addAll(error == null ? more : List.of("FAIL setpieces shapes: " + error));
+            return null;
+        }).thenCompose(v -> {
+            try {
                 return exitsOnly && !renderOnly ? CompletableFuture.completedFuture(List.<String>of()) : RenderSelfTest.run(server);
             } catch (Throwable t) {
                 return CompletableFuture.completedFuture(List.of("FAIL render: " + t));

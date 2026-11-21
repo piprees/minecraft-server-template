@@ -61,7 +61,9 @@ public record StructureSpec(
     public static final Set<String> UNSUPPORTED_ADAPTATIONS = Set.of("moat", "drain");
     public static final Set<String> FIELDS = Set.of("density", "wants", "shuns", "spacing", "mode", "list", "force",
             "clearSpawnRadius", "terrainAdaptation", "noise", "radial", "rarity", "exclude", "include", "replace", "repetition",
-            "loot", "sites", "age");
+            "loot", "sites", "age", "approaches");
+    /** Our own adjustments: the vanilla one is none, and the footing pass fills under the pieces (G9); terrace also cuts steps round them. */
+    public static final Set<String> FOOTING_ADAPTATIONS = Set.of("footing", "terrace");
 
     /**
      * One noise group: its profile, radial curve (null is even), exclusion in chunks, cleared spawn disc, and its
@@ -115,8 +117,23 @@ public record StructureSpec(
                 throw bad(ctx, key, "is not a structures field");
             }
         }
-        if (b.has("age") && (!b.get("age").isJsonPrimitive() || !Age.NAMES.contains(b.get("age").getAsString()))) {
-            throw bad(ctx, "age", "must be one of " + Age.NAMES);
+        if (b.has("age")) {
+            try {
+                SetPieceSetting.AgeBands.read(ctx.slug() + ": structures.age", b.get("age"), ctx.spawnX(), ctx.spawnZ());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException(e.getMessage(), e);
+            }
+        }
+        if (b.has("approaches")) {
+            if (!b.get("approaches").isJsonObject()) throw bad(ctx, "approaches", "must be an object of structure id or #tag to approach");
+            for (Map.Entry<String, JsonElement> e : b.getAsJsonObject("approaches").entrySet()) {
+                if (!e.getKey().contains(":")) throw bad(ctx, "approaches." + e.getKey(), "must be a structure id or #tag");
+                try {
+                    SetPieceSetting.Approach.readAll(ctx.slug() + ": structures.approaches." + e.getKey(), e.getValue());
+                } catch (IllegalArgumentException x) {
+                    throw new IllegalArgumentException(x.getMessage(), x);
+                }
+            }
         }
         if (b.has("sites")) {
             try {
@@ -176,7 +193,7 @@ public record StructureSpec(
                 warnings.add("terrainAdaptation: `" + target + "` is neither a structure id nor a group");
                 continue;
             }
-            if (VANILLA_ADAPTATIONS.contains(kind)) {
+            if (VANILLA_ADAPTATIONS.contains(kind) || FOOTING_ADAPTATIONS.contains(kind)) {
                 adaptation.put(target, kind);
             } else if (KERNEL_ADAPTATIONS.containsKey(kind)) {
                 adaptation.put(target, KERNEL_ADAPTATIONS.get(kind));
@@ -184,7 +201,7 @@ public record StructureSpec(
             } else if (UNSUPPORTED_ADAPTATIONS.contains(kind)) {
                 warnings.add("terrainAdaptation: `" + target + "` " + kind + " has no 26.3 counterpart and is not applied");
             } else {
-                throw bad(ctx, "terrainAdaptation." + target, "must be one of " + VANILLA_ADAPTATIONS
+                throw bad(ctx, "terrainAdaptation." + target, "must be one of " + VANILLA_ADAPTATIONS + ", " + FOOTING_ADAPTATIONS
                         + ", " + KERNEL_ADAPTATIONS.keySet() + " or " + UNSUPPORTED_ADAPTATIONS);
             }
         }
