@@ -449,3 +449,4 @@ lasting record is `docs/design/rebuild-26/` and `TROUBLESHOOTING.md`.
 14:24 — DR2 spawned (brief handoff/scratchpad/dr2-brief.md); lane order K14 → DR2 → BL1; BL1 told to merge DR1 and add elytra ≥300 rolls and the starts-total check
 14:38 — DR2 plan: 13 runs + 2 builds (~3 h lane). From code: FAIL1 real bug (firewall switchOff replaces set, re-enables 47 unbridged); FAIL7 Clumps orb merge; FAIL8 YIAS grave chest; FAIL5 warm vs cold timing. Accepted with conditions (no check weakening; FAIL1 production impact).
 14:40 — DR2 met conditions in code: FAIL8 DeathOutcome both sides with unit test; FAIL7 exact 70/0; FAIL1 switchOff caller is self-test only (no live impact); FAIL5 both timed warm. Waiting for lane after K14.
+14:55 — K14 done on lane: build 1667/0; bastions 3/5 kept (min 33), 2 lava-sea refused; slope dropped. Wreck-frame FAIL open: 15-min lane granted, then DR2.
