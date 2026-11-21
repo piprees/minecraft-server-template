@@ -867,7 +867,11 @@ public final class StructureRuntime {
             } catch (RuntimeException e) {
                 return "its generation threw " + e;
             }
-            if (!start.isValid()) return "its own rules start none there";
+            if (!start.isValid()) {
+                String why = structure.value() instanceof SetPieceStructure piece
+                        ? SetPieceStructure.declined().get(piece.spec().key() + " " + cx + "," + cz) : null;
+                return "its own rules start none there" + (why == null ? "" : ": " + why);
+            }
             if (y == null && UndergroundGround.floats(structure.value(), start.getBoundingBox(), generator, random, height)) {
                 return "no ground under it";
             }

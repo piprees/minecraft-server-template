@@ -89,6 +89,12 @@ public final class ShapeSelfTest {
             }
             return wait(level, chunks, 0).thenCompose(v -> {
                 for (StructureRuntime.Placed p : applied.placed()) check(level, slug, p, null);
+                applied.unplaced().forEach((key, account) -> {
+                    if (key.endsWith("/no_roof")) {
+                        check(this, "setpieces " + slug + " no_roof", () -> SetPieceSelfTest.declinedEarly("a roof seat without a roof", account,
+                                "ceiling"));
+                    }
+                });
                 if (slug.equals(OVER)) check(this, "setpieces lived-in layer " + slug, () -> lived(level));
                 if (!slug.equals(NETHER)) return CompletableFuture.completedFuture(null);
                 lines.add((wallsSeated > 0 && walls.stream().filter(w -> w.contains("PASS")).count() == wallsSeated ? "PASS" : "FAIL")

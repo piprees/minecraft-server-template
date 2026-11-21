@@ -93,6 +93,11 @@ public final class SetPieceSelfTest {
                 for (StructureRuntime.Placed p : applied.placed()) {
                     lines(this, "setpieces " + p.kind() + " " + p.structure(), () -> placed(level, p));
                 }
+                applied.unplaced().forEach((key, account) -> {
+                    if (key.endsWith("/void_yard")) {
+                        lines(this, "setpieces " + key, () -> declinedEarly("a ground piece over the void", account, "ground"));
+                    }
+                });
                 lines(this, "setpieces places.named " + slug, () -> named(level, applied));
                 if (slug.equals(FLOOR)) lines(this, "setpieces group " + slug, () -> group(level, applied));
                 lines(this, "setpieces mixin StructureCheckBypassMixin site refusal " + slug, () -> predicted(level, slug.equals(FLOOR)));
@@ -107,6 +112,16 @@ public final class SetPieceSelfTest {
         } catch (Exception e) {
             test.lines.add("FAIL " + name + ": " + e);
         }
+    }
+
+    /**
+     * A forced piece its chooser never placed because every candidate's own
+     * seat declined, the decline's reason ({@code reason}) carried into the
+     * chooser's account and its WARN.
+     */
+    static String declinedEarly(String what, String account, String reason) {
+        boolean ok = account.contains("its own rules start none there: ") && account.contains(reason);
+        return (ok ? "PASS " : "FAIL ") + what + " declines in its chooser: not placed (" + account + ")";
     }
 
     /** One forced or wanted set piece read back from its generated chunks. */
