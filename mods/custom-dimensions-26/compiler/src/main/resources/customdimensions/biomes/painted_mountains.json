@@ -1,0 +1,1749 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "end",
+  "inspiredBy": "BetterEnd's painted mountains.",
+  "differs": "Badlands bands in the End, in End colours: every island and the spires of end stone standing on it are striped in level three-block bands of orange, white, pink and purple terracotta from y 17 to y 106, so tops show the band of their height and cliffs and spires show the stripes, and stepped terracotta peaks up to 24 blocks high rise on the islands, each three-block step a band of its own colour; clear air.",
+  "climate": {
+    "temperature": [
+      0.2,
+      1.0
+    ],
+    "humidity": [
+      -0.3,
+      0.3
+    ]
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.cave",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 6000,
+          "replace_current_music": true,
+          "sound": "minecraft:music.end"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "monster": [
+              {
+                "type": "minecraft:enderman",
+                "count": 4,
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/fog_color": "#c8a0b0",
+      "minecraft:visual/sky_color": "#2a1a24"
+    },
+    "carvers": [],
+    "downfall": 0.5,
+    "effects": {
+      "water_color": "#c27ab0"
+    },
+    "features": [
+      [],
+      [],
+      [
+        "~peaks",
+        "~spires"
+      ],
+      [],
+      [
+        "minecraft:end_gateway_return"
+      ],
+      [],
+      [
+        "~band_00",
+        "~band_01",
+        "~band_02",
+        "~band_03",
+        "~band_04",
+        "~band_05",
+        "~band_06",
+        "~band_07",
+        "~band_08",
+        "~band_09",
+        "~band_10",
+        "~band_11",
+        "~band_12",
+        "~band_13",
+        "~band_14",
+        "~band_15",
+        "~band_16",
+        "~band_17",
+        "~band_18",
+        "~band_19",
+        "~band_20",
+        "~band_21",
+        "~band_22",
+        "~band_23",
+        "~band_24",
+        "~band_25",
+        "~band_26",
+        "~band_27",
+        "~band_28",
+        "~band_29"
+      ],
+      [],
+      [],
+      [],
+      []
+    ],
+    "has_precipitation": false,
+    "temperature": 1.0
+  },
+  "features": {
+    "peaks": {
+      "feature": {
+        "type": "minecraft:overlay",
+        "features": [
+          {
+            "feature": {
+              "type": "minecraft:disk",
+              "half_height": 1,
+              "radius": {
+                "type": "minecraft:uniform",
+                "max_inclusive": 8,
+                "min_inclusive": 7
+              },
+              "state_provider": {
+                "id": "minecraft:orange_terracotta"
+              },
+              "target": {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:air"
+                ]
+              }
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 0,
+                "y": 1,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:disk",
+              "half_height": 1,
+              "radius": {
+                "type": "minecraft:uniform",
+                "max_inclusive": 7,
+                "min_inclusive": 6
+              },
+              "state_provider": {
+                "id": "minecraft:white_terracotta"
+              },
+              "target": {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:air"
+                ]
+              }
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 0,
+                "y": 4,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:disk",
+              "half_height": 1,
+              "radius": {
+                "type": "minecraft:uniform",
+                "max_inclusive": 6,
+                "min_inclusive": 5
+              },
+              "state_provider": {
+                "id": "minecraft:pink_terracotta"
+              },
+              "target": {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:air"
+                ]
+              }
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 0,
+                "y": 7,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:disk",
+              "half_height": 1,
+              "radius": {
+                "type": "minecraft:uniform",
+                "max_inclusive": 5,
+                "min_inclusive": 4
+              },
+              "state_provider": {
+                "id": "minecraft:purple_terracotta"
+              },
+              "target": {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:air"
+                ]
+              }
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 0,
+                "y": 10,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:disk",
+              "half_height": 1,
+              "radius": {
+                "type": "minecraft:uniform",
+                "max_inclusive": 4,
+                "min_inclusive": 3
+              },
+              "state_provider": {
+                "id": "minecraft:white_terracotta"
+              },
+              "target": {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:air"
+                ]
+              }
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 0,
+                "y": 13,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:disk",
+              "half_height": 1,
+              "radius": {
+                "type": "minecraft:uniform",
+                "max_inclusive": 3,
+                "min_inclusive": 2
+              },
+              "state_provider": {
+                "id": "minecraft:pink_terracotta"
+              },
+              "target": {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:air"
+                ]
+              }
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 0,
+                "y": 16,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:disk",
+              "half_height": 1,
+              "radius": {
+                "type": "minecraft:uniform",
+                "max_inclusive": 2,
+                "min_inclusive": 1
+              },
+              "state_provider": {
+                "id": "minecraft:orange_terracotta"
+              },
+              "target": {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:air"
+                ]
+              }
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 0,
+                "y": 16,
+                "z": 0
+              },
+              {
+                "type": "minecraft:offset",
+                "x": 0,
+                "y": 3,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "feature": {
+              "type": "minecraft:disk",
+              "half_height": 1,
+              "radius": {
+                "type": "minecraft:uniform",
+                "max_inclusive": 1,
+                "min_inclusive": 1
+              },
+              "state_provider": {
+                "id": "minecraft:white_terracotta"
+              },
+              "target": {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:air"
+                ]
+              }
+            },
+            "placement": [
+              {
+                "type": "minecraft:offset",
+                "x": 0,
+                "y": 16,
+                "z": 0
+              },
+              {
+                "type": "minecraft:offset",
+                "x": 0,
+                "y": 6,
+                "z": 0
+              }
+            ]
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:rarity_filter",
+          "chance": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:end_stone"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "spires": {
+      "feature": {
+        "type": "minecraft:spike",
+        "can_place_on": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        },
+        "can_replace": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "state": "minecraft:end_stone"
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 2,
+            "min_inclusive": 0
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_00": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:orange_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 18
+            },
+            "min_inclusive": {
+              "absolute": 18
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_01": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:white_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 21
+            },
+            "min_inclusive": {
+              "absolute": 21
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_02": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:pink_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 24
+            },
+            "min_inclusive": {
+              "absolute": 24
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_03": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:purple_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 27
+            },
+            "min_inclusive": {
+              "absolute": 27
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_04": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:white_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 30
+            },
+            "min_inclusive": {
+              "absolute": 30
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_05": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:pink_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 33
+            },
+            "min_inclusive": {
+              "absolute": 33
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_06": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:orange_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 36
+            },
+            "min_inclusive": {
+              "absolute": 36
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_07": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:white_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 39
+            },
+            "min_inclusive": {
+              "absolute": 39
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_08": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:pink_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 42
+            },
+            "min_inclusive": {
+              "absolute": 42
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_09": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:purple_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 45
+            },
+            "min_inclusive": {
+              "absolute": 45
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_10": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:white_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 48
+            },
+            "min_inclusive": {
+              "absolute": 48
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_11": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:pink_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 51
+            },
+            "min_inclusive": {
+              "absolute": 51
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_12": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:orange_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 54
+            },
+            "min_inclusive": {
+              "absolute": 54
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_13": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:white_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 57
+            },
+            "min_inclusive": {
+              "absolute": 57
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_14": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:pink_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 60
+            },
+            "min_inclusive": {
+              "absolute": 60
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_15": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:purple_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 63
+            },
+            "min_inclusive": {
+              "absolute": 63
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_16": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:white_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 66
+            },
+            "min_inclusive": {
+              "absolute": 66
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_17": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:pink_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 69
+            },
+            "min_inclusive": {
+              "absolute": 69
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_18": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:orange_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 72
+            },
+            "min_inclusive": {
+              "absolute": 72
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_19": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:white_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 75
+            },
+            "min_inclusive": {
+              "absolute": 75
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_20": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:pink_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 78
+            },
+            "min_inclusive": {
+              "absolute": 78
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_21": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:purple_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 81
+            },
+            "min_inclusive": {
+              "absolute": 81
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_22": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:white_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 84
+            },
+            "min_inclusive": {
+              "absolute": 84
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_23": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:pink_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 87
+            },
+            "min_inclusive": {
+              "absolute": 87
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_24": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:orange_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 90
+            },
+            "min_inclusive": {
+              "absolute": 90
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_25": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:white_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 93
+            },
+            "min_inclusive": {
+              "absolute": 93
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_26": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:pink_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 96
+            },
+            "min_inclusive": {
+              "absolute": 96
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_27": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:purple_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 99
+            },
+            "min_inclusive": {
+              "absolute": 99
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_28": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:white_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 102
+            },
+            "min_inclusive": {
+              "absolute": 102
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_29": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 7
+        },
+        "state_provider": {
+          "id": "minecraft:pink_terracotta"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 105
+            },
+            "min_inclusive": {
+              "absolute": 105
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    }
+  }
+}

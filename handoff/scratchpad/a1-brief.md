@@ -1,0 +1,28 @@
+A1 — Parity audit: what of the 1.21.1 pack and mod the 26.3 rebuild really delivers, and what is missing (read-only; no build, no server)
+
+Read /tmp/claude-0/-home-user/5eb91d81-f3fb-5a91-9f20-35496482f7d0/scratchpad/common-rules.md first (clean room RB-13 binds you: never open Terralith, Incendium, Nullscape, Structory, Tectonic, Regions Unexplored, Nature's Spirit, WilderWild or any Stardust Labs file, nor any mod jar). You change NOTHING in the repo (/home/user/minecraft-server-template, branch claude/minecraft-dependency-automation-n1w79q — another agent is working in it; read only). Write everything to /tmp/claude-0/a1/ (create it). Log one line per step to /tmp/claude-0/a1/progress.log.
+
+## The owner's words (the bar)
+"The original ask for this 26.x version ... I asked a few days ago how progress was and you said like 80% but it seems if we're missing the structures then it's more like 20%. Examine what else is missing ... so we can ensure all of the features of the original mod and its ambitious world generation and dimension control can be realised. The only real feature changes were mods that were incompatible couldn't be brought over so had to be recreated our side, and we wanted bedrock/mobile compatibility — i.e. server-only or as near as we can get to that; our own mod notwithstanding but no client-server stuff would be a hard requirement. We're trying to bring our awesome adventure pack to the modern Minecraft era."
+So: everything the 1.21.1 pack gave players and admins must exist on 26.3, either from a kept mod or rebuilt by us server-side; "waiting for the author" is NOT delivered.
+
+## Sources (read them; cite file:line)
+- The plan of record: `docs/design/rebuild-26/` — README.md, requirements.md (the acceptance list), parity.md, pack.md, mod-register.csv (235 projects: decision kept/waiting/cut/rebuilt by us/replaced, replaced_by, gave_us), namespaces.csv, work-plan.md, decisions.md, risks.md, worldgen.md, placeness.md, portals.md, architecture.md.
+- Where the plan says what was asked and what was promised: HANDOFF.md (the lead's log; search it for the earliest entries, "requirements", "parity", "progress", "%"), `mods/custom-dimensions/README.md` and its source (the 1.21.1 mod: every command, config field, behaviour), `config/custom-dimensions/` (the 1.21.1 dimension set, read-only), `config/modrinth-mods.txt` (1.21.1 pack, 338 lines) vs `config/modrinth-mods-26.3.txt`.
+- What exists on 26.3: `mods/custom-dimensions-26/` (README, schema/definition.schema.json, definitions/, fidelity/, core/server/compiler sources and tests), `TROUBLESHOOTING.md` open K entries, `cutover/`.
+- The owner's latest review notes: `mods/custom-dimensions-26/fidelity/feedback/owner-review-1.md`.
+- Measured facts the lead already has (verify): structures group 10 kept / 24 waiting / 2 cut; of the 24 only explorify has a 26.3 Fabric build today (Modrinth API); structure_themes.json knows 426 ids, ~290 in namespaces present on 26.3, ~110 lost; the mod ships no structures of its own; `/locate` finds nothing our placements place (being fixed now, K13); a places plan (P1) and set-pieces kit are being drafted now — do not duplicate P1's per-dimension structure lists, just size the gap.
+
+## Method
+1. Build the **feature inventory** of the 1.21.1 experience, by area: worldgen (terrain, biomes, caves, Nether, End, sky worlds, oceans), structures, dimensions and portals (every custom-dimensions feature and command), mobs and creatures, items/gear/loot (artefacts, weapons, armour, enchantments, elytra slot, trinkets…), building blocks and decoration, farming/food, villagers and trading, quality of life and admin (maps, backups, Discord, web pages, seasons, day cycle, sitting, waystones/compasses…), client presentation (shaders, ambience: noted as optional). Use the register's `group` and `gave_us` columns and namespaces.csv for what each mod gave.
+2. For each feature: **status on 26.3** — delivered (by which kept mod or which part of our mod, with a pointer you verified exists: a class, a definition field, a test), partial (what is missing), missing (waiting/cut with no replacement, or "rebuilt by us" where the rebuild does not exist yet — check each "rebuilt by us"/"replaced" row's replacement really exists in code or the pack), or deliberately dropped (the owner agreed: cite where). Server-only check: does it need a client mod? (hard requirement: none may).
+3. **Plan of record vs reality**: each requirement in requirements.md and parity.md — met, partly, not met, with evidence.
+4. **Size the gaps** in work packages (~180 agent steps each, the size the project uses): what to build server-side for each missing feature (in our mod, as data/datapack, via Polymer for server-side blocks/items where needed, or via a kept/replacement mod), dependencies between them, and an honest overall percentage by area (state your method for the percentage).
+
+## Deliverable (in /tmp/claude-0/a1/, plain Markdown, British English, small files)
+- `summary.md` — one page: overall and per-area percentages with the method, the ten biggest gaps, what is solid.
+- `inventory.md` — the feature table: area, feature, 1.21.1 source, 26.3 status, evidence pointer, server-only note.
+- `requirements-check.md` — requirements.md and parity.md, item by item.
+- `gaps.md` — every missing/partial feature with the server-side way to close it and a work-package size; then an ordered roadmap (phases, packages, dependencies, which can run in parallel, which need the owner's decision).
+- `questions.md` — decisions only the owner can make.
+Report back: the files, the per-area percentages, the ten biggest gaps, and the roadmap phases in a few lines each. Budget ~160 tool steps.

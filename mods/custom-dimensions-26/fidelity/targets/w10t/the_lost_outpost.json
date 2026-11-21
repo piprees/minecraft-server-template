@@ -1,0 +1,56 @@
+{
+ "slug": "the_lost_outpost",
+ "targets": [
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 10,
+   "from": "\"Outpost country\": land"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:ocean + surface.biomesPercent.minecraft:warm_ocean + surface.biomesPercent.minecraft:lukewarm_ocean + surface.biomesPercent.minecraft:cold_ocean + surface.biomesPercent.minecraft:deep_ocean + surface.biomesPercent.minecraft:deep_lukewarm_ocean + surface.biomesPercent.minecraft:deep_cold_ocean + surface.biomesPercent.minecraft:frozen_ocean",
+   "op": "<=",
+   "value": 5,
+   "from": "1.21.1 biomes list no ocean"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:savanna + surface.biomesPercent.minecraft:savanna_plateau + surface.biomesPercent.minecraft:windswept_savanna + surface.biomesPercent.adventure:baobab_savanna + surface.biomesPercent.adventure:prairie",
+   "op": ">=",
+   "value": 50,
+   "from": "1.21.1 oak_savanna, golden_wilds, savanna, arid_savanna, fractured_savanna, savanna_slopes, windswept_savanna"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:wooded_badlands",
+   "op": "<=",
+   "value": 15,
+   "from": "1.21.1 savanna_badlands is one of ten"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "between",
+   "value": [
+    5,
+    40
+   ],
+   "from": "savanna: lone and scattered trees"
+  },
+  {
+   "key": "biomeExpression.expressed",
+   "op": ">=",
+   "value": 7,
+   "from": "1.21.1 lists ten land biomes"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one feral savanna): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

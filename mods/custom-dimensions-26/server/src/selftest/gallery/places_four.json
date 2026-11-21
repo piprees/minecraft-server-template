@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "description": "Places gallery: four land biomes, each one region of a quarter of the border, sites automatic and chosen by the seed.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    "minecraft:plains",
+    "minecraft:forest",
+    "minecraft:desert",
+    "minecraft:snowy_plains"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "places": {}
+  },
+  "borders": {
+    "player": 1024
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: floating islands under a sea level of 90, which floods the sky below it.",
+  "seed": 3,
+  "spawn": [0, 160, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "liquids": {
+    "seaLevel": 90
+  },
+  "borders": {
+    "player": 256
+  }
+}

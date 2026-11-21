@@ -1,0 +1,29 @@
+{
+ "slug": "the_ember_fields",
+ "targets": [
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind one meadow country: no scatter of biome specks"
+  },
+  {
+   "key": "placeness.places.landRegions.major",
+   "op": "<=",
+   "value": 6,
+   "from": "one place with a fringe: a few places, each one region"
+  },
+  {
+   "key": "placeness.places.byPlace.adventure:nether_grasslands.landPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "\"nylium meadows ... at spawn\": the meadow place holds half the land"
+  },
+  {
+   "key": "placeness.places.landRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "places, not perlin: no scatter of place specks"
+  }
+ ]
+}

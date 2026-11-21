@@ -1,0 +1,89 @@
+{
+ "slug": "the_frozen_strait",
+ "targets": [
+  {
+   "key": "placeness.biomeRegions.top3Percent",
+   "op": ">=",
+   "value": 26.1,
+   "from": "meeting: \"frozen channels between ice sheets\" (measured 29.1)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:highland_fells",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:magmatic_caves",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:deep_frozen_ocean",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:dripstone_caves",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:frozen_ocean",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:frozen_river",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:snowy_beach",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:snowy_plains",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:snowy_taiga",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomeRegions.largestPercent",
+   "op": ">=",
+   "value": 14.6,
+   "from": "meeting: biome regions (W9f, measured 16.2)"
+  },
+  {
+   "key": "placeness.biomeRegions.specksPercent",
+   "op": "<=",
+   "value": 45.2,
+   "from": "meeting: biome regions (W9f, measured 35.8)"
+  },
+  {
+   "key": "placeness.biomeRegions.perKm2",
+   "op": "<=",
+   "value": 22.1,
+   "from": "meeting: biome regions (W9f, measured 19.1)"
+  },
+  {
+   "key": "placeness.biomeRegions.top3Percent",
+   "op": ">=",
+   "value": 26.7,
+   "from": "meeting: biome regions (W9f, measured 29.7)"
+  }
+ ]
+}

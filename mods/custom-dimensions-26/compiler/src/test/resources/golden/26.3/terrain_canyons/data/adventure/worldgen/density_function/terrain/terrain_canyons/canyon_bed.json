@@ -1,0 +1,62 @@
+{
+  "input": {
+    "left": {
+      "left": {
+        "left": {
+          "left": "adventure:terrain/terrain_canyons/canyon_land",
+          "right": -88.0,
+          "type": "minecraft:add"
+        },
+        "right": 0.0,
+        "type": "minecraft:max"
+      },
+      "right": {
+        "left": 1.0,
+        "right": {
+          "left": {
+            "left": 1.0,
+            "right": {
+              "left": {
+                "input": {
+                  "left": {
+                    "left": "adventure:terrain/terrain_canyons/canyon_grade",
+                    "right": 0.483586966,
+                    "type": "minecraft:add"
+                  },
+                  "right": 1.36054422,
+                  "type": "minecraft:mul"
+                },
+                "max": 1.0,
+                "min": 0.0,
+                "type": "minecraft:clamp"
+              },
+              "right": {
+                "input": {
+                  "left": {
+                    "left": "adventure:terrain/terrain_canyons/continents",
+                    "right": 0.15,
+                    "type": "minecraft:add"
+                  },
+                  "right": 2.5,
+                  "type": "minecraft:mul"
+                },
+                "max": 1.0,
+                "min": 0.0,
+                "type": "minecraft:clamp"
+              },
+              "type": "minecraft:mul"
+            },
+            "type": "minecraft:sub"
+          },
+          "right": 1.0,
+          "type": "minecraft:mul"
+        },
+        "type": "minecraft:sub"
+      },
+      "type": "minecraft:mul"
+    },
+    "right": 64.0,
+    "type": "minecraft:add"
+  },
+  "type": "minecraft:cache"
+}

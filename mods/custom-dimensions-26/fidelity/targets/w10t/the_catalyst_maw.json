@@ -1,0 +1,61 @@
+{
+ "slug": "the_catalyst_maw",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:sculk + surface.topBlocksPercent.minecraft:sculk_vein",
+   "op": ">=",
+   "value": 0.05,
+   "from": "\"The sculk ... escaped here\", \"The catalyst is still feeding\" (restated per land column: the old form counted void columns, which a world over a void cannot fill)",
+   "per": "vertical.layerColumnsPercent.surface",
+   "was": {
+    "key": "surface.groundBlocksPercent.minecraft:sculk + surface.topBlocksPercent.minecraft:sculk_vein",
+    "op": ">=",
+    "value": 5
+   }
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:end_stone",
+   "op": ">=",
+   "value": 5,
+   "from": "\"corrupted end terrain\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:dark_forest + surface.biomesPercent.minecraft:mangrove_swamp + surface.biomesPercent.minecraft:pale_garden + surface.biomesPercent.minecraft:deep_dark",
+   "op": ">=",
+   "value": 10,
+   "from": "\"bleeding into dark overworld\"; 1.21.1 dark_forest, mangrove_swamp, moonlight_grove, deep_dark"
+  },
+  {
+   "key": "biomeExpression.expressed",
+   "op": ">=",
+   "value": 6,
+   "from": "1.21.1 lists 16 biomes: a chaotic mix that is expressed, not placed over void"
+  },
+  {
+   "key": "surface.voidPercent",
+   "op": "between",
+   "value": [
+    25,
+    70
+   ],
+   "from": "1.21.1 type nether_islands: islands over void"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.1,
+   "from": "\"oppressive\"; 1.21.1 ambientLight 0.06"
+  },
+  {
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 65,
+   "from": "restated: on islands every islet under 1 ha is a speck whatever its biome (kit gap: no speck measure inside islands); a deliberately broken world allows twice the specks, so at most a third of each island outside its own biome",
+   "was": {
+    "key": "placeness.landBiomeRegions.specksPercent",
+    "op": "<=",
+    "value": 10
+   }
+  }
+ ]
+}

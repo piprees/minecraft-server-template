@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: overworld terrain with flooded aquifers, so every cave below sea level is water.",
+  "seed": 32,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "liquids": {
+    "aquifers": "flooded"
+  },
+  "borders": {
+    "player": 256
+  }
+}

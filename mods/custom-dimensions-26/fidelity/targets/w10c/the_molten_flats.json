@@ -1,0 +1,29 @@
+{
+ "slug": "the_molten_flats",
+ "targets": [
+  {
+   "key": "placeness.places.byPlace.adventure:magma_land.landPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind one place with a fringe: the magma flat holds half the dry land (lava channels cut the flat, so the place is measured by its land share, not one unbroken region)"
+  },
+  {
+   "key": "placeness.places.byPlace.adventure:magma_land.largestPercent",
+   "op": ">=",
+   "value": 25,
+   "from": "one flat: the magma place's largest piece of land is a quarter of the dry land, not a scatter of islands"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind one place: no scatter of biome specks"
+  },
+  {
+   "key": "placeness.places.landRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "places, not perlin: no scatter of place specks"
+  }
+ ]
+}

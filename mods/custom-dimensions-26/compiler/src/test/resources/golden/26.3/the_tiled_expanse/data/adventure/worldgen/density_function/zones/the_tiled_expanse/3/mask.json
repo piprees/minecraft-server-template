@@ -1,0 +1,51 @@
+{
+  "input": {
+    "input": {
+      "left": 1.0,
+      "right": {
+        "left": {
+          "left": {
+            "left": {
+              "input": {
+                "axis": "x",
+                "from_coordinate": -1000000,
+                "from_value": -1000000.0,
+                "tiling": "clamp_to_edge",
+                "to_coordinate": 1000000,
+                "to_value": 1000000.0,
+                "type": "minecraft:gradient"
+              },
+              "type": "minecraft:abs"
+            },
+            "right": -400.0,
+            "type": "minecraft:add"
+          },
+          "right": {
+            "left": {
+              "input": {
+                "axis": "z",
+                "from_coordinate": -998450,
+                "from_value": -1000000.0,
+                "tiling": "clamp_to_edge",
+                "to_coordinate": 1001550,
+                "to_value": 1000000.0,
+                "type": "minecraft:gradient"
+              },
+              "type": "minecraft:abs"
+            },
+            "right": -400.0,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:max"
+        },
+        "right": -1.0,
+        "type": "minecraft:mul"
+      },
+      "type": "minecraft:add"
+    },
+    "max": 1.0,
+    "min": 0.0,
+    "type": "minecraft:clamp"
+  },
+  "type": "minecraft:cache"
+}

@@ -1,0 +1,89 @@
+{
+ "slug": "the_stonemantle",
+ "targets": [
+  {
+   "key": "placeness.biomeRegions.largestPercent",
+   "op": ">=",
+   "value": 20.9,
+   "from": "meeting: \"craggy quarry country\" (measured 23.3)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:alpine_scree",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:lavender_fields",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:magma_land",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:maple_woodland",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:mineral_strata",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:basalt_deltas",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:dripstone_caves",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:jagged_peaks",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:stony_peaks",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:stony_shore",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:windswept_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:windswept_gravelly_hills",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:windswept_hills",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  }
+ ]
+}

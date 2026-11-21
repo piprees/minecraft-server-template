@@ -1,0 +1,29 @@
+{
+ "slug": "the_gilded_pit",
+ "targets": [
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind one composed place: one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind one place: no scatter of biome specks"
+  },
+  {
+   "key": "placeness.at.spawn.biomeEdgeBlocks",
+   "op": ">=",
+   "value": 64,
+   "from": "\"nothing within arm's reach of the landing\": spawn stands well inside its place"
+  },
+  {
+   "key": "placeness.places.landRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "places, not perlin: no scatter of place specks"
+  }
+ ]
+}

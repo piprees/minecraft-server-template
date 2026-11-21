@@ -32,6 +32,7 @@ if [[ -f .env ]]; then
   source .env
   set +a
 fi
+export_mc_version
 
 COMPOSE_BASE="docker compose --project-directory $SERVER_DIR -f $COMPOSE_FILE"
 

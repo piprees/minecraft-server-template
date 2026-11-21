@@ -1,0 +1,648 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "caves",
+  "inspiredBy": "Galosphere's and YUNG's frozen caverns: caves cold enough to hold ice the year round.",
+  "differs": "Vanilla's only cold underground is a frozen lake's edge; these caverns are frozen through, packed ice and ice in the walls with seams of blue ice, ice ceilings dripping icicles of ice, floors drifted with snow over snow blocks and hidden pockets of powder snow, strays in the dark, and pale blue fog with snowflakes falling from the roof.",
+  "climate": {
+    "temperature": [
+      -1.0,
+      -0.45
+    ],
+    "depth": [
+      0.2,
+      0.9
+    ]
+  },
+  "palette": {
+    "ceilings": "minecraft:packed_ice"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.cave",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.overworld.frozen_peaks"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "ambient": [
+              {
+                "type": "minecraft:bat",
+                "count": 8,
+                "weight": 10
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:stray",
+                "count": 4,
+                "weight": 80
+              },
+              {
+                "type": "minecraft:skeleton",
+                "count": 4,
+                "weight": 20
+              },
+              {
+                "type": "minecraft:spider",
+                "count": 4,
+                "weight": 60
+              },
+              {
+                "type": "minecraft:zombie",
+                "count": 4,
+                "weight": 60
+              },
+              {
+                "type": "minecraft:creeper",
+                "count": 4,
+                "weight": 60
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 1
+                },
+                "weight": 10
+              }
+            ],
+            "underground_water_creature": [
+              {
+                "type": "minecraft:glow_squid",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 4
+                },
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:gameplay/snow_golem_melts": false,
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:snowflake"
+            },
+            "probability": 0.006
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#bcd2e0",
+      "minecraft:visual/sky_color": "#78a7ff",
+      "minecraft:visual/water_fog_color": "#3d57d6"
+    },
+    "carvers": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ],
+    "downfall": 0.4,
+    "effects": {
+      "grass_color": "#80b497",
+      "foliage_color": "#60a17b",
+      "water_color": "#3938c9"
+    },
+    "features": [
+      [],
+      [
+        "minecraft:lake_lava_underground"
+      ],
+      [
+        "minecraft:amethyst_geode"
+      ],
+      [
+        "minecraft:monster_room",
+        "minecraft:monster_room_deep"
+      ],
+      [],
+      [],
+      [
+        "minecraft:ore_dirt",
+        "minecraft:ore_gravel",
+        "minecraft:ore_granite_upper",
+        "minecraft:ore_granite_lower",
+        "minecraft:ore_diorite_upper",
+        "minecraft:ore_diorite_lower",
+        "minecraft:ore_andesite_upper",
+        "minecraft:ore_andesite_lower",
+        "minecraft:ore_tuff",
+        "minecraft:ore_coal_upper",
+        "minecraft:ore_coal_lower",
+        "minecraft:ore_iron_upper",
+        "minecraft:ore_iron_middle",
+        "minecraft:ore_iron_small",
+        "minecraft:ore_gold",
+        "minecraft:ore_gold_lower",
+        "minecraft:ore_redstone",
+        "minecraft:ore_redstone_lower",
+        "minecraft:ore_diamond",
+        "minecraft:ore_diamond_medium",
+        "minecraft:ore_diamond_large",
+        "minecraft:ore_diamond_buried",
+        "minecraft:ore_lapis",
+        "minecraft:ore_lapis_buried",
+        "minecraft:ore_copper",
+        "minecraft:underwater_magma",
+        "~packed_walls",
+        "~ice_walls",
+        "~blue_seams"
+      ],
+      [],
+      [
+        "minecraft:spring_water",
+        "minecraft:spring_lava"
+      ],
+      [
+        "minecraft:glow_lichen",
+        "~snow_floors",
+        "~powder_pockets",
+        "~icicles"
+      ],
+      [
+        "minecraft:freeze_top_layer"
+      ]
+    ],
+    "has_precipitation": true,
+    "temperature": -0.5
+  },
+  "features": {
+    "packed_walls": {
+      "feature": {
+        "type": "minecraft:ore",
+        "discard_chance_on_air_exposure": 0.0,
+        "size": 56,
+        "targets": [
+          {
+            "state": {
+              "id": "minecraft:packed_ice"
+            },
+            "target": {
+              "predicate_type": "minecraft:tag_match",
+              "tag": "minecraft:base_stone_overworld"
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 12
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 80
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "ice_walls": {
+      "feature": {
+        "type": "minecraft:ore",
+        "discard_chance_on_air_exposure": 0.0,
+        "size": 32,
+        "targets": [
+          {
+            "state": {
+              "id": "minecraft:ice"
+            },
+            "target": {
+              "predicate_type": "minecraft:tag_match",
+              "tag": "minecraft:base_stone_overworld"
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 8
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 80
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "blue_seams": {
+      "feature": {
+        "type": "minecraft:ore",
+        "discard_chance_on_air_exposure": 0.0,
+        "size": 10,
+        "targets": [
+          {
+            "state": {
+              "id": "minecraft:blue_ice"
+            },
+            "target": {
+              "predicate_type": "minecraft:block_match",
+              "block": "minecraft:packed_ice"
+            }
+          },
+          {
+            "state": {
+              "id": "minecraft:blue_ice"
+            },
+            "target": {
+              "predicate_type": "minecraft:block_match",
+              "block": "minecraft:ice"
+            }
+          },
+          {
+            "state": {
+              "id": "minecraft:blue_ice"
+            },
+            "target": {
+              "predicate_type": "minecraft:block_match",
+              "block": "minecraft:stone"
+            }
+          },
+          {
+            "state": {
+              "id": "minecraft:blue_ice"
+            },
+            "target": {
+              "predicate_type": "minecraft:block_match",
+              "block": "minecraft:deepslate"
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 6
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 64
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "snow_floors": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": {
+          "type": "minecraft:uniform",
+          "min_inclusive": 1,
+          "max_inclusive": 2
+        },
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.3,
+        "ground_state": {
+          "id": "minecraft:snow_block"
+        },
+        "replaceable": "#minecraft:base_stone_overworld",
+        "surface": "floor",
+        "vegetation_chance": 0.6,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "type": "minecraft:weighted",
+              "entries": [
+                {
+                  "data": {
+                    "id": "minecraft:snow",
+                    "properties": {
+                      "layers": "1"
+                    }
+                  },
+                  "weight": 3
+                },
+                {
+                  "data": {
+                    "id": "minecraft:snow",
+                    "properties": {
+                      "layers": "2"
+                    }
+                  },
+                  "weight": 2
+                },
+                {
+                  "data": {
+                    "id": "minecraft:snow",
+                    "properties": {
+                      "layers": "3"
+                    }
+                  },
+                  "weight": 1
+                }
+              ]
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 5,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "min_inclusive": 4,
+          "max_inclusive": 7
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 120
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 256
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:surface_relative_threshold_filter",
+          "heightmap": "OCEAN_FLOOR_WG",
+          "max_inclusive": -13
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "down",
+          "max_steps": 12,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "powder_pockets": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": 1,
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.0,
+        "ground_state": {
+          "id": "minecraft:powder_snow"
+        },
+        "replaceable": "#minecraft:base_stone_overworld",
+        "surface": "floor",
+        "vegetation_chance": 0.0,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "id": "minecraft:air"
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 5,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "min_inclusive": 1,
+          "max_inclusive": 2
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 12
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 256
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:surface_relative_threshold_filter",
+          "heightmap": "OCEAN_FLOOR_WG",
+          "max_inclusive": -13
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "down",
+          "max_steps": 12,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "icicles": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "direction": "down",
+        "layers": [
+          {
+            "height": {
+              "type": "minecraft:uniform",
+              "min_inclusive": 1,
+              "max_inclusive": 4
+            },
+            "provider": {
+              "id": "minecraft:ice"
+            }
+          }
+        ],
+        "prioritize_tip": false
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 90
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 256
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:surface_relative_threshold_filter",
+          "heightmap": "OCEAN_FLOOR_WG",
+          "max_inclusive": -13
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "up",
+          "max_steps": 12,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": -1,
+          "z": 0
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 3
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:uniform",
+            "min_inclusive": -3,
+            "max_inclusive": 3
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 0,
+            "min": 0,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:uniform",
+            "min_inclusive": -3,
+            "max_inclusive": 3
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:packed_ice",
+                  "minecraft:ice",
+                  "minecraft:stone",
+                  "minecraft:deepslate",
+                  "minecraft:snow_block"
+                ],
+                "offset": [
+                  0,
+                  1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,4 @@
+{
+ "data/bistro/function/advancement/interact_portal_barrier/incorrect.mcfunction": "biome-strongholds",
+ "data/minecraft/worldgen/structure_set/strongholds.json": "biome-strongholds"
+}

@@ -10,6 +10,7 @@ has no activation path and the smoke test boots the local profile.
 The invariant under test is serialisation: one dimension's chunk must be on disk
 before the next is started (K6).
 """
+import os
 import re
 import subprocess
 import tempfile
@@ -441,6 +442,7 @@ class DeployLockTests(unittest.TestCase):
         proc, _ = self.run_lock(flock_rc=0)
         self.assertIn("stderr-marker", proc.stderr)
 
+    @unittest.skipIf(os.geteuid() == 0, "root writes through a read-only mode")
     def test_an_unwritable_lock_file_warns_rather_than_failing_silently(self):
         """A root-owned lock file must not disable exclusion without saying so."""
         tmp = tempfile.TemporaryDirectory()
@@ -555,7 +557,7 @@ class ShippedTextTests(unittest.TestCase):
         """The trap and the happy path must not drift apart."""
         text = DEPLOY_SH.read_text()
         self.assertEqual(
-            text.count('rcon "gamerule doMobSpawning true"'),
+            text.count('rcon "gamerule $(mc_game_rule doMobSpawning true)"'),
             1,
             "the live game-rule list is duplicated",
         )

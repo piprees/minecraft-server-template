@@ -6,6 +6,7 @@
 #          through `customdim use`, which is the interaction manager's own
 #          interactBlock — a synthetic right-click does not reach this game.
 # Usage:   ./dev launch --dev-bridge   then   ./e2e-item2-stronghold.sh
+# Usage:   # 26.x: inside vanilla-join.sh --during with the dev bridge (README § On 26.x)
 # Gotchas: `give` puts an item in the inventory, not the hand — every ignition
 #          here uses `item replace ... weapon.mainhand` or the click does
 #          nothing. Re-runnable: it counts sockets already filled first.

@@ -1,0 +1,11 @@
+{
+ "slug": "the_crimson_nexus",
+ "targets": [
+  {
+   "key": "landforms.zones.1.insideMax",
+   "op": ">=",
+   "value": 230,
+   "from": "owner: \"a floating pillar or obelisk of some kind, a structure like a fortress but vertical\" in the crater: the mass stands to y 245"
+  }
+ ]
+}

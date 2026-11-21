@@ -1,0 +1,15 @@
+01:14 — f1: ff worktree to dcb1b852
+01:15 — f1: read brief, R1 report, seedlod TileGen/WorldgenView/Bench, Sampler/RenderJob/RenderFiles; copied vanilla 26.3
+01:19 — f1: baseline build started (bg) -> /tmp/claude-0/f1/build-baseline.log
+01:22 — f1: design fixed: scout on cell-corner rows (stripped sampler at corner columns), exact 1x(cellY+1)x1 refinement per crossing cell, runs cap 24; RenderGrid wide limits; StructureStarts box sink; fallback via noise column for non-noise generators
+01:23 — f1: baseline build green (3m50s)
+01:28 — f1: wrote ColumnRuns, RunScanner, RunDress, TileSampler, MaterialRuleContextAccessor; Sampler accessors+footprint; StructureStarts box sink; RenderGrid.wide; RenderJob threads overload
+01:32 — f1: FastRender, FastLayers, FastPixels, ColumnModel, FastRenderCommand, messages written; compiling next
+01:35 — f1: 23 new unit tests (RunScanner 11, RunDress 5, FastLayers 7) pass
+01:36 — f1: MixinSelfTest line for MaterialRuleContextAccessor; THIRD_PARTY_NOTICES.md (in jar via processResources)
+01:38 — f1: docs (roller.md row, README section), cutover port messages.json + sha re-recorded; full build next
+01:42 — f1: full build 2 green; RunScanner scouts columns directly at stride >= cell off-lattice; radius rounded to 16
+01:42 — f1: commit 1 177e818e
+01:45 — f1: full build 3 green (1406 tests: core 712, compiler 551, server 143); quick gate rc 0; clean-clone apply.sh --no-network rc 0 no drift
+01:46 — f1: build 4 green 1406 tests; commit 2 532045a8
+01:47 — f1: done; report handed back

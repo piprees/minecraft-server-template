@@ -1,0 +1,59 @@
+{
+ "slug": "the_emberglass_foundry",
+ "targets": [
+  {
+   "key": "surface.biomesPercent.adventure:blackstone_basin",
+   "op": "<=",
+   "value": 60,
+   "from": "1.21.1 lists six biomes: crystal_canyons, quartz_flats, blackstone_basin, scorching_caves, basalt_deltas, thermal_caves"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:smooth_basalt + surface.groundBlocksPercent.minecraft:polished_basalt",
+   "op": ">=",
+   "value": 10,
+   "from": "\"Basalt columns\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 2,
+   "from": "\"still warm\": no water in a foundry"
+  },
+  {
+   "key": "surface.topBlocksPercent.minecraft:magma_block + surface.topBlocksPercent.minecraft:lava + surface.groundBlocksPercent.minecraft:magma_block",
+   "op": ">=",
+   "value": 5,
+   "from": "\"thermal vents\""
+  },
+  {
+   "key": "surface.topBlocksPercent.minecraft:amethyst_cluster + surface.topBlocksPercent.minecraft:amethyst_block + surface.topBlocksPercent.minecraft:quartz_block + surface.topBlocksPercent.minecraft:calcite + surface.topBlocksPercent.minecraft:glowstone + surface.groundBlocksPercent.minecraft:quartz_block + surface.groundBlocksPercent.minecraft:calcite + surface.groundBlocksPercent.minecraft:amethyst_block",
+   "op": ">=",
+   "value": 3,
+   "from": "\"quartz light in the dark\", \"glassy rock\""
+  },
+  {
+   "key": "biomeExpression.expressed",
+   "op": ">=",
+   "value": 4,
+   "from": "1.21.1 lists six biomes"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 95,
+   "from": "1.21.1 type cave, hasCeiling true"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (\"Small, self-contained\"): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

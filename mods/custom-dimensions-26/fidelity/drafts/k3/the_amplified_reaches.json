@@ -1,0 +1,6 @@
+{
+  "reason": "G8: landShare 0.75 holds a vertical frontier, not half sea (water 40.6%, water landforms 53.5%) for any seed.",
+  "terrain": {
+    "landShare": 0.75
+  }
+}

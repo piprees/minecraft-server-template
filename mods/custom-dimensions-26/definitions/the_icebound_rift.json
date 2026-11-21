@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 2,
+  "description": "A void where a frozen world used to be. The biomes remain — their cold, their fog, their sounds — but the ground does not. The disintegration finished here. Whatever broke this world left only the memory of ice.",
+  "seed": -7779457580041241280,
+  "spawn": [-448, 0, 64],
+  "generator": {
+    "type": "void"
+  },
+  "biomes": [
+    {
+      "id": "adventure:crystal_hollows",
+      "climate": {
+        "weirdness": [-2.0, -0.2126]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "weirdness": [-0.2126, -0.0636]
+      }
+    },
+    {
+      "id": "minecraft:end_barrens",
+      "climate": {
+        "weirdness": [-0.0636, 0.1067]
+      }
+    },
+    {
+      "id": "minecraft:frozen_ocean",
+      "climate": {
+        "weirdness": [0.1067, 0.2327]
+      }
+    },
+    {
+      "id": "adventure:gelatinous_caves",
+      "climate": {
+        "weirdness": [0.2327, 0.2707]
+      }
+    },
+    {
+      "id": "minecraft:ice_spikes",
+      "climate": {
+        "weirdness": [0.2707, 0.2802]
+      }
+    },
+    {
+      "id": "minecraft:frozen_peaks",
+      "climate": {
+        "weirdness": [0.2802, 0.3526]
+      }
+    },
+    {
+      "id": "minecraft:jagged_peaks",
+      "climate": {
+        "weirdness": [0.3526, 0.3808]
+      }
+    },
+    {
+      "id": "adventure:magmatic_caves",
+      "climate": {
+        "weirdness": [0.3808, 0.4078]
+      }
+    },
+    {
+      "id": "minecraft:snowy_plains",
+      "climate": {
+        "weirdness": [0.4078, 0.4804]
+      }
+    }
+  ],
+  "dimensionType": {
+    "minY": 0,
+    "height": 256,
+    "logicalHeight": 256
+  },
+  "atmosphere": {
+    "skyColor": "#1B2B3B",
+    "fogColor": "#A8D8E8",
+    "ambientLight": 0.2,
+    "effects": "minecraft:the_end"
+  },
+  "rules": {
+    "bedsWork": false,
+    "natural": false
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 2.2
+  },
+  "structures": {
+    "density": "none",
+    "mode": "none",
+    "terrainAdaptation": {
+      "nova_structures:stray_fort": "none"
+    },
+    "force": [
+      {
+        "structure": "nova_structures:stray_fort",
+        "x": 240,
+        "y": 0,
+        "z": -300
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:blue_ice",
+      "igniterItem": "minecraft:netherite_scrap",
+      "color": "5BE0F0",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "particleType": "minecraft:snowflake",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:blue_ice",
+          "minecraft:packed_ice",
+          "minecraft:snow_block"
+        ]
+      }
+    }
+  ],
+  "exits": {
+    "void": {
+      "action": "teleport",
+      "target": {
+        "dimension": "adventure:the_glacial_drift",
+        "arrival": "spawn"
+      }
+    }
+  },
+  "roll": {
+    "mood": "desolate",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:frozen_ocean",
+      "minecraft:frozen_peaks",
+      "minecraft:snowy_plains"
+    ],
+    "terrain": "void"
+  }
+}

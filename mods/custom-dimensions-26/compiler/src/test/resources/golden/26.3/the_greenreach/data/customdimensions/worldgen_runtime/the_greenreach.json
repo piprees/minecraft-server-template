@@ -1,0 +1,6 @@
+{
+  "level": "adventure:the_greenreach",
+  "remove_carvers": [
+    "minecraft:canyon"
+  ]
+}

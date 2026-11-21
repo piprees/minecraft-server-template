@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: set pieces over the End's islands and void. A ground piece forced on the central island (a fossil skull template, a scatter of bone, a chest, a spawner), a ground piece forced over the void ring that declines, a pinned overlook forced over the void at y 90, a wanted old house whose site filter (surface at 40 or more) keeps it off the void, and a pinned cairn in the landmarks group with the same filter, which never starts over the void and is never predicted there.",
+  "seed": 20261031,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "end"
+  },
+  "borders": {
+    "player": 1024
+  },
+  "structures": {
+    "age": "old",
+    "force": [
+      {"structure": "adventure:set_piece/selftest_set_pieces/bone_yard", "x": 40, "z": 40},
+      {"structure": "adventure:set_piece/selftest_set_pieces/void_yard", "x": 520, "z": 8},
+      {"structure": "adventure:set_piece/selftest_set_pieces/overlook", "x": 8, "z": 600, "y": 90}
+    ],
+    "wants": {"adventure:set_piece/selftest_set_pieces/old_house": {"min": 0, "max": 400}}
+  },
+  "setPieces": {
+    "bone_yard": {
+      "like": "selftest_bone_yard",
+      "name": "The Bone Yard"
+    },
+    "void_yard": {
+      "like": "selftest_bone_yard",
+      "name": "The Void Yard"
+    },
+    "old_house": {
+      "name": "The Old House",
+      "seat": "ground",
+      "size": 12,
+      "age": "old",
+      "support": 0.5,
+      "site": {"height": {"min": 40}},
+      "elements": [
+        {"kind": "template", "id": "minecraft:village/plains/houses/plains_armorer_house_1", "integrity": 1.0, "embed": 0}
+      ]
+    },
+    "island_cairn": {
+      "name": "The Island Cairn",
+      "seat": "pinned",
+      "size": 6,
+      "group": "landmarks",
+      "rarity": "common",
+      "site": {"height": {"min": 40}},
+      "elements": [
+        {"kind": "scatter", "count": 4, "radius": 3, "items": [{"block": "minecraft:end_stone_bricks"}]}
+      ]
+    },
+    "overlook": {
+      "name": "The Overlook",
+      "seat": "pinned",
+      "size": 8,
+      "age": "recent",
+      "elements": [
+        {"kind": "block", "block": "minecraft:polished_blackstone_bricks", "offset": [0, -1, 0]},
+        {"kind": "block", "block": "minecraft:polished_blackstone_bricks", "offset": [1, -1, 0]},
+        {"kind": "block", "block": "minecraft:polished_blackstone_bricks", "offset": [0, -1, 1]},
+        {"kind": "block", "block": "minecraft:polished_blackstone_bricks", "offset": [1, -1, 1]},
+        {"kind": "chest", "block": "barrel", "loot": "minecraft:chests/simple_dungeon", "offset": [0, 0, 0]}
+      ]
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 2,
+  "description": "E2E rig e2e_one: a flat minecraft:lime_concrete floor at y -61 for the end-to-end harness.",
+  "seed": 1101,
+  "spawn": [
+    4,
+    -60,
+    1
+  ],
+  "generator": {
+    "type": "flat",
+    "biome": "minecraft:the_void",
+    "layers": [
+      {
+        "block": "minecraft:bedrock",
+        "height": 1
+      },
+      {
+        "block": "minecraft:stone",
+        "height": 2
+      },
+      {
+        "block": "minecraft:lime_concrete",
+        "height": 1
+      }
+    ]
+  },
+  "atmosphere": {
+    "ambientLight": 0.25,
+    "fixedTime": 6000
+  },
+  "rules": {
+    "natural": false
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "structures": {
+    "density": "sparse",
+    "clearSpawnRadius": 512
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:lime_concrete",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "7FCC19",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "orientation": "vertical"
+    }
+  ]
+}

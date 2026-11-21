@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: scale and height multipliers over continents, extreme setting.",
+  "seed": 20261025,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "continents",
+    "scale": 0.5,
+    "heightMultiplier": 1.8
+  },
+  "borders": {
+    "player": 2048
+  }
+}

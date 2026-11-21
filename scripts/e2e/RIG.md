@@ -6,6 +6,29 @@ Rule: every number here is either **MEASURED** (recorded from a known base
 state) or **SPECIFIED** (a value we chose and will build to). Nothing is
 derived from prior art, and nothing is copied from a previous run.
 
+## On 26.x
+
+The plan below is the 1.21.1 rig's: pixel readings at named screen
+coordinates, taken through the 1.21.1 bridge. On 26.x the same questions are
+answered from the data the far side is drawn from rather than from pixels:
+
+| The plan asks | 26.x answers with |
+| --- | --- |
+| Is the far side drawn in the opening at all? | `/portals`: `drawing` (an emit with faces in the last second), `lastFaces`, `chunksHeld` |
+| Is the picture in the frame the far side? | `/portal-census`: rays from the eye through the aperture walked through the fed chunks, with block and biome counts per destination |
+| Which world, sky and fog does it show? | `/portals`: `destination`, `skyColor`, `fogColor` from the frame payload |
+| Does a change on the far side show? | a far-side `fill`, then a second census (`e2e-companion-portal.sh`) |
+| Are the far side's mobs and projectiles drawn, and moving? | `/portals`: `entitiesDrawn`, `entitiesDrawnTypes`, each fed entity's `drawnPos` read twice; `entity-pixels.py` on a with/without pair of a husk before a white wall (`e2e-companion-portal.sh`) |
+| Is a crossing measured, not assumed? | `e2e-state`: `lastTraversal` with `preloadedSent`, and the server's and client's pre-loaded lines |
+| What does a client without the companion see? | `e2e-state`: each cell's `clientSees`, the `particles` record and the approach `title`; `portal-colour.py` on a screenshot (`e2e-vanilla-portal.sh`) |
+
+The fixture is the `rig-26/` levels (`e2e_one` holds every frame; `e2e_two`,
+`e2e_three` and `e2e_four` are the sky-lit, Nether-fogged and void far sides),
+built by `build-e2e-portal.sh` and `rig-frames-lib.sh`. Pixel readings at named
+coordinates (Steps 1 to 7, 13 and 14) have no 26.x bridge endpoint. The rig
+client runs the companion and Fabric API only; with Iris or Distant Horizons
+added it is not yet run here.
+
 ---
 
 ## Step 1 — What we are measuring

@@ -72,7 +72,7 @@ Validation patterns worth knowing before you add a new command: player names aga
 
 ## Editing player-facing strings
 
-Every player/Discord-facing message template lives in `config/messages.json` - never hard-code one in a script. See `references/messages-and-webhooks.md` for the full key catalogue and the `discord-notify.sh --key` templating syntax.
+Every player/Discord-facing message template lives in `config/messages.json` - never hard-code one in a script. The bot reads the copy baked into its image, then the seeded config volume's (`/config-vol/messages.json`, which is a consumer's `overlay/config/messages.json` when it has one) with its keys winning, so a consumer's override needs a seed run and a `discord-sync` restart, not an image rebuild. See `references/messages-and-webhooks.md` for the full key catalogue and the `discord-notify.sh --key` templating syntax.
 
 ## Deploying a change to discord-sync.py
 
@@ -101,6 +101,7 @@ Every player/Discord-facing message template lives in `config/messages.json` - n
 7. **`discord-cleanup.sh` deletes messages, in bulk.** Always run `--dry-run` first. It targets the bot's own messages and any webhook IDs registered in the channel (dcintegration posts via webhook, not as the bot user) - both need clearing to fully reset a channel.
 8. **Role sync is name-matched, not ID-matched** (see Player management above) - a Discord-side role rename breaks it invisibly.
 9. **discord-sync.py is image-baked, not bind-mounted** (see Deploying above) - restarting or force-recreating the container never picks up a code change, only a new image does.
+10. **No Discord secrets means an idle bot, not a crash loop.** With `DISCORD_BOT_TOKEN` or `DISCORD_GUILD_ID` blank (a local stack, a fresh consumer) discord-sync logs one `Discord is not configured (… unset)` line and waits: the container stays `Up` with no slash commands. `docker logs discord-sync --tail 5` shows the line; set the values in `.env` and recreate the container.
 
 ## Validation
 

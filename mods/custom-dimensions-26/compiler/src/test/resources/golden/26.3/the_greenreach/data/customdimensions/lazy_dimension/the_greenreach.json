@@ -1,0 +1,52 @@
+{
+  "type": "adventure:the_greenreach",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "adventure:highland_fells",
+          "parameters": "sha1:89a2159cb366c1ab7573e0a7cb78c65f698e6f16"
+        },
+        {
+          "biome": "minecraft:meadow",
+          "parameters": "sha1:d1df0d5658ee14423b6acee56b56bfa1d4651cf5"
+        },
+        {
+          "biome": "minecraft:plains",
+          "parameters": "sha1:48d654b1d4cd3754b2ba378d697d084f31da1f06"
+        },
+        {
+          "biome": "adventure:prairie",
+          "parameters": "sha1:cd75a7d7440651415e7e6611bc37578a3630c276"
+        },
+        {
+          "biome": "minecraft:sunflower_plains",
+          "parameters": "sha1:b485974df5fe8a44e3023d0e67816c11ab3ac658"
+        },
+        {
+          "biome": "adventure:barley_fields",
+          "parameters": "sha1:61c29a051e2d9fad352e880c1404ce3b6c50ec42"
+        },
+        {
+          "biome": "adventure:carnation_fields",
+          "parameters": "sha1:094b8aa6f2423a0d6f0a243555f22bcd2c17cefb"
+        },
+        {
+          "biome": "adventure:pumpkin_fields",
+          "parameters": "sha1:c3cc933e727e4f2f06104911c24bf6d3c06641ed"
+        },
+        {
+          "biome": "minecraft:lush_caves",
+          "parameters": "sha1:8dc82b3cc404dbd48374ec307977528db72ee6c2"
+        },
+        {
+          "biome": "adventure:lichen_caves",
+          "parameters": "sha1:efb7acf54bd1ba717018a2dc86aca25c7699a8a3"
+        }
+      ]
+    },
+    "settings": "adventure:the_greenreach"
+  }
+}

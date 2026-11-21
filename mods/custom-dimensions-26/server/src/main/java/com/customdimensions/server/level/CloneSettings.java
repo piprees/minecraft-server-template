@@ -1,0 +1,108 @@
+package com.customdimensions.server.level;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
+
+/**
+ * A clone's encoded noise settings against its source's. A clone may list its
+ * own biomes and its zones may bring more, so the clone's router
+ * {@code temperature} carries the zones' channels and each material rule
+ * carries the library palette of each biome it lists or stamps; everything
+ * else equals the source.
+ */
+final class CloneSettings {
+
+    private CloneSettings() {
+    }
+
+    /**
+     * The fields of {@code ours} that differ from {@code theirs} beyond what the
+     * biomes add; empty when nothing else differs. Each settings object carries
+     * its {@code material_rule} resolved to the rule itself; {@code ourRules}
+     * are the encoded palette rules the clone's listed and zone biomes bring and
+     * {@code theirRules} those the source's listed biomes bring: each must be in
+     * its material rule once, and the rest of the two rules must be equal entry
+     * for entry.
+     */
+    static List<String> differences(JsonObject ours, JsonObject theirs, List<JsonElement> ourRules, List<JsonElement> theirRules) {
+        return differences(ours, theirs, ourRules, theirRules, null, null);
+    }
+
+    /**
+     * As above, with a router entry of {@code ours} that names a density function under {@code ourPrefix} read under
+     * {@code theirPrefix}: a clone of a source with a terrain compiles that terrain under its own name.
+     */
+    static List<String> differences(JsonObject ours, JsonObject theirs, List<JsonElement> ourRules, List<JsonElement> theirRules,
+                                    String ourPrefix, String theirPrefix) {
+        List<String> out = new ArrayList<>();
+        for (String key : new TreeSet<>(union(ours.keySet(), theirs.keySet()))) {
+            JsonElement a = ours.get(key);
+            JsonElement b = theirs.get(key);
+            if (key.equals("noise_router") && a != null && b != null && a.isJsonObject() && b.isJsonObject()) {
+                JsonObject ra = a.getAsJsonObject();
+                JsonObject rb = b.getAsJsonObject();
+                for (String r : new TreeSet<>(union(ra.keySet(), rb.keySet()))) {
+                    if (!r.equals("temperature") && !Objects.equals(renamed(ra.get(r), ourPrefix, theirPrefix), rb.get(r))) out.add("noise_router." + r);
+                }
+            } else if (key.equals("material_rule") && a != null && b != null && a.isJsonObject() && b.isJsonObject()) {
+                List<JsonElement> rest = without(entries(a.getAsJsonObject()), ourRules, "", out);
+                List<JsonElement> theirRest = without(entries(b.getAsJsonObject()), theirRules, "the source's ", out);
+                if (!rest.equals(theirRest)) out.add("material_rule");
+            } else if (!Objects.equals(a, b)) {
+                out.add(key);
+            }
+        }
+        return out;
+    }
+
+    /** A density function id under {@code from} as the same id under {@code to}; anything else as it is. */
+    private static JsonElement renamed(JsonElement e, String from, String to) {
+        if (from == null || e == null || !e.isJsonPrimitive() || !e.getAsJsonPrimitive().isString()) return e;
+        String id = e.getAsString();
+        return id.startsWith(from) ? new JsonPrimitive(to + id.substring(from.length())) : e;
+    }
+
+    /** {@code entries} with each of {@code rules} removed once; a rule not there is reported into {@code out}. */
+    private static List<JsonElement> without(List<JsonElement> entries, List<JsonElement> rules, String whose, List<String> out) {
+        List<JsonElement> rest = new ArrayList<>(entries);
+        for (JsonElement rule : rules) {
+            if (!rest.remove(rule)) out.add(whose + "material_rule (no entry for " + biomes(rule) + ")");
+        }
+        return rest;
+    }
+
+    /** The rule's top-level entries: a sequence's, else the rule alone. */
+    static List<JsonElement> entries(JsonObject rule) {
+        List<JsonElement> out = new ArrayList<>();
+        if (rule.has("type") && "minecraft:sequence".equals(rule.get("type").getAsString()) && rule.has("sequence")) {
+            rule.getAsJsonArray("sequence").forEach(out::add);
+        } else {
+            out.add(rule);
+        }
+        return out;
+    }
+
+    private static String biomes(JsonElement rule) {
+        if (rule.isJsonObject() && rule.getAsJsonObject().has("if_true")) {
+            JsonElement condition = rule.getAsJsonObject().get("if_true");
+            if (condition.isJsonObject() && condition.getAsJsonObject().has("biome_is")) {
+                return condition.getAsJsonObject().get("biome_is").toString();
+            }
+        }
+        return rule.toString();
+    }
+
+    private static Set<String> union(Set<String> a, Set<String> b) {
+        Set<String> out = new HashSet<>(a);
+        out.addAll(b);
+        return out;
+    }
+}

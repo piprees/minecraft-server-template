@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 #
-# stamp-version-defaults.sh - Write the released major into the shipped
-# .env.example defaults.
+# stamp-version-defaults.sh - Write the released version into the scaffold's
+# version defaults: examples/consumer/.stack-version (the exact pin), the
+# deploy-reusable.yml@vN major in examples/consumer/.github/workflows/deploy.yml,
+# and the STACK_VERSION major in both .env.example files.
 #
-# Context: STACK_VERSION in examples/consumer/.env.example is the pin a new
-# consumer inherits by copying the scaffold, and both .env.example files are in
-# build-stack-bundle.sh's MANIFEST. Nothing but a release knows the current
-# major, so a literal written by hand is stale from the next release onwards.
+# Context: a new consumer inherits all of these by copying the scaffold, and
+# they sit in build-stack-bundle.sh's MANIFEST. Nothing but a release knows the
+# current version, so a literal written by hand is stale from the next release
+# onwards - and a deploy.yml whose @vN lags .stack-version's major is refused
+# by deploy-reusable.yml's major check.
 #
 # Usage:
 #   scripts/stamp-version-defaults.sh vX.Y.Z
@@ -15,12 +18,12 @@
 # so the tarball carries a correct pin even when the commit-back to main loses a
 # race and silently no-ops. The same files then ride along in that commit.
 #
-# Gotchas: stamps the major only (v5), never the exact version - a consumer
-# pinned to a major floats on its patches, which is the intent. The "Pin
-# exactly" comment beside it carries the full version, so the example stays a
-# real released tag. Idempotent; prints nothing but a summary when already
-# current. Exits non-zero if a target file has no STACK_VERSION line, because a
-# silent no-match is how this rots in the first place.
+# Gotchas: .env.example gets the major only (v5) - it is the deprecated local
+# fallback pin, and its "Pin exactly" comment carries the full version so the
+# example stays a real released tag. .stack-version gets the exact version.
+# Idempotent; prints nothing but a summary when already current. Exits
+# non-zero if a target has no line to stamp, because a silent no-match is how
+# this rots in the first place.
 set -euo pipefail
 
 VERSION="${1:-}"
@@ -66,6 +69,28 @@ for rel in "${TARGETS[@]}"; do
     changed=$((changed + 1))
   fi
 done
+
+pin_file="$PROJECT_DIR/examples/consumer/.stack-version"
+if [[ "$(cat "$pin_file" 2>/dev/null || true)" != "$VERSION" ]]; then
+  printf '%s\n' "$VERSION" > "$pin_file"
+  echo "stamped examples/consumer/.stack-version -> $VERSION"
+  changed=$((changed + 1))
+fi
+
+deploy_rel="examples/consumer/.github/workflows/deploy.yml"
+deploy_file="$PROJECT_DIR/$deploy_rel"
+if ! grep -qE 'deploy-reusable\.yml@v[0-9]+$' "$deploy_file" 2>/dev/null; then
+  echo "no deploy-reusable.yml@vN line in $deploy_rel — refusing to stamp silently" >&2
+  exit 1
+fi
+before="$(cat "$deploy_file")"
+tmp="$deploy_file.stamp.$$"
+sed -e "s/deploy-reusable\.yml@v[0-9][0-9]*\$/deploy-reusable.yml@$MAJOR/" "$deploy_file" > "$tmp"
+mv "$tmp" "$deploy_file"
+if [[ "$before" != "$(cat "$deploy_file")" ]]; then
+  echo "stamped $deploy_rel -> deploy-reusable.yml@$MAJOR"
+  changed=$((changed + 1))
+fi
 
 if [[ "$changed" -eq 0 ]]; then
   echo "version defaults already current at $MAJOR"

@@ -1,0 +1,95 @@
+{
+ "slug": "the_darkpine_depths",
+ "targets": [
+  {
+   "key": "placeness.biomeRegions.largestPercent",
+   "op": ">=",
+   "value": 36.3,
+   "from": "meeting: \"the woods keep their own counsel: one dark forest\" (measured 40.4)"
+  },
+  {
+   "key": "placeness.biomeRegions.top3Percent",
+   "op": ">=",
+   "value": 50.2,
+   "from": "meeting: \"the woods keep their own counsel: one dark forest\" (measured 55.8)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:birch_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:dark_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:deep_dark",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:dripstone_caves",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:old_growth_pine_taiga",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:old_growth_spruce_taiga",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:pale_garden",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:snowy_taiga",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:taiga",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomeRegions.largestPercent",
+   "op": ">=",
+   "value": 38.7,
+   "from": "place: biome regions (W9f, measured 43.0)"
+  },
+  {
+   "key": "placeness.biomeRegions.specksPercent",
+   "op": "<=",
+   "value": 4.9,
+   "from": "place: biome regions (W9f, measured 3.5)"
+  },
+  {
+   "key": "placeness.biomeRegions.perKm2",
+   "op": "<=",
+   "value": 4.5,
+   "from": "place: biome regions (W9f, measured 3.8)"
+  },
+  {
+   "key": "placeness.biomeRegions.top3Percent",
+   "op": ">=",
+   "value": 65.1,
+   "from": "place: biome regions (W9f, measured 72.3)"
+  }
+ ]
+}

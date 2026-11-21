@@ -1,0 +1,61 @@
+{
+ "slug": "the_crumbling_reaches",
+ "targets": [
+  {
+   "key": "terrain.surfaceHeight.p95",
+   "op": ">=",
+   "value": 90,
+   "from": "\"Crystal peaks shearing into shadow\""
+  },
+  {
+   "key": "terrain.slopes.cliffPercent",
+   "op": ">=",
+   "value": 10,
+   "from": "\"shearing\""
+  },
+  {
+   "key": "surface.topBlocksPercent.minecraft:amethyst_block + surface.topBlocksPercent.minecraft:amethyst_cluster + surface.topBlocksPercent.minecraft:crying_obsidian + surface.topBlocksPercent.minecraft:obsidian + surface.topBlocksPercent.minecraft:blackstone + surface.topBlocksPercent.minecraft:basalt",
+   "op": ">=",
+   "value": 5,
+   "from": "\"Crystal peaks ... into shadow\"; 1.21.1 shadowlands, crystal_peaks, basalt_cliffs"
+  },
+  {
+   "key": "biomeExpression.expressed",
+   "op": ">=",
+   "value": 5,
+   "from": "1.21.1 lists nine biomes: placed biomes show on the islands, not over the void"
+  },
+  {
+   "key": "surface.voidPercent",
+   "op": "between",
+   "value": [
+    30,
+    75
+   ],
+   "from": "1.21.1 type end: wreckage over the void"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.1,
+   "from": "1.21.1 ambientLight 0.05"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": "<=",
+   "value": 0,
+   "from": "open sky"
+  },
+  {
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 65,
+   "from": "restated: on islands every islet under 1 ha is a speck whatever its biome (kit gap: no speck measure inside islands); a deliberately broken world allows twice the specks, so at most a third of each island outside its own biome",
+   "was": {
+    "key": "placeness.landBiomeRegions.specksPercent",
+    "op": "<=",
+    "value": 10
+   }
+  }
+ ]
+}

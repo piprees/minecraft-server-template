@@ -1,0 +1,23 @@
+{
+  "clock": "adventure:day_length/54000_18000",
+  "tracks": {
+    "minecraft:visual/fog_color": {
+      "keyframes": [
+        {
+          "ticks": 0,
+          "value": "#8b9baf"
+        }
+      ],
+      "modifier": "override"
+    },
+    "minecraft:visual/sky_color": {
+      "keyframes": [
+        {
+          "ticks": 0,
+          "value": "#8b9baf"
+        }
+      ],
+      "modifier": "override"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: set-piece seats over the End. A pinned platform over the void ring, and a roof piece on the central island, which declines because the End has no roof.",
+  "seed": 20261043,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "end"
+  },
+  "borders": {
+    "player": 1024
+  },
+  "structures": {
+    "force": [
+      {"structure": "adventure:set_piece/selftest_shapes_end/overlook", "x": 8, "z": 600, "y": 80},
+      {"structure": "adventure:set_piece/selftest_shapes_end/no_roof", "x": 24, "z": 24}
+    ]
+  },
+  "setPieces": {
+    "overlook": {
+      "name": "The Test Void Overlook",
+      "seat": "pinned",
+      "size": 8,
+      "age": "recent",
+      "elements": [
+        {"kind": "platform", "width": 5, "depth": 4, "palette": "minecraft:polished_andesite"}
+      ]
+    },
+    "no_roof": {
+      "name": "The Test Missing Roof",
+      "seat": "roof",
+      "size": 4,
+      "elements": [
+        {"kind": "column", "height": -3, "radius": 0, "palette": "minecraft:shroomlight"}
+      ]
+    }
+  }
+}

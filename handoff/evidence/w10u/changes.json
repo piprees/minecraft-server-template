@@ -1,0 +1,145 @@
+{
+ "the_wailing_narrows": {
+  "changed": [
+   "Terrain: the floor is now flat mesa tops at about y 80 cut by a network of narrow chasms (terrain scale 0.5, chasm share 0.1, depth 62); before, the chasms merged into wide soul sand floors.",
+   "Chasm floors 24 blocks or more under the mesa tops are bone reef: bone ribs, spines and skulls in soul sand, the remains of the war driven down here.",
+   "No quartz: quartz ore removed, cliff faces blackstone.",
+   "Bridges and the blackstone pillars removed from the dimension (they placed as fragments crossing nothing) and shunned so they cannot spread back.",
+   "The vanilla Nether fortress is wanted within 260 blocks of spawn: its causeways cross the chasms (the description's 'nether bridge near spawn').",
+   "The giant skull is half-buried in the ground (bury) instead of overhanging its hill."
+  ],
+  "kit": [
+   "Quartz spans over a chasm at the landing, both ends on the mesa tops: waiting on the set-pieces kit (SP2-SP4), span set piece at the nearest chasm to spawn.",
+   "A quarantine wall near the border and zombified remains with their gear: waiting on the set-pieces kit (SP2-SP4), a wall along the border ring and camps of remains on the chasm floors."
+  ],
+  "exceptions": [
+   "mns:mega_fortress is listed but does not start on this seed."
+  ]
+ },
+ "the_gilded_pit": {
+  "changed": [
+   "The fog is one gold-brown colour over every biome and opens to 384 blocks (start 64), so the capital can be seen across the pit from the ledge; before, the Nether's own fog ended at 96 blocks and two biome fogs alternated.",
+   "Spawn and the portal's landing are both on the ledge (0, 86, -540), 40 blocks back from a 55-block drop into the pit; the portal used to land players on the pit floor.",
+   "Below y 76 the ground and walls are blackstone, seamed with gilded blackstone and nether gold ore from y 18 to 100.",
+   "Removed and shunned: the blackstone walls (a lone spire), the nether tower (purple palette, no approach), the crimson forge (sandstone desert building) and the nether keep (sliced by a basalt overhang). The donjon is boxed into its ground (beard_box) instead of standing on a pedestal."
+  ],
+  "kit": [
+   "A stair or switchback path from the ledge down the pit wall: waiting on the set-pieces kit (SP2-SP4), descent from the landing to the pit floor.",
+   "The capital's palace and a forge in gold-seamed blackstone: waiting on the set-pieces kit (SP2-SP4)."
+  ],
+  "exceptions": [
+   "minecraft:trial_chambers and nova_structures:undead_crypt are forced but do not start on this terrain."
+  ]
+ },
+ "the_forged_depths": {
+  "changed": [
+   "Biomes: crimson pinewood, crimson forest and quartz flats removed (the owner: deader, no trees). The country is blackstone basin (the forge place, lava lakes, gilded seams), basalt deltas, ash barrens and nether wastes; magma land lies under the floor.",
+   "Craggier: rougher floor (relief 26, roughness 0.85), more pillars, shelves and chasms; ceiling raised to 48 above the floor to clear them.",
+   "Quartz ore, crimson fungi and weeping vines removed from the ground.",
+   "The nether keep removed and shunned (terrain heaped over its lower storeys)."
+  ],
+  "kit": [
+   "A dense capital of houses, walls, reactors, chimney stacks and slag heaps: waiting on the set-pieces kit (SP2-SP4); the mns houses, walls and copper tower are listed but do not start on this seed.",
+   "The last forge burning at spawn: the mns crimson forge starts once, 0-120 blocks from spawn; a forge set piece is waiting on SP2-SP4."
+  ],
+  "exceptions": [
+   "mns:large_house_1, mns:medium_house, mns:large_blackstone_walls, mns:copper_tower and mns:mega_fortress are listed but do not start on this seed."
+  ]
+ },
+ "the_molten_flats": {
+  "changed": [
+   "One red haze over every biome (the basalt deltas' grey-lilac fog no longer shows).",
+   "Removed and shunned: the bridge piece (a sunken pit, no span), the lava-well kiosk and the crimson forge dome.",
+   "The flat is raised to y 44, above the y 32 lava sea, so the sea no longer meanders across it; lava stands only in the magma land's own pools, rimmed in obsidian. Top and filler blackstone, magma at pool edges, obsidian on steep faces.",
+   "Fire removed from the fields (patch_fire and soul fire features).",
+   "The piglin outstation stands under a site filter (slope 8 or less over a 40-block radius, height 40 or more)."
+  ],
+  "kit": [
+   "SP5 places, waiting on the set-pieces kit (SP3/SP4): a pipeline works across the flat from spawn towards the border; a crimson lava well and pump yard within 200 blocks of spawn; reactors near the border (700-1000 blocks); a barracks and a shipping yard with broken portals (200-900); a gateway-attempt lab with cells for a witch and an enderman, stacks of pearls and potions; strip-mined terraces and quenched pads beside the works."
+  ],
+  "exceptions": []
+ },
+ "the_violet_spire": {
+  "changed": [
+   "Amethyst through the spires from y 140 up: amethyst block veins and budding amethyst (clusters grow on them while players are near).",
+   "The aurel tower (mss:large_tower) removed from the list and shunned: it hung on a rock cone with walkways over the void. The fortified temple is shunned for the same reason.",
+   "The End-ward band (chorus forest, umbrella jungle, crystal hollows) is shot this round.",
+   "The End-ward band stands on end stone: chorus forest with purpur cliffs, umbrella jungle with end-stone-brick cliffs, so their own features (chorus, purpur stalks) can grow.",
+   "Amethyst clusters (light 5) set into the spire faces from y 140 up, so the crystals show at night.",
+   "The vanilla monster rooms (mossy cobblestone spawner dungeons) removed."
+  ],
+  "kit": [
+   "SP5 places: enderwatch tower and mystical archway on the End-ward band; both are planned (the planner logs a chunk with the biome check bypassed) but their own starts return nothing over the islands, so they need SP2's island-top seat or an SP5 set piece; the aurel tower at spawn; birdcages on the spire tops.",
+   "Clusters and buds standing on spire tops and ledges need a placed feature, which a definition cannot add (only ores); a crystal-peaks library biome or a definition features route would carry them."
+  ],
+  "exceptions": [
+   "ddd:dddtowers, mes:enderwatch_tower, mes:mystical_archway, mss:small_tower and nova_structures:shrine_tower do not start on this seed's islands."
+  ]
+ },
+ "the_abyssal_shrine": {
+  "changed": [
+   "The shelf round the lake now meets the outer ring all the way round (no void between lake and rim); the ring is fuller (coverage 0.7), with fewer void pits.",
+   "The leaning shards on the lake and shore were the umbral wastes' obsidian spikes and its End gateway feature; both removed."
+  ],
+  "kit": [
+   "SP5 place: the shrine on the rim at spawn overlooking the lake, with a stair or causeway down to the water.",
+   "The shelf between lake and ring is level ground at the rim's height; a sloped, uneven shore needs a kit change to the hollow's apron (named in the kit gaps)."
+  ],
+  "exceptions": [
+   "ati_structures:underwater_dungeon, ati_structures:warden_monument and mss:castle_ruin are wanted but do not start on this terrain."
+  ]
+ },
+ "the_sunken_temple": {
+  "changed": [
+   "The upper island tier is lower and keeps more of its underside (tier spacing 32, shrink 0.8), so upper islands reach down to the water at 165.",
+   "The sinking temple (it stood dry on a sky meadow) and the castle ruin (a stump on a sky island) removed and shunned."
+  ],
+  "kit": [
+   "Temples at or in the water (the namesake): no pack temple starts on this sky world's basins (the ocean temple, monument and underwater dungeon are wanted but never start); waiting on site filters (SP2) or a temple set piece at the water line.",
+   "Half-submerged architecture with a water line on its walls: waiting on the set-pieces kit (SP2-SP4)."
+  ],
+  "exceptions": [
+   "mtr:ocean_temple, minecraft:monument, ati_structures:underwater_dungeon and mss:large_tower do not start on this terrain."
+  ]
+ },
+ "the_end": {
+  "changed": [
+   "The End castle (it hung over the void on stilts) and three single props (enderskog, enderbloom grove, placid prairie) removed and shunned.",
+   "Two green zones and one mushroom zone given End-coloured biomes: sheared highlands, umbral wastes and painted mountains.",
+   "The central island is shot this round."
+  ],
+  "kit": [],
+  "exceptions": [
+   "End gateways appear only after the dragon is killed (vanilla); a fresh world has none to photograph.",
+   "mes:enderkeep_courtyard is listed but does not start on this seed."
+  ]
+ },
+ "the_nether": {
+  "changed": [
+   "All six mns bridges removed and shunned (each was a fragment joining nothing).",
+   "The piglin village removed from every want and shunned (it stood on the roof).",
+   "Frames this round: every bastion and fortress start inside the border, the crimson forest and the nether wastes held long enough for their own mobs to spawn, the basalt deltas, and the sealing halls from outside.",
+   "The bastion stands under a site filter (surface height 36 or more, slope 16 or less, radius 24) so it starts on the floor, not the lava sea."
+  ],
+  "kit": [
+   "A piglin home on the floor: with a site filter of height 36-100 the piglin village still started with its box at y 115-158 on the roof (the filter reads the floor, the village seats itself on the top surface), so it stays shunned until SP2 seats a start at the floor it measured.",
+   "Bastions kept off the open lava sea: waiting on SP2's site filter (a minimum distance from shore). Vanilla bastions and fortresses stay; frames show the starts that sit well.",
+   "Crossings for \"every civilisation left infrastructure\": bridge set pieces with both ends on ground, waiting on the set-pieces kit (SP2-SP4)."
+  ],
+  "exceptions": [
+   "The base Nether keeps its biomes' own fogs (no dimension fog), as in 1.21.1.",
+   "Vanilla behaviour kept: a bastion may stand in the lava sea and a fortress piece may hang over a gorge; the nearest bastion and fortress are 452-575 blocks from the landing on this seed."
+  ]
+ },
+ "the_bloodroot_wastes": {
+  "changed": [
+   "The nether jungle (warped wart and nylium) removed; the wastes are crimson forest, an upside-down forest and crimson pinewood with nether-waste clearings and a basalt fringe, laid out as places.",
+   "Removed and shunned: the crimson forge and lava well (not visible from their own boxes), the medium crimson fungus (indistinguishable from worldgen) and the piglin colony (glued under an overhang).",
+   "Four nether-waste clearings in the forest (circles of 56-64 blocks with wandering edges at 120,90; -330,-210; 260,-360; -420,330) where a place can stand."
+  ],
+  "kit": [
+   "SP5 places, waiting on the set-pieces kit (SP3/SP4): crimson fungus and a well at the landing; a piglin camp with fires, fences and a wart farm in each clearing; a working forge and workshops on a path between two clearings; a weeping-valley, inverted-forest and infernal-holt region each with one named place."
+  ],
+  "exceptions": []
+ }
+}

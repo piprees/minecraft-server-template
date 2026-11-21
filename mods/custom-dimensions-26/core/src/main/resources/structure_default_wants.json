@@ -1,0 +1,36 @@
+{
+ "_comment": "Which want list a dimension inherits when its config names none.",
+ "families": {
+  "overworld": [
+   "amplified",
+   "cave",
+   "checkerboard",
+   "large_biomes",
+   "multi_biome",
+   "overworld",
+   "sky_islands"
+  ],
+  "nether": [
+   "nether",
+   "nether_islands"
+  ],
+  "end": [
+   "end"
+  ]
+ },
+ "wants": {
+  "end": [
+   "end_city"
+  ],
+  "nether": [
+   "bastion",
+   "fortress"
+  ],
+  "overworld": [
+   "ancient_city",
+   "mineshaft",
+   "trial_chambers",
+   "village"
+  ]
+ }
+}

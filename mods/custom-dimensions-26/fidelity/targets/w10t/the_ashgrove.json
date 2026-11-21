@@ -1,0 +1,62 @@
+{
+ "slug": "the_ashgrove",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:coarse_dirt + surface.groundBlocksPercent.minecraft:gravel + surface.groundBlocksPercent.minecraft:tuff + surface.groundBlocksPercent.minecraft:podzol + surface.groundBlocksPercent.minecraft:packed_mud + surface.groundBlocksPercent.minecraft:terracotta + surface.groundBlocksPercent.minecraft:red_sand + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:blackstone",
+   "op": ">=",
+   "value": 40,
+   "from": "\"Ash-grey savanna\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 25,
+   "from": "\"Ash-grey\": not green"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:ashen_woodland + surface.biomesPercent.minecraft:savanna",
+   "op": ">=",
+   "value": 30,
+   "from": "1.21.1 spawnFilter ashen_woodland, ashen_savanna"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 3,
+   "from": "\"A settlement burned here once\": the fire is past"
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 8,
+   "from": "1.21.1 seedRoll water none"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "between",
+   "value": [
+    5,
+    60
+   ],
+   "from": "\"grove\", \"savanna\": scattered burnt trees"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.25,
+   "from": "\"under a volcanic sky\"; 1.21.1 ambientLight 0.2"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one burned savanna): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

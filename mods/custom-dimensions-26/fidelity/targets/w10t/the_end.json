@@ -1,0 +1,56 @@
+{
+ "slug": "the_end",
+ "targets": [
+  {
+   "key": "surface.voidPercent",
+   "op": "between",
+   "value": [
+    35,
+    70
+   ],
+   "from": "vanilla End: islands over the void"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:end_stone",
+   "op": ">=",
+   "value": 25,
+   "from": "vanilla End: end stone ground"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:end_highlands + surface.biomesPercent.minecraft:end_midlands",
+   "op": ">=",
+   "value": 30,
+   "from": "\"Cities and citadels\": the highlands end cities stand on carry the land"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:end_highlands.placementPercent.land?",
+   "op": ">=",
+   "value": 80,
+   "from": "\"cities ... within honest reach\": highlands are solid land"
+  },
+  {
+   "key": "surface.topBlocksPercent.minecraft:chorus_plant + surface.topBlocksPercent.minecraft:chorus_flower",
+   "op": ">=",
+   "value": 0.5,
+   "from": "vanilla End: chorus on the outer islands"
+  },
+  {
+   "key": "surface.fluidCoverPercent.water + surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 0.5,
+   "from": "1.21.1 seedRoll water none"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": "<=",
+   "value": 0,
+   "from": "vanilla End: open sky"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 20,
+   "from": "place kind place: the highlands mass reads as one place"
+  }
+ ]
+}

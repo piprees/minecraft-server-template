@@ -1,0 +1,56 @@
+{
+ "slug": "the_lantern_pools",
+ "targets": [
+  {
+   "key": "surface.biomesPercent.adventure:desert_oasis",
+   "op": ">=",
+   "value": 30,
+   "from": "\"Serene oasis pools\"; 1.21.1 desert_oasis, oasis"
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "between",
+   "value": [
+    8,
+    30
+   ],
+   "from": "\"oasis pools\": pools, not a sea"
+  },
+  {
+   "key": "surface.waterDepth.shallow1To4Percent",
+   "op": ">=",
+   "value": 50,
+   "from": "\"pools\": shallow"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:ocean + surface.biomesPercent.minecraft:warm_ocean + surface.biomesPercent.minecraft:lukewarm_ocean + surface.biomesPercent.minecraft:cold_ocean + surface.biomesPercent.minecraft:deep_ocean + surface.biomesPercent.minecraft:deep_lukewarm_ocean + surface.biomesPercent.minecraft:deep_cold_ocean + surface.biomesPercent.minecraft:frozen_ocean",
+   "op": "<=",
+   "value": 5,
+   "from": "\"pools\": 1.21.1 warm_ocean is one of 13"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:mangrove_swamp + surface.biomesPercent.minecraft:sparse_jungle",
+   "op": "<=",
+   "value": 25,
+   "from": "\"A hermit's paradise ... desert shrines\": oasis country, not a jungle swamp"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:sand + surface.groundBlocksPercent.minecraft:sandstone",
+   "op": ">=",
+   "value": 20,
+   "from": "\"desert shrines\": desert round the pools"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one oasis country): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

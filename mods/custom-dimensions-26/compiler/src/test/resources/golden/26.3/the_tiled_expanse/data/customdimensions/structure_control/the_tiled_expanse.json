@@ -1,0 +1,72 @@
+{
+  "level": "adventure:the_tiled_expanse",
+  "density": "sparse",
+  "noise": true,
+  "radiusChunks": 128,
+  "spawnChunk": [4, -4],
+  "groups": {
+    "deco": {
+      "profile": "sparse",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 8,
+      "clearSpawnChunks": 0
+    },
+    "settlements": {
+      "profile": "sparse",
+      "radial": [2.8, 2.3, 1.9, 1.6, 1.35, 1.15, 0.95, 0.8, 0.65, 0.55],
+      "exclusion": 16,
+      "clearSpawnChunks": 0
+    },
+    "dungeons": {
+      "profile": "sparse",
+      "radial": [0.3, 0.35, 0.45, 0.55, 0.65, 0.8, 0.95, 1.1, 1.3, 1.55],
+      "exclusion": 21,
+      "clearSpawnChunks": 8
+    },
+    "landmarks": {
+      "profile": "sparse",
+      "radial": [0.35, 0.6, 1.1, 1.6, 1.8, 1.65, 1.3, 0.9, 0.55, 0.35],
+      "exclusion": 31,
+      "clearSpawnChunks": 0
+    },
+    "maritime": {
+      "profile": "sparse",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 16,
+      "clearSpawnChunks": 0
+    },
+    "endgame": {
+      "profile": "sparse",
+      "radial": [0.3, 0.35, 0.45, 0.55, 0.65, 0.8, 0.95, 1.1, 1.3, 1.55],
+      "exclusion": 52,
+      "clearSpawnChunks": 8
+    },
+    "loot": {
+      "profile": "sparse",
+      "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "exclusion": 10,
+      "clearSpawnChunks": 0
+    }
+  },
+  "mode": null,
+  "list": [],
+  "exclude": [
+    "mes:phantom_citadel"
+  ],
+  "include": [],
+  "rarity": {},
+  "spacing": {},
+  "force": [
+    {
+      "structure": "mes:monolith",
+      "x": 256,
+      "z": 256,
+      "radius": 0,
+      "exclusive": false
+    }
+  ],
+  "wants": [],
+  "shuns": [],
+  "replace": {},
+  "terrainAdaptation": {}
+}

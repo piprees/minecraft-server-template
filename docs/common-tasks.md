@@ -5,7 +5,7 @@ Task → file → command lookup. Constraints and traps live in [`AGENTS.md`](..
 | Task | Edit | Run |
 | --- | --- | --- |
 | Add a server mod (consumer) | `overlay/mods-extra.txt` (+ deps, pinned) | `./dev up` or push to `main` |
-| Add a default server mod (platform) | `config/modrinth-mods.txt` (+ deps, pinned) | Push, cut release |
+| Add a default server mod (platform) | `config/modrinth-mods.txt` (+ deps, pinned; [checklist](../DEPENDENCIES.md#adding-a-mod)) | Push, cut release |
 | Build an in-house mod | `mods/<name>/` (Fabric project) | `cd mods/<name> && mise exec -- ./gradlew build` → `./dev up` in a linked consumer ([local-stack-testing](../.claude/skills/local-stack-testing/SKILL.md)) → cut a release to ship |
 | Link a consumer to this checkout | - | `cd ~/Projects/elfydd && ./dev link` (once; `./dev unlink` to restore a release) |
 | Cut a platform release | - | `gh workflow run release.yml -f version=vX.Y.Z` (**never** `gh release create`) |
@@ -20,7 +20,7 @@ Task → file → command lookup. Constraints and traps live in [`AGENTS.md`](..
 | Trigger a backup | - | `./ops backup` |
 | Restore from backup | - | [README → Backups](../README.md#backups) |
 | Restart a sidecar | - | `./ops restart <name>` (force-recreates; `mc` is prohibited) |
-| Check mod updates | - | `./scripts/check-updates.sh` (weekly PR: `gh workflow run mod-updates.yml`) |
-| Update MC version | `.env` + re-pin | Big job — [README → Update Minecraft version](../README.md#update-minecraft-version) |
+| Check mod updates | - | `./scripts/check-updates.sh` (weekly PRs: `gh workflow run mod-updates.yml`; [automation](../DEPENDENCIES.md#automation)) |
+| Update MC version | `.env` + re-pin | Fixed decision; big job — [DEPENDENCIES.md § Changing the Minecraft version](../DEPENDENCIES.md#changing-the-minecraft-version) |
 | Manual deploy | - | `./ops ssh 'cd ~/server/.stack/current/stack && bash scripts/deploy.sh --pull --non-interactive'` (deploy.sh ships in the bundle — there is no `~/server/scripts/`) |
 | Validate scripts | - | `./scripts/test-scripts.sh --quick` |

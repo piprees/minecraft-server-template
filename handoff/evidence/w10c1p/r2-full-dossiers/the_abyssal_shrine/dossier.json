@@ -1,0 +1,3674 @@
+{
+  "kind": "survey",
+  "dimension": "adventure:the_abyssal_shrine",
+  "seed": -2851350029895099402,
+  "plan": {
+    "patches": 32,
+    "columns": 73728,
+    "hectares": 7.4,
+    "list": [
+      {
+        "index": 0,
+        "x": -16,
+        "z": -304,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 1,
+        "x": -256,
+        "z": -144,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 2,
+        "x": -368,
+        "z": 64,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 3,
+        "x": 64,
+        "z": 336,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 4,
+        "x": -448,
+        "z": 256,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 5,
+        "x": -224,
+        "z": 0,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 6,
+        "x": -432,
+        "z": -320,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 7,
+        "x": 384,
+        "z": 48,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 8,
+        "x": 16,
+        "z": -80,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 9,
+        "x": 320,
+        "z": -400,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 10,
+        "x": -400,
+        "z": 288,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 11,
+        "x": -144,
+        "z": -512,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 12,
+        "x": -128,
+        "z": -496,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 13,
+        "x": 304,
+        "z": 144,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 14,
+        "x": 0,
+        "z": 208,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 15,
+        "x": -240,
+        "z": 448,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 16,
+        "x": -464,
+        "z": -480,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 17,
+        "x": 224,
+        "z": 176,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 18,
+        "x": 160,
+        "z": -48,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 19,
+        "x": 96,
+        "z": 448,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 20,
+        "x": 192,
+        "z": -272,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 21,
+        "x": 144,
+        "z": -448,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 22,
+        "x": -320,
+        "z": 176,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 23,
+        "x": 368,
+        "z": 400,
+        "side": 48,
+        "origin": "stratified"
+      },
+      {
+        "index": 24,
+        "x": -144,
+        "z": -352,
+        "side": 48,
+        "origin": "adaptive:rare mountains"
+      },
+      {
+        "index": 25,
+        "x": 144,
+        "z": -320,
+        "side": 48,
+        "origin": "adaptive:rare mountains"
+      },
+      {
+        "index": 26,
+        "x": 144,
+        "z": 192,
+        "side": 48,
+        "origin": "adaptive:rare plateaus"
+      },
+      {
+        "index": 27,
+        "x": 256,
+        "z": -240,
+        "side": 48,
+        "origin": "adaptive:rare plateaus"
+      },
+      {
+        "index": 28,
+        "x": 304,
+        "z": 96,
+        "side": 48,
+        "origin": "adaptive:rare basins"
+      },
+      {
+        "index": 29,
+        "x": -416,
+        "z": 0,
+        "side": 48,
+        "origin": "adaptive:rare basins"
+      },
+      {
+        "index": 30,
+        "x": 0,
+        "z": 128,
+        "side": 48,
+        "origin": "adaptive:rare islands"
+      },
+      {
+        "index": 31,
+        "x": -48,
+        "z": -256,
+        "side": 48,
+        "origin": "adaptive:rare islands"
+      }
+    ]
+  },
+  "dimensionType": {
+    "minY": -64,
+    "height": 384,
+    "seaLevel": 0,
+    "ceiling": false
+  },
+  "atmosphere": {
+    "hasSkyLight": true,
+    "hasCeiling": false,
+    "hasFixedTime": false,
+    "ambientLight": 0.15,
+    "registeredType": {
+      "has_skylight": true,
+      "has_ceiling": false,
+      "has_ender_dragon_fight": false,
+      "coordinate_scale": 1.0,
+      "min_y": -64,
+      "height": 384,
+      "logical_height": 384,
+      "infiniburn": "#minecraft:infiniburn_overworld",
+      "ambient_light": 0.15,
+      "monster_spawn_light_level": {
+        "min_inclusive": 0,
+        "max_inclusive": 7,
+        "type": "minecraft:uniform"
+      },
+      "monster_spawn_block_light_limit": 0,
+      "attributes": {
+        "minecraft:audio/ambient_sounds": {
+          "mood": {
+            "sound": "minecraft:ambient.cave",
+            "tick_delay": 6000,
+            "block_search_extent": 8,
+            "offset": 2.0
+          }
+        },
+        "minecraft:audio/background_music": {
+          "default": {
+            "sound": "minecraft:music.game",
+            "min_delay": 12000,
+            "max_delay": 24000
+          },
+          "creative": {
+            "sound": "minecraft:music.creative",
+            "min_delay": 12000,
+            "max_delay": 24000
+          }
+        },
+        "minecraft:gameplay/bed_rule": {
+          "can_sleep": "when_dark",
+          "can_set_spawn": "always",
+          "error_message": {
+            "translate": "block.minecraft.bed.no_sleep"
+          }
+        },
+        "minecraft:gameplay/nether_portal_spawns_piglin": true,
+        "minecraft:gameplay/respawn_anchor_works": false,
+        "minecraft:gameplay/straw_bed_rule": {
+          "can_sleep": "when_dark",
+          "can_set_spawn": "never",
+          "destroy_on_leave": true,
+          "error_message": {
+            "translate": "block.minecraft.bed.no_sleep"
+          }
+        },
+        "minecraft:visual/ambient_light_color": "#0a0a0a",
+        "minecraft:visual/cloud_color": "#ccffffff",
+        "minecraft:visual/cloud_height": 192.33,
+        "minecraft:visual/fog_color": "#0e2a44",
+        "minecraft:visual/sky_color": "#1b3b6b"
+      },
+      "timelines": [
+        "adventure:day_length/villager_schedule_54000_18000",
+        "adventure:day_length/day_54000_18000",
+        "adventure:day_length/moon_54000_18000",
+        "minecraft:early_game"
+      ],
+      "default_clock": "adventure:day_length/54000_18000"
+    },
+    "definitionAtmosphere": {
+      "skyColor": "#1B3B6B",
+      "fogColor": "#0E2A44",
+      "ambientLight": 0.15,
+      "skyLuminance": 0.044,
+      "fogLuminance": 0.022
+    },
+    "weather": "per biome: see surface.precipitationPercent"
+  },
+  "landforms": {
+    "side": 128,
+    "step": 8,
+    "method": "noise render; relief (max - min) at ~16/64/256-block windows, topographic position at 256",
+    "sharesPercent": {
+      "plains": 10.2,
+      "hills": 7.3,
+      "mountains": 2.3,
+      "plateaus": 3.6,
+      "basins": 2.8,
+      "islands": 0.0,
+      "water": 21.8,
+      "void": 52.0
+    },
+    "voidHoles": {
+      "count": 33,
+      "countOver1Ha": 2,
+      "largestPercentOfVoid": 92.6,
+      "largestDiameterBlocks": 802,
+      "top3PercentOfVoid": 96.1
+    },
+    "voidRim": {
+      "nearCells": 4253,
+      "nearSteepPercent": 40.5,
+      "nearHeightP50": 139.0,
+      "farCells": 0,
+      "farSteepPercent": 0.0,
+      "farHeightP50": 0.0
+    },
+    "highGround": {
+      "p75": {
+        "thresholdY": 170.0,
+        "count": 12,
+        "countOver1Ha": 2,
+        "largestPercent": 52.8,
+        "top3Percent": 96.1
+      },
+      "p90": {
+        "thresholdY": 227.0,
+        "count": 3,
+        "countOver1Ha": 1,
+        "largestPercent": 57.4,
+        "top3Percent": 100.0
+      },
+      "upperHalf": {
+        "thresholdY": 196.0,
+        "count": 2,
+        "countOver1Ha": 2,
+        "largestPercent": 54.2,
+        "top3Percent": 100.0
+      },
+      "upperThreeQuarters": {
+        "thresholdY": 167.0,
+        "count": 12,
+        "countOver1Ha": 2,
+        "largestPercent": 51.9,
+        "top3Percent": 95.4
+      }
+    },
+    "thresholdsBlocks": {
+      "mountainRelief256": 213.0,
+      "plateauTpi": 20.040350877192992,
+      "basinTpi": -18.522569444444457,
+      "flatRelief16": 18.0,
+      "hillRelief64": 75.0
+    },
+    "vista": [
+      312,
+      255,
+      -272,
+      472,
+      -64,
+      -272
+    ],
+    "highGroundFine": {
+      "p75": {
+        "thresholdY": 170.0,
+        "count": 12,
+        "countOver1Ha": 2,
+        "largestPercent": 52.8,
+        "top3Percent": 96.1
+      },
+      "p90": {
+        "thresholdY": 227.0,
+        "count": 3,
+        "countOver1Ha": 1,
+        "largestPercent": 57.4,
+        "top3Percent": 100.0
+      },
+      "upperHalf": {
+        "thresholdY": 196.0,
+        "count": 2,
+        "countOver1Ha": 2,
+        "largestPercent": 54.2,
+        "top3Percent": 100.0
+      },
+      "upperThreeQuarters": {
+        "thresholdY": 167.0,
+        "count": 12,
+        "countOver1Ha": 2,
+        "largestPercent": 51.9,
+        "top3Percent": 95.4
+      },
+      "step": 8
+    }
+  },
+  "crossCheck": {
+    "columns": 686,
+    "heightWithin2Percent": 97.5,
+    "heightDiffP50": 0.0,
+    "heightDiffP95": 0.0,
+    "biomeMatchPercent": 100.0,
+    "method": "noise render surface (one above the first motion-blocking block from the top or the roof\u0027s underside) against the generated column\u0027s first solid-to-air boundary below the top or the roof"
+  },
+  "vertical": {
+    "columnClassPercent": {
+      "void": 40.7,
+      "roofed": 0.0,
+      "stacked": 1.8,
+      "overhang": 3.3,
+      "cave": 8.5,
+      "single": 45.8
+    },
+    "overhangPercent": 3.3,
+    "stackedPercent": 1.8,
+    "cavePercent": 9.2,
+    "layerColumnsPercent": {
+      "sky": 1.8,
+      "surface": 59.3,
+      "underground": 57.5,
+      "roof": 0.0
+    },
+    "definitions": "runs of collision blocks; runs closer than 16 form one block; the lowest block\u0027s top is the surface, tops above it are sky; overhang: an air pocket within 16 of the top block\u0027s top; cave: a pocket of 3+ deeper in the surface block; roofed: under the dimension\u0027s ceiling",
+    "yBands": [
+      {
+        "y": -64,
+        "solidPercent": 0.0,
+        "openPercent": 100.0,
+        "skyExposedPercent": 40.7,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": -48,
+        "solidPercent": 0.0,
+        "openPercent": 100.0,
+        "skyExposedPercent": 40.7,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": -32,
+        "solidPercent": 0.1,
+        "openPercent": 99.9,
+        "skyExposedPercent": 40.7,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": -16,
+        "solidPercent": 0.1,
+        "openPercent": 99.9,
+        "skyExposedPercent": 40.7,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 0,
+        "solidPercent": 15.7,
+        "openPercent": 84.3,
+        "skyExposedPercent": 40.9,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 16,
+        "solidPercent": 17.4,
+        "openPercent": 82.6,
+        "skyExposedPercent": 42.2,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 32,
+        "solidPercent": 18.7,
+        "openPercent": 81.3,
+        "skyExposedPercent": 44.2,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 48,
+        "solidPercent": 17.8,
+        "openPercent": 82.2,
+        "skyExposedPercent": 46.9,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 64,
+        "solidPercent": 29.8,
+        "openPercent": 70.2,
+        "skyExposedPercent": 49.9,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 80,
+        "solidPercent": 30.9,
+        "openPercent": 69.1,
+        "skyExposedPercent": 54.2,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 96,
+        "solidPercent": 27.3,
+        "openPercent": 70.6,
+        "skyExposedPercent": 57.8,
+        "fluidPercent": 2.1
+      },
+      {
+        "y": 112,
+        "solidPercent": 15.2,
+        "openPercent": 68.1,
+        "skyExposedPercent": 59.7,
+        "fluidPercent": 16.7
+      },
+      {
+        "y": 128,
+        "solidPercent": 13.9,
+        "openPercent": 67.6,
+        "skyExposedPercent": 62.8,
+        "fluidPercent": 18.5
+      },
+      {
+        "y": 144,
+        "solidPercent": 9.1,
+        "openPercent": 83.2,
+        "skyExposedPercent": 79.2,
+        "fluidPercent": 7.7
+      },
+      {
+        "y": 160,
+        "solidPercent": 3.0,
+        "openPercent": 97.0,
+        "skyExposedPercent": 93.3,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 176,
+        "solidPercent": 2.8,
+        "openPercent": 97.2,
+        "skyExposedPercent": 95.5,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 192,
+        "solidPercent": 3.3,
+        "openPercent": 96.7,
+        "skyExposedPercent": 96.4,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 208,
+        "solidPercent": 3.3,
+        "openPercent": 96.7,
+        "skyExposedPercent": 96.4,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 224,
+        "solidPercent": 3.3,
+        "openPercent": 96.7,
+        "skyExposedPercent": 96.5,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 240,
+        "solidPercent": 2.8,
+        "openPercent": 97.2,
+        "skyExposedPercent": 97.1,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 256,
+        "solidPercent": 0.0,
+        "openPercent": 100.0,
+        "skyExposedPercent": 99.9,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 272,
+        "solidPercent": 0.0,
+        "openPercent": 100.0,
+        "skyExposedPercent": 100.0,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 288,
+        "solidPercent": 0.0,
+        "openPercent": 100.0,
+        "skyExposedPercent": 100.0,
+        "fluidPercent": 0.0
+      },
+      {
+        "y": 304,
+        "solidPercent": 0.0,
+        "openPercent": 100.0,
+        "skyExposedPercent": 100.0,
+        "fluidPercent": 0.0
+      }
+    ]
+  },
+  "surface": {
+    "columns": 43727,
+    "note": "shares are % of all sampled columns; \u0027top\u0027 is the highest non-air block above the surface (leaves, plants, snow, liquids count), \u0027ground\u0027 the surface block itself",
+    "biomesPercent": {
+      "adventure:sky_highlands": 22.6,
+      "minecraft:deep_cold_ocean": 14.0,
+      "minecraft:deep_ocean": 9.6,
+      "adventure:umbral_wastes": 7.0,
+      "adventure:chalk_cliffs": 6.1
+    },
+    "topBlocksPercent": {
+      "minecraft:water": 22.0,
+      "minecraft:grass_block": 21.4,
+      "minecraft:blackstone": 5.0,
+      "minecraft:short_grass": 3.9,
+      "minecraft:calcite": 1.3,
+      "minecraft:oak_leaves": 1.0,
+      "minecraft:oak_planks": 0.9,
+      "minecraft:obsidian": 0.8,
+      "minecraft:soul_fire": 0.5,
+      "minecraft:crying_obsidian": 0.4,
+      "minecraft:oxeye_daisy": 0.4,
+      "minecraft:soul_soil": 0.3,
+      "minecraft:azure_bluet": 0.3,
+      "minecraft:lily_of_the_valley": 0.2,
+      "minecraft:quartz_block": 0.2
+    },
+    "groundBlocksPercent": {
+      "minecraft:grass_block": 27.2,
+      "minecraft:gravel": 18.4,
+      "minecraft:blackstone": 5.0,
+      "minecraft:dirt": 1.6,
+      "minecraft:calcite": 1.4,
+      "minecraft:sand": 1.2,
+      "minecraft:oak_planks": 1.1,
+      "minecraft:stone": 0.9,
+      "minecraft:obsidian": 0.8,
+      "minecraft:soul_soil": 0.8,
+      "minecraft:crying_obsidian": 0.4,
+      "minecraft:quartz_block": 0.2,
+      "minecraft:clay": 0.1,
+      "minecraft:deepslate": 0.1,
+      "minecraft:andesite": 0.1
+    },
+    "groundBlocksPercentByBand": {
+      "bounds": [
+        108.0,
+        128.0
+      ],
+      "low": {
+        "minecraft:grass_block": 88.4,
+        "minecraft:oak_planks": 5.8,
+        "minecraft:calcite": 3.4,
+        "minecraft:quartz_block": 1.1,
+        "minecraft:deepslate": 0.4,
+        "minecraft:stone": 0.3,
+        "minecraft:blackstone": 0.3,
+        "minecraft:dirt": 0.2
+      },
+      "middle": {
+        "minecraft:gravel": 81.3,
+        "minecraft:grass_block": 13.4,
+        "minecraft:stone": 3.3,
+        "minecraft:blackstone": 0.7,
+        "minecraft:calcite": 0.5,
+        "minecraft:andesite": 0.4,
+        "minecraft:dirt": 0.2,
+        "minecraft:sand": 0.1
+      },
+      "high": {
+        "minecraft:grass_block": 39.2,
+        "minecraft:blackstone": 24.2,
+        "minecraft:gravel": 8.3,
+        "minecraft:dirt": 7.5,
+        "minecraft:sand": 6.1,
+        "minecraft:obsidian": 4.1,
+        "minecraft:soul_soil": 4.0,
+        "minecraft:calcite": 3.3
+      }
+    },
+    "fluidCoverPercent": {
+      "water": 22.1,
+      "lava": 0.0,
+      "other": 0.0
+    },
+    "waterDepth": {
+      "columns": 16323,
+      "p25": 29.0,
+      "p50": 40.0,
+      "p75": 40.0,
+      "p95": 41.0,
+      "max": 44,
+      "shallow1To4Percent": 9.9,
+      "over12Percent": 84.6
+    },
+    "snowIcePercent": 0.0,
+    "canopyPercent": 1.0,
+    "bareRockPercent": 5.2,
+    "voidPercent": 40.7,
+    "skyExposedPercent": 56.5,
+    "precipitationPercent": {
+      "snow": 0.0,
+      "rain": 52.3,
+      "none": 7.0
+    },
+    "groundPlantsPercent": {
+      "grass": 4.0,
+      "flower": 1.0,
+      "other": 0.6
+    }
+  },
+  "vegetation": {
+    "method": "trees are 26-connected components of log and stem blocks, named by their commonest log id; spacing is the mean distance to the nearest tree of the same species within the same patch",
+    "trees": 42,
+    "treesPerHectare": 5.7,
+    "treesPerHectareByLayer": {
+      "sky": 0.3,
+      "surface": 4.6,
+      "underground": 0.8,
+      "roof": 0.0
+    },
+    "species": {
+      "minecraft:oak_log": {
+        "count": 42,
+        "perHectare": 5.7,
+        "meanSpacing": 12.7,
+        "layers": {
+          "sky": 2,
+          "surface": 34,
+          "underground": 6
+        }
+      }
+    }
+  },
+  "terrain": {
+    "surfaceHeight": {
+      "p5": 27.0,
+      "p25": 87.0,
+      "p50": 109.0,
+      "p75": 145.0,
+      "p95": 252.0,
+      "max": 298.0
+    },
+    "reliefPerPatch": [
+      75,
+      49,
+      40,
+      25,
+      0,
+      5,
+      0,
+      29,
+      0,
+      0,
+      0,
+      0,
+      0,
+      51,
+      38,
+      0,
+      0,
+      103,
+      1,
+      0,
+      48,
+      0,
+      71,
+      0,
+      112,
+      61,
+      158,
+      50,
+      45,
+      49,
+      85,
+      39
+    ],
+    "reliefMedian": 29.0,
+    "slopes": {
+      "flatUnder15Percent": 35.9,
+      "from15To45Percent": 38.3,
+      "over45Percent": 25.8,
+      "cliffPercent": 2.6
+    },
+    "aboveCloudsPercent": 6.2,
+    "belowSeaLevelPercent": 0.0,
+    "belowZeroPercent": 0.0,
+    "seaLevel": 0,
+    "cloudY": 192
+  },
+  "underground": {
+    "band": "below surface - 8, down to the surface block\u0027s bottom",
+    "cells": 2231343,
+    "airPercent": 5.6,
+    "fluidPercent": 0.0,
+    "caveBiomesPercent": {
+      "minecraft:deep_cold_ocean": 27.8,
+      "adventure:sky_highlands": 24.4,
+      "adventure:umbral_wastes": 19.1,
+      "minecraft:deep_ocean": 17.4,
+      "adventure:chalk_cliffs": 11.2
+    },
+    "exposedOres": {
+      "minecraft:coal_ore": 499,
+      "minecraft:iron_ore": 138,
+      "minecraft:copper_ore": 133,
+      "minecraft:redstone_ore": 7,
+      "minecraft:deepslate_redstone_ore": 6,
+      "minecraft:deepslate_copper_ore": 5,
+      "minecraft:deepslate_iron_ore": 2,
+      "minecraft:gold_ore": 1
+    }
+  },
+  "notable": {
+    "common": "minecraft:air, minecraft:andesite, minecraft:bedrock, minecraft:cave_air, minecraft:deepslate, minecraft:diorite, minecraft:dirt, minecraft:end_stone, minecraft:granite, minecraft:grass_block, minecraft:gravel, minecraft:netherrack, minecraft:sand, minecraft:stone, minecraft:tuff, minecraft:void_air, minecraft:water",
+    "sky": {
+      "minecraft:calcite": 808,
+      "minecraft:coal_ore": 776,
+      "minecraft:kelp_plant": 228,
+      "minecraft:iron_ore": 208,
+      "minecraft:oak_leaves": 101,
+      "minecraft:kelp": 76,
+      "minecraft:tall_seagrass": 74,
+      "minecraft:short_grass": 38,
+      "minecraft:clay": 23,
+      "minecraft:blackstone": 13,
+      "minecraft:quartz_block": 9,
+      "minecraft:seagrass": 8,
+      "minecraft:oak_log": 6,
+      "minecraft:lily_of_the_valley": 4,
+      "minecraft:obsidian": 4,
+      "minecraft:azure_bluet": 1,
+      "minecraft:oxeye_daisy": 1
+    },
+    "surface": {
+      "minecraft:blackstone": 16190,
+      "minecraft:calcite": 14057,
+      "minecraft:kelp_plant": 4089,
+      "minecraft:tall_seagrass": 3728,
+      "minecraft:short_grass": 2938,
+      "minecraft:obsidian": 2478,
+      "minecraft:coal_ore": 2268,
+      "minecraft:oak_leaves": 1534,
+      "minecraft:kelp": 995,
+      "minecraft:oak_planks": 944,
+      "minecraft:soul_soil": 605,
+      "minecraft:iron_ore": 587,
+      "minecraft:seagrass": 452,
+      "minecraft:soul_fire": 360,
+      "minecraft:crying_obsidian": 338,
+      "minecraft:quartz_block": 301,
+      "minecraft:oxeye_daisy": 269,
+      "minecraft:azure_bluet": 221,
+      "minecraft:lily_of_the_valley": 163,
+      "minecraft:oak_log": 123,
+      "minecraft:clay": 122,
+      "minecraft:copper_ore": 118,
+      "minecraft:cobweb": 87,
+      "minecraft:cornflower": 70,
+      "minecraft:rail": 64
+    },
+    "underground": {
+      "minecraft:coal_ore": 11099,
+      "minecraft:calcite": 7509,
+      "minecraft:iron_ore": 2061,
+      "minecraft:copper_ore": 1859,
+      "minecraft:tuff_bricks": 1855,
+      "minecraft:blackstone": 1466,
+      "minecraft:obsidian": 859,
+      "minecraft:oak_planks": 673,
+      "minecraft:glow_lichen": 216,
+      "minecraft:lava": 174,
+      "minecraft:polished_tuff": 128,
+      "minecraft:waxed_oxidized_copper": 118,
+      "minecraft:redstone_ore": 105,
+      "minecraft:waxed_copper_block": 102,
+      "minecraft:rail": 57,
+      "minecraft:diamond_ore": 53,
+      "minecraft:lapis_ore": 52,
+      "minecraft:chiseled_tuff_bricks": 50,
+      "minecraft:cobweb": 45,
+      "minecraft:deepslate_redstone_ore": 33,
+      "minecraft:cobblestone": 28,
+      "minecraft:gold_ore": 18,
+      "minecraft:oak_log": 15,
+      "minecraft:deepslate_iron_ore": 10,
+      "minecraft:deepslate_copper_ore": 9
+    },
+    "roof": {}
+  },
+  "clusters": {
+    "method": "26-connected clusters of one notable block within a patch; spacing is the mean horizontal distance between cluster centres to the nearest in the same patch; a block in only one patch is not reported here",
+    "types": {
+      "minecraft:tuff_bricks": {
+        "clusters": 2,
+        "patches": 2,
+        "patchSharePercent": 6.3,
+        "sizeP50": 733.0,
+        "sizeP90": 1122.0,
+        "sizeMax": 1122.0,
+        "blocks": 1855,
+        "meanSpacing": NaN,
+        "layerBlocks": {
+          "underground": 1855
+        },
+        "distinctness": 0.94,
+        "places": [
+          {
+            "size": 733,
+            "layer": "underground",
+            "at": [
+              -223,
+              -12,
+              4
+            ],
+            "camera": [
+              -214.5,
+              -21.12,
+              4.5
+            ]
+          }
+        ]
+      },
+      "minecraft:gold_ore": {
+        "clusters": 3,
+        "patches": 2,
+        "patchSharePercent": 6.3,
+        "sizeP50": 6.0,
+        "sizeP90": 7.0,
+        "sizeMax": 7.0,
+        "blocks": 18,
+        "meanSpacing": 26.0,
+        "layerBlocks": {
+          "underground": 18
+        },
+        "distinctness": 0.94,
+        "places": [
+          {
+            "size": 7,
+            "layer": "underground",
+            "at": [
+              -10,
+              27,
+              -300
+            ],
+            "camera": [
+              -2.5,
+              18.88,
+              -292.5
+            ]
+          }
+        ]
+      },
+      "minecraft:spawner": {
+        "clusters": 3,
+        "patches": 2,
+        "patchSharePercent": 6.3,
+        "sizeP50": 1.0,
+        "sizeP90": 1.0,
+        "sizeMax": 1.0,
+        "blocks": 3,
+        "meanSpacing": 18.0,
+        "layerBlocks": {
+          "surface": 2,
+          "underground": 1
+        },
+        "distinctness": 0.94,
+        "places": [
+          {
+            "size": 1,
+            "layer": "underground",
+            "at": [
+              55,
+              15,
+              -41
+            ],
+            "camera": [
+              47.5,
+              13.88,
+              -48.5
+            ]
+          },
+          {
+            "size": 1,
+            "layer": "surface",
+            "at": [
+              160,
+              9,
+              210
+            ],
+            "camera": [
+              168.5,
+              7.88,
+              202.5
+            ]
+          }
+        ]
+      },
+      "minecraft:chiseled_tuff_bricks": {
+        "clusters": 4,
+        "patches": 2,
+        "patchSharePercent": 6.3,
+        "sizeP50": 1.0,
+        "sizeP90": 43.0,
+        "sizeMax": 43.0,
+        "blocks": 50,
+        "meanSpacing": 1.3,
+        "layerBlocks": {
+          "underground": 50
+        },
+        "distinctness": 0.94,
+        "places": [
+          {
+            "size": 5,
+            "layer": "underground",
+            "at": [
+              58,
+              -13,
+              -47
+            ],
+            "camera": [
+              51.5,
+              -21.12,
+              -53.5
+            ]
+          }
+        ]
+      },
+      "minecraft:deepslate_copper_ore": {
+        "clusters": 4,
+        "patches": 2,
+        "patchSharePercent": 6.3,
+        "sizeP50": 2.0,
+        "sizeP90": 5.0,
+        "sizeMax": 5.0,
+        "blocks": 11,
+        "meanSpacing": 16.6,
+        "layerBlocks": {
+          "surface": 2,
+          "underground": 9
+        },
+        "distinctness": 0.94,
+        "places": [
+          {
+            "size": 5,
+            "layer": "underground",
+            "at": [
+              400,
+              0,
+              61
+            ],
+            "camera": [
+              393.5,
+              -8.12,
+              54.5
+            ]
+          }
+        ]
+      },
+      "minecraft:deepslate_iron_ore": {
+        "clusters": 5,
+        "patches": 2,
+        "patchSharePercent": 6.3,
+        "sizeP50": 2.0,
+        "sizeP90": 3.0,
+        "sizeMax": 3.0,
+        "blocks": 10,
+        "meanSpacing": 7.9,
+        "layerBlocks": {
+          "underground": 10
+        },
+        "distinctness": 0.94,
+        "places": [
+          {
+            "size": 2,
+            "layer": "underground",
+            "at": [
+              -222,
+              0,
+              7
+            ],
+            "camera": [
+              -213.5,
+              -9.12,
+              7.5
+            ]
+          }
+        ]
+      },
+      "minecraft:cobweb": {
+        "clusters": 5,
+        "patches": 2,
+        "patchSharePercent": 6.3,
+        "sizeP50": 33.0,
+        "sizeP90": 47.0,
+        "sizeMax": 47.0,
+        "blocks": 132,
+        "meanSpacing": 11.7,
+        "layerBlocks": {
+          "surface": 87,
+          "underground": 45
+        },
+        "distinctness": 0.94,
+        "places": [
+          {
+            "size": 47,
+            "layer": "surface",
+            "at": [
+              166,
+              9,
+              195
+            ],
+            "camera": [
+              154.5,
+              7.88,
+              195.5
+            ]
+          },
+          {
+            "size": 45,
+            "layer": "underground",
+            "at": [
+              55,
+              16,
+              -39
+            ],
+            "camera": [
+              47.5,
+              14.88,
+              -46.5
+            ]
+          }
+        ]
+      },
+      "minecraft:waxed_copper_block": {
+        "clusters": 6,
+        "patches": 2,
+        "patchSharePercent": 6.3,
+        "sizeP50": 1.0,
+        "sizeP90": 43.0,
+        "sizeMax": 43.0,
+        "blocks": 102,
+        "meanSpacing": 3.7,
+        "layerBlocks": {
+          "underground": 102
+        },
+        "distinctness": 0.94,
+        "places": []
+      },
+      "minecraft:oak_fence": {
+        "clusters": 6,
+        "patches": 2,
+        "patchSharePercent": 6.3,
+        "sizeP50": 2.0,
+        "sizeP90": 2.0,
+        "sizeMax": 2.0,
+        "blocks": 10,
+        "meanSpacing": 2.0,
+        "layerBlocks": {
+          "surface": 9,
+          "underground": 1
+        },
+        "distinctness": 0.94,
+        "places": [
+          {
+            "size": 2,
+            "layer": "surface",
+            "at": [
+              159,
+              10,
+              194
+            ],
+            "camera": [
+              168.5,
+              8.88,
+              194.5
+            ]
+          },
+          {
+            "size": 2,
+            "layer": "surface",
+            "at": [
+              159,
+              10,
+              196
+            ],
+            "camera": [
+              168.5,
+              8.88,
+              196.5
+            ]
+          }
+        ]
+      },
+      "minecraft:lava": {
+        "clusters": 9,
+        "patches": 6,
+        "patchSharePercent": 18.8,
+        "sizeP50": 1.0,
+        "sizeP90": 86.0,
+        "sizeMax": 86.0,
+        "blocks": 174,
+        "meanSpacing": 15.1,
+        "layerBlocks": {
+          "underground": 174
+        },
+        "distinctness": 0.81,
+        "places": [
+          {
+            "size": 1,
+            "layer": "underground",
+            "at": [
+              7,
+              64,
+              -300
+            ],
+            "camera": [
+              14.5,
+              55.88,
+              -292.5
+            ]
+          },
+          {
+            "size": 1,
+            "layer": "underground",
+            "at": [
+              5,
+              104,
+              -296
+            ],
+            "camera": [
+              -1.5,
+              95.88,
+              -288.5
+            ]
+          }
+        ]
+      },
+      "minecraft:deepslate_redstone_ore": {
+        "clusters": 9,
+        "patches": 3,
+        "patchSharePercent": 9.4,
+        "sizeP50": 2.0,
+        "sizeP90": 9.0,
+        "sizeMax": 9.0,
+        "blocks": 35,
+        "meanSpacing": 6.6,
+        "layerBlocks": {
+          "surface": 2,
+          "underground": 33
+        },
+        "distinctness": 0.91,
+        "places": [
+          {
+            "size": 8,
+            "layer": "underground",
+            "at": [
+              393,
+              2,
+              79
+            ],
+            "camera": [
+              400.5,
+              -6.12,
+              72.5
+            ]
+          },
+          {
+            "size": 1,
+            "layer": "underground",
+            "at": [
+              -218,
+              3,
+              10
+            ],
+            "camera": [
+              -210.5,
+              -5.12,
+              3.5
+            ]
+          }
+        ]
+      },
+      "minecraft:clay": {
+        "clusters": 10,
+        "patches": 4,
+        "patchSharePercent": 12.5,
+        "sizeP50": 11.0,
+        "sizeP90": 27.0,
+        "sizeMax": 30.0,
+        "blocks": 145,
+        "meanSpacing": 18.2,
+        "layerBlocks": {
+          "sky": 21,
+          "surface": 124
+        },
+        "distinctness": 0.88,
+        "places": [
+          {
+            "size": 30,
+            "layer": "surface",
+            "at": [
+              -1,
+              145,
+              -258
+            ],
+            "camera": [
+              -0.5,
+              151.88,
+              -265.5
+            ]
+          },
+          {
+            "size": 27,
+            "layer": "surface",
+            "at": [
+              -223,
+              146,
+              -133
+            ],
+            "camera": [
+              -229.5,
+              151.88,
+              -139.5
+            ]
+          }
+        ]
+      },
+      "minecraft:dandelion": {
+        "clusters": 10,
+        "patches": 3,
+        "patchSharePercent": 9.4,
+        "sizeP50": 1.0,
+        "sizeP90": 1.0,
+        "sizeMax": 1.0,
+        "blocks": 10,
+        "meanSpacing": 3.0,
+        "layerBlocks": {
+          "surface": 10
+        },
+        "distinctness": 0.91,
+        "places": [
+          {
+            "size": 1,
+            "layer": "surface",
+            "at": [
+              -249,
+              159,
+              -136
+            ],
+            "camera": [
+              -248.5,
+              169.88,
+              -135.5
+            ]
+          },
+          {
+            "size": 1,
+            "layer": "surface",
+            "at": [
+              -246,
+              160,
+              -137
+            ],
+            "camera": [
+              -233.5,
+              158.88,
+              -136.5
+            ]
+          }
+        ]
+      },
+      "minecraft:lapis_ore": {
+        "clusters": 13,
+        "patches": 3,
+        "patchSharePercent": 9.4,
+        "sizeP50": 4.0,
+        "sizeP90": 6.0,
+        "sizeMax": 8.0,
+        "blocks": 56,
+        "meanSpacing": 7.1,
+        "layerBlocks": {
+          "surface": 4,
+          "underground": 52
+        },
+        "distinctness": 0.91,
+        "places": []
+      },
+      "minecraft:oak_planks": {
+        "clusters": 13,
+        "patches": 3,
+        "patchSharePercent": 9.4,
+        "sizeP50": 44.0,
+        "sizeP90": 395.0,
+        "sizeMax": 684.0,
+        "blocks": 1617,
+        "meanSpacing": 13.2,
+        "layerBlocks": {
+          "surface": 944,
+          "underground": 673
+        },
+        "distinctness": 0.91,
+        "places": [
+          {
+            "size": 684,
+            "layer": "surface",
+            "at": [
+              164,
+              8,
+              207
+            ],
+            "camera": [
+              157.5,
+              -0.12,
+              200.5
+            ]
+          },
+          {
+            "size": 395,
+            "layer": "underground",
+            "at": [
+              41,
+              13,
+              -43
+            ],
+            "camera": [
+              34.5,
+              4.88,
+              -49.5
+            ]
+          }
+        ]
+      },
+      "minecraft:diamond_ore": {
+        "clusters": 15,
+        "patches": 7,
+        "patchSharePercent": 21.9,
+        "sizeP50": 3.0,
+        "sizeP90": 6.0,
+        "sizeMax": 8.0,
+        "blocks": 56,
+        "meanSpacing": 9.7,
+        "layerBlocks": {
+          "surface": 4,
+          "underground": 52
+        },
+        "distinctness": 0.78,
+        "places": [
+          {
+            "size": 4,
+            "layer": "underground",
+            "at": [
+              -222,
+              8,
+              12
+            ],
+            "camera": [
+              -214.5,
+              13.88,
+              19.5
+            ]
+          }
+        ]
+      },
+      "minecraft:poppy": {
+        "clusters": 15,
+        "patches": 3,
+        "patchSharePercent": 9.4,
+        "sizeP50": 1.0,
+        "sizeP90": 3.0,
+        "sizeMax": 4.0,
+        "blocks": 24,
+        "meanSpacing": 3.4,
+        "layerBlocks": {
+          "surface": 24
+        },
+        "distinctness": 0.91,
+        "places": [
+          {
+            "size": 4,
+            "layer": "surface",
+            "at": [
+              -131,
+              169,
+              -333
+            ],
+            "camera": [
+              -122.5,
+              167.88,
+              -340.5
+            ]
+          },
+          {
+            "size": 3,
+            "layer": "surface",
+            "at": [
+              -125,
+              166,
+              -336
+            ],
+            "camera": [
+              -116.5,
+              164.88,
+              -343.5
+            ]
+          }
+        ]
+      },
+      "minecraft:redstone_ore": {
+        "clusters": 24,
+        "patches": 3,
+        "patchSharePercent": 9.4,
+        "sizeP50": 4.0,
+        "sizeP90": 8.0,
+        "sizeMax": 12.0,
+        "blocks": 107,
+        "meanSpacing": 3.3,
+        "layerBlocks": {
+          "surface": 2,
+          "underground": 105
+        },
+        "distinctness": 0.91,
+        "places": [
+          {
+            "size": 8,
+            "layer": "underground",
+            "at": [
+              385,
+              1,
+              74
+            ],
+            "camera": [
+              385.5,
+              -12.12,
+              74.5
+            ]
+          },
+          {
+            "size": 1,
+            "layer": "underground",
+            "at": [
+              -218,
+              2,
+              10
+            ],
+            "camera": [
+              -210.5,
+              -6.12,
+              3.5
+            ]
+          }
+        ]
+      },
+      "minecraft:quartz_block": {
+        "clusters": 30,
+        "patches": 7,
+        "patchSharePercent": 21.9,
+        "sizeP50": 9.0,
+        "sizeP90": 20.0,
+        "sizeMax": 39.0,
+        "blocks": 310,
+        "meanSpacing": 17.5,
+        "layerBlocks": {
+          "sky": 9,
+          "surface": 301
+        },
+        "distinctness": 0.78,
+        "places": [
+          {
+            "size": 39,
+            "layer": "surface",
+            "at": [
+              248,
+              87,
+              220
+            ],
+            "camera": [
+              256.5,
+              85.88,
+              212.5
+            ]
+          },
+          {
+            "size": 24,
+            "layer": "surface",
+            "at": [
+              312,
+              41,
+              152
+            ],
+            "camera": [
+              312.5,
+              51.88,
+              152.5
+            ]
+          }
+        ]
+      },
+      "minecraft:soul_soil": {
+        "clusters": 39,
+        "patches": 4,
+        "patchSharePercent": 12.5,
+        "sizeP50": 16.0,
+        "sizeP90": 32.0,
+        "sizeMax": 52.0,
+        "blocks": 606,
+        "meanSpacing": 8.1,
+        "layerBlocks": {
+          "surface": 606
+        },
+        "distinctness": 0.88,
+        "places": [
+          {
+            "size": 52,
+            "layer": "surface",
+            "at": [
+              288,
+              253,
+              -212
+            ],
+            "camera": [
+              281.5,
+              258.88,
+              -218.5
+            ]
+          },
+          {
+            "size": 43,
+            "layer": "surface",
+            "at": [
+              155,
+              160,
+              -299
+            ],
+            "camera": [
+              148.5,
+              151.88,
+              -305.5
+            ]
+          }
+        ]
+      },
+      "minecraft:blackstone": {
+        "clusters": 41,
+        "patches": 4,
+        "patchSharePercent": 12.5,
+        "sizeP50": 8.0,
+        "sizeP90": 532.0,
+        "sizeMax": 8046.0,
+        "blocks": 17669,
+        "meanSpacing": 4.8,
+        "layerBlocks": {
+          "surface": 16844,
+          "underground": 825
+        },
+        "distinctness": 0.88,
+        "places": [
+          {
+            "size": 8046,
+            "layer": "surface",
+            "at": [
+              279,
+              251,
+              -216
+            ],
+            "camera": [
+              279.5,
+              257.88,
+              -223.5
+            ]
+          },
+          {
+            "size": 6176,
+            "layer": "surface",
+            "at": [
+              167,
+              168,
+              -298
+            ],
+            "camera": [
+              159.5,
+              166.88,
+              -305.5
+            ]
+          }
+        ]
+      },
+      "minecraft:rail": {
+        "clusters": 48,
+        "patches": 3,
+        "patchSharePercent": 9.4,
+        "sizeP50": 2.0,
+        "sizeP90": 6.0,
+        "sizeMax": 8.0,
+        "blocks": 121,
+        "meanSpacing": 3.9,
+        "layerBlocks": {
+          "surface": 64,
+          "underground": 57
+        },
+        "distinctness": 0.91,
+        "places": [
+          {
+            "size": 8,
+            "layer": "underground",
+            "at": [
+              33,
+              13,
+              -57
+            ],
+            "camera": [
+              25.5,
+              11.88,
+              -64.5
+            ]
+          },
+          {
+            "size": 6,
+            "layer": "underground",
+            "at": [
+              53,
+              14,
+              -46
+            ],
+            "camera": [
+              48.5,
+              12.88,
+              -50.5
+            ]
+          }
+        ]
+      },
+      "minecraft:soul_fire": {
+        "clusters": 68,
+        "patches": 4,
+        "patchSharePercent": 12.5,
+        "sizeP50": 3.0,
+        "sizeP90": 13.0,
+        "sizeMax": 22.0,
+        "blocks": 361,
+        "meanSpacing": 4.1,
+        "layerBlocks": {
+          "surface": 361
+        },
+        "distinctness": 0.88,
+        "places": [
+          {
+            "size": 22,
+            "layer": "surface",
+            "at": [
+              261,
+              252,
+              -235
+            ],
+            "camera": [
+              261.5,
+              262.88,
+              -234.5
+            ]
+          },
+          {
+            "size": 20,
+            "layer": "surface",
+            "at": [
+              300,
+              253,
+              -214
+            ],
+            "camera": [
+              293.5,
+              258.88,
+              -220.5
+            ]
+          }
+        ]
+      },
+      "minecraft:cornflower": {
+        "clusters": 69,
+        "patches": 7,
+        "patchSharePercent": 21.9,
+        "sizeP50": 1.0,
+        "sizeP90": 1.0,
+        "sizeMax": 3.0,
+        "blocks": 71,
+        "meanSpacing": 7.5,
+        "layerBlocks": {
+          "surface": 70,
+          "underground": 1
+        },
+        "distinctness": 0.78,
+        "places": [
+          {
+            "size": 3,
+            "layer": "surface",
+            "at": [
+              -414,
+              70,
+              32
+            ],
+            "camera": [
+              -413.5,
+              68.88,
+              20.5
+            ]
+          },
+          {
+            "size": 1,
+            "layer": "surface",
+            "at": [
+              -351,
+              86,
+              99
+            ],
+            "camera": [
+              -342.5,
+              84.88,
+              107.5
+            ]
+          }
+        ]
+      },
+      "minecraft:obsidian": {
+        "clusters": 98,
+        "patches": 4,
+        "patchSharePercent": 12.5,
+        "sizeP50": 6.0,
+        "sizeP90": 122.0,
+        "sizeMax": 318.0,
+        "blocks": 3341,
+        "meanSpacing": 2.8,
+        "layerBlocks": {
+          "sky": 4,
+          "surface": 2234,
+          "underground": 1103
+        },
+        "distinctness": 0.88,
+        "places": [
+          {
+            "size": 318,
+            "layer": "underground",
+            "at": [
+              300,
+              276,
+              -195
+            ],
+            "camera": [
+              293.5,
+              267.88,
+              -201.5
+            ]
+          },
+          {
+            "size": 298,
+            "layer": "surface",
+            "at": [
+              181,
+              188,
+              -291
+            ],
+            "camera": [
+              174.5,
+              179.88,
+              -297.5
+            ]
+          }
+        ]
+      },
+      "minecraft:crying_obsidian": {
+        "clusters": 99,
+        "patches": 3,
+        "patchSharePercent": 9.4,
+        "sizeP50": 2.0,
+        "sizeP90": 8.0,
+        "sizeMax": 39.0,
+        "blocks": 338,
+        "meanSpacing": 4.0,
+        "layerBlocks": {
+          "surface": 338
+        },
+        "distinctness": 0.91,
+        "places": [
+          {
+            "size": 39,
+            "layer": "surface",
+            "at": [
+              290,
+              253,
+              -200
+            ],
+            "camera": [
+              283.5,
+              258.88,
+              -206.5
+            ]
+          },
+          {
+            "size": 15,
+            "layer": "surface",
+            "at": [
+              163,
+              167,
+              -299
+            ],
+            "camera": [
+              156.5,
+              158.88,
+              -305.5
+            ]
+          }
+        ]
+      },
+      "minecraft:calcite": {
+        "clusters": 149,
+        "patches": 12,
+        "patchSharePercent": 37.5,
+        "sizeP50": 7.0,
+        "sizeP90": 134.0,
+        "sizeMax": 11872.0,
+        "blocks": 22374,
+        "meanSpacing": 3.9,
+        "layerBlocks": {
+          "sky": 707,
+          "surface": 7307,
+          "underground": 14360
+        },
+        "distinctness": 0.63,
+        "places": [
+          {
+            "size": 1856,
+            "layer": "surface",
+            "at": [
+              397,
+              46,
+              63
+            ],
+            "camera": [
+              390.5,
+              51.88,
+              70.5
+            ]
+          },
+          {
+            "size": 1617,
+            "layer": "underground",
+            "at": [
+              -114,
+              96,
+              -345
+            ],
+            "camera": [
+              -101.5,
+              94.88,
+              -344.5
+            ]
+          }
+        ]
+      },
+      "minecraft:glow_lichen": {
+        "clusters": 152,
+        "patches": 12,
+        "patchSharePercent": 37.5,
+        "sizeP50": 1.0,
+        "sizeP90": 2.0,
+        "sizeMax": 4.0,
+        "blocks": 221,
+        "meanSpacing": 7.2,
+        "layerBlocks": {
+          "surface": 5,
+          "underground": 216
+        },
+        "distinctness": 0.63,
+        "places": [
+          {
+            "size": 4,
+            "layer": "underground",
+            "at": [
+              38,
+              95,
+              247
+            ],
+            "camera": [
+              30.5,
+              85.88,
+              247.5
+            ]
+          },
+          {
+            "size": 3,
+            "layer": "underground",
+            "at": [
+              -111,
+              111,
+              -306
+            ],
+            "camera": [
+              -118.5,
+              101.88,
+              -305.5
+            ]
+          }
+        ]
+      },
+      "minecraft:lily_of_the_valley": {
+        "clusters": 163,
+        "patches": 9,
+        "patchSharePercent": 28.1,
+        "sizeP50": 1.0,
+        "sizeP90": 1.0,
+        "sizeMax": 3.0,
+        "blocks": 168,
+        "meanSpacing": 5.4,
+        "layerBlocks": {
+          "sky": 4,
+          "surface": 163,
+          "underground": 1
+        },
+        "distinctness": 0.72,
+        "places": [
+          {
+            "size": 3,
+            "layer": "surface",
+            "at": [
+              344,
+              27,
+              106
+            ],
+            "camera": [
+              332.5,
+              25.88,
+              106.5
+            ]
+          },
+          {
+            "size": 2,
+            "layer": "surface",
+            "at": [
+              -339,
+              98,
+              78
+            ],
+            "camera": [
+              -350.5,
+              96.88,
+              78.5
+            ]
+          }
+        ]
+      },
+      "minecraft:azure_bluet": {
+        "clusters": 196,
+        "patches": 9,
+        "patchSharePercent": 28.1,
+        "sizeP50": 1.0,
+        "sizeP90": 2.0,
+        "sizeMax": 4.0,
+        "blocks": 222,
+        "meanSpacing": 4.7,
+        "layerBlocks": {
+          "sky": 1,
+          "surface": 221
+        },
+        "distinctness": 0.72,
+        "places": [
+          {
+            "size": 4,
+            "layer": "surface",
+            "at": [
+              307,
+              23,
+              122
+            ],
+            "camera": [
+              307.5,
+              21.88,
+              110.5
+            ]
+          },
+          {
+            "size": 2,
+            "layer": "surface",
+            "at": [
+              -334,
+              81,
+              105
+            ],
+            "camera": [
+              -340.5,
+              86.88,
+              98.5
+            ]
+          }
+        ]
+      },
+      "minecraft:oxeye_daisy": {
+        "clusters": 234,
+        "patches": 10,
+        "patchSharePercent": 31.3,
+        "sizeP50": 1.0,
+        "sizeP90": 2.0,
+        "sizeMax": 4.0,
+        "blocks": 270,
+        "meanSpacing": 4.4,
+        "layerBlocks": {
+          "sky": 1,
+          "surface": 269
+        },
+        "distinctness": 0.69,
+        "places": [
+          {
+            "size": 4,
+            "layer": "surface",
+            "at": [
+              -379,
+              87,
+              9
+            ],
+            "camera": [
+              -390.5,
+              85.88,
+              9.5
+            ]
+          },
+          {
+            "size": 3,
+            "layer": "surface",
+            "at": [
+              -359,
+              92,
+              89
+            ],
+            "camera": [
+              -346.5,
+              90.88,
+              89.5
+            ]
+          }
+        ]
+      },
+      "minecraft:copper_ore": {
+        "clusters": 276,
+        "patches": 13,
+        "patchSharePercent": 40.6,
+        "sizeP50": 8.0,
+        "sizeP90": 11.0,
+        "sizeMax": 17.0,
+        "blocks": 1977,
+        "meanSpacing": 4.3,
+        "layerBlocks": {
+          "surface": 123,
+          "underground": 1854
+        },
+        "distinctness": 0.59,
+        "places": [
+          {
+            "size": 17,
+            "layer": "underground",
+            "at": [
+              25,
+              68,
+              -70
+            ],
+            "camera": [
+              32.5,
+              59.88,
+              -76.5
+            ]
+          },
+          {
+            "size": 12,
+            "layer": "underground",
+            "at": [
+              -10,
+              40,
+              -299
+            ],
+            "camera": [
+              -2.5,
+              31.88,
+              -291.5
+            ]
+          }
+        ]
+      },
+      "minecraft:seagrass": {
+        "clusters": 381,
+        "patches": 9,
+        "patchSharePercent": 28.1,
+        "sizeP50": 1.0,
+        "sizeP90": 2.0,
+        "sizeMax": 5.0,
+        "blocks": 460,
+        "meanSpacing": 3.2,
+        "layerBlocks": {
+          "sky": 7,
+          "surface": 453
+        },
+        "distinctness": 0.72,
+        "places": [
+          {
+            "size": 5,
+            "layer": "surface",
+            "at": [
+              -219,
+              148,
+              -141
+            ],
+            "camera": [
+              -226.5,
+              154.88,
+              -140.5
+            ]
+          },
+          {
+            "size": 3,
+            "layer": "surface",
+            "at": [
+              156,
+              148,
+              218
+            ],
+            "camera": [
+              149.5,
+              153.88,
+              211.5
+            ]
+          }
+        ]
+      },
+      "minecraft:kelp_plant": {
+        "clusters": 425,
+        "patches": 9,
+        "patchSharePercent": 28.1,
+        "sizeP50": 7.0,
+        "sizeP90": 22.0,
+        "sizeMax": 93.0,
+        "blocks": 4317,
+        "meanSpacing": 2.8,
+        "layerBlocks": {
+          "sky": 186,
+          "surface": 4131
+        },
+        "distinctness": 0.72,
+        "places": [
+          {
+            "size": 93,
+            "layer": "surface",
+            "at": [
+              147,
+              139,
+              202
+            ],
+            "camera": [
+              147.5,
+              149.88,
+              202.5
+            ]
+          },
+          {
+            "size": 44,
+            "layer": "surface",
+            "at": [
+              -215,
+              144,
+              -136
+            ],
+            "camera": [
+              -222.5,
+              150.88,
+              -135.5
+            ]
+          }
+        ]
+      },
+      "minecraft:iron_ore": {
+        "clusters": 518,
+        "patches": 15,
+        "patchSharePercent": 46.9,
+        "sizeP50": 5.0,
+        "sizeP90": 9.0,
+        "sizeMax": 18.0,
+        "blocks": 2856,
+        "meanSpacing": 3.9,
+        "layerBlocks": {
+          "sky": 208,
+          "surface": 585,
+          "underground": 2063
+        },
+        "distinctness": 0.53,
+        "places": [
+          {
+            "size": 12,
+            "layer": "underground",
+            "at": [
+              -142,
+              162,
+              -333
+            ],
+            "camera": [
+              -137.5,
+              156.88,
+              -336.5
+            ]
+          },
+          {
+            "size": 8,
+            "layer": "underground",
+            "at": [
+              -11,
+              95,
+              -247
+            ],
+            "camera": [
+              -17.5,
+              86.88,
+              -253.5
+            ]
+          }
+        ]
+      },
+      "minecraft:tall_seagrass": {
+        "clusters": 694,
+        "patches": 9,
+        "patchSharePercent": 28.1,
+        "sizeP50": 2.0,
+        "sizeP90": 12.0,
+        "sizeMax": 72.0,
+        "blocks": 3802,
+        "meanSpacing": 2.9,
+        "layerBlocks": {
+          "sky": 72,
+          "surface": 3730
+        },
+        "distinctness": 0.72,
+        "places": [
+          {
+            "size": 28,
+            "layer": "surface",
+            "at": [
+              -240,
+              148,
+              -99
+            ],
+            "camera": [
+              -246.5,
+              153.88,
+              -105.5
+            ]
+          },
+          {
+            "size": 22,
+            "layer": "surface",
+            "at": [
+              -7,
+              148,
+              -259
+            ],
+            "camera": [
+              -13.5,
+              153.88,
+              -265.5
+            ]
+          }
+        ]
+      },
+      "minecraft:coal_ore": {
+        "clusters": 785,
+        "patches": 13,
+        "patchSharePercent": 40.6,
+        "sizeP50": 18.0,
+        "sizeP90": 28.0,
+        "sizeMax": 96.0,
+        "blocks": 14143,
+        "meanSpacing": 2.9,
+        "layerBlocks": {
+          "sky": 731,
+          "surface": 2226,
+          "underground": 11186
+        },
+        "distinctness": 0.59,
+        "places": [
+          {
+            "size": 78,
+            "layer": "sky",
+            "at": [
+              26,
+              183,
+              138
+            ],
+            "camera": [
+              18.5,
+              173.88,
+              138.5
+            ]
+          },
+          {
+            "size": 25,
+            "layer": "underground",
+            "at": [
+              403,
+              33,
+              64
+            ],
+            "camera": [
+              410.5,
+              24.88,
+              71.5
+            ]
+          }
+        ]
+      },
+      "minecraft:kelp": {
+        "clusters": 804,
+        "patches": 9,
+        "patchSharePercent": 28.1,
+        "sizeP50": 1.0,
+        "sizeP90": 2.0,
+        "sizeMax": 9.0,
+        "blocks": 1071,
+        "meanSpacing": 1.7,
+        "layerBlocks": {
+          "sky": 76,
+          "surface": 995
+        },
+        "distinctness": 0.72,
+        "places": [
+          {
+            "size": 9,
+            "layer": "surface",
+            "at": [
+              -215,
+              147,
+              -136
+            ],
+            "camera": [
+              -222.5,
+              153.88,
+              -135.5
+            ]
+          },
+          {
+            "size": 9,
+            "layer": "surface",
+            "at": [
+              -232,
+              147,
+              -105
+            ],
+            "camera": [
+              -238.5,
+              152.88,
+              -111.5
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "structures": {
+    "census": {
+      "minecraft:mineshaft": {
+        "count": 8,
+        "nearestBlocks": 25,
+        "meanBlocks": 232,
+        "byRing": [
+          1,
+          3,
+          2,
+          2,
+          0
+        ]
+      },
+      "minecraft:monument": {
+        "count": 3,
+        "nearestBlocks": 233,
+        "meanBlocks": 286,
+        "byRing": [
+          0,
+          0,
+          2,
+          1,
+          0
+        ]
+      },
+      "minecraft:ruined_portal_ocean": {
+        "count": 2,
+        "nearestBlocks": 233,
+        "meanBlocks": 258,
+        "byRing": [
+          0,
+          0,
+          2,
+          0,
+          0
+        ]
+      },
+      "minecraft:trial_chambers": {
+        "count": 2,
+        "nearestBlocks": 120,
+        "meanBlocks": 223,
+        "byRing": [
+          0,
+          1,
+          0,
+          1,
+          0
+        ]
+      },
+      "note": "sites from the structure placement over the 512-block border whose biome at the chunk centre takes the structure (terrain checks not applied; a set\u0027s site counts for its first such structure); distances from spawn (64, -192); byRing bounds [102, 205, 307, 410, 512] blocks"
+    }
+  },
+  "biomeExpression": {
+    "method": "placement shares are % of the biome\u0027s own surface columns (plus sky-island tops); flags: mostly water or lava (but for a sea or river biome) or void (50%+; over a void-natured dimension, the End or sky islands, a biome is judged on its own surface columns and void is no flag), mostly bare rock (50%+ of land, but for a biome whose surface rule lays rock), a snowing climate (50%+) under 5% snow cover, a biome whose placed features are named for trees with none on a quarter hectare or more of its land; judged from 100+ columns",
+    "placed": 5,
+    "expressed": 5,
+    "listedNotFound": [],
+    "biomes": {
+      "adventure:sky_highlands": {
+        "columns": 30615,
+        "placementPercent": {
+          "land": 53.4,
+          "water": 0.9,
+          "lava": 0.0,
+          "void": 44.5,
+          "roofed": 0.0,
+          "sky": 1.2
+        },
+        "carries": {
+          "snowPercent": 0.0,
+          "canopyPercent": 3.9,
+          "plantsPercent": 18.6,
+          "bareRockPercent": 0.5,
+          "snowingClimatePercent": 0.0,
+          "treesPerHectare": 18.4,
+          "topBlocksPercent": {
+            "minecraft:grass_block": 38.9,
+            "minecraft:short_grass": 7.4,
+            "minecraft:oak_leaves": 2.1
+          }
+        },
+        "flags": [],
+        "state": "expressed"
+      },
+      "adventure:chalk_cliffs": {
+        "columns": 14089,
+        "placementPercent": {
+          "land": 31.4,
+          "water": 0.7,
+          "lava": 0.0,
+          "void": 67.2,
+          "roofed": 0.0,
+          "sky": 0.7
+        },
+        "carries": {
+          "snowPercent": 0.0,
+          "canopyPercent": 1.6,
+          "plantsPercent": 14.1,
+          "bareRockPercent": 0.3,
+          "snowingClimatePercent": 0.0,
+          "treesPerHectare": 4.5,
+          "topBlocksPercent": {
+            "minecraft:grass_block": 22.9,
+            "minecraft:short_grass": 4.1,
+            "minecraft:calcite": 3.4
+          }
+        },
+        "flags": [],
+        "state": "expressed"
+      },
+      "adventure:umbral_wastes": {
+        "columns": 12003,
+        "placementPercent": {
+          "land": 43.2,
+          "water": 0.0,
+          "lava": 0.0,
+          "void": 56.7,
+          "roofed": 0.0,
+          "sky": 0.0
+        },
+        "carries": {
+          "snowPercent": 0.0,
+          "canopyPercent": 0.0,
+          "plantsPercent": 6.9,
+          "bareRockPercent": 71.2,
+          "snowingClimatePercent": 0.0,
+          "treesPerHectare": 0.0,
+          "topBlocksPercent": {
+            "minecraft:blackstone": 30.8,
+            "minecraft:obsidian": 5.1,
+            "minecraft:soul_fire": 3.0
+          }
+        },
+        "flags": [],
+        "state": "expressed"
+      },
+      "minecraft:deep_cold_ocean": {
+        "columns": 10405,
+        "placementPercent": {
+          "land": 3.7,
+          "water": 95.4,
+          "lava": 0.0,
+          "void": 0.1,
+          "roofed": 0.0,
+          "sky": 0.8
+        },
+        "carries": {
+          "snowPercent": 0.0,
+          "canopyPercent": 0.0,
+          "plantsPercent": 6.8,
+          "bareRockPercent": 1.0,
+          "snowingClimatePercent": 0.0,
+          "treesPerHectare": 0.0,
+          "topBlocksPercent": {
+            "minecraft:water": 94.6,
+            "minecraft:grass_block": 2.8,
+            "minecraft:tall_seagrass": 0.6
+          }
+        },
+        "flags": [],
+        "state": "expressed"
+      },
+      "minecraft:deep_ocean": {
+        "columns": 7942,
+        "placementPercent": {
+          "land": 13.4,
+          "water": 75.8,
+          "lava": 0.0,
+          "void": 1.0,
+          "roofed": 0.0,
+          "sky": 9.7
+        },
+        "carries": {
+          "snowPercent": 0.0,
+          "canopyPercent": 0.0,
+          "plantsPercent": 9.4,
+          "bareRockPercent": 0.0,
+          "snowingClimatePercent": 0.0,
+          "treesPerHectare": 37.5,
+          "topBlocksPercent": {
+            "minecraft:water": 75.5,
+            "minecraft:oak_planks": 7.4,
+            "minecraft:grass_block": 4.0
+          }
+        },
+        "flags": [],
+        "state": "expressed"
+      }
+    }
+  },
+  "places": {
+    "method": "per layer, 16x16 cells described by numeric features (Gower-scaled to each feature\u0027s own 5th-95th percentile range) and categorical ones; k-medoids with k by the best silhouette (2-8, one type under 0.15); landmarks are cells farther from their medoid than both the 95th percentile and twice the median",
+    "sky": {
+      "cells": 9,
+      "k": 2,
+      "silhouette": 0.485,
+      "types": [
+        {
+          "type": 1,
+          "sharePercent": 66.7,
+          "distinctness": 0.54,
+          "dominant": {
+            "biome": "minecraft:deep_ocean",
+            "ground": "minecraft:grass_block"
+          },
+          "numbers": {
+            "presence": 0.49,
+            "height": 148.51,
+            "relief4": 0.51,
+            "relief16": 13.67,
+            "trees": 0.17,
+            "notable": 0.65,
+            "islands": 1.0
+          },
+          "description": "66.7% of cells; biome deep_ocean; ground grass_block; height 149; neighbour step 0.5 (layer 2.3); relief over 16 blocks 13.7 (layer 23.4); notable-block density (log) 0.7 (layer 0.8)",
+          "coordinates": [
+            {
+              "cell": [
+                184,
+                200
+              ],
+              "patch": 26,
+              "camera": [
+                184.5,
+                150,
+                196.5
+              ],
+              "yaw": 90.0,
+              "pitch": 5.0
+            },
+            {
+              "cell": [
+                152,
+                216
+              ],
+              "patch": 26,
+              "camera": [
+                152.5,
+                150,
+                214.5
+              ],
+              "yaw": 90.0,
+              "pitch": 5.0
+            }
+          ]
+        },
+        {
+          "type": 2,
+          "sharePercent": 33.3,
+          "distinctness": 0.54,
+          "dominant": {
+            "biome": "adventure:sky_highlands",
+            "ground": "minecraft:grass_block"
+          },
+          "numbers": {
+            "presence": 0.42,
+            "height": 176.77,
+            "relief4": 5.92,
+            "relief16": 43.0,
+            "trees": 0.33,
+            "notable": 1.21,
+            "islands": 1.0
+          },
+          "description": "33.3% of cells; biome adventure:sky_highlands; ground grass_block; height 177; neighbour step 5.9 (layer 2.3); relief over 16 blocks 43.0 (layer 23.4); notable-block density (log) 1.2 (layer 0.8)",
+          "coordinates": [
+            {
+              "cell": [
+                24,
+                136
+              ],
+              "patch": 30,
+              "camera": [
+                24.5,
+                193,
+                136.5
+              ],
+              "yaw": 0.0,
+              "pitch": 5.0
+            },
+            {
+              "cell": [
+                -40,
+                -232
+              ],
+              "patch": 31,
+              "camera": [
+                -35.5,
+                192,
+                -235.5
+              ],
+              "yaw": 225.0,
+              "pitch": 5.0
+            }
+          ]
+        }
+      ],
+      "landmarks": []
+    },
+    "surface": {
+      "cells": 175,
+      "k": 3,
+      "silhouette": 0.564,
+      "types": [
+        {
+          "type": 1,
+          "sharePercent": 49.1,
+          "distinctness": 0.29100000000000004,
+          "dominant": {
+            "biome": "adventure:sky_highlands",
+            "ground": "minecraft:grass_block",
+            "top": "minecraft:grass_block"
+          },
+          "numbers": {
+            "presence": 0.97,
+            "height": 92.83,
+            "relief4": 1.47,
+            "relief16": 27.43,
+            "relief48": 66.51,
+            "trees": 0.36,
+            "notable": 0.25,
+            "canopy": 0.03,
+            "plants": 0.17,
+            "fluid": 0.01,
+            "snow": 0.0,
+            "bare": 0.0,
+            "skyExposed": 0.94,
+            "overhang": 0.05,
+            "stacked": 0.03,
+            "cave": 0.21,
+            "roofed": 0.0
+          },
+          "description": "49.1% of cells; biome adventure:sky_highlands; ground grass_block; top grass_block; height 93; ground plants 17% (layer 9%); liquid cover 1% (layer 36%)",
+          "coordinates": [
+            {
+              "cell": [
+                -344,
+                72
+              ],
+              "patch": 2,
+              "camera": [
+                -343.5,
+                99,
+                73.5
+              ],
+              "yaw": 135.0,
+              "pitch": 5.0
+            },
+            {
+              "cell": [
+                -328,
+                72
+              ],
+              "patch": 2,
+              "camera": [
+                -323.5,
+                107,
+                74.5
+              ],
+              "yaw": 135.0,
+              "pitch": 5.0
+            }
+          ]
+        },
+        {
+          "type": 2,
+          "sharePercent": 37.7,
+          "distinctness": 0.302,
+          "dominant": {
+            "biome": "minecraft:deep_cold_ocean",
+            "ground": "minecraft:gravel",
+            "top": "minecraft:water"
+          },
+          "numbers": {
+            "presence": 1.0,
+            "height": 115.46,
+            "relief4": 0.5,
+            "relief16": 13.21,
+            "relief48": 36.3,
+            "trees": 0.03,
+            "notable": 0.5,
+            "canopy": 0.0,
+            "plants": 0.0,
+            "fluid": 0.96,
+            "snow": 0.0,
+            "bare": 0.0,
+            "skyExposed": 0.95,
+            "overhang": 0.06,
+            "stacked": 0.05,
+            "cave": 0.12,
+            "roofed": 0.0
+          },
+          "description": "37.7% of cells; biome deep_cold_ocean; ground gravel; top water; height 115; ground plants 0% (layer 9%); liquid cover 96% (layer 36%)",
+          "coordinates": [
+            {
+              "cell": [
+                -40,
+                -216
+              ],
+              "patch": 31,
+              "camera": [
+                -39.5,
+                150,
+                -215.5
+              ],
+              "yaw": 45.0,
+              "pitch": 5.0
+            },
+            {
+              "cell": [
+                -8,
+                -232
+              ],
+              "patch": 31,
+              "camera": [
+                -7.5,
+                150,
+                -231.5
+              ],
+              "yaw": 315.0,
+              "pitch": 5.0
+            }
+          ]
+        },
+        {
+          "type": 3,
+          "sharePercent": 13.1,
+          "distinctness": 0.318,
+          "dominant": {
+            "biome": "adventure:umbral_wastes",
+            "ground": "minecraft:blackstone",
+            "top": "minecraft:blackstone"
+          },
+          "numbers": {
+            "presence": 0.89,
+            "height": 209.47,
+            "relief4": 1.04,
+            "relief16": 22.74,
+            "relief48": 56.22,
+            "trees": 0.0,
+            "notable": 0.93,
+            "canopy": 0.0,
+            "plants": 0.07,
+            "fluid": 0.0,
+            "snow": 0.0,
+            "bare": 0.72,
+            "skyExposed": 1.0,
+            "overhang": 0.04,
+            "stacked": 0.0,
+            "cave": 0.05,
+            "roofed": 0.0
+          },
+          "description": "13.1% of cells; biome adventure:umbral_wastes; ground blackstone; top blackstone; height 209; layer present in 89% (layer 97%); notable-block density (log) 0.9 (layer 0.4); liquid cover 0% (layer 36%); bare rock 72% (layer 10%)",
+          "coordinates": [
+            {
+              "cell": [
+                280,
+                -232
+              ],
+              "patch": 27,
+              "camera": [
+                280.5,
+                253,
+                -231.5
+              ],
+              "yaw": 225.0,
+              "pitch": 5.0
+            },
+            {
+              "cell": [
+                264,
+                -216
+              ],
+              "patch": 27,
+              "camera": [
+                264.5,
+                253,
+                -215.5
+              ],
+              "yaw": 45.0,
+              "pitch": 5.0
+            }
+          ]
+        }
+      ],
+      "landmarks": [
+        {
+          "cell": [
+            168,
+            200
+          ],
+          "patch": 26,
+          "camera": [
+            168.5,
+            150,
+            200.5
+          ],
+          "yaw": 270.0,
+          "pitch": 5.0,
+          "distanceToType": 0.55,
+          "nearestType": 1,
+          "description": "biome deep_ocean (type adventure:sky_highlands); ground oak_planks (type grass_block); top oak_planks (type grass_block); stacked layers 77% (type 0%); open to the sky 23% (type 100%); trees per cell 2.0 (type 0.0)"
+        },
+        {
+          "cell": [
+            152,
+            200
+          ],
+          "patch": 26,
+          "camera": [
+            152.5,
+            9,
+            200.5
+          ],
+          "yaw": 180.0,
+          "pitch": 5.0,
+          "distanceToType": 0.51,
+          "nearestType": 2,
+          "description": "biome deep_ocean (type deep_cold_ocean); ground oak_planks (type gravel); top oak_planks (type water); stacked layers 63% (type 0%); open to the sky 37% (type 100%); trees per cell 2.0 (type 0.0)"
+        },
+        {
+          "cell": [
+            184,
+            216
+          ],
+          "patch": 26,
+          "camera": [
+            184.5,
+            160,
+            216.5
+          ],
+          "yaw": 315.0,
+          "pitch": 5.0,
+          "distanceToType": 0.44,
+          "nearestType": 1,
+          "description": "top oak_planks (type grass_block); neighbour step 19.0 (type 0.4); relief over 16 blocks 153.0 (type 12.0); open to the sky 52% (type 100%)"
+        },
+        {
+          "cell": [
+            152,
+            216
+          ],
+          "patch": 26,
+          "camera": [
+            152.5,
+            150,
+            216.5
+          ],
+          "yaw": 90.0,
+          "pitch": 5.0,
+          "distanceToType": 0.4,
+          "nearestType": 2,
+          "description": "biome deep_ocean (type deep_cold_ocean); ground dirt (type gravel); relief over 16 blocks 146.0 (type 1.0); stacked layers 40% (type 0%); open to the sky 60% (type 100%)"
+        },
+        {
+          "cell": [
+            168,
+            216
+          ],
+          "patch": 26,
+          "camera": [
+            165.5,
+            8,
+            216.5
+          ],
+          "yaw": 180.0,
+          "pitch": 5.0,
+          "distanceToType": 0.35,
+          "nearestType": 1,
+          "description": "biome deep_ocean (type adventure:sky_highlands); neighbour step 25.8 (type 0.4); relief over 16 blocks 153.0 (type 12.0); open to the sky 55% (type 100%)"
+        }
+      ]
+    },
+    "underground": {
+      "cells": 173,
+      "k": 8,
+      "silhouette": 0.348,
+      "types": [
+        {
+          "type": 1,
+          "sharePercent": 24.9,
+          "distinctness": 0.242,
+          "dominant": {
+            "notableId": "minecraft:coal_ore"
+          },
+          "numbers": {
+            "presence": 0.93,
+            "height": 130.08,
+            "relief4": 1.96,
+            "relief16": 11.0,
+            "trees": 0.0,
+            "notable": 0.47,
+            "caveAir": 0.0,
+            "caveFluid": 0.0,
+            "cave": 0.01
+          },
+          "description": "24.9% of cells; notableId coal_ore; height 130; cave pockets 1% (layer 16%)",
+          "coordinates": [
+            {
+              "cell": [
+                -8,
+                -232
+              ],
+              "patch": 31,
+              "camera": [
+                -3.5,
+                9.88,
+                -233.5
+              ],
+              "yaw": 67.5,
+              "pitch": 10.0
+            }
+          ]
+        },
+        {
+          "type": 2,
+          "sharePercent": 17.3,
+          "distinctness": 0.281,
+          "dominant": {
+            "biome": "adventure:sky_highlands",
+            "notableId": "minecraft:calcite"
+          },
+          "numbers": {
+            "presence": 0.96,
+            "height": 66.66,
+            "relief4": 0.68,
+            "relief16": 15.93,
+            "trees": 0.0,
+            "notable": 0.02,
+            "caveAir": 0.06,
+            "caveFluid": 0.0,
+            "cave": 0.26
+          },
+          "description": "17.3% of cells; biome adventure:sky_highlands; notableId calcite; height 67; notable-block density (log) 0.0 (layer 0.4)",
+          "coordinates": [
+            {
+              "cell": [
+                -392,
+                8
+              ],
+              "patch": 29,
+              "camera": [
+                -395.5,
+                31.88,
+                12.5
+              ],
+              "yaw": 292.5,
+              "pitch": 10.0
+            },
+            {
+              "cell": [
+                -376,
+                8
+              ],
+              "patch": 29,
+              "camera": [
+                -381.5,
+                31.88,
+                14.5
+              ],
+              "yaw": 90.0,
+              "pitch": 10.0
+            }
+          ]
+        },
+        {
+          "type": 3,
+          "sharePercent": 15.6,
+          "distinctness": 0.26899999999999996,
+          "dominant": {
+            "notableId": "minecraft:copper_ore",
+            "biome": "adventure:umbral_wastes"
+          },
+          "numbers": {
+            "presence": 0.97,
+            "height": 124.39,
+            "relief4": 0.57,
+            "relief16": 15.04,
+            "trees": 0.0,
+            "notable": 0.04,
+            "caveAir": 0.0,
+            "caveFluid": 0.0,
+            "cave": 0.01
+          },
+          "description": "15.6% of cells; notableId copper_ore; biome adventure:umbral_wastes; height 124; notable-block density (log) 0.0 (layer 0.4); cave pockets 1% (layer 16%)",
+          "coordinates": []
+        },
+        {
+          "type": 4,
+          "sharePercent": 10.4,
+          "distinctness": 0.264,
+          "dominant": {
+            "notableId": "minecraft:coal_ore",
+            "biome": "minecraft:deep_cold_ocean"
+          },
+          "numbers": {
+            "presence": 0.99,
+            "height": 118.6,
+            "relief4": 0.04,
+            "relief16": 4.44,
+            "trees": 0.33,
+            "notable": 0.59,
+            "caveAir": 0.17,
+            "caveFluid": 0.0,
+            "cave": 0.21
+          },
+          "description": "10.4% of cells; notableId coal_ore; biome deep_cold_ocean; height 119; relief over 16 blocks 4.4 (layer 14.6); trees per cell 0.3 (layer 0.0); notable-block density (log) 0.6 (layer 0.4); cave air 17% (layer 5%); cave liquid 0% (layer 0%)",
+          "coordinates": [
+            {
+              "cell": [
+                24,
+                -56
+              ],
+              "patch": 8,
+              "camera": [
+                19.5,
+                14.88,
+                -59.5
+              ],
+              "yaw": 247.5,
+              "pitch": 10.0
+            },
+            {
+              "cell": [
+                -8,
+                -264
+              ],
+              "patch": 0,
+              "camera": [
+                -13.5,
+                135.88,
+                -259.5
+              ],
+              "yaw": 292.5,
+              "pitch": 10.0
+            }
+          ]
+        },
+        {
+          "type": 5,
+          "sharePercent": 10.4,
+          "distinctness": 0.28,
+          "dominant": {
+            "notableId": "minecraft:iron_ore",
+            "biome": "adventure:sky_highlands"
+          },
+          "numbers": {
+            "presence": 1.0,
+            "height": 116.69,
+            "relief4": 0.65,
+            "relief16": 13.72,
+            "trees": 0.0,
+            "notable": 0.06,
+            "caveAir": 0.02,
+            "caveFluid": 0.0,
+            "cave": 0.24
+          },
+          "description": "10.4% of cells; notableId iron_ore; biome adventure:sky_highlands; height 117; notable-block density (log) 0.1 (layer 0.4)",
+          "coordinates": [
+            {
+              "cell": [
+                72,
+                344
+              ],
+              "patch": 3,
+              "camera": [
+                75.5,
+                62.88,
+                349.5
+              ],
+              "yaw": 247.5,
+              "pitch": 10.0
+            },
+            {
+              "cell": [
+                104,
+                360
+              ],
+              "patch": 3,
+              "camera": [
+                110.5,
+                86.88,
+                356.5
+              ],
+              "yaw": 112.5,
+              "pitch": 10.0
+            }
+          ]
+        },
+        {
+          "type": 6,
+          "sharePercent": 9.2,
+          "distinctness": 0.263,
+          "dominant": {
+            "notableId": "minecraft:coal_ore",
+            "biome": "minecraft:deep_ocean"
+          },
+          "numbers": {
+            "presence": 1.0,
+            "height": 114.11,
+            "relief4": 0.25,
+            "relief16": 12.75,
+            "trees": 0.0,
+            "notable": 0.48,
+            "caveAir": 0.07,
+            "caveFluid": 0.0,
+            "cave": 0.25
+          },
+          "description": "9.2% of cells; notableId coal_ore; biome deep_ocean; height 114",
+          "coordinates": [
+            {
+              "cell": [
+                24,
+                216
+              ],
+              "patch": 14,
+              "camera": [
+                27.5,
+                86.88,
+                221.5
+              ],
+              "yaw": 0.0,
+              "pitch": 10.0
+            },
+            {
+              "cell": [
+                40,
+                216
+              ],
+              "patch": 14,
+              "camera": [
+                37.5,
+                84.88,
+                220.5
+              ],
+              "yaw": 45.0,
+              "pitch": 10.0
+            }
+          ]
+        },
+        {
+          "type": 7,
+          "sharePercent": 6.9,
+          "distinctness": 0.35200000000000004,
+          "dominant": {
+            "notableId": "minecraft:coal_ore",
+            "biome": "adventure:chalk_cliffs"
+          },
+          "numbers": {
+            "presence": 0.97,
+            "height": 163.99,
+            "relief4": 1.11,
+            "relief16": 34.25,
+            "trees": 0.0,
+            "notable": 1.35,
+            "caveAir": 0.12,
+            "caveFluid": 0.0,
+            "cave": 0.52
+          },
+          "description": "6.9% of cells; notableId coal_ore; biome adventure:chalk_cliffs; height 164; relief over 16 blocks 34.3 (layer 14.6); notable-block density (log) 1.3 (layer 0.4); cave air 12% (layer 5%); cave pockets 52% (layer 16%)",
+          "coordinates": [
+            {
+              "cell": [
+                -136,
+                -328
+              ],
+              "patch": 24,
+              "camera": [
+                -141.5,
+                161.88,
+                -321.5
+              ],
+              "yaw": 202.5,
+              "pitch": 10.0
+            },
+            {
+              "cell": [
+                -136,
+                -312
+              ],
+              "patch": 24,
+              "camera": [
+                -138.5,
+                71.88,
+                -308.5
+              ],
+              "yaw": 270.0,
+              "pitch": 10.0
+            }
+          ]
+        },
+        {
+          "type": 8,
+          "sharePercent": 5.2,
+          "distinctness": 0.353,
+          "dominant": {
+            "notableId": "minecraft:blackstone",
+            "biome": "adventure:umbral_wastes"
+          },
+          "numbers": {
+            "presence": 0.67,
+            "height": 168.05,
+            "relief4": 1.75,
+            "relief16": 24.44,
+            "trees": 0.0,
+            "notable": 0.34,
+            "caveAir": 0.03,
+            "caveFluid": 0.0,
+            "cave": 0.06
+          },
+          "description": "5.2% of cells; notableId blackstone; biome adventure:umbral_wastes; height 168; layer present in 67% (layer 95%); relief over 16 blocks 24.4 (layer 14.6)",
+          "coordinates": [
+            {
+              "cell": [
+                184,
+                -280
+              ],
+              "patch": 25,
+              "camera": [
+                185.5,
+                150.88,
+                -281.5
+              ],
+              "yaw": 67.5,
+              "pitch": 10.0
+            },
+            {
+              "cell": [
+                24,
+                -296
+              ],
+              "patch": 0,
+              "camera": [
+                24.5,
+                100.88,
+                -293.5
+              ],
+              "yaw": 45.0,
+              "pitch": 10.0
+            }
+          ]
+        }
+      ],
+      "landmarks": [
+        {
+          "cell": [
+            -120,
+            -344
+          ],
+          "patch": 24,
+          "camera": [
+            -126.5,
+            106.88,
+            -347.5
+          ],
+          "yaw": 292.5,
+          "pitch": 10.0,
+          "distanceToType": 0.52,
+          "nearestType": 7,
+          "description": "notableId calcite (type coal_ore); relief over 16 blocks 95.0 (type 19.0); cave air 40% (type 5%); notable-block density (log) 2.2 (type 0.9)"
+        },
+        {
+          "cell": [
+            8,
+            -296
+          ],
+          "patch": 0,
+          "camera": [
+            9.5,
+            55.88,
+            -300.5
+          ],
+          "yaw": 337.5,
+          "pitch": 10.0,
+          "distanceToType": 0.4,
+          "nearestType": 7,
+          "description": "notableId calcite (type coal_ore); relief over 16 blocks 65.0 (type 19.0); cave air 18% (type 5%); layer present in 82% (type 100%)"
+        },
+        {
+          "cell": [
+            24,
+            136
+          ],
+          "patch": 30,
+          "camera": [
+            29.5,
+            80.88,
+            141.5
+          ],
+          "yaw": 292.5,
+          "pitch": 10.0,
+          "distanceToType": 0.38,
+          "nearestType": 6,
+          "description": "biome adventure:sky_highlands (type deep_ocean); cave liquid 1% (type 0%); relief over 16 blocks 84.0 (type 1.0); neighbour step 2.8 (type 0.1)"
+        },
+        {
+          "cell": [
+            56,
+            -40
+          ],
+          "patch": 8,
+          "camera": [
+            56.5,
+            15.88,
+            -39.5
+          ],
+          "yaw": 135.0,
+          "pitch": 10.0,
+          "distanceToType": 0.35,
+          "nearestType": 4,
+          "description": "notableId tuff_bricks (type coal_ore); cave air 56% (type 3%); notable-block density (log) 2.0 (type 0.3); cave pockets 75% (type 11%)"
+        },
+        {
+          "cell": [
+            296,
+            -200
+          ],
+          "patch": 27,
+          "distanceToType": 0.35,
+          "nearestType": 1,
+          "description": "notableId obsidian (type coal_ore); height 256.0 (type 109.0); relief over 16 blocks 45.0 (type 5.0); neighbour step 2.2 (type 0.2)"
+        }
+      ]
+    },
+    "roof": {
+      "cells": 0,
+      "types": [],
+      "landmarks": []
+    },
+    "vista": {
+      "summit": [
+        312,
+        255,
+        -272
+      ],
+      "lookAt": [
+        472,
+        -64,
+        -272
+      ],
+      "note": "the coarse map\u0027s highest land cell and the point 160 blocks off in the direction of its largest drop"
+    }
+  },
+  "timingsMillis": {
+    "coarse": 1203,
+    "patches": 25017,
+    "scanAndAnalyse": 4570,
+    "census": 3,
+    "dossier": 445,
+    "total": 31268
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512,
+    "surveyed": 512
+  },
+  "placeness": {
+    "note": "over the coarse map (8-block cells, 128 a side); regions are 4-connected cells of one surface biome or one landform class; edge cells lie within 64 blocks of a region boundary; correlation length is the semivariogram range (95% of the variance) along x and z",
+    "biomesPercent": {
+      "minecraft:deep_cold_ocean": 13.7,
+      "adventure:sky_highlands": 13.0,
+      "minecraft:deep_ocean": 9.2,
+      "adventure:chalk_cliffs": 6.4,
+      "adventure:umbral_wastes": 5.7
+    },
+    "biomeRegions": {
+      "count": 60,
+      "perKm2": 5.7,
+      "specksPercent": 0.5,
+      "major": 6,
+      "medianHa": 0.01,
+      "largestHa": 14.3,
+      "largestPercent": 13.7,
+      "top3Percent": 35.6,
+      "areaWeightedMeanHa": 10.7,
+      "edgeKmPerKm2": 12.72,
+      "nearEdgePercent": 43.0
+    },
+    "landformRegions": {
+      "count": 197,
+      "perKm2": 10.5,
+      "specksPercent": 15.4,
+      "major": 11,
+      "medianHa": 0.02,
+      "largestHa": 50.5,
+      "largestPercent": 48.2,
+      "top3Percent": 73.1,
+      "areaWeightedMeanHa": 29.6,
+      "edgeKmPerKm2": 20.0,
+      "nearEdgePercent": 47.7
+    },
+    "landBiomeRegions": {
+      "note": "regions of one biome over land cells outside a sea biome; shares and densities are of those cells, and only a boundary between two of them is an edge",
+      "landPercent": 25.0,
+      "biomesPercent": {
+        "adventure:sky_highlands": 51.9,
+        "adventure:chalk_cliffs": 25.5,
+        "adventure:umbral_wastes": 22.6
+      },
+      "count": 10,
+      "perKm2": 15.2,
+      "specksPercent": 0.9,
+      "major": 4,
+      "medianHa": 0.04,
+      "largestHa": 13.6,
+      "largestPercent": 51.7,
+      "top3Percent": 93.0,
+      "areaWeightedMeanHa": 9.4,
+      "edgeKmPerKm2": 2.62,
+      "nearEdgePercent": 35.2
+    },
+    "correlationLength": {
+      "surfaceHeight": {
+        "blocks": 288,
+        "beyond": false,
+        "sd": 47.1,
+        "semivariance256Percent": 90.1
+      },
+      "continentalness": {
+        "blocks": 336,
+        "beyond": false,
+        "sd": 0.6,
+        "semivariance256Percent": 90.8
+      }
+    },
+    "dominant": {
+      "biomePercent": 13.7,
+      "biomeTop3Percent": 35.6,
+      "landformPercent": 48.2,
+      "landformTop3Percent": 73.1,
+      "percent": 48.2,
+      "biome": "minecraft:deep_cold_ocean",
+      "landform": "void"
+    },
+    "at": {
+      "centre": {
+        "x": 0,
+        "z": 0,
+        "biome": "minecraft:deep_cold_ocean",
+        "biomeRegionPercent": 13.7,
+        "landform": "water",
+        "landformRegionPercent": 21.8,
+        "biomeEdgeBlocks": 56,
+        "heightAboveMedianBlocks": 0.0
+      },
+      "spawn": {
+        "x": 64,
+        "z": -192,
+        "biome": "minecraft:deep_cold_ocean",
+        "biomeRegionPercent": 13.7,
+        "landform": "water",
+        "landformRegionPercent": 21.8,
+        "biomeEdgeBlocks": 48,
+        "heightAboveMedianBlocks": 0.0
+      }
+    },
+    "islands": {
+      "note": "4-connected land cells of the coarse map (8-block cells), specks included; dominantBiomePercent is the area-weighted mean share of each island\u0027s land in its own commonest biome",
+      "count": 1,
+      "sizesHa": {
+        "p50": 50.3,
+        "p90": 50.3,
+        "max": 50.3
+      },
+      "dominantBiomePercent": 28.6
+    },
+    "voidBiomesPercent": {
+      "adventure:sky_highlands": 55.4,
+      "adventure:umbral_wastes": 23.3,
+      "adventure:chalk_cliffs": 21.0,
+      "minecraft:deep_ocean": 0.2,
+      "minecraft:deep_cold_ocean": 0.2
+    }
+  },
+  "layerMaps": {
+    "layout": "patches tiled in plan order, 2 px a block, 2 px gaps; the legend is in the dossier",
+    "top.png": "top surface, black 13.0 to white 253.0",
+    "second.png": "second surface below the top, same scale; black where none",
+    "classes.png": "void black, roofed violet, stacked orange, overhang red, cave blue, single green",
+    "biomes.png": "surface biome in the render\u0027s palette",
+    "slices": [
+      "slice_98.png",
+      "slice_126.png",
+      "slice_144.png",
+      "slice_271.png"
+    ],
+    "slicesLegend": "air white, terrain grey, liquid blue, plants light green, wood and leaves dark green",
+    "landforms.png": "one pixel a coarse cell (8 blocks): plains, hills, mountains, plateaus, basins, islands, water, void in that order of colour #9acd6a #c8b45a #8c6e50 #d2a46e #5a8c8c #e6d27a #2f6fd6 #000000"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "type": "adventure:places_four",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "customdimensions:zoned",
+      "base": {
+        "type": "minecraft:multi_noise",
+        "biomes": [
+          {
+            "biome": "minecraft:plains",
+            "parameters": {
+              "temperature": [-2.0, -0.5],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-0.19, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:forest",
+            "parameters": {
+              "temperature": [-0.5, 0.0],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-0.19, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:desert",
+            "parameters": {
+              "temperature": [0.0, 0.5],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-0.19, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:snowy_plains",
+            "parameters": {
+              "temperature": [0.5, 2.0],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-0.19, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:ocean",
+            "parameters": {
+              "temperature": [-2.0, -0.5],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, -0.19],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:ocean",
+            "parameters": {
+              "temperature": [-0.5, 0.0],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, -0.19],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:ocean",
+            "parameters": {
+              "temperature": [0.0, 0.5],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, -0.19],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:ocean",
+            "parameters": {
+              "temperature": [0.5, 2.0],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, -0.19],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          }
+        ]
+      },
+      "regions": {
+        "axes": [
+          "temperature",
+          "humidity"
+        ],
+        "areas": [
+          {
+            "role": "land",
+            "continentalness": [-0.19, 2.0],
+            "columns": [-0.5, 0.0, 0.5]
+          },
+          {
+            "role": "ocean",
+            "continentalness": [-2.0, -0.19],
+            "columns": [-0.5, 0.0, 0.5]
+          }
+        ],
+        "radius": 1024,
+        "places": true
+      }
+    },
+    "settings": "adventure:places_four"
+  }
+}

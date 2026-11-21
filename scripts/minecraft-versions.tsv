@@ -1,0 +1,13 @@
+# Per-version facts for the version named in .minecraft-version.
+# Read by mc_version_field (scripts/lib.sh), scripts/minecraft_version.py and
+# the workflows through them. Columns are separated by whitespace.
+#   java      the Java release the server image and Gradle builds run
+#   image     the itzg/minecraft-server tag; docker-compose.yml's MC_IMAGE_TAG
+#             fallback carries the 1.21.1 row's tag (test_minecraft_version.py
+#             holds them equal)
+#   loader    the server's Fabric loader, exported as FABRIC_LOADER_VERSION;
+#             docker-compose.yml's fallback carries the 1.21.1 row's loader
+#   accepted  Modrinth game versions a pin may target, best first
+# version  java  image              loader  accepted
+1.21.1     21    2026.7.0-java21    0.19.5  1.21.1,1.21
+26.3       25    2026.10.0-java25   0.20.1  26.3

@@ -1,0 +1,77 @@
+{
+ "slug": "the_verdant_hollow",
+ "targets": [
+  {
+   "key": "placeness.biomeRegions.top3Percent",
+   "op": ">=",
+   "value": 35.7,
+   "from": "meeting: \"broad green valleys\" (measured 39.7)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:alpine_meadow",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:bioshroom_caves",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:lavender_fields",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:magnolia_woodland",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:nether_grasslands",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:birch_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:flower_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:lush_caves",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:meadow",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:plains",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:windswept_hills",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  }
+ ]
+}

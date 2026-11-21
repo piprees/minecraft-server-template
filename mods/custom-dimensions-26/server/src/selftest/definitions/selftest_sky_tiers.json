@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: floating islands in two tiers 56 blocks apart with flat tops and a low spread, for the terrain section's sky tiers line.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "altitude": 120,
+      "coverage": 0.4,
+      "size": 2,
+      "spread": 4,
+      "flatness": 1,
+      "tiers": 2,
+      "tierSpacing": 56,
+      "tierGap": 20,
+      "tierShrink": 0.6,
+      "tierCoverage": 0.4
+    }
+  },
+  "borders": {
+    "player": 2048
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 2,
+  "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk — whoever built these, the swamp took them generations ago. Too wet for roads, too quiet for company. The marsh doesn't remember their names.",
+  "seed": -6114004761162740875,
+  "spawn": [
+    128,
+    64,
+    64
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    "minecraft:river",
+    "minecraft:beach",
+    {
+      "id": "adventure:bioshroom_caves",
+      "climate": {
+        "humidity": [
+          -2.0,
+          0.065
+        ],
+        "depth": [
+          0.2,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "humidity": [
+          0.065,
+          2.0
+        ],
+        "depth": [
+          0.2,
+          2.0
+        ]
+      }
+    },
+    "minecraft:old_growth_birch_forest",
+    "minecraft:dark_forest",
+    "adventure:orchid_marsh",
+    "minecraft:swamp",
+    "minecraft:mangrove_swamp",
+    "adventure:cypress_wetland"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:old_growth_birch_forest": 3,
+      "minecraft:dark_forest": 5,
+      "adventure:orchid_marsh": 12,
+      "minecraft:swamp": 52,
+      "minecraft:mangrove_swamp": 12,
+      "adventure:cypress_wetland": 16,
+      "minecraft:river": 2.4,
+      "minecraft:beach": 7.3
+    },
+    "places": {
+      "groups": {
+        "bayou": [
+          "adventure:cypress_wetland",
+          "minecraft:mangrove_swamp"
+        ],
+        "dark_fringe": [
+          "minecraft:dark_forest",
+          "minecraft:old_growth_birch_forest"
+        ]
+      },
+      "at": {
+        "minecraft:swamp": [
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "atmosphere": {
+    "fogColor": "#4B5B3B"
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.4
+  },
+  "structures": {
+    "density": "sparse",
+    "terrainAdaptation": {
+      "dungeons": "drain",
+      "loot": "drain"
+    },
+    "clearSpawnRadius": 80,
+    "force": [
+      {
+        "structure": "ati_structures:manor",
+        "x": -690,
+        "z": 730
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:mud",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "5A6B4A",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "adventure:orchid_marsh"
+    ],
+    "water": "high",
+    "wants": {
+      "mvs:small_swamp_house": "spread",
+      "nova_structures:surface_dungeon_swamp": "near_border",
+      "nova_structures:remnant_shrine_sentinel_mass_grave": "spread",
+      "nova_structures:remnant_graveyard": "spread",
+      "minecraft:abandoned_camp_forest": "spread",
+      "nova_structures:mangrove_witch_hut": "near_spawn"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "mansion",
+      "trial_chambers",
+      "monument",
+      "mss:arena"
+    ]
+  },
+  "terrain": {
+    "landShare": 0.85
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "base": "minecraft:end",
+  "changed": {
+    "material_rule": "adventure:the_end",
+    "noise_router": "sha1:2a0d3a60526de675957255e77f52ffb17bb28523"
+  }
+}

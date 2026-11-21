@@ -7,8 +7,10 @@ LABEL org.opencontainers.image.source=${REPO_URL} \
 
 RUN apk upgrade --no-cache
 
+COPY docker/kuma-init/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip setuptools \
- && pip install --no-cache-dir 'uptime-kuma-api==1.2.1'
+ && pip install --no-cache-dir -r /tmp/requirements.txt \
+ && rm /tmp/requirements.txt
 
 COPY scripts/kuma-provision.py /app/
 COPY scripts/kuma-maintenance.py /app/

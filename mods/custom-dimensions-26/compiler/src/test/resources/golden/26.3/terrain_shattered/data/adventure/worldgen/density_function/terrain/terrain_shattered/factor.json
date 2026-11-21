@@ -1,0 +1,9 @@
+{
+  "input": {
+    "alpha": 0.3,
+    "first": 7.0,
+    "second": 1.2,
+    "type": "minecraft:lerp"
+  },
+  "type": "minecraft:cache"
+}

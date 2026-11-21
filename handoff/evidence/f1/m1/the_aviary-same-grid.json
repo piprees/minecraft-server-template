@@ -1,0 +1,255 @@
+{
+  "kind": "fastrender",
+  "dimension": "the_aviary",
+  "seed": 7826077224469180302,
+  "seedSource": "level",
+  "radius": 4096,
+  "step": 8,
+  "side": 1024,
+  "centre": [
+    0,
+    0
+  ],
+  "pixel": "the column at the north-west corner of each step x step cell; north is up",
+  "surface": "OCEAN_FLOOR_WG: one above the top motion-blocking block; under a roof, one above the first motion-blocking block below the roof's underside",
+  "biomeY": "the surface height, clamped into the dimension (the generator's noise biome there)",
+  "seaLevel": 0,
+  "files": {
+    "biome": "fast-7826077224469180302-r4096-biome.png",
+    "height": "fast-7826077224469180302-r4096-height.png",
+    "hillshade": "fast-7826077224469180302-r4096-hillshade.png",
+    "map": "fast-7826077224469180302-r4096-map.png",
+    "tier1": "fast-7826077224469180302-r4096-tier1.png",
+    "tier2": "fast-7826077224469180302-r4096-tier2.png",
+    "structures": "fast-7826077224469180302-r4096-structures.png"
+  },
+  "timings": {
+    "prepare": 3,
+    "prescan": 1506,
+    "sample": 64082,
+    "structures": 2385,
+    "compare": 1312,
+    "images": 757,
+    "runs": 1,
+    "total": 70078,
+    "columns": 1048576,
+    "threads": 2,
+    "columnsPerSecond": 16363
+  },
+  "legend": {
+    "biomes": [
+      {
+        "id": "adventure:hanging_gardens",
+        "colour": "#d54cad",
+        "fixed": false,
+        "pixels": 517280
+      },
+      {
+        "id": "minecraft:cherry_grove",
+        "colour": "#f2a9c9",
+        "fixed": true,
+        "pixels": 106757
+      },
+      {
+        "id": "minecraft:meadow",
+        "colour": "#9ad06a",
+        "fixed": true,
+        "pixels": 81305
+      },
+      {
+        "id": "minecraft:snowy_slopes",
+        "colour": "#dce6f0",
+        "fixed": true,
+        "pixels": 76969
+      },
+      {
+        "id": "adventure:golden_skygrove",
+        "colour": "#4336e2",
+        "fixed": false,
+        "pixels": 55774
+      },
+      {
+        "id": "minecraft:dark_forest",
+        "colour": "#2f5a1e",
+        "fixed": true,
+        "pixels": 55048
+      },
+      {
+        "id": "adventure:wisteria_grove",
+        "colour": "#1fb644",
+        "fixed": false,
+        "pixels": 32316
+      },
+      {
+        "id": "adventure:windswept_isles",
+        "colour": "#88cb35",
+        "fixed": false,
+        "pixels": 27530
+      },
+      {
+        "id": "adventure:sky_highlands",
+        "colour": "#2dde59",
+        "fixed": false,
+        "pixels": 26847
+      },
+      {
+        "id": "minecraft:flower_forest",
+        "colour": "#7cb342",
+        "fixed": true,
+        "pixels": 23523
+      },
+      {
+        "id": "adventure:cloud_reef",
+        "colour": "#9c3349",
+        "fixed": false,
+        "pixels": 21569
+      },
+      {
+        "id": "minecraft:plains",
+        "colour": "#8db360",
+        "fixed": true,
+        "pixels": 11247
+      },
+      {
+        "id": "minecraft:birch_forest",
+        "colour": "#5fa85a",
+        "fixed": true,
+        "pixels": 8590
+      },
+      {
+        "id": "minecraft:forest",
+        "colour": "#3e8e2e",
+        "fixed": true,
+        "pixels": 3821
+      }
+    ],
+    "height": {
+      "lowest": 42,
+      "highest": 255,
+      "greyFrom": 120,
+      "greyTo": 254,
+      "grey": "60 at greyFrom to 230 at greyTo (the dry surface's 1st and 99th percentile), lit from the north-west",
+      "contourEvery": 16,
+      "water": "blue, darker by depth below sea level",
+      "lava": "#d8581c",
+      "empty": "#000000"
+    }
+  },
+  "fast": {
+    "stride": 8,
+    "threads": 2,
+    "tile": 16,
+    "columnsPerSecond": 16363,
+    "referenceColumnsPerSecond": 12506,
+    "speedup": 1.31,
+    "noiseRange": [
+      0,
+      255
+    ],
+    "scout": {
+      "cellXz": 4,
+      "cellY": 8,
+      "rule": "the final density on rows one interpolation cell apart (8 blocks when it is not interpolated); each cell whose rows differ in sign sampled block by block; a layer thinner than a cell between two rows is missed",
+      "scoutPointsPerColumn": 33.0,
+      "crossingsPerColumn": 1.4
+    },
+    "runs": {
+      "cap": 24,
+      "max": 7,
+      "mean": 0.7,
+      "atCap": 0,
+      "file": "fast-7826077224469180302-r4096-runs.bin.gz",
+      "format": "gzip members, big-endian: int magic 0x43445231, int side, int step, int x0, int z0, int minY, int noiseTop; then per pixel, rows north to south, west to east: u8 count, and per run topmost first i16 top, i16 bottom, u16 topBlock, u16 undersideBlock, u16 fluidBlock, i16 fluidLevel (block indices into palette, 65535 for none; fluidLevel is the block above the fluid's surface)"
+    },
+    "roofedShare": 0.0013,
+    "roofLayers": false,
+    "cut": {
+      "y": 203,
+      "rule": "the height open in the most roofed columns of a grid every 64 blocks",
+      "prescanColumns": 16384,
+      "prescanRoofed": 18
+    },
+    "tiers": [
+      1,
+      2
+    ],
+    "tierRule": "tierN shows run N+1 from the top, drawn when 0.02 of columns have it",
+    "fluids": "the level's global fluid picker (sea level, lava level, dry zones) at the lowest open block over each run; an aquifer's local water tables need a noise chunk and are not sampled",
+    "surfaceBlocks": "the level's compiled material rule at each run's top, and at a roof's underside",
+    "structures": {
+      "footprints": 19,
+      "rule": "starts from the level's placement state with its structure control (Sampler.starts), at most 64 of each structure, outlined by the start's bounding box",
+      "legend": {
+        "minecraft:abandoned_camp_birch_forest": "#26ff2f",
+        "minecraft:ruined_portal": "#6aff26",
+        "minecraft:abandoned_camp_cherry_grove": "#c0ff26",
+        "minecraft:igloo": "#ff26f9",
+        "minecraft:abandoned_camp_meadow": "#59ff26",
+        "minecraft:ruined_portal_mountain": "#ff2667",
+        "minecraft:pillager_outpost": "#7aff26",
+        "minecraft:village_plains": "#3bff26",
+        "minecraft:mansion": "#26ffde",
+        "minecraft:abandoned_camp_flower_forest": "#ff26f7"
+      }
+    },
+    "comparison": {
+      "spacing": 64,
+      "columns": 16384,
+      "heightsWithinOne": 0.9977,
+      "heightsExact": 0.9977,
+      "biomesEqual": 0.9985,
+      "fluidsEqual": 1.0,
+      "referenceMillis": 1310,
+      "examples": [
+        "0,3328: height 168 against 175, biome adventure:wisteria_grove against adventure:wisteria_grove",
+        "64,2560: height 168 against 174, biome minecraft:cherry_grove against minecraft:cherry_grove",
+        "128,-3968: height 152 against 159, biome adventure:golden_skygrove against adventure:golden_skygrove",
+        "-3840,-3392: height -64 against 151, biome adventure:hanging_gardens against minecraft:flower_forest",
+        "256,-3072: height 213 against 247, biome minecraft:snowy_slopes against adventure:hanging_gardens",
+        "512,2560: height 203 against 245, biome minecraft:cherry_grove against adventure:hanging_gardens",
+        "640,-3264: height 199 against 205, biome adventure:hanging_gardens against minecraft:snowy_slopes",
+        "-3456,-896: height 138 against 158, biome adventure:hanging_gardens against minecraft:dark_forest",
+        "-3264,-2944: height -64 against 135, biome adventure:hanging_gardens against minecraft:flower_forest",
+        "832,-704: height 168 against 175, biome adventure:sky_highlands against adventure:sky_highlands",
+        "896,3840: height 232 against 240, biome minecraft:cherry_grove against minecraft:cherry_grove",
+        "-3008,-1600: height 221 against 232, biome adventure:hanging_gardens against minecraft:dark_forest",
+        "-2944,704: height -64 against 211, biome adventure:hanging_gardens against adventure:cloud_reef",
+        "-2752,3648: height 127 against 134, biome adventure:hanging_gardens against minecraft:meadow",
+        "-2688,2944: height 144 against 150, biome minecraft:meadow against minecraft:meadow",
+        "-2688,3200: height 215 against 222, biome adventure:hanging_gardens against minecraft:meadow"
+      ]
+    },
+    "palette": [
+      {
+        "block": "minecraft:grass_block",
+        "state": "Block{minecraft:grass_block}[snowy=false]",
+        "mapColour": "#7fb238"
+      },
+      {
+        "block": "minecraft:stone",
+        "state": "Block{minecraft:stone}",
+        "mapColour": "#707070"
+      },
+      {
+        "block": "minecraft:snow_block",
+        "state": "Block{minecraft:snow_block}",
+        "mapColour": "#ffffff"
+      },
+      {
+        "block": "minecraft:powder_snow",
+        "state": "Block{minecraft:powder_snow}",
+        "mapColour": "#ffffff"
+      },
+      {
+        "block": "minecraft:calcite",
+        "state": "Block{minecraft:calcite}",
+        "mapColour": "#d1b1a1"
+      },
+      {
+        "block": "minecraft:dirt",
+        "state": "Block{minecraft:dirt}",
+        "mapColour": "#976d4d"
+      }
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+ "slug": "the_bloodroot_wastes",
+ "targets": [
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind one place with a fringe: the place is one region holding half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind one place: no scatter of biome specks"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:crimson_forest",
+   "op": ">=",
+   "value": 45,
+   "from": "\"Crimson root-country\": the crimson forest is the place"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:nether_wastes",
+   "op": "<=",
+   "value": 10,
+   "from": "\"crimson fungus at spawn\": the wastes are a fringe, not the country"
+  },
+  {
+   "key": "placeness.places.byPlace.minecraft:crimson_forest.landPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "one place with a fringe: the crimson forest place holds half the land"
+  },
+  {
+   "key": "placeness.places.landRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "places, not perlin: no scatter of place specks"
+  }
+ ]
+}

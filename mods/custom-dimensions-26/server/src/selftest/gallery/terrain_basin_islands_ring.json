@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: basin islands, extreme, their lake masses set round a ring 400 blocks out.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "basin_islands",
+    "setting": "extreme",
+    "layout": {
+      "type": "ring",
+      "radius": 400,
+      "falloff": 200,
+      "strength": 0.8
+    }
+  },
+  "borders": {
+    "player": 2048
+  }
+}

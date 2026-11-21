@@ -1,0 +1,19 @@
+pluginManagement {
+	repositories {
+		maven {
+			name = 'Fabric'
+			url = 'https://maven.fabricmc.net/'
+		}
+		mavenCentral()
+		gradlePluginPortal()
+	}
+	plugins {
+		id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	}
+}
+
+rootProject.name = 'custom-dimensions-26'
+
+// core: the model and its maths, no Minecraft. compiler: definitions to
+// datapack JSON, no Minecraft. server: the Fabric mod.
+include 'core', 'compiler', 'server'

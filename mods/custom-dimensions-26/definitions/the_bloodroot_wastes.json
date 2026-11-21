@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 2,
+  "description": "Crimson root-country — the piglins who survived the war retreated here. Forges and fungus in the red haze, a shadow of their former industry. They kept working, but the grandeur is gone.",
+  "seed": 3644296771794424049,
+  "spawn": [-64, 46, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    "minecraft:crimson_forest",
+    "adventure:upside_down_forest",
+    "adventure:crimson_pinewood",
+    "minecraft:nether_wastes",
+    "minecraft:basalt_deltas"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:crimson_forest": 50,
+      "adventure:upside_down_forest": 17,
+      "adventure:crimson_pinewood": 15,
+      "minecraft:nether_wastes": 10,
+      "minecraft:basalt_deltas": 8
+    },
+    "places": {
+      "groups": {
+        "inverted": [
+          "adventure:upside_down_forest",
+          "adventure:crimson_pinewood"
+        ],
+        "wastes": [
+          "minecraft:nether_wastes",
+          "minecraft:basalt_deltas"
+        ]
+      },
+      "arrangement": "core",
+      "warp": {
+        "blocks": 38,
+        "wavelength": 256
+      }
+    }
+  },
+  "atmosphere": {
+    "fogColor": "#5B1B1B"
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.4
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:crimson_nylium",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "C83B3B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "particleType": "minecraft:crimson_spore",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:crimson_forest",
+      "minecraft:nether_wastes"
+    ],
+    "wants": {
+      "mns:mega_fortress": "spread",
+      "mns:copper_tower": "spread"
+    },
+    "shuns": [
+      "mvs:large_warped_tower",
+      "mns:sword"
+    ]
+  },
+  "terrain": {
+    "scales": {
+      "climate": 1.8
+    }
+  },
+  "liquids": {
+    "seaLevel": 24
+  },
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [120, 90],
+      "radius": 56,
+      "blend": 16,
+      "edgeJitter": 24,
+      "biomes": [
+        "minecraft:nether_wastes"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [-330, -210],
+      "radius": 64,
+      "blend": 16,
+      "edgeJitter": 24,
+      "biomes": [
+        "minecraft:nether_wastes"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [260, -360],
+      "radius": 56,
+      "blend": 16,
+      "edgeJitter": 24,
+      "biomes": [
+        "minecraft:nether_wastes"
+      ]
+    },
+    {
+      "shape": "circle",
+      "centre": [-420, 330],
+      "radius": 60,
+      "blend": 16,
+      "edgeJitter": 24,
+      "biomes": [
+        "minecraft:nether_wastes"
+      ]
+    }
+  ],
+  "structures": {
+    "mode": "allow",
+    "list": [
+      "mns:medium_crimson_well",
+      "mns:mega_fortress"
+    ],
+    "wants": {
+      "nova_structures:piglin_camp": {
+        "min": 100,
+        "max": 800
+      }
+    },
+    "shuns": {
+      "mns:crimson_forge": {},
+      "mns:crimson_lava_well": {},
+      "mns:medium_crimson_fungus": {},
+      "nova_structures:piglin_camp_collony": {}
+    }
+  }
+}

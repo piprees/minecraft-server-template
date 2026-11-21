@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 2,
+  "description": "Outpost country gone feral. Pillager lookouts, bandit towers, campsites — the military infrastructure of a kingdom that collapsed. The soldiers stayed after the kingdom fell and became the threat they were meant to guard against. The gate half-collapses behind you; repair it, or leave by the frame at spawn.",
+  "seed": 7204464372174129177,
+  "spawn": [
+    -64,
+    57,
+    128
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    {
+      "id": "adventure:mineral_strata",
+      "climate": {
+        "humidity": [
+          -2.0,
+          -0.029
+        ],
+        "depth": [
+          0.2,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "humidity": [
+          -0.029,
+          2.0
+        ],
+        "depth": [
+          0.2,
+          2.0
+        ]
+      }
+    },
+    "minecraft:savanna_plateau",
+    "minecraft:savanna",
+    "minecraft:forest",
+    "adventure:prairie",
+    "minecraft:windswept_savanna",
+    "minecraft:wooded_badlands",
+    "adventure:parched_forest",
+    "adventure:baobab_savanna"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:savanna_plateau": 8,
+      "minecraft:savanna": 52,
+      "minecraft:forest": 5,
+      "adventure:prairie": 8,
+      "minecraft:windswept_savanna": 8,
+      "minecraft:wooded_badlands": 4,
+      "adventure:parched_forest": 5,
+      "adventure:baobab_savanna": 10
+    },
+    "places": {
+      "groups": {
+        "slopes": [
+          "minecraft:savanna_plateau",
+          "minecraft:windswept_savanna",
+          "minecraft:wooded_badlands"
+        ],
+        "golden_scrub": [
+          "adventure:baobab_savanna",
+          "adventure:prairie"
+        ],
+        "woods": [
+          "minecraft:forest",
+          "adventure:parched_forest"
+        ]
+      },
+      "at": {
+        "minecraft:savanna": [
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [
+        0,
+        0
+      ],
+      "radius": 120,
+      "blend": 16,
+      "biomes": [
+        "adventure:baobab_savanna"
+      ]
+    }
+  ],
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "density": "dense",
+    "force": [
+      {
+        "structure": "ati_structures:illager_tower",
+        "x": -240,
+        "z": 310,
+        "exclusive": false
+      },
+      {
+        "structure": "minecraft:pillager_outpost",
+        "x": -100,
+        "z": 150,
+        "exclusive": false
+      },
+      {
+        "structure": "nova_structures:illager_camp",
+        "x": 200,
+        "z": -140,
+        "exclusive": false
+      }
+    ],
+    "radial": {
+      "dungeons": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "endgame": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "noise": {
+      "endgame": "natural"
+    },
+    "rarity": {
+      "minecraft:pillager_outposts": "common"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": [
+        "minecraft:cobblestone",
+        "minecraft:stone_bricks"
+      ],
+      "igniterItem": "minecraft:crossbow",
+      "color": "6B8B5B",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "item.firecharge.use",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "framePlaceBlock": "minecraft:stone_bricks",
+      "particleType": "minecraft:ash",
+      "singleUse": {
+        "enabled": true,
+        "delaySeconds": 15,
+        "breakMode": "partial"
+      }
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "adventure:parched_forest",
+      "minecraft:windswept_savanna",
+      "adventure:baobab_savanna"
+    ],
+    "wants": {
+      "pillager_outpost": "near_spawn",
+      "mvs:small_pillager_tower": "spread",
+      "nova_structures:illager_camp": "near_spawn",
+      "ati_structures:nomadic_camp": "spread",
+      "nova_structures:illager_barracks": "near_border",
+      "ati_structures:old_fort": "near_border"
+    },
+    "shuns": [
+      "monument"
+    ]
+  },
+  "terrain": {
+    "landShare": 0.95
+  }
+}

@@ -1,0 +1,55 @@
+# W10t — kit gaps across the 61 dimensions
+
+Each gap: the dimensions that need it, the evidence (W9g b1 full dossiers unless marked W9b), and a one-line generic design. Ordered by how many dimensions wait on it.
+
+## Terrain and generator
+
+| # | Gap | Dimensions | Evidence | Generic design |
+| --- | --- | --- | --- | --- |
+| G1 | **Roofed terrain controls** (nether and caves presets refuse `terrain`) | Nether presets: the_nether, boneyard, buried_age, gilded_pit, molten_flats, ember_fields, forged_depths, furnace_halls, blackstone_keep, wailing_narrows, bloodroot_wastes, obsidian_sanctum; caves: fungal_lanterns, weeping_vault (12 + 2) | every Nether preset reads the vanilla Nether: `terrain.reliefMedian` 98–117, `terrain.slopes.cliffPercent` 22–30, `landforms.sharesPercent.basins` 7.5–9.1; flats, a pit, chasms, a sunken corridor and ledges are all asked for | a `roofed` terrain family on the vanilla Nether router: `floorHeight`, `floorRelief`, `roughness`, `ceilingGap`; feature terms reused from the land library (`canyons` cut into the floor, `erosion` basin floors, a `bowl` for a pit round a point); `zones` take it like any terrain |
+| G2 | **Region size on non-land presets** (`terrain.scales` refused with `terrain`) | all 12 Nether presets, 6 caves, 7 End presets | Nether presets: `placeness.biomeRegions.major` 15–31, largest 6.2–22.4 (only molten_flats, wailing_narrows reach a place or meeting) | allow `terrain.scales.climate` (and nothing else) on nether, caves and end presets: it stretches only the multi-noise climate the regions rank, no terrain |
+| G3 | **End biomes follow the islands** | end_citadel, pillared_void, fractured_halls, crumbling_reaches, blighted_maw, catalyst_maw, burning_archipelago | biomes laid over the void: end_highlands 60.5% void in end_citadel, umbral_wastes 100% void in crumbling_reaches, every biome in blighted_maw "mostly void" (`biomeExpression.expressed` 0); land regions 0.6–1.5% largest | on the end preset, rank regions over island cells only (the coarse grid sampled at the island density, like `ClimateRegions` ranks the border), or bind listed biomes to the End's own island classes (highlands, midlands, barrens, small islands) by erosion |
+| G4 | **End island shape** (height, coverage, peaks) | end_citadel (highlands), pillared_void (columns), fractured_halls (ridges), crumbling_reaches (shearing peaks), blighted_maw (tight cluster) | `terrain.surfaceHeight.p95` 64–71 and `landforms.sharesPercent.mountains` 0.0–0.3 in every End preset | an `end` terrain with `coverage` (island threshold), `islandHeight`, `peaks` (a ridges term on island tops) and `layout` (radial cluster) over `end/base_3d_noise`; or route those dimensions to `floating_islands` |
+| G5 | **End-preset materials** | blighted_maw, burning_archipelago, catalyst_maw (and any End-preset palette) | `materials.defaultBlock` netherrack, yet end_stone 11.5% / 24.4% of ground and netherrack 0.5% (burning_archipelago); the Nether library palettes do not show (cause unverified) | verify the end preset's material rule order: the definition's and listed library biomes' palettes must come before the End's end-stone fallback; a self-test line "End preset honours `materials.defaultBlock`" |
+| G6 | **Cave-world and cross-realm floors** (a preset's surface rule on another realm's biomes) | caves: underdark, weeping_vault, fungal_lanterns, luminous_caverns, sculked_beyond; overworld with Nether biomes: soulfields, teal_corruption, souldrift | grass_block is the commonest floor in weeping_vault 62.0, fungal_lanterns 36.6, underdark 27.5, soulfields 53.4, teal_corruption 53.7; crimson and warped forests on these presets grow no fungi ("features name trees, none") | a default palette per vanilla Nether biome when listed on a non-Nether preset (crimson_forest top crimson_nylium, warped_forest warped_nylium, soul_sand_valley soul_sand over soul_soil, nether_wastes netherrack, basalt_deltas basalt), and on the caves preset a sunless floor (moss or stone) in place of grass_block |
+| G7 | **Dry sea floors** (ocean role laid where no sea is) | dustbowl, soulfields, teal_corruption, ruined_timberland | dustbowl warm_ocean 30.5% at 99.9% land (`biomeExpression.biomes.minecraft:warm_ocean.placementPercent.land`); soulfields warm_ocean 22.8; teal_corruption 16.7; ruined_timberland ocean 60.2% with water 14.5% | when `liquids.seaLevel` lies under the land, the ocean role's area is land: the regions take land biomes there, or `biomeLayout.roles` gains `{"ocean": "land"}` |
+| G8 | **Land share inside a small border** | greywoods (ocean 39.5), lost_outpost (warm_ocean 42.2), wuthering_wisteria (20.2), miredeep (25.0), ashgrove (20.7), rosebluff (15.1), chalk_meadows (12.9), lantern_pools (27.6), whispering_wilds (29.5), souldrift (28.1), roothold (6.6), amplified_reaches (water 40.6, W9b), endless_expanse (34.5, W9b), overworld (43.3, W9b) | `surface.biomesPercent` oceans and `surface.fluidCoverPercent.water` | `terrain.landShare` (0–1): the compiler sets `coast` (or a radial layout's strength) so that share of the border is land, from the same 96 × 96 seed sampling regions use; tidepools uses it the other way round |
+| G9 | **Terrain on clones** | violet_spire, sunken_temple, abyssal_shrine, snowbound_isle | clones take only `liquids` and `materials` (README § Generators); all four read 89–96% land (`vertical.layerColumnsPercent.surface`) | a clone of a floating_islands generator takes `terrain` as its source preset would; otherwise un-clone (each route says which) |
+| G10 | **Shaped airborne masses** (one island, a cluster, a ring) | snowbound_isle (one island), blighted_maw (tight cluster), abyssal_shrine (ring round a hollow), starwell (a few islands), the_aviary (plateaus with sky between) | `surface.voidPercent` 4.5–13.1 on every floating_islands preset and clone | `terrain.layout` acts on airborne terrains as a coverage multiplier: radial raises coverage at the centre and drops it to 0 at the edge, ring along a circle |
+| G11 | **Basin and underside roles for sky islands** | sunken_temple, abyssal_shrine (basins), the_aviary, sunken_temple, shattered_skies (undersides: hanging_gardens) | sunken_temple hanging_gardens 25.5% of the surface; abyssal_shrine deep_ocean 71.3% on land | roles `basin` (listed ocean biomes inside `basin_islands` basins) and `underside` (a biome on island undersides below the top) |
+| G12 | **Spires out of void, sea or islands** | pillared_void, violet_spire, crumbling_reaches | pillared_void max height 78 with void 51.9; violet_spire cliffPercent 8.5 | `spires` with `floor: land, void, sea or islands`: columns rise from the world's bottom or a sea floor with nothing between them |
+| G13 | **Void biome sources** | icebound_rift, slatemouth, red_monument | void takes its first biome: icebound_rift nine listed biomes not found, slatemouth six (W9b) | `void` with `biomes` laid out as for noise (climate boxes or regions) over a multi-noise source, no blocks |
+| G14 | **Grid voids** | tiled_expanse | `surface.voidPercent` 0.1 for "a quartz-and-void expanse" (W9b) | checkerboard `voidBiomes`: a listed biome whose cells carry no terrain (final density -1 in those cells) |
+| G15 | **Material by depth** | forged_depths ("hotter and harder" deeper), blackstone_keep, wailing_narrows ("the deeper you go") | not measured | palette `deep` by y band (`materials.bands`: [y, block] pairs) and a biome bound to the low `climate.depth` band |
+
+## Library biomes (clean-room, ours to author)
+
+| Biome | Dimensions | What it carries |
+| --- | --- | --- |
+| crystal peaks (End realm) | fractured_halls, crumbling_reaches, pillared_void, end_citadel, violet_spire | amethyst and crying-obsidian spikes on end stone; today mapped to snowy `ice_starfield` (snow 14.1% in pillared_void) |
+| sculk wastes / sculk spread | catalyst_maw, souldrift, sculked_beyond, underdark, boneyard | sculk, veins and catalysts patching over another biome's ground |
+| bone reef | boneyard | giant bone ribs and blocks in soul sand (bone absent from the top ground blocks) |
+| mirage isles | starwell, sunken_temple, shattered_skies | pale sky-island grass and calcite; today mapped to `desert_oasis` (starwell sand 60.8%) |
+| moonlight grove | whispering_wilds, fractured_halls, greywoods, wuthering_wisteria, claymarsh, miredeep | night-lit pale grove (glow lichen, pale moss, blue light) |
+| cedar or fir forest | greywoods, whispering_wilds, snowbound_isle | dark conical conifers, low fog |
+| temperate rainforest | dripping_pines | moss on trunks and ground, ferns, rain |
+| ashen savanna | ashgrove, souldrift | ash-grey savanna ground with burnt acacia |
+| bayou / reed marsh | miredeep, claymarsh | shallow water with cypress knees, reed beds, clay |
+| rock pools | tidepools | rock shelves with shallow pools at sea level |
+| old-growth oak / willow | roothold | giant oaks with roots, willows over water |
+| frosted and salt caves | luminous_caverns | ice and pink salt cave walls |
+
+## Survey metrics wanted
+
+| Metric | Dimensions | Generic definition |
+| --- | --- | --- |
+| Border-wide structure census | overworld, furnace_halls, red_monument, canvas, soulfields, end_citadel, every "signature structure" | `structures.census.<id>`: count over the border, nearest distance to spawn, mean distance; from the structure-control placement, not the survey patches (W9g full dossiers list at most one structure: `structures` {} for end_citadel) |
+| Biomes over void columns | icebound_rift, slatemouth, red_monument | `placeness.voidBiomesPercent`: biome shares of void cells sampled at a fixed y (64) on the coarse map |
+| Island-level placeness | all End presets, floating islands, clones | `islands.count`, `islands.sizesHa` (p50, p90, max) and `islands.dominantBiomePercent` (mean share of each island's land in its own commonest biome): 4-connected land regions shrink to specks on islands (largest 0.6–1.5% on End presets) whatever the biome layout |
+| End-stone ground for End biomes | the_end, End presets | the expression flag "mostly bare rock" skips biomes whose surface rule lays end stone (W9b the_end: every biome "placed, not expressed") |
+| Spawn relief | gilded_pit ("the same ledge overlooking") | `placeness.at.spawn.heightAboveMedianBlocks`: spawn surface minus the border's median surface |
+| Ground by depth band | forged_depths | `surface.groundBlocksPercentByBand`: ground block shares in surface-height thirds |
+| Structure density by distance | soulfields ("thicken all the way to the edge") | `structures.census.<id>.byRing`: counts in five rings from spawn to the border |
+| Colour luminance | starwell, red_monument, pale_reach, obsidian_sanctum | `atmosphere.definitionAtmosphere.skyLuminance` and `fogLuminance` (0–1) so a "white" or "dark" sky can be a target |
+
+The targets for icebound_rift and slatemouth read `placeness.biomesPercent` for their biomes; whether the coarse map records a biome on void columns is unverified, and if not those two targets need `voidBiomesPercent`.

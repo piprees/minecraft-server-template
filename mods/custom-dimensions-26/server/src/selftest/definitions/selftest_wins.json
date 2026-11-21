@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: a flat gallery with one win for every trigger type.",
+  "seed": 3,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "flat",
+    "layers": [
+      {"block": "minecraft:bedrock", "height": 1},
+      {"block": "minecraft:grass_block", "height": 1}
+    ]
+  },
+  "borders": {
+    "player": 256
+  },
+  "wins": [
+    {"id": "arrive", "trigger": {"type": "enter"}, "title": "Arrived", "description": "Set foot in the gallery.", "frame": "task"},
+    {"id": "summit", "trigger": {"type": "reach", "pos": [40, -60, 40], "radius": 3}, "title": "Summit", "icon": "minecraft:spyglass", "message": "win.earned", "exit": "worldSpawn"},
+    {"id": "cull", "trigger": {"type": "kill", "entity": "minecraft:zombie", "count": 2}, "title": "Cull", "frame": "challenge"},
+    {"id": "hoard", "trigger": {"type": "obtain", "item": "minecraft:diamond", "count": 3}, "title": "Hoard"},
+    {"id": "endure", "trigger": {"type": "survive", "ticks": 40}, "title": "Endure"},
+    {"id": "first_steps", "trigger": {"type": "advancement", "advancement": "minecraft:story/root"}, "title": "First steps"}
+  ]
+}

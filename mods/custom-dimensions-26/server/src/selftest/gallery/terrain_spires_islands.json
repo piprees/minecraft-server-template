@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: spires on islands of their own over a void.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "spires",
+    "floor": "islands",
+    "params": {
+      "landHeight": 120
+    }
+  },
+  "borders": {
+    "player": 2048
+  }
+}

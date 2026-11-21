@@ -1,0 +1,579 @@
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=46155 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+
+> Configure project :server
+Fabric Loom: 1.19.3
+
+> Task :server:generateLog4jConfig UP-TO-DATE
+> Task :compiler:biomeLibraryIndex UP-TO-DATE
+> Task :server:generateDLIConfig UP-TO-DATE
+> Task :server:configureLaunch UP-TO-DATE
+> Task :compiler:processResources UP-TO-DATE
+> Task :compiler:vanillaData SKIPPED
+> Task :core:compileJava UP-TO-DATE
+> Task :core:processResources UP-TO-DATE
+> Task :core:classes UP-TO-DATE
+> Task :core:jar UP-TO-DATE
+> Task :compiler:compileJava UP-TO-DATE
+> Task :compiler:classes UP-TO-DATE
+> Task :compiler:jar UP-TO-DATE
+> Task :server:selfTestDefinitions
+> Task :server:compileJava UP-TO-DATE
+> Task :server:serverPack UP-TO-DATE
+> Task :server:processResources UP-TO-DATE
+> Task :server:classes UP-TO-DATE
+
+> Task :server:runServer
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=46155 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+[01:35:31] [main/INFO] (FabricLoader/GameProvider) Loading Minecraft 26.3 with Fabric Loader 0.20.1
+[01:35:31] [main/INFO] (FabricLoader/Mappings) Mappings not present!
+[01:35:31] [ForkJoinPool-1-worker-2/WARN] (FabricLoader/Metadata) The mod "openpartiesandclaims" contains invalid entries in its mod json:
+- Unsupported root entry "mixins_temp_disabled" at line 33 column 27
+[01:35:32] [main/WARN] (FabricLoader/Resolution) Warnings were found!
+ - Mod 'Forge Config API Port' (forgeconfigapiport) 26.3.1 recommends any version of modmenu, which is missing!
+	 - You should install any version of modmenu for the optimal experience.
+[01:35:32] [main/INFO] (FabricLoader) Loading 56 mods:
+	- customdimensions 0.1.0
+	- distanthorizons 3.3.4
+	- fabric-advancement-api-v1 1.0.1+38c7a2d55d
+	- fabric-api 0.164.0+26.3
+	- fabric-api-base 2.0.6+fcdff87f5d
+	- fabric-api-lookup-api-v1 2.0.24+3434d6d95d
+	- fabric-biome-api-v1 20.1.0+c6aa69a85d
+	- fabric-block-api-v1 3.1.0+0ae6f9115d
+	- fabric-block-getter-api-v2 2.0.9+3434d6d95d
+	- fabric-command-api-v2 3.1.2+fcdff87f5d
+	- fabric-content-registries-v0 15.0.6+74ed1ea55d
+	- fabric-convention-tags-v2 4.10.4+899e30535d
+	- fabric-crash-report-info-v1 1.0.7+fcdff87f5d
+	- fabric-creative-tab-api-v1 5.0.22+fcdff87f5d
+	- fabric-data-attachment-api-v1 2.2.32+b9b88df45d
+	- fabric-data-generation-api-v1 27.4.1+501c7ef55d
+	- fabric-debug-api-v1 1.0.5+5af7744b5d
+	- fabric-dimensions-v1 5.1.20+5af7744b5d
+	- fabric-entity-events-v1 6.0.4+3434d6d95d
+	- fabric-events-interaction-v0 5.3.8+b9b88df45d
+	- fabric-game-rule-api-v1 4.0.10+3434d6d95d
+	- fabric-gametest-api-v1 4.0.34+3434d6d95d
+	- fabric-item-api-v1 14.8.0+d1c0d72b5d
+	- fabric-lifecycle-events-v1 4.1.9+ffef5f675d
+	- fabric-loot-api-v3 4.0.9+4068fd645d
+	- fabric-menu-api-v1 2.0.29+ed66f0a35d
+	- fabric-message-api-v1 7.0.10+3434d6d95d
+	- fabric-networking-api-v1 6.3.10+5c1fee4d5d
+	- fabric-object-builder-api-v1 24.1.11+e2f63d3e5d
+	- fabric-particles-v1 5.0.26+3434d6d95d
+	- fabric-permission-api-v1 1.0.8+fcdff87f5d
+	- fabric-recipe-api-v1 10.0.10+b9b88df45d
+	- fabric-registry-sync-v0 8.0.3+1ca9f6365d
+	- fabric-rendering-fluids-v1 6.0.6+3434d6d95d
+	- fabric-resource-conditions-api-v1 6.2.0+0d124ae85d
+	- fabric-resource-loader-v0 3.3.27+4fc5413f5d
+	- fabric-resource-loader-v1 3.1.0+5af7744b5d
+	- fabric-serialization-api-v1 2.0.7+74ed1ea55d
+	- fabric-tag-api-v1 2.1.11+fcdff87f5d
+	- fabric-transfer-api-v1 8.0.25+fcdff87f5d
+	- fabric-transitive-access-wideners-v1 8.1.17+e2f63d3e5d
+	- fabricloader 0.20.1
+	- fantasy 0.8.4+26.3
+	- forgeconfigapiport 26.3.1
+	   |-- com_electronwill_night-config_core 3.8.4
+	   \-- com_electronwill_night-config_toml 3.8.4
+	- java 25
+	- minecraft 26.3
+	- mixinextras 0.5.5
+	- openpartiesandclaims 0.33.0
+	- polymer-blocks 0.18.4+26.3
+	- polymer-common 0.18.4+26.3
+	- polymer-core 0.18.4+26.3
+	- polymer-networking 0.18.4+26.3
+	- polymer-registry-sync-manipulator 0.18.4+26.3
+	- polymer-resource-pack 0.18.4+26.3
+[01:35:32] [main/INFO] (FabricLoader/Mixin) SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/root/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.17.5+mixin.0.8.7/cef8519a91129d0c21fa03bb9378f0e8ca810e5/sponge-mixin-0.17.5+mixin.0.8.7.jar Service=Knot/Fabric Env=SERVER
+[01:35:32] [main/WARN] (FabricLoader/Mixin) Reference map 'openpartiesandclaims.refmap.json' for openpartiesandclaims.mixins.json could not be read. If this is a development environment you can ignore this message
+[01:35:33] [main/INFO] (AbstractDhMixinPlugin) Apply DH mixin [com.seibel.distanthorizons.fabric.mixins.server.MixinChunkGenerator] -> [net.minecraft.world.level.chunk.ChunkGenerator]...
+[01:35:33] [main/INFO] (AbstractDhMixinPlugin) Apply DH mixin [com.seibel.distanthorizons.fabric.mixins.server.MixinChunkMap] -> [net.minecraft.server.level.ChunkMap]...
+[01:35:33] [main/INFO] (AbstractDhMixinPlugin) Apply DH mixin [com.seibel.distanthorizons.fabric.mixins.server.MixinEntity] -> [net.minecraft.world.entity.Entity]...
+[01:35:33] [main/INFO] (AbstractDhMixinPlugin) Apply DH mixin [com.seibel.distanthorizons.fabric.mixins.server.MixinServerPlayer] -> [net.minecraft.server.level.ServerPlayer]...
+[01:35:33] [main/INFO] (AbstractDhMixinPlugin) Apply DH mixin [com.seibel.distanthorizons.fabric.mixins.server.MixinTracingExecutor] -> [net.minecraft.TracingExecutor]...
+[01:35:33] [main/INFO] (AbstractDhMixinPlugin) Apply DH mixin [com.seibel.distanthorizons.fabric.mixins.server.MixinUtilBackgroundThread] -> [net.minecraft.util.Util]...
+[01:35:33] [main/INFO] (AbstractDhMixinPlugin) Apply DH mixin [com.seibel.distanthorizons.fabric.mixins.server.MixinLevelTicks] -> [net.minecraft.world.ticks.LevelTicks]...
+[01:35:33] [main/INFO] (FabricLoader/MixinExtras|Service) Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.5).
+[01:36:01] [main/INFO] (customdimensions) compiled 3411 files into /home/user/minecraft-server-template/mods/custom-dimensions-26/server/run/world/datapacks/customdimensions from the running game (jar:file:///home/user/minecraft-server-template/mods/custom-dimensions-26/.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-e686179c32/26.3/minecraft-merged-e686179c32-26.3.jar!/) in 18008 ms
+[01:36:01] [main/INFO] (customdimensions) portal tints: 48 of 48 tripwire states granted
+[01:36:01] [main/INFO] (customdimensions) Distant Horizons 3.3.4: LOD generation for every custom-dimensions level comes from its noise (no structures, features or carvers)
+[01:36:01] [main/INFO] (OpenPartiesAndClaims) Loading Open Parties and Claims!
+[01:36:01] [main/INFO] (AbstractModInitializer) Initializing Distant Horizons server, firing DhApiBeforeDhInitEvent event...
+[01:36:01] [main/INFO] (Initializer) Running library validation...
+[01:36:02] [main/INFO] (AbstractModInitializer) Distant Horizons, Version: 3.3.4
+[01:36:02] [main/INFO] (FabricServerProxy) Registering Fabric Server Events
+[01:36:02] [main/INFO] (AbstractModInitializer) Skipping mod compatibility accessor for: [starlight]
+[01:36:02] [main/INFO] (AbstractModInitializer) Skipping mod compatibility accessor for: [optifine]
+[01:36:02] [main/INFO] (AbstractModInitializer) Skipping mod compatibility accessor for: [bclib]
+[01:36:02] [main/INFO] (AbstractModInitializer) Skipping mod compatibility accessor for: [c2me]
+[01:36:02] [main/INFO] (AbstractModInitializer) Skipping mod compatibility accessor for: [imm_ptl_core, immersive_portals, immersive_portals_core]
+[01:36:02] [main/INFO] (AbstractModInitializer) Skipping mod compatibility accessor for: [chunky]
+[01:36:02] [main/INFO] (AbstractModInitializer) Skipping mod compatibility accessor for: [iris]
+[01:36:02] [main/INFO] (AbstractModInitializer) Distant Horizons server Initialized, adding event subscribers...
+[01:36:02] [main/INFO] (Minecraft) Environment: Environment[discoveryUrl=https://discovery.minecraftservices.com/minecraft/client, name=PROD]
+[01:36:02] [main/INFO] (Minecraft) Found new data pack file/customdimensions, loading it automatically
+[01:36:03] [Worker-Main-2/INFO] (Minecraft) No existing world data, creating new world
+[01:36:05] [Worker-Main-3/INFO] (Minecraft) Loaded 1873 advancements
+[01:36:06] [main/INFO] (BiomeModificationImpl) Applied 67 biome modifications to 67 of 149 new biomes in 592.2 ms
+[01:36:06] [Server thread/INFO] (ConfigHandler) Initialising config for [DistantHorizons]
+[01:36:06] [Server thread/INFO] (ConfigHandler) [DistantHorizons] Config initialised
+[01:36:06] [Server thread/INFO] (IgnoredDimensionCsvHandler) Dimension ignoring disabled, DH will render all dimensions.
+[01:36:06] [Server thread/INFO] (DhLogger) Applying config to loggers
+[01:36:06] [Server thread/INFO] (Initializer) Garbage collectors: [G1 Young Generation, G1 Concurrent GC, G1 Old Generation]
+[01:36:06] [Server thread/WARN] (Initializer) Distant Horizons: G1 Garbage collector detected.
+This can cause FPS stuttering. 
+It's recommended to use a concurrent garbage collector 
+like ZGC (Java 21+) or Shenandoah (Java 8 through 17) 
+for a smoother experience. 
+This warning can be disabled in the DH config.
+[01:36:06] [Server thread/INFO] (Initializer) Explicit Garbage Collection: [Enabled]
+[01:36:06] [Server thread/INFO] (AbstractModInitializer) Running Delayed setup...
+[01:36:06] [Server thread/INFO] (AbstractModInitializer) Delayed setup complete, firing DhApiAfterDhInitEvent event...
+[01:36:06] [Server thread/INFO] (SelfUpdater) Checking for Distant Horizons [STABLE] update for MC [26.3]...
+[01:36:07] [Server thread/INFO] (SelfUpdater) Distant Horizons already up to date.
+[01:36:07] [Server thread/INFO] (AbstractModInitializer) Distant Horizons server Initialized at 
+[01:36:07] [Server thread/INFO] (customdimensions) runtime registry: 8 compiled form(s) bound in place of their vanilla forms: [adventure:the_aviary, adventure:terrain/overworld/continents, adventure:terrain/selftest_biome_ashen_savanna/continents, adventure:terrain/selftest_biome_cedar_forest/continents, adventure:zones/selftest_stamps/1/mask, adventure:zones/selftest_stamps/2/mask, adventure:selftest_checker_void, minecraft:the_nether]
+[01:36:07] [Server thread/INFO] (customdimensions) firewall: worldgen mixins allowed: distanthorizons (LOD generation hook in ChunkGenerator: reads terrain, does not shape it)
+[01:36:07] [Server thread/INFO] (customdimensions) firewall: worldgen mixins allowed: fabric-biome-api-v1 (Fabric API: its worldgen hooks act only for mods that call them, and the biome check removes their additions)
+[01:36:07] [Server thread/INFO] (customdimensions) firewall: worldgen mixins allowed: fabric-dimensions-v1 (Fabric API: its worldgen hooks act only for mods that call them, and the biome check removes their additions)
+[01:36:07] [Server thread/INFO] (customdimensions) firewall: worldgen mixins allowed: fabric-gametest-api-v1 (Fabric API: its worldgen hooks act only for mods that call them, and the biome check removes their additions)
+[01:36:07] [Server thread/INFO] (customdimensions) firewall: worldgen mixins allowed: fabric-lifecycle-events-v1 (Fabric API: its worldgen hooks act only for mods that call them, and the biome check removes their additions)
+[01:36:07] [Server thread/INFO] (customdimensions) firewall: worldgen mixins allowed: fabric-registry-sync-v0 (Fabric API: its worldgen hooks act only for mods that call them, and the biome check removes their additions)
+[01:36:07] [Server thread/INFO] (customdimensions) firewall: worldgen mixins allowed: fantasy (runtime levels, nested in this mod (RB-10))
+[01:36:07] [Server thread/INFO] (customdimensions) firewall: 0 structure sets switched off (no reviewed bridge), 12 bridges
+[01:36:08] [Server thread/INFO] (customdimensions) zones read for 19 level(s)
+[01:36:08] [Server thread/INFO] (customdimensions) seeds: world 20261022; overworld 4705305050088502262, the_nether -6876984017876508741, the_end -1727347169663540530, the_aviary 7826077224469180302
+[01:36:08] [Server thread/INFO] (customdimensions) game rules: 1 level(s) hold values of their own
+[01:36:08] [Server thread/INFO] (AbstractDhWorld) Started [DhServerWorld] of type [SERVER_ONLY].
+[01:36:08] [Server thread/INFO] (Minecraft) Starting minecraft server version 26.3
+[01:36:08] [Server thread/INFO] (Minecraft) Loading properties
+[01:36:08] [Server thread/INFO] (Minecraft) Default game type: SURVIVAL
+[01:36:08] [Server thread/INFO] (Minecraft) Generating keypair
+[01:36:08] [Server thread/INFO] (Minecraft) Starting Minecraft server on *:25665
+[01:36:08] [Server thread/WARN] (Minecraft) **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[01:36:08] [Server thread/WARN] (Minecraft) The server will make no attempt to authenticate usernames. Beware.
+[01:36:08] [Server thread/WARN] (Minecraft) While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[01:36:08] [Server thread/WARN] (Minecraft) To change this, set "online-mode" to "true" in the server.properties file.
+[01:36:08] [Server thread/INFO] (Minecraft) Preparing level "world"
+[01:36:08] [Server thread/INFO] (OpenPartiesAndClaims) Initializing Open Parties and Claims for the server...
+[01:36:08] [Server thread/INFO] (OpenPartiesAndClaims) Loading server info!
+[01:36:08] [Server thread/INFO] (OpenPartiesAndClaims) Loading player configs...
+[01:36:08] [Server thread/INFO] (OpenPartiesAndClaims) Loaded player configs!
+[01:36:08] [Server thread/INFO] (OpenPartiesAndClaims) Loading parties...
+[01:36:08] [Server thread/INFO] (OpenPartiesAndClaims) Loaded parties!
+[01:36:08] [Server thread/INFO] (OpenPartiesAndClaims) Fixing party inconsistencies...
+[01:36:08] [Server thread/INFO] (OpenPartiesAndClaims) Registered party system for OPAC: default
+[01:36:08] [Server thread/WARN] (OpenPartiesAndClaims) The configured primary party system "argonauts_guilds" isn't registered!
+[01:36:08] [Server thread/INFO] (OpenPartiesAndClaims) Configured OPAC to use the following party system as primary: default
+[01:36:08] [Server thread/INFO] (OpenPartiesAndClaims) Loading claims...
+[01:36:08] [Server thread/INFO] (OpenPartiesAndClaims) Loaded claims in 0ms
+[01:36:08] [Server thread/WARN] (OpenPartiesAndClaims) The configured permission system "prometheus" isn't registered!
+[01:36:09] [Server thread/INFO] (customdimensions) land share: continentalness shifted by -0.0441 so 0.65 of a 8192-block radius is land (0.6500 measured) in 57 ms
+[01:36:09] [Server thread/WARN] (Minecraft) Compiling a MIN function between two non-overlapping inputs: UnaryFunction[type=SQUEEZE, input=BinaryFunction[type=MUL, left=LerpFunction[alpha=GradientFunction[axis=y, tiling=CLAMP_TO_EDGE, fromCoordinate=-64, toCoordinate=-40, fromValue=0.0, toValue=1.0], first=ConstantFunction[value=0.1171875], second=LerpFunction[alpha=GradientFunction[axis=y, tiling=CLAMP_TO_EDGE, fromCoordinate=240, toCoordinate=256, fromValue=1.0, toValue=0.0], first=ConstantFunction[value=-0.078125], second=RangeChoiceFunction[input=PreparedCache[id=11, range=[-Infinity; Infinity], domainAxes=7, cachingSampler=CachingDensitySampler[id=11, input=AddSampler[left=ConstMulSampler[left=LeakyReLUSampler[input=MulSampler[left=AddSampler[left=AddSampler[left=ClampedSampler[axis=y, fromCoordinate=-64, minCoordinate=-64, maxCoordinate=320, fromValue=1.5, coordinateFactor=-0.0078125], right=YSampler[input=CachingDensitySampler[id=8, input=YSampler[input=Sampler[alpha=ContextBoundSampler[key=<parameter minecraft:blender/alpha>, fallbackSampler=Sampler[value=1.0]], first=ContextBoundSampler[key=<parameter minecraft:blender/offset>, fallbackSampler=Sampler[value=0.0]], second=ConstAddSampler[left=net.minecraft.world.level.levelgen.densityfunction.op.SplineFunction$Sampler@21266933, right=-0.50375]], y=0]], y=0]], right=YSampler[input=CachingDensitySampler[id=12, input=YSampler[input=MulSampler[left=CachingDensitySampler[id=13, input=YSampler[input=ConstFirstSampler[alpha=ContextBoundSampler[key=<parameter minecraft:blender/alpha>, fallbackSampler=Sampler[value=1.0]], first=0.0, second=net.minecraft.world.level.levelgen.densityfunction.op.SplineFunction$Sampler@1064c169], y=0]], right=LeakyReLUSampler[input=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@102b0c20, xzScale=1500.0, yScale=0.0], negativeFactor=0.5]], y=0]], y=0]], right=YSampler[input=CachingDensitySampler[id=14, input=YSampler[input=ConstFirstSampler[alpha=ContextBoundSampler[key=<parameter minecraft:blender/alpha>, fallbackSampler=Sampler[value=1.0]], first=10.0, second=net.minecraft.world.level.levelgen.densityfunction.op.SplineFunction$Sampler@3d0ee722], y=0]], y=0]], negativeFactor=0.25], right=4.0], right=Sampler[alpha=Sampler[input=ConstAddSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$SmearedPerlin@795e2463, xzScale=2.1387875000000003, yScale=0.5346968750000001], right=0.5], min=0.0, max=1.0], first=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$SmearedPerlin@36b310e2, xzScale=171.103, yScale=85.5515], second=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$SmearedPerlin@7eb7c76d, xzScale=171.103, yScale=85.5515]]]]], minInclusive=-1000000.0, maxExclusive=1.5625, whenInRange=BinaryFunction[type=MIN, left=PreparedCache[id=11, range=[-Infinity; Infinity], domainAxes=7, cachingSampler=CachingDensitySampler[id=11, input=AddSampler[left=ConstMulSampler[left=LeakyReLUSampler[input=MulSampler[left=AddSampler[left=AddSampler[left=ClampedSampler[axis=y, fromCoordinate=-64, minCoordinate=-64, maxCoordinate=320, fromValue=1.5, coordinateFactor=-0.0078125], right=YSampler[input=CachingDensitySampler[id=8, input=YSampler[input=Sampler[alpha=ContextBoundSampler[key=<parameter minecraft:blender/alpha>, fallbackSampler=Sampler[value=1.0]], first=ContextBoundSampler[key=<parameter minecraft:blender/offset>, fallbackSampler=Sampler[value=0.0]], second=ConstAddSampler[left=net.minecraft.world.level.levelgen.densityfunction.op.SplineFunction$Sampler@21266933, right=-0.50375]], y=0]], y=0]], right=YSampler[input=CachingDensitySampler[id=12, input=YSampler[input=MulSampler[left=CachingDensitySampler[id=13, input=YSampler[input=ConstFirstSampler[alpha=ContextBoundSampler[key=<parameter minecraft:blender/alpha>, fallbackSampler=Sampler[value=1.0]], first=0.0, second=net.minecraft.world.level.levelgen.densityfunction.op.SplineFunction$Sampler@1064c169], y=0]], right=LeakyReLUSampler[input=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@102b0c20, xzScale=1500.0, yScale=0.0], negativeFactor=0.5]], y=0]], y=0]], right=YSampler[input=CachingDensitySampler[id=14, input=YSampler[input=ConstFirstSampler[alpha=ContextBoundSampler[key=<parameter minecraft:blender/alpha>, fallbackSampler=Sampler[value=1.0]], first=10.0, second=net.minecraft.world.level.levelgen.densityfunction.op.SplineFunction$Sampler@3d0ee722], y=0]], y=0]], negativeFactor=0.25], right=4.0], right=Sampler[alpha=Sampler[input=ConstAddSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$SmearedPerlin@795e2463, xzScale=2.1387875000000003, yScale=0.5346968750000001], right=0.5], min=0.0, max=1.0], first=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$SmearedPerlin@36b310e2, xzScale=171.103, yScale=85.5515], second=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$SmearedPerlin@7eb7c76d, xzScale=171.103, yScale=85.5515]]]]], right=BinaryFunction[type=MUL, left=PreparedCache[id=15, range=[-0.504351; 1.0687991], domainAxes=7, cachingSampler=CachingDensitySampler[id=15, input=MinSampler[left=AddSampler[left=ConstAddSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@7ae44725, xzScale=0.75, yScale=0.5], right=0.37], right=ClampedSampler[axis=y, fromCoordinate=-10, minCoordinate=-10, maxCoordinate=30, fromValue=0.3, coordinateFactor=-0.0075000003]], right=AddSampler[left=CachingDensitySampler[id=16, input=MulSampler[left=ConstAddSampler[left=ConstMulSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@22099ab7, xzScale=1.0, yScale=1.0], right=-0.05], right=-0.05], right=ConstAddSampler[left=AbsSampler[input=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@27e9ca3, xzScale=1.0, yScale=1.0]], right=-0.4]]], right=Sampler[input=AddSampler[left=MaxSampler[left=AbsSampler[input=Sampler[input=CachingDensitySampler[id=17, input=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@5a7b3ea6, xzScale=2.0, yScale=1.0]], thresholds=[F@3449cb7c, samplers=[Lnet.minecraft.world.level.levelgen.densityfunction.DensitySampler;@b45863d]], right=AbsSampler[input=Sampler[input=CachingDensitySampler[id=17, input=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@5a7b3ea6, xzScale=2.0, yScale=1.0]], thresholds=[F@7da88872, samplers=[Lnet.minecraft.world.level.levelgen.densityfunction.DensitySampler;@7ea5176f]], rightMaxValue=3.8215556], right=ConstAddSampler[left=ConstMulSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@44d21ec, xzScale=1.0, yScale=1.0], right=-0.011500001], right=-0.0765]], min=-1.0, max=1.0]], rightMinValue=-0.31835088]]], right=ConstantFunction[value=5.0]]], whenOutOfRange=BinaryFunction[type=MAX, left=BinaryFunction[type=MIN, left=BinaryFunction[type=MIN, left=BinaryFunction[type=ADD, left=BinaryFunction[type=MUL, left=UnaryFunction[type=SQUARE, input=NoiseFunction[noise=Reference{ResourceKey[minecraft:worldgen/noise / minecraft:cave_layer]=NormalNoise[parameters=Parameters[baseAmplitude=0.955388882960065, baseOctave=-8, octaveCount=1, normalize=ENABLED, amplitudeModifiers=[]]]}, xzScale=1.0, yScale=8.0, shiftX=ConstantFunction[value=0.0], shiftY=ConstantFunction[value=0.0], shiftZ=ConstantFunction[value=0.0]]], right=ConstantFunction[value=4.0]], right=BinaryFunction[type=ADD, left=ClampFunction[input=BinaryFunction[type=ADD, left=NoiseFunction[noise=Reference{ResourceKey[minecraft:worldgen/noise / minecraft:cave_cheese]=NormalNoise[parameters=Parameters[baseAmplitude=0.8361300524356068, baseOctave=-8, octaveCount=9, normalize=ENABLED, amplitudeModifiers=[0.5, 1.0, 2.0, 1.0, 2.0, 1.0, 0.0, 2.0, 0.0]]]}, xzScale=1.0, yScale=0.6666666666666666, shiftX=ConstantFunction[value=0.0], shiftY=ConstantFunction[value=0.0], shiftZ=ConstantFunction[value=0.0]], right=ConstantFunction[value=0.27]], min=-1.0, max=1.0], right=ClampFunction[input=BinaryFunction[type=ADD, left=BinaryFunction[type=MUL, left=PreparedCache[id=11, range=[-Infinity; Infinity], domainAxes=7, cachingSampler=CachingDensitySampler[id=11, input=AddSampler[left=ConstMulSampler[left=LeakyReLUSampler[input=MulSampler[left=AddSampler[left=AddSampler[left=ClampedSampler[axis=y, fromCoordinate=-64, minCoordinate=-64, maxCoordinate=320, fromValue=1.5, coordinateFactor=-0.0078125], right=YSampler[input=CachingDensitySampler[id=8, input=YSampler[input=Sampler[alpha=ContextBoundSampler[key=<parameter minecraft:blender/alpha>, fallbackSampler=Sampler[value=1.0]], first=ContextBoundSampler[key=<parameter minecraft:blender/offset>, fallbackSampler=Sampler[value=0.0]], second=ConstAddSampler[left=net.minecraft.world.level.levelgen.densityfunction.op.SplineFunction$Sampler@21266933, right=-0.50375]], y=0]], y=0]], right=YSampler[input=CachingDensitySampler[id=12, input=YSampler[input=MulSampler[left=CachingDensitySampler[id=13, input=YSampler[input=ConstFirstSampler[alpha=ContextBoundSampler[key=<parameter minecraft:blender/alpha>, fallbackSampler=Sampler[value=1.0]], first=0.0, second=net.minecraft.world.level.levelgen.densityfunction.op.SplineFunction$Sampler@1064c169], y=0]], right=LeakyReLUSampler[input=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@102b0c20, xzScale=1500.0, yScale=0.0], negativeFactor=0.5]], y=0]], y=0]], right=YSampler[input=CachingDensitySampler[id=14, input=YSampler[input=ConstFirstSampler[alpha=ContextBoundSampler[key=<parameter minecraft:blender/alpha>, fallbackSampler=Sampler[value=1.0]], first=10.0, second=net.minecraft.world.level.levelgen.densityfunction.op.SplineFunction$Sampler@3d0ee722], y=0]], y=0]], negativeFactor=0.25], right=4.0], right=Sampler[alpha=Sampler[input=ConstAddSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$SmearedPerlin@795e2463, xzScale=2.1387875000000003, yScale=0.5346968750000001], right=0.5], min=0.0, max=1.0], first=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$SmearedPerlin@36b310e2, xzScale=171.103, yScale=85.5515], second=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$SmearedPerlin@7eb7c76d, xzScale=171.103, yScale=85.5515]]]]], right=ConstantFunction[value=-0.64]], right=ConstantFunction[value=1.5]], min=0.0, max=0.5]]], right=PreparedCache[id=15, range=[-0.504351; 1.0687991], domainAxes=7, cachingSampler=CachingDensitySampler[id=15, input=MinSampler[left=AddSampler[left=ConstAddSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@7ae44725, xzScale=0.75, yScale=0.5], right=0.37], right=ClampedSampler[axis=y, fromCoordinate=-10, minCoordinate=-10, maxCoordinate=30, fromValue=0.3, coordinateFactor=-0.0075000003]], right=AddSampler[left=CachingDensitySampler[id=16, input=MulSampler[left=ConstAddSampler[left=ConstMulSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@22099ab7, xzScale=1.0, yScale=1.0], right=-0.05], right=-0.05], right=ConstAddSampler[left=AbsSampler[input=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@27e9ca3, xzScale=1.0, yScale=1.0]], right=-0.4]]], right=Sampler[input=AddSampler[left=MaxSampler[left=AbsSampler[input=Sampler[input=CachingDensitySampler[id=17, input=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@5a7b3ea6, xzScale=2.0, yScale=1.0]], thresholds=[F@3449cb7c, samplers=[Lnet.minecraft.world.level.levelgen.densityfunction.DensitySampler;@b45863d]], right=AbsSampler[input=Sampler[input=CachingDensitySampler[id=17, input=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@5a7b3ea6, xzScale=2.0, yScale=1.0]], thresholds=[F@7da88872, samplers=[Lnet.minecraft.world.level.levelgen.densityfunction.DensitySampler;@7ea5176f]], rightMaxValue=3.8215556], right=ConstAddSampler[left=ConstMulSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@44d21ec, xzScale=1.0, yScale=1.0], right=-0.011500001], right=-0.0765]], min=-1.0, max=1.0]], rightMinValue=-0.31835088]]]], right=BinaryFunction[type=ADD, left=ClampFunction[input=BinaryFunction[type=MAX, left=BinaryFunction[type=ADD, left=UnaryFunction[type=ABS, input=IntervalSelectFunction[input=NoiseFunction[noise=Reference{ResourceKey[minecraft:worldgen/noise / minecraft:spaghetti_2d_modulator]=NormalNoise[parameters=Parameters[baseAmplitude=0.955388882960065, baseOctave=-11, octaveCount=1, normalize=ENABLED, amplitudeModifiers=[]]]}, xzScale=2.0, yScale=1.0, shiftX=ConstantFunction[value=0.0], shiftY=ConstantFunction[value=0.0], shiftZ=ConstantFunction[value=0.0]], thresholds=[-0.75, -0.5, 0.5, 0.75], functions=[BinaryFunction[type=MUL, left=NoiseFunction[noise=Reference{ResourceKey[minecraft:worldgen/noise / minecraft:spaghetti_2d]=NormalNoise[parameters=Parameters[baseAmplitude=0.955388882960065, baseOctave=-7, octaveCount=1, normalize=ENABLED, amplitudeModifiers=[]]]}, xzScale=2.0, yScale=2.0, shiftX=ConstantFunction[value=0.0], shiftY=ConstantFunction[value=0.0], shiftZ=ConstantFunction[value=0.0]], right=ConstantFunction[value=0.5]], BinaryFunction[type=MUL, left=NoiseFunction[noise=Reference{ResourceKey[minecraft:worldgen/noise / minecraft:spaghetti_2d]=NormalNoise[parameters=Parameters[baseAmplitude=0.955388882960065, baseOctave=-7, octaveCount=1, normalize=ENABLED, amplitudeModifiers=[]]]}, xzScale=1.3333333333333333, yScale=1.3333333333333333, shiftX=ConstantFunction[value=0.0], shiftY=ConstantFunction[value=0.0], shiftZ=ConstantFunction[value=0.0]], right=ConstantFunction[value=0.75]], BinaryFunction[type=MUL, left=NoiseFunction[noise=Reference{ResourceKey[minecraft:worldgen/noise / minecraft:spaghetti_2d]=NormalNoise[parameters=Parameters[baseAmplitude=0.955388882960065, baseOctave=-7, octaveCount=1, normalize=ENABLED, amplitudeModifiers=[]]]}, xzScale=1.0, yScale=1.0, shiftX=ConstantFunction[value=0.0], shiftY=ConstantFunction[value=0.0], shiftZ=ConstantFunction[value=0.0]], right=ConstantFunction[value=1.0]], BinaryFunction[type=MUL, left=NoiseFunction[noise=Reference{ResourceKey[minecraft:worldgen/noise / minecraft:spaghetti_2d]=NormalNoise[parameters=Parameters[baseAmplitude=0.955388882960065, baseOctave=-7, octaveCount=1, normalize=ENABLED, amplitudeModifiers=[]]]}, xzScale=0.5, yScale=0.5, shiftX=ConstantFunction[value=0.0], shiftY=ConstantFunction[value=0.0], shiftZ=ConstantFunction[value=0.0]], right=ConstantFunction[value=2.0]], BinaryFunction[type=MUL, left=NoiseFunction[noise=Reference{ResourceKey[minecraft:worldgen/noise / minecraft:spaghetti_2d]=NormalNoise[parameters=Parameters[baseAmplitude=0.955388882960065, baseOctave=-7, octaveCount=1, normalize=ENABLED, amplitudeModifiers=[]]]}, xzScale=0.3333333333333333, yScale=0.3333333333333333, shiftX=ConstantFunction[value=0.0], shiftY=ConstantFunction[value=0.0], shiftZ=ConstantFunction[value=0.0]], right=ConstantFunction[value=3.0]]]]], right=BinaryFunction[type=MUL, left=PreparedCache[id=18, range=[-1.6187721; -0.28122783], domainAxes=7, cachingSampler=CachingDensitySampler[id=18, input=ConstAddSampler[left=ConstMulSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@3f4ac4fe, xzScale=2.0, yScale=1.0], right=-0.34999996], right=-0.95]]], right=ConstantFunction[value=0.083]]], right=UnaryFunction[type=CUBE, input=BinaryFunction[type=ADD, left=UnaryFunction[type=ABS, input=BinaryFunction[type=ADD, left=SliceFunction[axis=y, coordinate=0, input=PreparedCache[id=19, range=[-15.286222; 15.286222], domainAxes=5, cachingSampler=CachingDensitySampler[id=19, input=YSampler[input=ConstMulSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@76a3a50c, xzScale=1.0, yScale=0.0], right=8.0], y=0]]]], right=GradientFunction[axis=y, tiling=CLAMP_TO_EDGE, fromCoordinate=-64, toCoordinate=320, fromValue=8.0, toValue=-40.0]]], right=PreparedCache[id=18, range=[-1.6187721; -0.28122783], domainAxes=7, cachingSampler=CachingDensitySampler[id=18, input=ConstAddSampler[left=ConstMulSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@3f4ac4fe, xzScale=2.0, yScale=1.0], right=-0.34999996], right=-0.95]]]]]], min=-1.0, max=1.0], right=PreparedCache[id=16, range=[-0.21987695; 0.068799146], domainAxes=7, cachingSampler=CachingDensitySampler[id=16, input=MulSampler[left=ConstAddSampler[left=ConstMulSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@22099ab7, xzScale=1.0, yScale=1.0], right=-0.05], right=-0.05], right=ConstAddSampler[left=AbsSampler[input=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@27e9ca3, xzScale=1.0, yScale=1.0]], right=-0.4]]]]]], right=RangeChoiceFunction[input=PreparedCache[id=20, range=[-27.526545; 19.320286], domainAxes=7, cachingSampler=CachingDensitySampler[id=20, input=MulSampler[left=AddSampler[left=ConstMulSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@24cbcd07, xzScale=25.0, yScale=0.3], right=2.0], right=ConstAddSampler[left=ConstMulSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@5a1bb4e7, xzScale=1.0, yScale=1.0], right=-1.0], right=-1.0]], right=CubeSampler[input=ConstAddSampler[left=ConstMulSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@6f086bf0, xzScale=1.0, yScale=1.0], right=0.55], right=0.55]]]]], minInclusive=-1000000.0, maxExclusive=0.03, whenInRange=ConstantFunction[value=-1000000.0], whenOutOfRange=PreparedCache[id=20, range=[-27.526545; 19.320286], domainAxes=7, cachingSampler=CachingDensitySampler[id=20, input=MulSampler[left=AddSampler[left=ConstMulSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@24cbcd07, xzScale=25.0, yScale=0.3], right=2.0], right=ConstAddSampler[left=ConstMulSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@5a1bb4e7, xzScale=1.0, yScale=1.0], right=-1.0], right=-1.0]], right=CubeSampler[input=ConstAddSampler[left=ConstMulSampler[left=Sampler[noise=net.minecraft.world.level.levelgen.synth.NoiseStack$Perlin@6f086bf0, xzScale=1.0, yScale=1.0], right=0.55], right=0.55]]]]]]]]]], right=ConstantFunction[value=0.64]]] ([-0.45833334; 0.45833334]) and ConstantFunction[value=64.0] ([64.0; 64.0])
+Nov 14, 2026 1:36:09 AM com.customdimensions.core.Log log
+INFO: Loaded 426 structure-set classifications
+Nov 14, 2026 1:36:09 AM com.customdimensions.core.Log log
+INFO: Auto-classified structure set minecraft:abandoned_camp as group=deco rarity=uncommon (spacing 37) — add it to overlay/config/structure_themes.json to classify it yourself
+[01:36:09] [Server thread/INFO] (customdimensions) structure control applied to minecraft:overworld: density normal, 9 set(s) kept, 0 dropped [], 0 replaced, groups {deco=161, dungeons=27, landmarks=21, maritime=26, settlements=35, endgame=6}, 0 fixed start(s), 0 adaptation override(s), 897 ms (sets 169 ms, noise sites 727 ms)
+[01:36:10] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0010-sqlite-createInitialDataTables.sql], for repo: [./world/dimensions/minecraft/overworld/data/DistantHorizons.sqlite]
+[01:36:10] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0020-sqlite-createFullDataSourceV2Tables.sql], for repo: [./world/dimensions/minecraft/overworld/data/DistantHorizons.sqlite]
+[01:36:10] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0030-sqlite-changeTableJournaling.sql], for repo: [./world/dimensions/minecraft/overworld/data/DistantHorizons.sqlite]
+[01:36:10] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0031-sqlite-useSqliteWalJournaling.sql], for repo: [./world/dimensions/minecraft/overworld/data/DistantHorizons.sqlite]
+[01:36:10] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0040-sqlite-removeRenderCache.sql], for repo: [./world/dimensions/minecraft/overworld/data/DistantHorizons.sqlite]
+[01:36:10] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0050-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/minecraft/overworld/data/DistantHorizons.sqlite]
+[01:36:10] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0060-sqlite-createChunkHashTable.sql], for repo: [./world/dimensions/minecraft/overworld/data/DistantHorizons.sqlite]
+[01:36:10] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0070-sqlite-createBeaconBeamTable.sql], for repo: [./world/dimensions/minecraft/overworld/data/DistantHorizons.sqlite]
+[01:36:10] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0080-sqlite-addApplyToChildrenColumn.sql], for repo: [./world/dimensions/minecraft/overworld/data/DistantHorizons.sqlite]
+[01:36:10] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0090-sqlite-addAdjacentFullDataColumns.sql], for repo: [./world/dimensions/minecraft/overworld/data/DistantHorizons.sqlite]
+[01:36:10] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0100-sqlite-deleteLowDetailDataForRegen.sql], for repo: [./world/dimensions/minecraft/overworld/data/DistantHorizons.sqlite]
+[01:36:10] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0110-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/minecraft/overworld/data/DistantHorizons.sqlite]
+[01:36:10] [DH-Full Data Migration Thread[0]/INFO] (DataMigratorV1) No migration necessary.
+[01:36:10] [Server thread/INFO] (AbstractDhServerLevel) Started DhServerLevel for [Wrapped{ServerLevel[world]@minecraft:overworld}] at [[LocalSaveStructure@(./world/dimensions/minecraft/overworld/data)]].
+[01:36:10] [Server thread/INFO] (customdimensions) Distant Horizons LOD generator bound to minecraft:overworld
+[01:36:10] [Server thread/INFO] (Minecraft) Selecting global world spawn...
+[01:36:10] [DH-Request Module Ticker [minecraft:overworld] Thread[0]/INFO] (WorldGenerationQueue) Creating world gen queue
+[01:36:10] [DH-Request Module Ticker [minecraft:overworld] Thread[0]/INFO] (WorldGenerationQueue) Created world gen queue
+[01:36:10] [DH-Request Module Ticker [minecraft:overworld] Thread[0]/INFO] (GeneratedFullDataSourceProvider) Set world gen queue for level [minecraft:overworld].
+[01:36:15] [Server thread/INFO] (customdimensions) biome regions: measured [temperature, humidity] over a 4096-block radius from 9216 samples in 480 ms (land 3617, underside 3617, land 3617)
+[01:36:15] [Server thread/INFO] (customdimensions) structure control applied to adventure:the_aviary: density normal, 7 set(s) kept, 0 dropped [], 0 replaced, groups {deco=38, landmarks=5, dungeons=12, settlements=6}, 0 fixed start(s), 0 adaptation override(s), 560 ms (sets 497 ms, noise sites 63 ms)
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0010-sqlite-createInitialDataTables.sql], for repo: [./world/dimensions/adventure/the_aviary/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0020-sqlite-createFullDataSourceV2Tables.sql], for repo: [./world/dimensions/adventure/the_aviary/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0030-sqlite-changeTableJournaling.sql], for repo: [./world/dimensions/adventure/the_aviary/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0031-sqlite-useSqliteWalJournaling.sql], for repo: [./world/dimensions/adventure/the_aviary/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0040-sqlite-removeRenderCache.sql], for repo: [./world/dimensions/adventure/the_aviary/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0050-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/adventure/the_aviary/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0060-sqlite-createChunkHashTable.sql], for repo: [./world/dimensions/adventure/the_aviary/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0070-sqlite-createBeaconBeamTable.sql], for repo: [./world/dimensions/adventure/the_aviary/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0080-sqlite-addApplyToChildrenColumn.sql], for repo: [./world/dimensions/adventure/the_aviary/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0090-sqlite-addAdjacentFullDataColumns.sql], for repo: [./world/dimensions/adventure/the_aviary/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0100-sqlite-deleteLowDetailDataForRegen.sql], for repo: [./world/dimensions/adventure/the_aviary/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0110-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/adventure/the_aviary/data/DistantHorizons.sqlite]
+[01:36:15] [DH-Full Data Migration Thread[0]/INFO] (DataMigratorV1) No migration necessary.
+[01:36:15] [Server thread/INFO] (AbstractDhServerLevel) Started DhServerLevel for [Wrapped{ServerLevel[world]@adventure:the_aviary}] at [[LocalSaveStructure@(./world/dimensions/minecraft/overworld/data;./world/dimensions/adventure/the_aviary/data)]].
+[01:36:15] [Server thread/INFO] (customdimensions) Distant Horizons LOD generator bound to adventure:the_aviary
+[01:36:15] [Server thread/INFO] (customdimensions) biome regions: measured [temperature, humidity] over a 1024-block radius from 9216 samples in 141 ms
+[01:36:15] [Server thread/INFO] (customdimensions) structure control applied to minecraft:the_nether: density normal, 3 set(s) kept, 0 dropped [], 0 replaced, groups {dungeons=11, deco=4}, 0 fixed start(s), 0 adaptation override(s), 158 ms (sets 156 ms, noise sites 2 ms)
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0010-sqlite-createInitialDataTables.sql], for repo: [./world/dimensions/minecraft/the_nether/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0020-sqlite-createFullDataSourceV2Tables.sql], for repo: [./world/dimensions/minecraft/the_nether/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0030-sqlite-changeTableJournaling.sql], for repo: [./world/dimensions/minecraft/the_nether/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0031-sqlite-useSqliteWalJournaling.sql], for repo: [./world/dimensions/minecraft/the_nether/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0040-sqlite-removeRenderCache.sql], for repo: [./world/dimensions/minecraft/the_nether/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0050-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/minecraft/the_nether/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0060-sqlite-createChunkHashTable.sql], for repo: [./world/dimensions/minecraft/the_nether/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0070-sqlite-createBeaconBeamTable.sql], for repo: [./world/dimensions/minecraft/the_nether/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0080-sqlite-addApplyToChildrenColumn.sql], for repo: [./world/dimensions/minecraft/the_nether/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0090-sqlite-addAdjacentFullDataColumns.sql], for repo: [./world/dimensions/minecraft/the_nether/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0100-sqlite-deleteLowDetailDataForRegen.sql], for repo: [./world/dimensions/minecraft/the_nether/data/DistantHorizons.sqlite]
+[01:36:15] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0110-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/minecraft/the_nether/data/DistantHorizons.sqlite]
+[01:36:15] [DH-Full Data Migration Thread[0]/INFO] (DataMigratorV1) No migration necessary.
+[01:36:15] [Server thread/INFO] (AbstractDhServerLevel) Started DhServerLevel for [Wrapped{ServerLevel[world]@minecraft:the_nether}] at [[LocalSaveStructure@(./world/dimensions/minecraft/overworld/data;./world/dimensions/minecraft/the_nether/data;./world/dimensions/adventure/the_aviary/data)]].
+[01:36:15] [Server thread/INFO] (customdimensions) Distant Horizons LOD generator bound to minecraft:the_nether
+[01:36:15] [Server thread/INFO] (customdimensions) structure control applied to minecraft:the_end: density normal, 1 set(s) kept, 0 dropped [], 0 replaced, groups {dungeons=5}, 0 fixed start(s), 0 adaptation override(s), 61 ms (sets 1 ms, noise sites 59 ms)
+[01:36:16] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0010-sqlite-createInitialDataTables.sql], for repo: [./world/dimensions/minecraft/the_end/data/DistantHorizons.sqlite]
+[01:36:16] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0020-sqlite-createFullDataSourceV2Tables.sql], for repo: [./world/dimensions/minecraft/the_end/data/DistantHorizons.sqlite]
+[01:36:16] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0030-sqlite-changeTableJournaling.sql], for repo: [./world/dimensions/minecraft/the_end/data/DistantHorizons.sqlite]
+[01:36:16] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0031-sqlite-useSqliteWalJournaling.sql], for repo: [./world/dimensions/minecraft/the_end/data/DistantHorizons.sqlite]
+[01:36:16] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0040-sqlite-removeRenderCache.sql], for repo: [./world/dimensions/minecraft/the_end/data/DistantHorizons.sqlite]
+[01:36:16] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0050-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/minecraft/the_end/data/DistantHorizons.sqlite]
+[01:36:16] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0060-sqlite-createChunkHashTable.sql], for repo: [./world/dimensions/minecraft/the_end/data/DistantHorizons.sqlite]
+[01:36:16] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0070-sqlite-createBeaconBeamTable.sql], for repo: [./world/dimensions/minecraft/the_end/data/DistantHorizons.sqlite]
+[01:36:16] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0080-sqlite-addApplyToChildrenColumn.sql], for repo: [./world/dimensions/minecraft/the_end/data/DistantHorizons.sqlite]
+[01:36:16] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0090-sqlite-addAdjacentFullDataColumns.sql], for repo: [./world/dimensions/minecraft/the_end/data/DistantHorizons.sqlite]
+[01:36:16] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0100-sqlite-deleteLowDetailDataForRegen.sql], for repo: [./world/dimensions/minecraft/the_end/data/DistantHorizons.sqlite]
+[01:36:16] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0110-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/minecraft/the_end/data/DistantHorizons.sqlite]
+[01:36:16] [DH-Full Data Migration Thread[0]/INFO] (DataMigratorV1) No migration necessary.
+[01:36:16] [Server thread/INFO] (AbstractDhServerLevel) Started DhServerLevel for [Wrapped{ServerLevel[world]@minecraft:the_end}] at [[LocalSaveStructure@(./world/dimensions/minecraft/overworld/data;./world/dimensions/minecraft/the_end/data;./world/dimensions/minecraft/the_nether/data;./world/dimensions/adventure/the_aviary/data)]].
+[01:36:16] [DH-Request Module Ticker [adventure:the_aviary] Thread[0]/INFO] (WorldGenerationQueue) Creating world gen queue
+[01:36:16] [DH-Request Module Ticker [adventure:the_aviary] Thread[0]/INFO] (WorldGenerationQueue) Created world gen queue
+[01:36:16] [DH-Request Module Ticker [adventure:the_aviary] Thread[0]/INFO] (GeneratedFullDataSourceProvider) Set world gen queue for level [adventure:the_aviary].
+[01:36:16] [Server thread/INFO] (customdimensions) Distant Horizons LOD generator bound to minecraft:the_end
+[01:36:16] [Server thread/INFO] (Minecraft) Loading 0 persistent chunks...
+[01:36:16] [Server thread/INFO] (Minecraft) Preparing spawn area: 100%
+[01:36:16] [Server thread/INFO] (Minecraft) Time elapsed: 5785 ms
+[01:36:16] [Server thread/INFO] (Minecraft) Done (7.717s)! For help, type "help"
+[01:36:16] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[01:36:16] [DH-Request Module Ticker [minecraft:the_nether] Thread[0]/INFO] (WorldGenerationQueue) Creating world gen queue
+[01:36:16] [DH-Request Module Ticker [minecraft:the_nether] Thread[0]/INFO] (WorldGenerationQueue) Created world gen queue
+[01:36:16] [DH-Request Module Ticker [minecraft:the_nether] Thread[0]/INFO] (GeneratedFullDataSourceProvider) Set world gen queue for level [minecraft:the_nether].
+[01:36:16] [DH-Request Module Ticker [minecraft:the_end] Thread[0]/INFO] (WorldGenerationQueue) Creating world gen queue
+[01:36:16] [DH-Request Module Ticker [minecraft:the_end] Thread[0]/INFO] (WorldGenerationQueue) Created world gen queue
+[01:36:16] [DH-Request Module Ticker [minecraft:the_end] Thread[0]/INFO] (GeneratedFullDataSourceProvider) Set world gen queue for level [minecraft:the_end].
+[01:36:17] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[world]'/adventure:the_aviary
+[01:36:17] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[01:36:17] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[01:36:17] [Server thread/INFO] (customdimensions) level index: 204 lazy dimensions, 204 paired with a definition, in 100 ms; idle unload 5 min
+[01:36:17] [Server thread/INFO] (customdimensions) portal tints: off, the server offers no resource pack
+Nov 14, 2026 1:36:17 AM com.customdimensions.core.Log log
+WARNING: Dimension the_pale_reach: portal.anchor suppresses per-source return portals and there is no exitPortal — if the anchor arrival portal breaks, players are stranded until the next arrival rebuilds it. KEEPING the config as written; add an "exitPortal" block (never auto-fixed).
+[01:36:17] [Server thread/INFO] (customdimensions) portal catalogue: 82 portal definitions from 208 dimensions
+[01:36:17] [Server thread/INFO] (customdimensions) portal links: 0 zones, 0 return cells, 0 aura sites from ./world/./data/customdimensions/portal_links.json
+[01:36:17] [Server thread/INFO] (customdimensions) difficulty: 208 dimensions, 7 peaceful
+[01:37:01] [Server thread/WARN] (customdimensions) login: SelfTest was saved in customdimensions:selftest_not_open, which is not open; placing them at the world spawn
+[01:37:01] [Server thread/INFO] (customdimensions) land share: continentalness shifted by -0.0441 so 0.65 of a 8192-block radius is land (0.6500 measured) in 16 ms
+[01:37:01] [Server thread/WARN] (Minecraft) Can't keep up! Is the server overloaded? Running 44586ms or 891 ticks behind
+[01:37:06] [Server thread/INFO] (PregenManager) Generated radius: 2 / 32 chunks (0 cps, 0.4%), ETA: 0s
+[01:37:06] [DH-World Gen Thread[0]/INFO] (customdimensions) Distant Horizons LODs for minecraft:overworld come from customdimensions: first detail 0 request at 0,0 (1 requests so far)
+[01:37:08] [DH-World Gen Thread[1]/INFO] (PregenManager) Generated radius: 9 / 32 chunks (143 cps, 7.4%), ETA: 26s
+[01:37:10] [DH-World Gen Thread[1]/INFO] (PregenManager) Generated radius: 14 / 32 chunks (183 cps, 18%), ETA: 18s
+[01:37:12] [DH-World Gen Thread[0]/INFO] (PregenManager) Generated radius: 17 / 32 chunks (194 cps, 29%), ETA: 14s
+[01:37:14] [DH-World Gen Thread[1]/INFO] (PregenManager) Generated radius: 20 / 32 chunks (187 cps, 38%), ETA: 13s
+[01:37:16] [DH-World Gen Thread[1]/INFO] (PregenManager) Generated radius: 22 / 32 chunks (189 cps, 50%), ETA: 11s
+[01:37:18] [DH-World Gen Thread[0]/INFO] (PregenManager) Generated radius: 24.166 / 32 chunks (190 cps, 57%), ETA: 9s
+[01:37:20] [DH-World Gen Thread[1]/INFO] (PregenManager) Generated radius: 26 / 32 chunks (193 cps, 68%), ETA: 6s
+[01:37:22] [DH-World Gen Thread[1]/INFO] (PregenManager) Generated radius: 27.9 / 32 chunks (189 cps, 76%), ETA: 5s
+[01:37:24] [DH-World Gen Thread[0]/INFO] (PregenManager) Generated radius: 29 / 32 chunks (187 cps, 85%), ETA: 3s
+[01:37:26] [DH-World Gen Thread[1]/INFO] (PregenManager) Generated radius: 31.2 / 32 chunks (189 cps, 95%), ETA: 1s
+[01:37:38] [Server thread/WARN] (Minecraft) Can't keep up! Is the server overloaded? Running 3178ms or 63 ticks behind
+[01:37:51] [customdimensions-lod-selftest/INFO] (customdimensions) lod check overworld: 32 columns -> /home/user/minecraft-server-template/mods/custom-dimensions-26/server/run/lod-check-overworld.tsv
+[01:37:52] [Server thread/INFO] (PregenManager) Generated radius: 2 / 32 chunks (0 cps, 0.4%), ETA: 0s
+[01:37:52] [DH-World Gen Thread[1]/INFO] (customdimensions) Distant Horizons LODs for minecraft:the_nether come from customdimensions: first detail 0 request at 0,64 (2 requests so far)
+[01:37:54] [DH-World Gen Thread[1]/INFO] (PregenManager) Generated radius: 17 / 32 chunks (540 cps, 27.7%), ETA: 5s
+[01:37:56] [DH-World Gen Thread[1]/INFO] (PregenManager) Generated radius: 26 / 32 chunks (636 cps, 60%), ETA: 2s
+[01:37:58] [DH-World Gen Thread[1]/INFO] (PregenManager) Generated radius: 31 / 32 chunks (630 cps, 90%), ETA: 0s
+[01:38:14] [customdimensions-lod-selftest/INFO] (customdimensions) lod check the_nether: 32 columns -> /home/user/minecraft-server-template/mods/custom-dimensions-26/server/run/lod-check-the_nether.tsv
+[01:38:16] [Server thread/INFO] (PregenManager) Generated radius: 2 / 32 chunks (0 cps, 0.4%), ETA: 0s
+[01:38:16] [DH-World Gen Thread[0]/INFO] (customdimensions) Distant Horizons LODs for adventure:the_aviary come from customdimensions: first detail 0 request at 0,0 (1 requests so far)
+[01:38:18] [DH-World Gen Thread[1]/INFO] (PregenManager) Generated radius: 14 / 32 chunks (407 cps, 20.3%), ETA: 8s
+[01:38:20] [DH-World Gen Thread[1]/INFO] (PregenManager) Generated radius: 20 / 32 chunks (384 cps, 40%), ETA: 6s
+[01:38:22] [DH-World Gen Thread[1]/INFO] (PregenManager) Generated radius: 24 / 32 chunks (379 cps, 57%), ETA: 4s
+[01:38:24] [DH-World Gen Thread[1]/INFO] (PregenManager) Generated radius: 28 / 32 chunks (382 cps, 80%), ETA: 2s
+[01:38:26] [DH-World Gen Thread[0]/INFO] (PregenManager) Generated radius: 31 / 32 chunks (376 cps, 93%), ETA: 0s
+[01:38:32] [Worker-Main-3/WARN] (Minecraft) Empty height range: [6 above bottom--1 absolute]
+[01:38:47] [customdimensions-lod-selftest/INFO] (customdimensions) lod check the_aviary: 32 columns -> /home/user/minecraft-server-template/mods/custom-dimensions-26/server/run/lod-check-the_aviary.tsv
+[01:38:47] [Server thread/INFO] (customdimensions) structure control applied to adventure:selftest_void: density normal, 0 set(s) kept, 0 dropped [], 0 replaced, groups {}, 0 fixed start(s), 0 adaptation override(s), 0 ms (sets 0 ms, noise sites 0 ms)
+[01:38:47] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0010-sqlite-createInitialDataTables.sql], for repo: [./world/dimensions/adventure/selftest_void/data/DistantHorizons.sqlite]
+[01:38:47] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0020-sqlite-createFullDataSourceV2Tables.sql], for repo: [./world/dimensions/adventure/selftest_void/data/DistantHorizons.sqlite]
+[01:38:47] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0030-sqlite-changeTableJournaling.sql], for repo: [./world/dimensions/adventure/selftest_void/data/DistantHorizons.sqlite]
+[01:38:47] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0031-sqlite-useSqliteWalJournaling.sql], for repo: [./world/dimensions/adventure/selftest_void/data/DistantHorizons.sqlite]
+[01:38:47] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0040-sqlite-removeRenderCache.sql], for repo: [./world/dimensions/adventure/selftest_void/data/DistantHorizons.sqlite]
+[01:38:47] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0050-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/adventure/selftest_void/data/DistantHorizons.sqlite]
+[01:38:47] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0060-sqlite-createChunkHashTable.sql], for repo: [./world/dimensions/adventure/selftest_void/data/DistantHorizons.sqlite]
+[01:38:47] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0070-sqlite-createBeaconBeamTable.sql], for repo: [./world/dimensions/adventure/selftest_void/data/DistantHorizons.sqlite]
+[01:38:47] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0080-sqlite-addApplyToChildrenColumn.sql], for repo: [./world/dimensions/adventure/selftest_void/data/DistantHorizons.sqlite]
+[01:38:47] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0090-sqlite-addAdjacentFullDataColumns.sql], for repo: [./world/dimensions/adventure/selftest_void/data/DistantHorizons.sqlite]
+[01:38:47] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0100-sqlite-deleteLowDetailDataForRegen.sql], for repo: [./world/dimensions/adventure/selftest_void/data/DistantHorizons.sqlite]
+[01:38:47] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0110-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/adventure/selftest_void/data/DistantHorizons.sqlite]
+[01:38:47] [DH-Full Data Migration Thread[0]/INFO] (DataMigratorV1) No migration necessary.
+[01:38:47] [Server thread/INFO] (AbstractDhServerLevel) Started DhServerLevel for [Wrapped{ServerLevel[world]@adventure:selftest_void}] at [[LocalSaveStructure@(./world/dimensions/minecraft/overworld/data;./world/dimensions/adventure/selftest_void/data;./world/dimensions/minecraft/the_end/data;./world/dimensions/minecraft/the_nether/data;./world/dimensions/adventure/the_aviary/data)]].
+[01:38:47] [Server thread/INFO] (customdimensions) Distant Horizons LOD generator bound to adventure:selftest_void
+[01:38:47] [Server thread/INFO] (customdimensions) activated selftest_void (first time): opened in 119 ms on the tick, spawn chunk [0, 0] loaded after 301 ms; 1 lazy level(s) open
+[01:38:47] [Server thread/INFO] (customdimensions) cd-exit-1 died in adventure:selftest_void (death); respawn goes to dim!adventure:selftest_wins!4,0,4
+[01:38:47] [DH-Request Module Ticker [adventure:selftest_void] Thread[0]/INFO] (WorldGenerationQueue) Creating world gen queue
+[01:38:47] [DH-Request Module Ticker [adventure:selftest_void] Thread[0]/INFO] (WorldGenerationQueue) Created world gen queue
+[01:38:47] [DH-Request Module Ticker [adventure:selftest_void] Thread[0]/INFO] (GeneratedFullDataSourceProvider) Set world gen queue for level [adventure:selftest_void].
+[01:38:47] [Server thread/INFO] (Minecraft) System chat: cd-exit-1 fell out of the world
+[01:38:47] [Server thread/INFO] (customdimensions) structure control applied to adventure:selftest_wins: density normal, 0 set(s) kept, 0 dropped [], 0 replaced, groups {}, 0 fixed start(s), 0 adaptation override(s), 0 ms (sets 0 ms, noise sites 0 ms)
+[01:38:47] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0010-sqlite-createInitialDataTables.sql], for repo: [./world/dimensions/adventure/selftest_wins/data/DistantHorizons.sqlite]
+[01:38:48] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0020-sqlite-createFullDataSourceV2Tables.sql], for repo: [./world/dimensions/adventure/selftest_wins/data/DistantHorizons.sqlite]
+[01:38:48] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0030-sqlite-changeTableJournaling.sql], for repo: [./world/dimensions/adventure/selftest_wins/data/DistantHorizons.sqlite]
+[01:38:48] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0031-sqlite-useSqliteWalJournaling.sql], for repo: [./world/dimensions/adventure/selftest_wins/data/DistantHorizons.sqlite]
+[01:38:48] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0040-sqlite-removeRenderCache.sql], for repo: [./world/dimensions/adventure/selftest_wins/data/DistantHorizons.sqlite]
+[01:38:48] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0050-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/adventure/selftest_wins/data/DistantHorizons.sqlite]
+[01:38:48] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0060-sqlite-createChunkHashTable.sql], for repo: [./world/dimensions/adventure/selftest_wins/data/DistantHorizons.sqlite]
+[01:38:48] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0070-sqlite-createBeaconBeamTable.sql], for repo: [./world/dimensions/adventure/selftest_wins/data/DistantHorizons.sqlite]
+[01:38:48] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0080-sqlite-addApplyToChildrenColumn.sql], for repo: [./world/dimensions/adventure/selftest_wins/data/DistantHorizons.sqlite]
+[01:38:48] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0090-sqlite-addAdjacentFullDataColumns.sql], for repo: [./world/dimensions/adventure/selftest_wins/data/DistantHorizons.sqlite]
+[01:38:48] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0100-sqlite-deleteLowDetailDataForRegen.sql], for repo: [./world/dimensions/adventure/selftest_wins/data/DistantHorizons.sqlite]
+[01:38:48] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0110-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/adventure/selftest_wins/data/DistantHorizons.sqlite]
+[01:38:48] [DH-Full Data Migration Thread[0]/INFO] (DataMigratorV1) No migration necessary.
+[01:38:48] [Server thread/INFO] (AbstractDhServerLevel) Started DhServerLevel for [Wrapped{ServerLevel[world]@adventure:selftest_wins}] at [[LocalSaveStructure@(./world/dimensions/minecraft/overworld/data;./world/dimensions/adventure/selftest_void/data;./world/dimensions/adventure/selftest_wins/data;./world/dimensions/minecraft/the_end/data;./world/dimensions/minecraft/the_nether/data;./world/dimensions/adventure/the_aviary/data)]].
+[01:38:48] [Server thread/INFO] (customdimensions) Distant Horizons LOD generator bound to adventure:selftest_wins
+[01:38:48] [Server thread/INFO] (customdimensions) activated selftest_wins (first time): opened in 53 ms on the tick, spawn chunk [0, 0] loaded after 324 ms; 2 lazy level(s) open
+[01:38:48] [Server thread/INFO] (ServerApi) Player [cd-exit-1] changed level: [u8fgqorglm9tq@minecraft:overworld] -> [2meku29d6av3a@adventure:selftest_wins].
+[01:38:48] [Server thread/INFO] (customdimensions) cd-exit-1 respawned at adventure:selftest_wins via exits (dim!adventure:selftest_wins!4,0,4)
+[01:38:48] [DH-Request Module Ticker [adventure:selftest_wins] Thread[0]/INFO] (WorldGenerationQueue) Creating world gen queue
+[01:38:48] [DH-Request Module Ticker [adventure:selftest_wins] Thread[0]/INFO] (WorldGenerationQueue) Created world gen queue
+[01:38:48] [DH-Request Module Ticker [adventure:selftest_wins] Thread[0]/INFO] (GeneratedFullDataSourceProvider) Set world gen queue for level [adventure:selftest_wins].
+[01:38:49] [Server thread/INFO] (WorldGenerationQueue) Closing world gen queue
+[01:38:49] [Server thread/INFO] (WorldGenerationQueue) Closing WorldGenerationQueue...
+[01:38:49] [Server thread/INFO] (WorldGenerationQueue) Shutting down world generator thread pool...
+[01:38:49] [Server thread/INFO] (WorldGenerationQueue) World generator thread pool shutdown with [0] incomplete tasks.
+[01:38:49] [Server thread/INFO] (WorldGenerationQueue) Finished closing WorldGenerationQueue
+[01:38:49] [Server thread/INFO] (AbstractDhServerLevel) Closed DHLevel for [Wrapped{ServerLevel[world]@adventure:selftest_void}].
+[01:38:50] [Server thread/INFO] (WorldGenerationQueue) Closing world gen queue
+[01:38:50] [Server thread/INFO] (WorldGenerationQueue) Closing WorldGenerationQueue...
+[01:38:50] [Server thread/INFO] (WorldGenerationQueue) Shutting down world generator thread pool...
+[01:38:50] [Server thread/INFO] (WorldGenerationQueue) World generator thread pool shutdown with [0] incomplete tasks.
+[01:38:50] [Server thread/INFO] (WorldGenerationQueue) Finished closing WorldGenerationQueue
+[01:38:50] [Server thread/INFO] (AbstractDhServerLevel) Closed DHLevel for [Wrapped{ServerLevel[world]@adventure:selftest_wins}].
+[01:38:50] [Server thread/INFO] (customdimensions) structure control applied to adventure:selftest_keep: density normal, 0 set(s) kept, 0 dropped [], 0 replaced, groups {}, 0 fixed start(s), 0 adaptation override(s), 0 ms (sets 0 ms, noise sites 0 ms)
+[01:38:50] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0010-sqlite-createInitialDataTables.sql], for repo: [./world/dimensions/adventure/selftest_keep/data/DistantHorizons.sqlite]
+[01:38:50] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0020-sqlite-createFullDataSourceV2Tables.sql], for repo: [./world/dimensions/adventure/selftest_keep/data/DistantHorizons.sqlite]
+[01:38:50] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0030-sqlite-changeTableJournaling.sql], for repo: [./world/dimensions/adventure/selftest_keep/data/DistantHorizons.sqlite]
+[01:38:50] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0031-sqlite-useSqliteWalJournaling.sql], for repo: [./world/dimensions/adventure/selftest_keep/data/DistantHorizons.sqlite]
+[01:38:50] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0040-sqlite-removeRenderCache.sql], for repo: [./world/dimensions/adventure/selftest_keep/data/DistantHorizons.sqlite]
+[01:38:50] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0050-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/adventure/selftest_keep/data/DistantHorizons.sqlite]
+[01:38:50] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0060-sqlite-createChunkHashTable.sql], for repo: [./world/dimensions/adventure/selftest_keep/data/DistantHorizons.sqlite]
+[01:38:50] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0070-sqlite-createBeaconBeamTable.sql], for repo: [./world/dimensions/adventure/selftest_keep/data/DistantHorizons.sqlite]
+[01:38:50] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0080-sqlite-addApplyToChildrenColumn.sql], for repo: [./world/dimensions/adventure/selftest_keep/data/DistantHorizons.sqlite]
+[01:38:50] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0090-sqlite-addAdjacentFullDataColumns.sql], for repo: [./world/dimensions/adventure/selftest_keep/data/DistantHorizons.sqlite]
+[01:38:50] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0100-sqlite-deleteLowDetailDataForRegen.sql], for repo: [./world/dimensions/adventure/selftest_keep/data/DistantHorizons.sqlite]
+[01:38:50] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0110-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/adventure/selftest_keep/data/DistantHorizons.sqlite]
+[01:38:50] [DH-Full Data Migration Thread[0]/INFO] (DataMigratorV1) No migration necessary.
+[01:38:50] [Server thread/INFO] (AbstractDhServerLevel) Started DhServerLevel for [Wrapped{ServerLevel[world]@adventure:selftest_keep}] at [[LocalSaveStructure@(./world/dimensions/minecraft/overworld/data;./world/dimensions/adventure/selftest_keep/data;./world/dimensions/adventure/selftest_void/data;./world/dimensions/adventure/selftest_wins/data;./world/dimensions/minecraft/the_end/data;./world/dimensions/minecraft/the_nether/data;./world/dimensions/adventure/the_aviary/data)]].
+[01:38:50] [Server thread/INFO] (customdimensions) Distant Horizons LOD generator bound to adventure:selftest_keep
+[01:38:50] [Server thread/INFO] (customdimensions) activated selftest_keep (first time): opened in 30 ms on the tick, spawn chunk [0, 0] loaded after 202 ms; 1 lazy level(s) open
+[01:38:50] [Server thread/INFO] (Minecraft) System chat: cd-exit-2 was killed
+[01:38:50] [Server thread/INFO] (ServerApi) Player [cd-exit-3] changed level: [8j2c9soig5ndg@adventure:selftest_keep] -> [u8fgqorglm9tq@minecraft:overworld].
+[01:38:50] [Server thread/INFO] (customdimensions) cd-exit-3 left adventure:selftest_keep via exits.void to worldSpawn
+[01:38:50] [Server thread/INFO] (ServerApi) Player [cd-exit-4] changed level: [8j2c9soig5ndg@adventure:selftest_keep] -> [u8fgqorglm9tq@minecraft:overworld].
+[01:38:50] [Server thread/INFO] (customdimensions) cd-exit-4 left adventure:selftest_keep via exits.death:lava to worldSpawn
+[01:38:50] [Server thread/INFO] (customdimensions) exit shrine registered in adventure:selftest_keep at 16, -60, 16 (axis x) to worldSpawn
+[01:38:51] [DH-Request Module Ticker [adventure:selftest_keep] Thread[0]/INFO] (WorldGenerationQueue) Creating world gen queue
+[01:38:51] [DH-Request Module Ticker [adventure:selftest_keep] Thread[0]/INFO] (WorldGenerationQueue) Created world gen queue
+[01:38:51] [DH-Request Module Ticker [adventure:selftest_keep] Thread[0]/INFO] (GeneratedFullDataSourceProvider) Set world gen queue for level [adventure:selftest_keep].
+[01:38:57] [Server thread/INFO] (WorldGenerationQueue) Closing world gen queue
+[01:38:57] [Server thread/INFO] (WorldGenerationQueue) Closing WorldGenerationQueue...
+[01:38:57] [Server thread/INFO] (WorldGenerationQueue) Shutting down world generator thread pool...
+[01:38:57] [Server thread/INFO] (WorldGenerationQueue) World generator thread pool shutdown with [0] incomplete tasks.
+[01:38:57] [Server thread/INFO] (WorldGenerationQueue) Finished closing WorldGenerationQueue
+[01:38:57] [Server thread/INFO] (AbstractDhServerLevel) Closed DHLevel for [Wrapped{ServerLevel[world]@adventure:selftest_keep}].
+[01:38:58] [Server thread/INFO] (customdimensions) biome regions: measured [temperature, humidity] over a 4096-block radius from 9216 samples in 14 ms
+[01:38:58] [Server thread/WARN] (customdimensions) adventure:the_pillared_void: forced structure mns:giant_skull is not in the registry
+[01:38:58] [Server thread/INFO] (customdimensions) structure control applied to adventure:the_pillared_void: density sparse, 2 set(s) kept, 1 dropped [minecraft:end_cities], 0 replaced, groups {}, 2 fixed start(s), 1 adaptation override(s), 20 ms (sets 16 ms, noise sites 0 ms)
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0010-sqlite-createInitialDataTables.sql], for repo: [./world/dimensions/adventure/the_pillared_void/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0020-sqlite-createFullDataSourceV2Tables.sql], for repo: [./world/dimensions/adventure/the_pillared_void/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0030-sqlite-changeTableJournaling.sql], for repo: [./world/dimensions/adventure/the_pillared_void/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0031-sqlite-useSqliteWalJournaling.sql], for repo: [./world/dimensions/adventure/the_pillared_void/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0040-sqlite-removeRenderCache.sql], for repo: [./world/dimensions/adventure/the_pillared_void/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0050-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/adventure/the_pillared_void/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0060-sqlite-createChunkHashTable.sql], for repo: [./world/dimensions/adventure/the_pillared_void/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0070-sqlite-createBeaconBeamTable.sql], for repo: [./world/dimensions/adventure/the_pillared_void/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0080-sqlite-addApplyToChildrenColumn.sql], for repo: [./world/dimensions/adventure/the_pillared_void/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0090-sqlite-addAdjacentFullDataColumns.sql], for repo: [./world/dimensions/adventure/the_pillared_void/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0100-sqlite-deleteLowDetailDataForRegen.sql], for repo: [./world/dimensions/adventure/the_pillared_void/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0110-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/adventure/the_pillared_void/data/DistantHorizons.sqlite]
+[01:38:58] [DH-Full Data Migration Thread[0]/INFO] (DataMigratorV1) No migration necessary.
+[01:38:58] [Server thread/INFO] (AbstractDhServerLevel) Started DhServerLevel for [Wrapped{ServerLevel[world]@adventure:the_pillared_void}] at [[LocalSaveStructure@(./world/dimensions/minecraft/overworld/data;./world/dimensions/adventure/selftest_keep/data;./world/dimensions/adventure/selftest_void/data;./world/dimensions/adventure/selftest_wins/data;./world/dimensions/minecraft/the_end/data;./world/dimensions/adventure/the_pillared_void/data;./world/dimensions/minecraft/the_nether/data;./world/dimensions/adventure/the_aviary/data)]].
+[01:38:58] [Server thread/INFO] (customdimensions) Distant Horizons LOD generator bound to adventure:the_pillared_void
+[01:38:58] [Server thread/INFO] (customdimensions) activated the_pillared_void (first time): opened in 44 ms on the tick, spawn chunk [12, 0] loaded after 401 ms; 1 lazy level(s) open
+[01:38:58] [DH-Request Module Ticker [adventure:the_pillared_void] Thread[0]/INFO] (WorldGenerationQueue) Creating world gen queue
+[01:38:58] [DH-Request Module Ticker [adventure:the_pillared_void] Thread[0]/INFO] (WorldGenerationQueue) Created world gen queue
+[01:38:58] [DH-Request Module Ticker [adventure:the_pillared_void] Thread[0]/INFO] (GeneratedFullDataSourceProvider) Set world gen queue for level [adventure:the_pillared_void].
+[01:38:58] [Server thread/WARN] (customdimensions) adventure:the_tiled_expanse: forced structure mes:monolith is not in the registry
+[01:38:58] [Server thread/INFO] (customdimensions) structure control applied to adventure:the_tiled_expanse: density sparse, 2 set(s) kept, 0 dropped [], 0 replaced, groups {dungeons=11, deco=6}, 0 fixed start(s), 0 adaptation override(s), 14 ms (sets 2 ms, noise sites 11 ms)
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0010-sqlite-createInitialDataTables.sql], for repo: [./world/dimensions/adventure/the_tiled_expanse/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0020-sqlite-createFullDataSourceV2Tables.sql], for repo: [./world/dimensions/adventure/the_tiled_expanse/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0030-sqlite-changeTableJournaling.sql], for repo: [./world/dimensions/adventure/the_tiled_expanse/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0031-sqlite-useSqliteWalJournaling.sql], for repo: [./world/dimensions/adventure/the_tiled_expanse/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0040-sqlite-removeRenderCache.sql], for repo: [./world/dimensions/adventure/the_tiled_expanse/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0050-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/adventure/the_tiled_expanse/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0060-sqlite-createChunkHashTable.sql], for repo: [./world/dimensions/adventure/the_tiled_expanse/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0070-sqlite-createBeaconBeamTable.sql], for repo: [./world/dimensions/adventure/the_tiled_expanse/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0080-sqlite-addApplyToChildrenColumn.sql], for repo: [./world/dimensions/adventure/the_tiled_expanse/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0090-sqlite-addAdjacentFullDataColumns.sql], for repo: [./world/dimensions/adventure/the_tiled_expanse/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0100-sqlite-deleteLowDetailDataForRegen.sql], for repo: [./world/dimensions/adventure/the_tiled_expanse/data/DistantHorizons.sqlite]
+[01:38:58] [Server thread/INFO] (DatabaseUpdater) Running SQL update script: [sqlScripts/0110-sqlite-addApplyToParentIndex.sql], for repo: [./world/dimensions/adventure/the_tiled_expanse/data/DistantHorizons.sqlite]
+[01:38:58] [DH-Full Data Migration Thread[0]/INFO] (DataMigratorV1) No migration necessary.
+[01:38:58] [Server thread/INFO] (AbstractDhServerLevel) Started DhServerLevel for [Wrapped{ServerLevel[world]@adventure:the_tiled_expanse}] at [[LocalSaveStructure@(./world/dimensions/minecraft/overworld/data;./world/dimensions/adventure/selftest_keep/data;./world/dimensions/adventure/selftest_void/data;./world/dimensions/adventure/selftest_wins/data;./world/dimensions/minecraft/the_end/data;./world/dimensions/adventure/the_pillared_void/data;./world/dimensions/minecraft/the_nether/data;./world/dimensions/adventure/the_tiled_expanse/data;./world/dimensions/adventure/the_aviary/data)]].
+[01:38:58] [Server thread/INFO] (customdimensions) Distant Horizons LOD generator bound to adventure:the_tiled_expanse
+[01:38:59] [DH-Request Module Ticker [adventure:the_tiled_expanse] Thread[0]/INFO] (WorldGenerationQueue) Creating world gen queue
+[01:38:59] [DH-Request Module Ticker [adventure:the_tiled_expanse] Thread[0]/INFO] (WorldGenerationQueue) Created world gen queue
+[01:38:59] [DH-Request Module Ticker [adventure:the_tiled_expanse] Thread[0]/INFO] (GeneratedFullDataSourceProvider) Set world gen queue for level [adventure:the_tiled_expanse].
+[01:38:59] [Server thread/INFO] (customdimensions) activated the_tiled_expanse (first time): opened in 60 ms on the tick, spawn chunk [4, -4] loaded after 952 ms; 2 lazy level(s) open
+[01:38:59] [Server thread/INFO] (ServerApi) Player [cd-exit-7] changed level: [lm04r22rrbp34@adventure:the_pillared_void] -> [iju2ppv0g06ge@adventure:the_tiled_expanse].
+[01:38:59] [Server thread/INFO] (customdimensions) cd-exit-7 left adventure:the_pillared_void via exits.enderPearl to dim!adventure:the_tiled_expanse!spawn
+[01:39:00] [Server thread/INFO] (WorldGenerationQueue) Closing world gen queue
+[01:39:00] [Server thread/INFO] (WorldGenerationQueue) Closing WorldGenerationQueue...
+[01:39:00] [Server thread/INFO] (WorldGenerationQueue) Shutting down world generator thread pool...
+[01:39:00] [Server thread/INFO] (WorldGenerationQueue) World generator thread pool shutdown with [0] incomplete tasks.
+[01:39:00] [Server thread/INFO] (WorldGenerationQueue) Finished closing WorldGenerationQueue
+[01:39:00] [Server thread/INFO] (AbstractDhServerLevel) Closed DHLevel for [Wrapped{ServerLevel[world]@adventure:the_pillared_void}].
+[01:39:01] [Server thread/INFO] (WorldGenerationQueue) Closing world gen queue
+[01:39:01] [Server thread/INFO] (WorldGenerationQueue) Closing WorldGenerationQueue...
+[01:39:01] [Server thread/INFO] (WorldGenerationQueue) Shutting down world generator thread pool...
+[01:39:01] [Server thread/INFO] (WorldGenerationQueue) World generator thread pool shutdown with [0] incomplete tasks.
+[01:39:01] [Server thread/INFO] (WorldGenerationQueue) Finished closing WorldGenerationQueue
+[01:39:01] [Server thread/INFO] (AbstractDhServerLevel) Closed DHLevel for [Wrapped{ServerLevel[world]@adventure:the_tiled_expanse}].
+[01:39:01] [Server thread/INFO] (customdimensions) structure control applied to adventure:selftest_wins: density normal, 0 set(s) kept, 0 dropped [], 0 replaced, groups {}, 0 fixed start(s), 0 adaptation override(s), 0 ms (sets 0 ms, noise sites 0 ms)
+[01:39:01] [DH-Full Data Migration Thread[0]/INFO] (DataMigratorV1) No migration necessary.
+[01:39:01] [Server thread/INFO] (AbstractDhServerLevel) Started DhServerLevel for [Wrapped{ServerLevel[world]@adventure:selftest_wins}] at [[LocalSaveStructure@(./world/dimensions/minecraft/overworld/data;./world/dimensions/adventure/selftest_keep/data;./world/dimensions/adventure/selftest_void/data;./world/dimensions/adventure/selftest_wins/data;./world/dimensions/adventure/selftest_wins/data;./world/dimensions/minecraft/the_end/data;./world/dimensions/adventure/the_pillared_void/data;./world/dimensions/minecraft/the_nether/data;./world/dimensions/adventure/the_tiled_expanse/data;./world/dimensions/adventure/the_aviary/data)]].
+[01:39:01] [Server thread/INFO] (customdimensions) Distant Horizons LOD generator bound to adventure:selftest_wins
+[01:39:01] [Server thread/INFO] (customdimensions) activated selftest_wins (reopened): opened in 13 ms on the tick, spawn chunk [0, 0] loaded after 54 ms; 1 lazy level(s) open
+[01:39:01] [Server thread/INFO] (Minecraft) System chat: §6cd-win-8 §rearned §eArrived§r in selftest_wins.
+[01:39:01] [Server thread/INFO] (customdimensions) win selftest_wins/arrive granted to cd-win-8
+[01:39:02] [DH-Request Module Ticker [adventure:selftest_wins] Thread[0]/INFO] (WorldGenerationQueue) Creating world gen queue
+[01:39:02] [DH-Request Module Ticker [adventure:selftest_wins] Thread[0]/INFO] (WorldGenerationQueue) Created world gen queue
+[01:39:02] [DH-Request Module Ticker [adventure:selftest_wins] Thread[0]/INFO] (GeneratedFullDataSourceProvider) Set world gen queue for level [adventure:selftest_wins].
+[01:39:04] [Server thread/INFO] (Minecraft) System chat: §6cd-win-8 §rearned §eEndure§r in selftest_wins.
+[01:39:04] [Server thread/INFO] (customdimensions) win selftest_wins/endure granted to cd-win-8
+[01:39:04] [Server thread/INFO] (Minecraft) System chat: §6cd-win-8 §rearned §eHoard§r in selftest_wins.
+[01:39:04] [Server thread/INFO] (customdimensions) win selftest_wins/hoard granted to cd-win-8
+[01:39:04] [Server thread/INFO] (Minecraft) System chat: cd-win-8 has made the advancement [Monster Hunter]
+[01:39:04] [Server thread/INFO] (Minecraft) System chat: §6cd-win-8 §rearned §eCull§r in selftest_wins.
+[01:39:04] [Server thread/INFO] (customdimensions) win selftest_wins/cull granted to cd-win-8
+[01:39:04] [Server thread/INFO] (Minecraft) System chat: §6cd-win-8 §rearned §eFirst steps§r in selftest_wins.
+[01:39:04] [Server thread/INFO] (customdimensions) win selftest_wins/first_steps granted to cd-win-8
+[01:39:04] [Server thread/INFO] (Minecraft) System chat: §6cd-win-8 §rearned §eSummit§r in selftest_wins.
+[01:39:04] [Server thread/INFO] (customdimensions) win selftest_wins/summit granted to cd-win-8
+[01:39:04] [Server thread/INFO] (ServerApi) Player [cd-win-8] changed level: [2meku29d6av3a@adventure:selftest_wins] -> [u8fgqorglm9tq@minecraft:overworld].
+[01:39:04] [Server thread/INFO] (customdimensions) cd-win-8 respawned at minecraft:overworld via exits (worldSpawn)
+[01:39:04] [Server thread/INFO] (ServerApi) Player [cd-win-8] changed level: [u8fgqorglm9tq@minecraft:overworld] -> [2meku29d6av3a@adventure:selftest_wins].
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) Closing world gen queue
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) Closing WorldGenerationQueue...
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) Shutting down world generator thread pool...
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) World generator thread pool shutdown with [0] incomplete tasks.
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) Finished closing WorldGenerationQueue
+[01:39:05] [Server thread/INFO] (AbstractDhServerLevel) Closed DHLevel for [Wrapped{ServerLevel[world]@adventure:selftest_wins}].
+[01:39:05] [Server thread/INFO] (customdimensions) PASS the server does not pause while the self-test runs: pause-when-empty-seconds 0 -> 0
+[01:39:05] [Server thread/INFO] (customdimensions) PASS zone mask parses and samples like core: 2000 points, worst difference 5.494212700352108E-7
+[01:39:05] [Server thread/INFO] (customdimensions) PASS pack installed at start-up by the mod: compiled 3411 files from the running game (jar:file:///home/user/minecraft-server-template/mods/custom-dimensions-26/.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-e686179c32/26.3/minecraft-merged-e686179c32-26.3.jar!/), inputs 1848f2be6397, 0 drift warnings
+[01:39:05] [Server thread/INFO] (customdimensions) PASS pack equivalence: extracted vanilla and the running game compile the same pack: 3411 files identical; 2 parameter lists equal the reports
+[01:39:05] [Server thread/INFO] (customdimensions) PASS compiled timelines decode: 19/19
+[01:39:05] [Server thread/INFO] (customdimensions) PASS compiled dimension types decode: 208/208
+[01:39:05] [Server thread/INFO] (customdimensions) PASS compiled noise settings decode: 169/169
+[01:39:05] [Server thread/INFO] (customdimensions) PASS compiled level stems decode: 208/208
+[01:39:05] [Server thread/INFO] (customdimensions) PASS compiled advancements decode: 7/7
+[01:39:05] [Server thread/INFO] (customdimensions) PASS compiled-pack decoding refuses an unknown reference: Failed to get element customdimensions:not_in_the_pack from registry minecraft:dimension_type
+[01:39:05] [Server thread/INFO] (customdimensions) PASS firewall audit ran at start-up and passed: 7 mods allowed worldgen mixins, 0 structure sets switched off, 12 bridges, 0 biome removals
+[01:39:05] [Server thread/INFO] (customdimensions) PASS firewall: a switched-off structure set leaves the structure state, the others stay: 18 sets in the overworld's state, 17 with minecraft:villages switched off
+[01:39:05] [Server thread/INFO] (customdimensions) PASS firewall: vanilla biomes hold only vanilla and bridged features: 67 vanilla biomes match vanilla's files
+[01:39:05] [Server thread/INFO] (customdimensions) PASS mixin ChunkBlockChangedMixin: a block change reaches the companion feed: ServerChunkCache.blockChanged at -32, 77, -32 reported 1 change(s) to the feed
+[01:39:05] [Server thread/INFO] (customdimensions) PASS mixin ChunkGeneratorAccessor: the overworld generator's biome feature getter reads and writes: the generator called the getter set through the accessor 1 time(s), plains 11 feature steps; the original read back once restored
+[01:39:05] [Server thread/INFO] (customdimensions) PASS mixin NoiseBasedChunkGeneratorAccessor: the overworld generator's fluid rule reads and writes: rule NoiseBasedChunkGenerator$$Lambda/0x000000007a41b3a0 (Water at y 62); a rule set through the accessor read back, the original once restored
+[01:39:05] [Server thread/INFO] (customdimensions) PASS mixin StructureStateMixin: a switched-off structure set leaves a new structure state: 18 sets in the overworld's state, 17 with minecraft:villages switched off
+[01:39:05] [Server thread/INFO] (customdimensions) PASS mixin ChunkMapStructuresMixin: the chunk map builds the overworld's structure state with its control: 9 set(s) kept, 0 dropped, built in 897 ms
+[01:39:05] [Server thread/INFO] (customdimensions) PASS mixin PrepareSpawnTaskMixin: a login saved in a level that is not open is placed at the world spawn: the handler is merged into PrepareSpawnTask; a position saved in a level that is not open is dropped (world spawn), one in the overworld is kept
+[01:39:05] [Server thread/INFO] (customdimensions) PASS mixin DisabledAquiferMixin: a disabled aquifer schedules basin fluid near the rim to flow: basin 0.5: Water, scheduled true (counted 1); basin 1.5: Water, scheduled false
+[01:39:05] [Server thread/INFO] (customdimensions) PASS mixin HolderReferenceAccessor: each runtime-registry entry reads its compiled form by key: 8 entries read their compiled forms
+[01:39:05] [Server thread/INFO] (customdimensions) PASS mixin MappedRegistryAccessor: each runtime-registry entry's compiled form reads back its key: 8 compiled forms read back their keys
+[01:39:05] [Server thread/INFO] (customdimensions) PASS mixin MaterialRuleContextAccessor: the overworld's material rule dresses the fast renderer's run tops outside a chunk: 256 columns, tops {Dirt=7, Grass Block=8, Gravel=190, Stone=51}
+[01:39:05] [Server thread/INFO] (customdimensions) PASS seed and game rule mixins merged: all eight handlers
+[01:39:05] [Server thread/INFO] (customdimensions) PASS seeds minecraft:overworld: 4705305050088502262 in getSeed, random state, structure state, structure check, biome zoom and the seed command; definition 4705305050088502262
+[01:39:05] [Server thread/INFO] (customdimensions) PASS seeds minecraft:the_nether: -6876984017876508741 in getSeed, random state, structure state, structure check, biome zoom and the seed command; definition -6876984017876508741
+[01:39:05] [Server thread/INFO] (customdimensions) PASS seeds minecraft:the_end: -1727347169663540530 in getSeed, random state, structure state, structure check, biome zoom and the seed command; definition -1727347169663540530
+[01:39:05] [Server thread/INFO] (customdimensions) PASS seeds adventure:the_aviary: 7826077224469180302 in getSeed, random state, structure state, structure check, biome zoom and the seed command; definition 7826077224469180302
+[01:39:05] [Server thread/INFO] (customdimensions) PASS runtime registry binds the compiled forms: 8 entries [adventure:the_aviary, adventure:terrain/overworld/continents, adventure:terrain/selftest_biome_ashen_savanna/continents, adventure:terrain/selftest_biome_cedar_forest/continents, adventure:zones/selftest_stamps/1/mask, adventure:zones/selftest_stamps/2/mask, adventure:selftest_checker_void, minecraft:the_nether], open levels on their bound stems [adventure:the_aviary, minecraft:the_nether]
+[01:39:05] [Server thread/INFO] (customdimensions) PASS day length: clock adventure:day_length/54000_18000, period 72000; sun 282.4 at 0, 0.0 at 27000 (noon), 77.6 at 54000 (sunset), 180.0 at 63000 (midnight), 282.4 at 72000; moon FULL_MOON then WANING_GIBBOUS; 151 dimension types share the clock
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod generator bound to overworld (reach 8192 blocks)
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod shortcut overworld detail 2 (SURFACE): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.88 whole / 1.88 shortcut, 4096 columns; surface: searched from block 210, 16 over the highest surface, to -64, 32 under the lowest; ground at the floor carried down to the noise floor
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod shortcut overworld detail 4 (SURFACE): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.86 whole / 1.86 shortcut, 4096 columns; surface: searched from block 210, 16 over the highest surface, to -64, 32 under the lowest; ground at the floor carried down to the noise floor
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod shortcut overworld detail 6 (SURFACE): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.78 whole / 1.78 shortcut, 4096 columns; surface: searched from block 210, 16 over the highest surface, to -64, 32 under the lowest; ground at the floor carried down to the noise floor
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod pregen overworld: 257 full-detail requests served by customdimensions, 0 failed, 1052672 columns in all; start: Starting pregen. Progress will be in the server console.; status: Pregen is not running
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod vs chunks overworld: 32 columns, 0 without LOD data, heights within 1 96.9%, block under the surface 84.4%, biome 90.6% of 32 columns with a surface (bars 90/60/90%); 1 columns' surface read through blocks a carver or feature dug after the noise stage -> /home/user/minecraft-server-template/mods/custom-dimensions-26/server/run/lod-check-overworld.tsv
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod generator bound to the_nether (reach 1024 blocks)
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod shortcut the_nether detail 2 (ROOFED): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.71 whole / 1.71 shortcut, 4096 columns; roofed in 1089 of 1089 pre-scan columns: whole columns, the roof left out; no fixed start, as block 104 is open between the ceiling and the floor under it in 557 of 998 roofed pre-scan columns with a floor, under 0.9
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod shortcut the_nether detail 4 (ROOFED): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.77 whole / 1.77 shortcut, 4096 columns; roofed in 1089 of 1089 pre-scan columns: whole columns, the roof left out; no fixed start, as block 104 is open between the ceiling and the floor under it in 557 of 998 roofed pre-scan columns with a floor, under 0.9
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod shortcut the_nether detail 6 (ROOFED): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.80 whole / 1.80 shortcut, 4096 columns; roofed in 1089 of 1089 pre-scan columns: whole columns, the roof left out; no fixed start, as block 104 is open between the ceiling and the floor under it in 557 of 998 roofed pre-scan columns with a floor, under 0.9
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod pregen the_nether: 257 full-detail requests served by customdimensions, 0 failed, 1052672 columns in all; start: Starting pregen. Progress will be in the server console.; status: Pregen is not running
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod vs chunks the_nether: 32 columns, 0 without LOD data, heights within 1 96.9%, block under the surface 90.6%, biome 100.0% of 32 columns with a surface (bars 90/60/90%); 5 columns' surface read through blocks a carver or feature dug after the noise stage -> /home/user/minecraft-server-template/mods/custom-dimensions-26/server/run/lod-check-the_nether.tsv
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod generator bound to the_aviary (reach 4096 blocks)
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod shortcut the_aviary detail 2 (TIERS): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.00 whole / 1.00 shortcut, 4096 columns; floating runs in 8567 of 16384 pre-scan columns: searched from block 255, 16 over the topmost tier band, to 0, 16 under the lowest run
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod shortcut the_aviary detail 4 (TIERS): heights within 1 99.9%, exact 99.9%, runs kept 100.0%, runs per column 0.73 whole / 0.73 shortcut, 4096 columns; floating runs in 8567 of 16384 pre-scan columns: searched from block 255, 16 over the topmost tier band, to 0, 16 under the lowest run
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod shortcut the_aviary detail 6 (TIERS): heights within 1 99.9%, exact 99.9%, runs kept 100.0%, runs per column 0.72 whole / 0.72 shortcut, 4096 columns; floating runs in 8567 of 16384 pre-scan columns: searched from block 255, 16 over the topmost tier band, to 0, 16 under the lowest run
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod pregen the_aviary: 257 full-detail requests served by customdimensions, 0 failed, 1052672 columns in all; start: Starting pregen. Progress will be in the server console.; status: Pregen is not running
+[01:39:05] [Server thread/INFO] (customdimensions) PASS lod vs chunks the_aviary: 32 columns, 0 without LOD data, heights within 1 100.0%, block under the surface 81.3%, biome 100.0% of 18 columns with a surface (bars 90/60/90%); 0 columns' surface read through blocks a carver or feature dug after the noise stage -> /home/user/minecraft-server-template/mods/custom-dimensions-26/server/run/lod-check-the_aviary.tsv
+[01:39:05] [Server thread/INFO] (customdimensions) PASS deaths drop with keepInventory on: 5 diamonds and 70 experience on the ground, inventory empty, level 0
+[01:39:05] [Server thread/INFO] (customdimensions) PASS exits death respawnAt: void death in selftest_void respawned at adventure:selftest_wins 4, -62, 4, inventory empty=true
+[01:39:05] [Server thread/INFO] (customdimensions) PASS deaths keep with keepInventory off: 0 items dropped, 4 diamonds and the sword in their slots and level 7 after respawn
+[01:39:05] [Server thread/INFO] (customdimensions) PASS exits void teleport: fell to y -74 in selftest_keep, arrived in the overworld at -32, 72, -32 with slow falling
+[01:39:05] [Server thread/INFO] (customdimensions) PASS exits death:lava teleport: lava death cancelled and sent to the overworld; a generic death is left alone
+[01:39:05] [Server thread/INFO] (customdimensions) PASS exit shrine: beacon at 16, -60, 16 registered a 6-cell exit zone, still lit after 120 ticks, leading to the overworld at (-31.5, 72.0, -31.5)
+[01:39:05] [Server thread/INFO] (customdimensions) PASS exits enderPearl: the_pillared_void pearl throw taken as the exit to adventure:the_tiled_expanse at 64, 57, -64, pearl kept
+[01:39:05] [Server thread/INFO] (customdimensions) PASS wins each trigger once: enter:arrive, reach:summit, kill:cull, obtain:hoard, survive:endure, advancement:first_steps; root tab done; message "§6cd-win-8 §rearned §eArrived§r in selftest_wins."
+[01:39:05] [Server thread/INFO] (customdimensions) PASS wins exit: summit sent the player on to the overworld at -32, 72, -32
+[01:39:05] [Server thread/INFO] (customdimensions) PASS wins never twice: every trigger checked again and arrive granted again, 0 new messages
+[01:39:05] [Server thread/INFO] (OpenPartiesAndClaims) Stopping IO worker...
+[01:39:05] [Server thread/INFO] (OpenPartiesAndClaims) Stopped IO worker!
+[01:39:05] [Server thread/INFO] (Minecraft) Stopping server
+[01:39:05] [Server thread/INFO] (Minecraft) Saving players
+[01:39:05] [Server thread/INFO] (Minecraft) Saving worlds
+[01:39:05] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[01:39:05] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[world]'/adventure:the_aviary
+[01:39:05] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[01:39:05] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) Closing world gen queue
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) Closing WorldGenerationQueue...
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) Shutting down world generator thread pool...
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) World generator thread pool shutdown with [0] incomplete tasks.
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) Finished closing WorldGenerationQueue
+[01:39:05] [Server thread/INFO] (AbstractDhServerLevel) Closed DHLevel for [Wrapped{ServerLevel[world]@minecraft:overworld}].
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) Closing world gen queue
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) Closing WorldGenerationQueue...
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) Shutting down world generator thread pool...
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) World generator thread pool shutdown with [0] incomplete tasks.
+[01:39:05] [Server thread/INFO] (WorldGenerationQueue) Finished closing WorldGenerationQueue
+[01:39:05] [Server thread/INFO] (AbstractDhServerLevel) Closed DHLevel for [Wrapped{ServerLevel[world]@adventure:the_aviary}].
+[01:39:06] [Server thread/INFO] (WorldGenerationQueue) Closing world gen queue
+[01:39:06] [Server thread/INFO] (WorldGenerationQueue) Closing WorldGenerationQueue...
+[01:39:06] [Server thread/INFO] (WorldGenerationQueue) Shutting down world generator thread pool...
+[01:39:06] [Server thread/INFO] (WorldGenerationQueue) World generator thread pool shutdown with [0] incomplete tasks.
+[01:39:06] [Server thread/INFO] (WorldGenerationQueue) Finished closing WorldGenerationQueue
+[01:39:06] [Server thread/INFO] (AbstractDhServerLevel) Closed DHLevel for [Wrapped{ServerLevel[world]@minecraft:the_nether}].
+[01:39:06] [Server thread/INFO] (WorldGenerationQueue) Closing world gen queue
+[01:39:06] [Server thread/INFO] (WorldGenerationQueue) Closing WorldGenerationQueue...
+[01:39:06] [Server thread/INFO] (WorldGenerationQueue) Shutting down world generator thread pool...
+[01:39:06] [Server thread/INFO] (WorldGenerationQueue) World generator thread pool shutdown with [0] incomplete tasks.
+[01:39:06] [Server thread/INFO] (WorldGenerationQueue) Finished closing WorldGenerationQueue
+[01:39:06] [Server thread/INFO] (AbstractDhServerLevel) Closed DHLevel for [Wrapped{ServerLevel[world]@minecraft:the_end}].
+[01:39:06] [Server thread/INFO] (AbstractDhWorld) Closed DhWorld of type [SERVER_ONLY].
+[01:39:06] [Server thread/INFO] (AbstractDhWorld) Closed DhWorld of type [SERVER_ONLY].
+[01:39:06] [Server thread/INFO] (PriorityTaskPicker) Shutting down PriorityTaskPicker thread pool...
+[01:39:06] [Server thread/INFO] (AbstractDhRepo) Closing all [10] databases...
+
+BUILD SUCCESSFUL in 3m 38s
+14 actionable tasks: 2 executed, 12 up-to-date

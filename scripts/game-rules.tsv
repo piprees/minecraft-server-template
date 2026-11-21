@@ -1,0 +1,23 @@
+# Game rules whose id differs from 1.21.1's, per version. Read by mc_game_rule
+# (scripts/lib.sh), which deploy.sh's enforcement block calls with the 1.21.1
+# name; a version with no rows here keeps the 1.21.1 names.
+#   version  the Minecraft version the row applies to
+#   rule     the 1.21.1 name
+#   id       the version's game rule (the minecraft:game_rule registry)
+#   values   "-" keeps the value; else old=new pairs, comma-separated
+# The 26.3 ids are the registry report of the 26.3 server jar. doFireTick
+# became a radius: 128 (the 26.3 default) spreads fire as before, 0 stops it.
+# version  rule                              id                                    values
+26.3       doMobSpawning                     spawn_mobs                            -
+26.3       randomTickSpeed                   random_tick_speed                     -
+26.3       doDaylightCycle                   advance_time                          -
+26.3       doWeatherCycle                    advance_weather                       -
+26.3       doFireTick                        fire_spread_radius_around_player      true=128,false=0
+26.3       doInsomnia                        spawn_phantoms                        -
+26.3       playersSleepingPercentage         players_sleeping_percentage           -
+26.3       spawnRadius                       respawn_radius                        -
+26.3       forgiveDeadPlayers                forgive_dead_players                  -
+26.3       universalAnger                    universal_anger                       -
+26.3       mobGriefing                       mob_griefing                          -
+26.3       playersNetherPortalDefaultDelay   players_nether_portal_default_delay   -
+26.3       logAdminCommands                  log_admin_commands                    -

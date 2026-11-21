@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: a flat trial where a death keeps the inventory and the experience, the void and lava send the player to world spawn, and exit shrines are enabled.",
+  "seed": 2,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "flat",
+    "layers": [
+      {"block": "minecraft:bedrock", "height": 1},
+      {"block": "minecraft:stone", "height": 3}
+    ]
+  },
+  "borders": {
+    "player": 256
+  },
+  "exits": {
+    "void": {
+      "action": "teleport",
+      "target": "worldSpawn"
+    },
+    "death:lava": {
+      "action": "teleport",
+      "target": "worldSpawn"
+    }
+  },
+  "exitShrines": {
+    "enabled": true,
+    "target": "worldSpawn"
+  },
+  "deaths": {
+    "inventory": "keep",
+    "experience": "keep"
+  }
+}

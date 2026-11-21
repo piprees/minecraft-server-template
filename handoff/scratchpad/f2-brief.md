@@ -1,0 +1,31 @@
+F2 — Make `/customdim fastrender` fast: measured 0.6–1.9× against `/customdim render`, bar ≥ 5× (worktree; a headless benchmark allowed, no game server)
+
+Read /tmp/claude-0/-home-user/5eb91d81-f3fb-5a91-9f20-35496482f7d0/scratchpad/common-rules.md first; it binds you, EXCEPT that you work in your own worktree (the Agent tool made it) and stay in it: the main checkout belongs to the server-lane agent. Package name: f2. Log one line per step to /tmp/claude-0/f2/progress.log. Fast-forward to the branch head (8d879960 or later) first; copy `compiler/build/vanilla/26.3` read-only from the main checkout. Gradle only as `./gradlew --max-workers=1 --offline …` after `free -g` shows 5 GB available. Read F1's brief (scratchpad/f1-brief.md), F1's code under `mods/custom-dimensions-26/server/src/main/java/com/customdimensions/server/render/fast/`, R1's analysis /home/user/minecraft-server-template/handoff/evidence/r1/report.md (§ 2 is the list of speed sources), and the measurement below. Clean room as in F1's brief: never open /tmp/claude-0/r1/decompiled/, /tmp/claude-0/dh-research/jar/ or any SeedGen jar; seedlod (/tmp/claude-0/r1/seedlod, MIT) is fine.
+
+## Measured (server boot m1, files /tmp/claude-0/f1/measure/m1/*.json; 2 threads unless said; speedup = fast against Sampler.sample on the same columns and pool)
+| dimension | grid | fast col/s | reference col/s | speedup | scout points/col | crossings/col | runs mean | heights ±1 | biomes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| the_aviary (sky, tiers) | 1024² s8 | 16,363 | 12,506 | 1.31 | 33 | 1.4 | 0.7 | 99.77% | 99.85% |
+| the_underdark (caves, roofed) | 1024² s8 | 26,853 | 40,857 | 0.66 | 25 | 5.32 | 3.66 | 100% | 100% |
+| overworld | 1024² s16 over r8192 | 11,005 | 5,694 | 1.93 | 49 | 2.32 | 1.67 | 99.1% | 99.98% |
+4 threads scale ~1.9×. Timings: terrain sampling is 90%+ of total (prescan 0.5–5 s, structures 1–7 s, images 1–5 s). Accuracy is excellent and must stay: heights within ±1 ≥ 98%, biomes ≥ 99%, fluids as now.
+
+## Lead's reading (verify, do not assume)
+Each column costs about scout points + 8 × crossings full-density evaluations with interpolation stripped (aviary ~44, underdark ~68, overworld ~68). `getBaseColumn` (the reference) pays the expensive noise only at interpolation-cell corners and interpolates the rest, which is why it wins on the cheap, many-crossing underdark. So the prototype has dropped most of R1's speed sources: it scans every column's full height, refines every crossing block by block with the exact density, and shares nothing.
+
+## Do — measure first, then change, one lever at a time
+1. **A headless benchmark** so you can iterate without the server lane: a Gradle JavaExec or test-scoped main that bootstraps 26.3, loads vanilla's worldgen registries plus our compiled pack (build/datapack, with RuntimeRegistry's binding applied the same way the server does), builds a level's RandomState and NoiseBasedChunkGenerator for a named dimension and seed (the_aviary 7826077224469180302, the_underdark 2070195577671787983, overworld 4705305050088502262), and times fastrender's TileSampler/RunScanner against `getBaseColumn` on the same columns, with the same comparison numbers. `-Xmx3G`, one at a time, 5 GB free first; it is not a game server (no world, no network), so it is allowed beside the lane's server. If bootstrapping takes more than ~40 steps without working, stop that, say why, and prepare instead a server-lane script like F1's measure.sh for each lever.
+2. **Profile** one dimension with JFR (`-XX:+FlightRecorder`, `jfr print --events jdk.ExecutionSample` summarised by top frames): how much time is in noise sampling, our own density types (zone_distance, land_share, checker_cells, places' encoding), biome resolution, the material rule, the fluid picker, allocation. Record the evaluations per column actually made.
+3. **Levers, in R1's order of expected gain, each measured alone and kept only if accuracy holds:**
+   a. **Use interpolation instead of fighting it.** On a lattice column, vanilla's interpolated density between two cell rows is linear in y; where the final density is a sign-preserving function of interpolated terms (check our presets' final density structure: squeeze, min/max with other interpolated terms, any non-interpolated parts such as blending or our types), the crossing can be solved from the two scout rows with zero extra evaluations, and off-lattice columns interpolate bilinearly from the four lattice corners like the game does. Refine block by block only where the structure is not linear (say where).
+   b. **Scout less:** for the plain top-down map, search from the router's preliminary surface estimate down to the first crossing (R1 § 2.3) instead of scanning the full height; full multi-run scans only where the prescan found roofs or tiers, and only as deep as those layers need (a tier world's runs sit in a known band).
+   c. **Share corner work:** batch-sample whole tiles at the cell step on the cell lattice (the fast path F1's trap T-F1 names), so neighbouring columns share corner values and each corner is evaluated once per tile, not once per column.
+   d. **Cache y-independent terms per column** (2D parts of the router, our types that are 2D: say which are).
+   e. Anything the profile shows that the list misses.
+4. Keep the comparison mode and the run-list format; add evaluations-per-column and per-lever timings to the sidecar.
+
+## Constraints
+No code naming a dimension. Explicit-path commits with `[skip ci]`; do not push; never stage HANDOFF.md, TROUBLESHOOTING.md or AGENTS.md. Goldens untouched. Full `./gradlew --max-workers=1 --offline build` green, quick gate exit 0. If you change `config/messages.json`, also the cutover copy, `./cutover/mkshas.sh`, and a clean-clone `./cutover/apply.sh --no-network` (T248).
+
+## End
+Report: the headless benchmark (how to run it), the profile's top costs, each lever's measured effect (col/s, evaluations/column, accuracy) on all three dimensions, the final speedups against `getBaseColumn` on the same columns, what is left on the table and why, commits, worktree and branch, the server-lane script to confirm in a real boot, a trap draft (T-F2) if any. Budget ~200 tool steps.

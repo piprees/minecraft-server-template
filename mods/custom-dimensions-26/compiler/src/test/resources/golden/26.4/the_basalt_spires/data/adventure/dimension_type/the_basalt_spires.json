@@ -1,0 +1,33 @@
+{
+  "base": "minecraft:overworld",
+  "changed": {
+    "ambient_light": 0.15,
+    "attributes": {
+      "changed": {
+        "minecraft:gameplay/fast_lava": true,
+        "minecraft:gameplay/water_evaporates": true,
+        "minecraft:visual/fog_color": "#3b2b2b",
+        "minecraft:visual/fog_end_distance": 96.0,
+        "minecraft:visual/fog_start_distance": 10.0
+      },
+      "removed": [
+        "minecraft:visual/cloud_color",
+        "minecraft:visual/cloud_height"
+      ]
+    },
+    "cardinal_light": "nether",
+    "default_clock": "adventure:day_length/54000_18000",
+    "has_skylight": false,
+    "height": 320,
+    "logical_height": 320,
+    "min_y": 0,
+    "skybox": "none",
+    "timelines": [
+      "adventure:atmosphere/the_basalt_spires",
+      "adventure:day_length/villager_schedule_54000_18000",
+      "adventure:day_length/day_54000_18000",
+      "adventure:day_length/moon_54000_18000",
+      "minecraft:early_game"
+    ]
+  }
+}

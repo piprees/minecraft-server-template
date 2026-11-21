@@ -1,0 +1,6 @@
+F3 paused by lead before any code. Worktree ff'd to 4fd7838b; vanilla 26.3 copied to compiler/build/vanilla (untracked build dir).
+Design notes (not started): core Pyramid plan (root stride = next pow2 of ceil(2r/tile), origin = centre - tile*root/2, clip pixels to border, mask ARGB);
+RenderGrid.tile(x0,z0,side,step) with radius bound relaxed for 1-px apron (seams); fixed height grey range from level 0 (RenderLayers.HEIGHT normalises per image);
+reuse = child grid odd/odd pixels are parent columns; sub-volume scans (DensityVolume sx!=sz) save corners only when stride % cellXz == 0 (LatticeInterpolation.Axis onCorners);
+cheap wave = router.chunkSurfaceLevel() (26.3 name; interpolated 16-block cells over preliminary_surface_level find_top_surface cell 8; constant 0.0 on nether/end/floating_islands);
+roofed/sky alternative = LatticeScanner volume at sy = cell height (corners unchanged, fill skipped).

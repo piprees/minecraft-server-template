@@ -1,0 +1,23 @@
+{
+  "clock": "minecraft:overworld",
+  "tracks": {
+    "minecraft:visual/fog_color": {
+      "keyframes": [
+        {
+          "ticks": 0,
+          "value": "#120404"
+        }
+      ],
+      "modifier": "override"
+    },
+    "minecraft:visual/sky_color": {
+      "keyframes": [
+        {
+          "ticks": 0,
+          "value": "#5c0f0f"
+        }
+      ],
+      "modifier": "override"
+    }
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 2,
+  "description": "Rain-soaked taiga, moss on everything, ruins rotting under the pines. A place people passed through but never stayed — the damp took their camps and the forest closed behind them.",
+  "seed": -110531497654782041,
+  "spawn": [-384, 61, -512],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    "minecraft:snowy_taiga",
+    "minecraft:taiga",
+    "minecraft:old_growth_pine_taiga",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:windswept_forest",
+    "adventure:redwood_grove",
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:snowy_taiga": 36.5,
+      "minecraft:taiga": 9.1,
+      "minecraft:old_growth_pine_taiga": 4.7,
+      "minecraft:old_growth_spruce_taiga": 11.1,
+      "minecraft:windswept_forest": 5.6,
+      "adventure:redwood_grove": 31.6
+    }
+  },
+  "atmosphere": {
+    "fogColor": "#6B8B7B"
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.6
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:dripstone_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "4B8B7B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "scenic",
+    "spawnFilter": [
+      "minecraft:taiga"
+    ],
+    "wants": {
+      "ati_structures:overgrown_outpost": "near_spawn",
+      "nova_structures:underground_house": "spread",
+      "ati_structures:rotting_temple_underground": "spread",
+      "minecraft:abandoned_camp_forest": "spread",
+      "mvs:small_ruin": "spread",
+      "epic:small_ice_dungeon": "near_border"
+    },
+    "shuns": [
+      "monument",
+      "mss:arena"
+    ]
+  }
+}

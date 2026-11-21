@@ -1,0 +1,25 @@
+# Kit gaps found by W10c2 (Batch 2, Nether presets)
+
+## 1. Land biomes and a lava sea on a roofed world
+- **Asks:** the_buried_age: "Two thirds of the world is under [lava] ... the only architecture you ever see is whatever was tall enough to keep its top floor". The lava sea is the place; the biomes should be what the sea leaves: the islands' ground, with one biome (or none) taking the sea floor.
+- **Kit lacks:** on the `nether`/`caves` presets (and `roofed`) the biomes are laid on the preset's climate, blind to the floor height, so with the floor drowned to 65% every biome is drowned in proportion: nether_wastes 96% under lava, soul_sand_valley 88%, quartz_flats 58% (survey r1), and only upside_down_forest is expressed. `roles` (ocean, shore) work only on a terrain with a coastline.
+- **Generic shape:** on a roofed terrain with a `liquids.seaLevel` over part of its floor, let `biomeLayout.roles` `ocean` (and `shore`) take the columns whose floor lies under the sea level (and a band round it), as a coastline terrain does; the land biomes ranked over the dry columns only (`over: land` read as "floor above the sea"). The roofed floor density is known at compile time, so the cue is the same `floor - seaLevel` the terrain already builds.
+- **Others that would use it:** the_molten_flats (flat magma floor at lava level), the_gilded_pit (pit floor), the_forged_depths (sunken deep), any lava-lake Nether preset; the Batch 1 sunken_temple's basin roles are the sky-world form of the same idea.
+
+## 2. Far views and landmarks on a roofed world look over the roof
+- **Asks:** a far view of each place on the Nether presets (the brief's ~8 shots: far, places, landmarks).
+- **Kit lacks:** the survey's vista summit (`places.vista.summit`) is "the coarse map's highest land cell", and on a roofed world that is a column solid from the floor to the roof (y 128 on all four 128-high presets of Batch 2: blackstone keep, bloodroot, obsidian, furnace), so pick-shots puts the far camera at 140, over the bedrock roof, and the frame is a flat roof under fog; landmark cells in solid columns do the same at y 128 (`surface-lm1`). Batch 1 dropped the_nether's far pair for the same reason ("fog only").
+- **Generic shape:** on a dimension with a ceiling, the summit is the highest cell whose floor lies at least ~16 blocks under its roof (an open column), the far camera 12 over it and under the roof; landmark cells the same. A test: a roofed fixture's vista lies under its roof.
+- **Others:** every roofed and caves-preset dimension (Batches 2 and 4).
+
+## 3. A dimension's atmosphere cannot win over its biomes' fog and sky
+- **Asks:** the_obsidian_sanctum: "altars and forbidden castles in a small, dark world", 1.21.1 skyColor and fogColor #1B0B2B, ambientLight 0.05 (the v1 mod's dimension fog was the fog everywhere in the dimension).
+- **Kit lacks:** `atmosphere.fogColor` and `skyColor` compile to the dimension type's `minecraft:visual/fog_color` and `sky_color` attributes (`DatapackCompiler.applyAtmosphere`), and a biome's own attributes replace them; the library's withered_forest carries a pale blue-grey fog, so the sanctum's frames as a player sees them have mean luma 58.7 (surface-t1) against 16.9 for the blackstone keep, whose basin keeps the dark.
+- **Generic shape:** an `atmosphere` switch (say `overBiomes: true`, or per attribute) that writes the dimension's fog and sky colours into each listed biome as compiled for this dimension (the compiler already writes per-dimension biome copies where palettes differ), or as an environment-attribute modifier that the biome layer cannot override; a test that a listed library biome with its own fog compiles with the dimension's.
+- **Others:** any dimension whose 1.21.1 fog was its identity over library biomes with their own fog: the_boneyard (#D8C8A0 over soul sand and ash), the_ember_fields (#E8A05A), the_wailing_narrows (#2B1B3B), the_blackstone_keep (#1B1B2B over ash_barrens).
+
+## 4. "Below" on a roofed world: a biome bound under the floor
+- **Asks:** the_boneyard: "the sculk that crept in ... fed on the war itself", 1.21.1 deep_dark below the battlefield ("sculk below"); the description set wants deep_dark on at most 1% of the surface and at least 5% of the caves.
+- **Kit lacks:** a biome bound by `climate.depth` on the roofed nether preset is placed by the router's depth at the floor, so the bound either takes the chasm floors (depth from 0.15: 14.8% of the surface, 3.8% of the caves) or almost nothing (from 0.25: 1.3% and 0.1%; from 0.4: 0.0). No bound reaches the solid rock and cave pockets under the floor without reaching the deepest floors too.
+- **Generic shape:** a binding relative to the floor ("below the floor by N blocks") on a roofed terrain, compiled from the floor density the terrain already has, so a biome can hold the underground under every place and none of the open floor.
+- **Others:** the_ember_fields (sulfur_caves under the meadows: 46 columns in the sample), the_forged_depths (magma_land "hotter downward"), the Batch 4 caves presets.

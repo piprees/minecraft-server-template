@@ -1,0 +1,352 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "end",
+  "inspiredBy": "BetterEnd's umbrella jungle.",
+  "differs": "A jungle in the End, where vanilla's islands are bare: tall thin purpur stalks crowded together, each under a drooping dome of pink cherry blossom leaves flecked with flowering azalea, pale moss hanging in strands from the cap undersides, moss patches and carpets on the end stone between them, and purple motes and a purple glow in the air.",
+  "climate": {
+    "temperature": [
+      0.3,
+      1.0
+    ],
+    "humidity": [
+      0.3,
+      1.0
+    ]
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:block.amethyst_block.resonate",
+          "tick_chance": 0.003
+        },
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.cave",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 6000,
+          "replace_current_music": true,
+          "sound": "minecraft:music.end"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "monster": [
+              {
+                "type": "minecraft:enderman",
+                "count": 4,
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:reverse_portal"
+            },
+            "probability": 0.006
+          },
+          {
+            "particle": {
+              "type": "minecraft:witch"
+            },
+            "probability": 0.002
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#5a2a7a",
+      "minecraft:visual/sky_color": "#24102e"
+    },
+    "carvers": [],
+    "downfall": 0.5,
+    "effects": {
+      "water_color": "#8a5abf"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [
+        "minecraft:end_gateway_return",
+        "~moss_patches"
+      ],
+      [],
+      [],
+      [],
+      [],
+      [
+        "~umbrella_stalks",
+        "~hanging_moss"
+      ],
+      []
+    ],
+    "has_precipitation": false,
+    "temperature": 0.8
+  },
+  "features": {
+    "moss_patches": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": 1,
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.3,
+        "ground_state": {
+          "id": "minecraft:moss_block"
+        },
+        "replaceable": "#minecraft:sculk_replaceable",
+        "surface": "floor",
+        "vegetation_chance": 0.25,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "id": "minecraft:moss_carpet"
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 5,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 4,
+          "min_inclusive": 2
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 3
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_blocks",
+            "blocks": [
+              "minecraft:end_stone"
+            ],
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    "umbrella_stalks": {
+      "feature": {
+        "type": "minecraft:tree",
+        "below_trunk_provider": {
+          "type": "minecraft:rule_based",
+          "rules": []
+        },
+        "decorators": [],
+        "foliage_placer": {
+          "type": "minecraft:cherry_foliage_placer",
+          "corner_hole_chance": 0.2,
+          "hanging_leaves_chance": 0.3,
+          "hanging_leaves_extension_chance": 0.25,
+          "height": 4,
+          "offset": 0,
+          "radius": 3,
+          "wide_bottom_layer_hole_chance": 0.1
+        },
+        "foliage_provider": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:cherry_leaves",
+                "properties": {
+                  "persistent": "true"
+                }
+              },
+              "weight": 3
+            },
+            {
+              "data": {
+                "id": "minecraft:flowering_azalea_leaves",
+                "properties": {
+                  "persistent": "true"
+                }
+              },
+              "weight": 1
+            }
+          ]
+        },
+        "ignore_vines": true,
+        "minimum_size": {
+          "type": "minecraft:two_layers_feature_size",
+          "limit": 1,
+          "upper_size": 2
+        },
+        "trunk_placer": {
+          "type": "minecraft:straight_trunk_placer",
+          "base_height": 8,
+          "height_rand_a": 4,
+          "height_rand_b": 2
+        },
+        "trunk_provider": {
+          "id": "minecraft:purpur_pillar",
+          "properties": {
+            "axis": "y"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:weighted_list",
+            "distribution": [
+              {
+                "data": 5,
+                "weight": 2
+              },
+              {
+                "data": 7,
+                "weight": 2
+              },
+              {
+                "data": 9,
+                "weight": 1
+              }
+            ]
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:end_stone",
+                  "minecraft:moss_block"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "hanging_moss": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "direction": "down",
+        "layers": [
+          {
+            "height": {
+              "type": "minecraft:uniform",
+              "max_inclusive": 2,
+              "min_inclusive": 0
+            },
+            "provider": {
+              "id": "minecraft:pale_hanging_moss",
+              "properties": {
+                "tip": "false"
+              }
+            }
+          },
+          {
+            "height": 1,
+            "provider": {
+              "id": "minecraft:pale_hanging_moss",
+              "properties": {
+                "tip": "true"
+              }
+            }
+          }
+        ],
+        "prioritize_tip": true
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 24
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "direction_of_search": "down",
+          "max_steps": 24,
+          "target_condition": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  0,
+                  1,
+                  0
+                ],
+                "tag": "minecraft:leaves"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

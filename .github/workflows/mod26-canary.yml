@@ -1,0 +1,71 @@
+name: Mod canary (newest snapshot)
+
+# Builds the 26.3 mod against the newest Minecraft snapshot each week, so a
+# breaking change shows up months before the release that carries it. A
+# failure opens (or comments on) one issue per snapshot.
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  canary:
+    name: Build against the newest snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: mods/custom-dimensions-26
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # Fabric API tags snapshot builds with the release they lead to
+      # (0.164.1+26.4 for 26.4-snapshot-N).
+      - name: Resolve the newest snapshot and its Fabric API
+        id: target
+        run: |
+          snapshot=$(curl -fsSL https://piston-meta.mojang.com/mc/game/version_manifest_v2.json \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["latest"]["snapshot"])')
+          series="${snapshot%%-*}"
+          api=$(curl -fsSL https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml \
+            | grep -oE "<version>[^<]*\+${series//./\\.}</version>" | sed -E 's/<\/?version>//g' | tail -1)
+          echo "snapshot=$snapshot" >> "$GITHUB_OUTPUT"
+          echo "api=$api" >> "$GITHUB_OUTPUT"
+          echo "Snapshot: $snapshot, Fabric API: ${api:-none yet}"
+
+      - name: Build and unit tests
+        id: build
+        if: steps.target.outputs.api != ''
+        run: |
+          ./gradlew build \
+            -Pminecraft_version='${{ steps.target.outputs.snapshot }}' \
+            -Pfabric_api_version='${{ steps.target.outputs.api }}'
+
+      - name: Report a failure
+        if: failure() && steps.build.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SNAPSHOT: ${{ steps.target.outputs.snapshot }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Canary: custom-dimensions-26 does not build on ${SNAPSHOT}"
+          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+          body="The weekly canary failed to build against \`${SNAPSHOT}\`: ${RUN_URL}"
+          if [[ -n "$existing" ]]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi

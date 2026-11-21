@@ -1,0 +1,6 @@
+{
+  "reason": "G8: landShare 0.95 holds blossom groves on one white upland (ocean 15.1%) for any seed.",
+  "terrain": {
+    "landShare": 0.95
+  }
+}

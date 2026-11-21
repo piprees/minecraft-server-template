@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture and showcase: the biome library's desert oasis filling a whole level on flat basin terrain a few blocks above sea level, the level ground its pools need, for the biomes section's per-biome checks, renders and screenshots.",
+  "seed": 9,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "single_biome",
+    "biome": "adventure:desert_oasis"
+  },
+  "terrain": {
+    "base": "erosion",
+    "params": {
+      "basinShare": 0.9,
+      "hillHeight": 6,
+      "steepness": 0,
+      "landHeight": 70,
+      "roughness": 0,
+      "relief": 0
+    }
+  },
+  "borders": {
+    "player": 512
+  }
+}

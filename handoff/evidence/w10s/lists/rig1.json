@@ -1,0 +1,7970 @@
+[
+ {
+  "dimension": "adventure:the_violet_spire",
+  "name": "the_violet_spire-structure-fortified_temple",
+  "x": -488.8,
+  "y": "open+8",
+  "z": -171.1,
+  "why": "start of ati_structures:fortified_temple, 556 blocks from spawn; bearing +0 from the approach, 48 out, 8 over the floor",
+  "subject": [
+   -559,
+   -65,
+   -208,
+   -512,
+   -18,
+   -161
+  ],
+  "radius": 8,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "ati_structures:fortified_temple",
+  "fromSpawn": 556,
+  "alternates": [
+   {
+    "x": -493.2,
+    "y": "open+8",
+    "z": -207.5,
+    "why": "bearing +45 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": -511.5,
+    "y": "open+8",
+    "z": -142.2,
+    "why": "bearing -45 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": -522.1,
+    "y": "open+8",
+    "z": -230.2,
+    "why": "bearing +90 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": -547.9,
+    "y": "open+8",
+    "z": -137.8,
+    "why": "bearing -90 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": -558.5,
+    "y": "open+8",
+    "z": -225.8,
+    "why": "bearing +135 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": -576.8,
+    "y": "open+8",
+    "z": -160.5,
+    "why": "bearing -135 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": -581.2,
+    "y": "open+8",
+    "z": -196.9,
+    "why": "bearing +180 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": -488.8,
+    "y": "open+16",
+    "z": -171.1,
+    "why": "bearing +0 from the approach, 48 out, 16 over the floor"
+   },
+   {
+    "x": -522.1,
+    "y": "open+16",
+    "z": -230.2,
+    "why": "bearing +90 from the approach, 48 out, 16 over the floor"
+   },
+   {
+    "x": -581.2,
+    "y": "open+16",
+    "z": -196.9,
+    "why": "bearing +180 from the approach, 48 out, 16 over the floor"
+   },
+   {
+    "x": -547.9,
+    "y": "open+16",
+    "z": -137.8,
+    "why": "bearing -90 from the approach, 48 out, 16 over the floor"
+   },
+   {
+    "x": -502.7,
+    "y": "open+6",
+    "z": -174.9,
+    "why": "bearing +0 from the approach, 34 out, 6 over the floor"
+   },
+   {
+    "x": -567.3,
+    "y": "open+6",
+    "z": -193.1,
+    "why": "bearing +180 from the approach, 34 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_violet_spire",
+  "name": "the_violet_spire-structure-wizard_tower",
+  "x": -56.1,
+  "y": "open+8",
+  "z": -441.7,
+  "why": "start of ddd:wizard_tower, 466 blocks from spawn; bearing +0 from the approach, 54 out, 8 over the floor",
+  "subject": [
+   -92,
+   119,
+   -524,
+   -36,
+   255,
+   -468
+  ],
+  "radius": 8,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "ddd:wizard_tower",
+  "fromSpawn": 466,
+  "alternates": [
+   {
+    "x": -20.2,
+    "y": "open+8",
+    "z": -462.7,
+    "why": "bearing +45 from the approach, 54 out, 8 over the floor"
+   },
+   {
+    "x": -96.3,
+    "y": "open+8",
+    "z": -452.2,
+    "why": "bearing -45 from the approach, 54 out, 8 over the floor"
+   },
+   {
+    "x": -9.7,
+    "y": "open+8",
+    "z": -502.9,
+    "why": "bearing +90 from the approach, 54 out, 8 over the floor"
+   },
+   {
+    "x": -117.3,
+    "y": "open+8",
+    "z": -488.1,
+    "why": "bearing -90 from the approach, 54 out, 8 over the floor"
+   },
+   {
+    "x": -30.7,
+    "y": "open+8",
+    "z": -538.8,
+    "why": "bearing +135 from the approach, 54 out, 8 over the floor"
+   },
+   {
+    "x": -106.8,
+    "y": "open+8",
+    "z": -528.3,
+    "why": "bearing -135 from the approach, 54 out, 8 over the floor"
+   },
+   {
+    "x": -70.9,
+    "y": "open+8",
+    "z": -549.3,
+    "why": "bearing +180 from the approach, 54 out, 8 over the floor"
+   },
+   {
+    "x": -56.1,
+    "y": "open+16",
+    "z": -441.7,
+    "why": "bearing +0 from the approach, 54 out, 16 over the floor"
+   },
+   {
+    "x": -9.7,
+    "y": "open+16",
+    "z": -502.9,
+    "why": "bearing +90 from the approach, 54 out, 16 over the floor"
+   },
+   {
+    "x": -70.9,
+    "y": "open+16",
+    "z": -549.3,
+    "why": "bearing +180 from the approach, 54 out, 16 over the floor"
+   },
+   {
+    "x": -117.3,
+    "y": "open+16",
+    "z": -488.1,
+    "why": "bearing -90 from the approach, 54 out, 16 over the floor"
+   },
+   {
+    "x": -58.3,
+    "y": "open+6",
+    "z": -457.8,
+    "why": "bearing +0 from the approach, 38 out, 6 over the floor"
+   },
+   {
+    "x": -68.7,
+    "y": "open+6",
+    "z": -533.2,
+    "why": "bearing +180 from the approach, 38 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_violet_spire",
+  "name": "the_violet_spire-structure-castle_ruin",
+  "x": -411.4,
+  "y": "open+8",
+  "z": -296.2,
+  "why": "start of mss:castle_ruin, 531 blocks from spawn; bearing +0 from the approach, 43 out, 8 over the floor",
+  "subject": [
+   -468,
+   183,
+   -341,
+   -429,
+   217,
+   -299
+  ],
+  "radius": 7,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mss:castle_ruin",
+  "fromSpawn": 531,
+  "alternates": [
+   {
+    "x": -405.7,
+    "y": "open+8",
+    "z": -328.9,
+    "why": "bearing +45 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -438.6,
+    "y": "open+8",
+    "z": -277.2,
+    "why": "bearing -45 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -424.7,
+    "y": "open+8",
+    "z": -356.1,
+    "why": "bearing +90 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -471.3,
+    "y": "open+8",
+    "z": -282.9,
+    "why": "bearing -90 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -457.4,
+    "y": "open+8",
+    "z": -361.8,
+    "why": "bearing +135 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -490.3,
+    "y": "open+8",
+    "z": -310.1,
+    "why": "bearing -135 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -484.6,
+    "y": "open+8",
+    "z": -342.8,
+    "why": "bearing +180 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -411.4,
+    "y": "open+16",
+    "z": -296.2,
+    "why": "bearing +0 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -424.7,
+    "y": "open+16",
+    "z": -356.1,
+    "why": "bearing +90 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -484.6,
+    "y": "open+16",
+    "z": -342.8,
+    "why": "bearing +180 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -471.3,
+    "y": "open+16",
+    "z": -282.9,
+    "why": "bearing -90 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -422.4,
+    "y": "open+6",
+    "z": -303.2,
+    "why": "bearing +0 from the approach, 30 out, 6 over the floor"
+   },
+   {
+    "x": -473.6,
+    "y": "open+6",
+    "z": -335.8,
+    "why": "bearing +180 from the approach, 30 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_violet_spire",
+  "name": "the_violet_spire-structure-large_tower",
+  "x": 16.0,
+  "y": "open+8",
+  "z": 0.1,
+  "why": "start of mss:large_tower, 97 blocks from spawn; bearing +0 from the approach, 59 out, 8 over the floor",
+  "subject": [
+   7,
+   4,
+   24,
+   74,
+   116,
+   82
+  ],
+  "radius": 9,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mss:large_tower",
+  "fromSpawn": 97,
+  "alternates": [
+   {
+    "x": -14.5,
+    "y": "open+8",
+    "z": 33.4,
+    "why": "bearing +45 from the approach, 59 out, 8 over the floor"
+   },
+   {
+    "x": 61.1,
+    "y": "open+8",
+    "z": -2.0,
+    "why": "bearing -45 from the approach, 59 out, 8 over the floor"
+   },
+   {
+    "x": -12.4,
+    "y": "open+8",
+    "z": 78.5,
+    "why": "bearing +90 from the approach, 59 out, 8 over the floor"
+   },
+   {
+    "x": 94.4,
+    "y": "open+8",
+    "z": 28.5,
+    "why": "bearing -90 from the approach, 59 out, 8 over the floor"
+   },
+   {
+    "x": 20.9,
+    "y": "open+8",
+    "z": 109.0,
+    "why": "bearing +135 from the approach, 59 out, 8 over the floor"
+   },
+   {
+    "x": 96.5,
+    "y": "open+8",
+    "z": 73.6,
+    "why": "bearing -135 from the approach, 59 out, 8 over the floor"
+   },
+   {
+    "x": 66.0,
+    "y": "open+8",
+    "z": 106.9,
+    "why": "bearing +180 from the approach, 59 out, 8 over the floor"
+   },
+   {
+    "x": 16.0,
+    "y": "open+16",
+    "z": 0.1,
+    "why": "bearing +0 from the approach, 59 out, 16 over the floor"
+   },
+   {
+    "x": -12.4,
+    "y": "open+16",
+    "z": 78.5,
+    "why": "bearing +90 from the approach, 59 out, 16 over the floor"
+   },
+   {
+    "x": 66.0,
+    "y": "open+16",
+    "z": 106.9,
+    "why": "bearing +180 from the approach, 59 out, 16 over the floor"
+   },
+   {
+    "x": 94.4,
+    "y": "open+16",
+    "z": 28.5,
+    "why": "bearing -90 from the approach, 59 out, 16 over the floor"
+   },
+   {
+    "x": 23.5,
+    "y": "open+6",
+    "z": 16.1,
+    "why": "bearing +0 from the approach, 41 out, 6 over the floor"
+   },
+   {
+    "x": 58.5,
+    "y": "open+6",
+    "z": 90.9,
+    "why": "bearing +180 from the approach, 41 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_sunken_temple",
+  "name": "the_sunken_temple-structure-sinking_temple",
+  "x": -137.2,
+  "y": "open+8",
+  "z": 30.6,
+  "why": "start of ati_structures:sinking_temple, 189 blocks from spawn; bearing +0 from the approach, 48 out, 8 over the floor",
+  "subject": [
+   -208,
+   162,
+   17,
+   -161,
+   209,
+   64
+  ],
+  "radius": 8,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "ati_structures:sinking_temple",
+  "fromSpawn": 189,
+  "alternates": [
+   {
+    "x": -158.3,
+    "y": "open+8",
+    "z": 0.5,
+    "why": "bearing +45 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": -143.5,
+    "y": "open+8",
+    "z": 66.7,
+    "why": "bearing -45 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": -194.4,
+    "y": "open+8",
+    "z": -5.8,
+    "why": "bearing +90 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": -173.6,
+    "y": "open+8",
+    "z": 87.8,
+    "why": "bearing -90 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": -224.5,
+    "y": "open+8",
+    "z": 15.3,
+    "why": "bearing +135 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": -209.7,
+    "y": "open+8",
+    "z": 81.5,
+    "why": "bearing -135 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": -230.8,
+    "y": "open+8",
+    "z": 51.4,
+    "why": "bearing +180 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": -137.2,
+    "y": "open+16",
+    "z": 30.6,
+    "why": "bearing +0 from the approach, 48 out, 16 over the floor"
+   },
+   {
+    "x": -194.4,
+    "y": "open+16",
+    "z": -5.8,
+    "why": "bearing +90 from the approach, 48 out, 16 over the floor"
+   },
+   {
+    "x": -230.8,
+    "y": "open+16",
+    "z": 51.4,
+    "why": "bearing +180 from the approach, 48 out, 16 over the floor"
+   },
+   {
+    "x": -173.6,
+    "y": "open+16",
+    "z": 87.8,
+    "why": "bearing -90 from the approach, 48 out, 16 over the floor"
+   },
+   {
+    "x": -151.2,
+    "y": "open+6",
+    "z": 33.7,
+    "why": "bearing +0 from the approach, 34 out, 6 over the floor"
+   },
+   {
+    "x": -216.8,
+    "y": "open+6",
+    "z": 48.3,
+    "why": "bearing +180 from the approach, 34 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_sunken_temple",
+  "name": "the_sunken_temple-structure-castle_ruin",
+  "x": -1179.3,
+  "y": "open+8",
+  "z": 745.3,
+  "why": "start of mss:castle_ruin, 1438 blocks from spawn; bearing +0 from the approach, 43 out, 8 over the floor",
+  "subject": [
+   -1236,
+   281,
+   747,
+   -1197,
+   315,
+   789
+  ],
+  "radius": 7,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "mss:castle_ruin",
+  "fromSpawn": 1438,
+  "alternates": [
+   {
+    "x": -1206.5,
+    "y": "open+8",
+    "z": 726.2,
+    "why": "bearing +45 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -1173.7,
+    "y": "open+8",
+    "z": 778.0,
+    "why": "bearing -45 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -1239.2,
+    "y": "open+8",
+    "z": 731.8,
+    "why": "bearing +90 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -1192.8,
+    "y": "open+8",
+    "z": 805.2,
+    "why": "bearing -90 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -1258.3,
+    "y": "open+8",
+    "z": 759.0,
+    "why": "bearing +135 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -1225.5,
+    "y": "open+8",
+    "z": 810.8,
+    "why": "bearing -135 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -1252.7,
+    "y": "open+8",
+    "z": 791.7,
+    "why": "bearing +180 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -1179.3,
+    "y": "open+16",
+    "z": 745.3,
+    "why": "bearing +0 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -1239.2,
+    "y": "open+16",
+    "z": 731.8,
+    "why": "bearing +90 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -1252.7,
+    "y": "open+16",
+    "z": 791.7,
+    "why": "bearing +180 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -1192.8,
+    "y": "open+16",
+    "z": 805.2,
+    "why": "bearing -90 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -1190.3,
+    "y": "open+6",
+    "z": 752.3,
+    "why": "bearing +0 from the approach, 30 out, 6 over the floor"
+   },
+   {
+    "x": -1241.7,
+    "y": "open+6",
+    "z": 784.7,
+    "why": "bearing +180 from the approach, 30 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_sunken_temple",
+  "name": "the_sunken_temple-structure-conduit_ruin",
+  "x": 129.8,
+  "y": "open+8",
+  "z": 1257.4,
+  "why": "start of nova_structures:conduit_ruin, 1334 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   74,
+   129,
+   1245,
+   199,
+   152,
+   1408
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "nova_structures:conduit_ruin",
+  "fromSpawn": 1334,
+  "alternates": [
+   {
+    "x": 82.7,
+    "y": "open+8",
+    "z": 1282.8,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 181.2,
+    "y": "open+8",
+    "z": 1272.7,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 67.4,
+    "y": "open+8",
+    "z": 1334.2,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 206.6,
+    "y": "open+8",
+    "z": 1319.8,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 92.8,
+    "y": "open+8",
+    "z": 1381.3,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 191.3,
+    "y": "open+8",
+    "z": 1371.2,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 144.2,
+    "y": "open+8",
+    "z": 1396.6,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 129.8,
+    "y": "open+16",
+    "z": 1257.4,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 67.4,
+    "y": "open+16",
+    "z": 1334.2,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 144.2,
+    "y": "open+16",
+    "z": 1396.6,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 206.6,
+    "y": "open+16",
+    "z": 1319.8,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 132.0,
+    "y": "open+6",
+    "z": 1278.3,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": 142.0,
+    "y": "open+6",
+    "z": 1375.7,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_sunken_temple",
+  "name": "the_sunken_temple-structure-small_conduit_ruin_warm",
+  "x": 1040.3,
+  "y": "open+8",
+  "z": -322.6,
+  "why": "start of nova_structures:small_conduit_ruin_warm, 1112 blocks from spawn; bearing +0 from the approach, 23 out, 8 over the floor",
+  "subject": [
+   1056,
+   133,
+   -336,
+   1068,
+   139,
+   -324
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "nova_structures:small_conduit_ruin_warm",
+  "fromSpawn": 1112,
+  "alternates": [
+   {
+    "x": 1051.7,
+    "y": "open+8",
+    "z": -309.0,
+    "why": "bearing +45 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 1042.0,
+    "y": "open+8",
+    "z": -340.3,
+    "why": "bearing -45 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 1069.4,
+    "y": "open+8",
+    "z": -307.3,
+    "why": "bearing +90 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 1055.6,
+    "y": "open+8",
+    "z": -351.7,
+    "why": "bearing -90 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 1083.0,
+    "y": "open+8",
+    "z": -318.7,
+    "why": "bearing +135 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 1073.3,
+    "y": "open+8",
+    "z": -350.0,
+    "why": "bearing -135 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 1084.7,
+    "y": "open+8",
+    "z": -336.4,
+    "why": "bearing +180 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 1040.3,
+    "y": "open+16",
+    "z": -322.6,
+    "why": "bearing +0 from the approach, 23 out, 16 over the floor"
+   },
+   {
+    "x": 1069.4,
+    "y": "open+16",
+    "z": -307.3,
+    "why": "bearing +90 from the approach, 23 out, 16 over the floor"
+   },
+   {
+    "x": 1084.7,
+    "y": "open+16",
+    "z": -336.4,
+    "why": "bearing +180 from the approach, 23 out, 16 over the floor"
+   },
+   {
+    "x": 1055.6,
+    "y": "open+16",
+    "z": -351.7,
+    "why": "bearing -90 from the approach, 23 out, 16 over the floor"
+   },
+   {
+    "x": 1047.0,
+    "y": "open+6",
+    "z": -324.7,
+    "why": "bearing +0 from the approach, 16 out, 6 over the floor"
+   },
+   {
+    "x": 1078.0,
+    "y": "open+6",
+    "z": -334.3,
+    "why": "bearing +180 from the approach, 16 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_molten_flats",
+  "name": "the_molten_flats-structure-bridge_1",
+  "x": 730.6,
+  "y": "open+8",
+  "z": 62.2,
+  "why": "start of mns:bridge_1, 628 blocks from spawn; bearing +0 from the approach, 22 out, 8 over the floor",
+  "subject": [
+   748,
+   30,
+   62,
+   756,
+   34,
+   66
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:bridge_1",
+  "fromSpawn": 628,
+  "alternates": [
+   {
+    "x": 735.4,
+    "y": "open+8",
+    "z": 78.4,
+    "why": "bearing +45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 738.6,
+    "y": "open+8",
+    "z": 47.4,
+    "why": "bearing -45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 750.2,
+    "y": "open+8",
+    "z": 86.4,
+    "why": "bearing +90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 754.8,
+    "y": "open+8",
+    "z": 42.6,
+    "why": "bearing -90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 766.4,
+    "y": "open+8",
+    "z": 81.6,
+    "why": "bearing +135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 769.6,
+    "y": "open+8",
+    "z": 50.6,
+    "why": "bearing -135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 774.4,
+    "y": "open+8",
+    "z": 66.8,
+    "why": "bearing +180 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 730.6,
+    "y": "open+16",
+    "z": 62.2,
+    "why": "bearing +0 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 750.2,
+    "y": "open+16",
+    "z": 86.4,
+    "why": "bearing +90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 774.4,
+    "y": "open+16",
+    "z": 66.8,
+    "why": "bearing +180 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 754.8,
+    "y": "open+16",
+    "z": 42.6,
+    "why": "bearing -90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 737.2,
+    "y": "open+6",
+    "z": 62.9,
+    "why": "bearing +0 from the approach, 15 out, 6 over the floor"
+   },
+   {
+    "x": 767.8,
+    "y": "open+6",
+    "z": 66.1,
+    "why": "bearing +180 from the approach, 15 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_molten_flats",
+  "name": "the_molten_flats-structure-crimson_forge",
+  "x": 52.1,
+  "y": "open+8",
+  "z": 900.8,
+  "why": "start of mns:crimson_forge, 947 blocks from spawn; bearing +0 from the approach, 43 out, 8 over the floor",
+  "subject": [
+   27,
+   23,
+   924,
+   69,
+   58,
+   963
+  ],
+  "radius": 7,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:crimson_forge",
+  "fromSpawn": 947,
+  "alternates": [
+   {
+    "x": 20.5,
+    "y": "open+8",
+    "z": 910.9,
+    "why": "bearing +45 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": 81.6,
+    "y": "open+8",
+    "z": 916.0,
+    "why": "bearing -45 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": 5.3,
+    "y": "open+8",
+    "z": 940.4,
+    "why": "bearing +90 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": 91.7,
+    "y": "open+8",
+    "z": 947.6,
+    "why": "bearing -90 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": 15.4,
+    "y": "open+8",
+    "z": 972.0,
+    "why": "bearing +135 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": 76.5,
+    "y": "open+8",
+    "z": 977.1,
+    "why": "bearing -135 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": 44.9,
+    "y": "open+8",
+    "z": 987.2,
+    "why": "bearing +180 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": 52.1,
+    "y": "open+16",
+    "z": 900.8,
+    "why": "bearing +0 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": 5.3,
+    "y": "open+16",
+    "z": 940.4,
+    "why": "bearing +90 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": 44.9,
+    "y": "open+16",
+    "z": 987.2,
+    "why": "bearing +180 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": 91.7,
+    "y": "open+16",
+    "z": 947.6,
+    "why": "bearing -90 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": 51.0,
+    "y": "open+6",
+    "z": 913.8,
+    "why": "bearing +0 from the approach, 30 out, 6 over the floor"
+   },
+   {
+    "x": 46.0,
+    "y": "open+6",
+    "z": 974.2,
+    "why": "bearing +180 from the approach, 30 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_molten_flats",
+  "name": "the_molten_flats-structure-crimson_lava_well",
+  "x": 118.3,
+  "y": "open+8",
+  "z": 9.1,
+  "why": "start of mns:crimson_lava_well, 23 blocks from spawn; bearing +0 from the approach, 36 out, 8 over the floor",
+  "subject": [
+   129,
+   23,
+   -31,
+   159,
+   57,
+   -1
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:crimson_lava_well",
+  "fromSpawn": 23,
+  "alternates": [
+   {
+    "x": 143.4,
+    "y": "open+8",
+    "z": 20.4,
+    "why": "bearing +45 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": 108.6,
+    "y": "open+8",
+    "z": -16.6,
+    "why": "bearing -45 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": 169.1,
+    "y": "open+8",
+    "z": 10.7,
+    "why": "bearing +90 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": 119.9,
+    "y": "open+8",
+    "z": -41.7,
+    "why": "bearing -90 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": 180.4,
+    "y": "open+8",
+    "z": -14.4,
+    "why": "bearing +135 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": 145.6,
+    "y": "open+8",
+    "z": -51.4,
+    "why": "bearing -135 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": 170.7,
+    "y": "open+8",
+    "z": -40.1,
+    "why": "bearing +180 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": 118.3,
+    "y": "open+16",
+    "z": 9.1,
+    "why": "bearing +0 from the approach, 36 out, 16 over the floor"
+   },
+   {
+    "x": 169.1,
+    "y": "open+16",
+    "z": 10.7,
+    "why": "bearing +90 from the approach, 36 out, 16 over the floor"
+   },
+   {
+    "x": 170.7,
+    "y": "open+16",
+    "z": -40.1,
+    "why": "bearing +180 from the approach, 36 out, 16 over the floor"
+   },
+   {
+    "x": 119.9,
+    "y": "open+16",
+    "z": -41.7,
+    "why": "bearing -90 from the approach, 36 out, 16 over the floor"
+   },
+   {
+    "x": 126.2,
+    "y": "open+6",
+    "z": 1.7,
+    "why": "bearing +0 from the approach, 25 out, 6 over the floor"
+   },
+   {
+    "x": 162.8,
+    "y": "open+6",
+    "z": -32.7,
+    "why": "bearing +180 from the approach, 25 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_molten_flats",
+  "name": "the_molten_flats-structure-mega_fortress",
+  "x": 648.4,
+  "y": "open+8",
+  "z": 653.7,
+  "why": "start of mns:mega_fortress, 906 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   562,
+   19,
+   582,
+   821,
+   74,
+   834
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:mega_fortress",
+  "fromSpawn": 906,
+  "alternates": [
+   {
+    "x": 622.4,
+    "y": "open+8",
+    "z": 700.6,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 699.9,
+    "y": "open+8",
+    "z": 638.9,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 637.2,
+    "y": "open+8",
+    "z": 752.1,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 746.8,
+    "y": "open+8",
+    "z": 664.9,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 684.1,
+    "y": "open+8",
+    "z": 778.1,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 761.6,
+    "y": "open+8",
+    "z": 716.4,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 735.6,
+    "y": "open+8",
+    "z": 763.3,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 648.4,
+    "y": "open+16",
+    "z": 653.7,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 637.2,
+    "y": "open+16",
+    "z": 752.1,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 735.6,
+    "y": "open+16",
+    "z": 763.3,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 746.8,
+    "y": "open+16",
+    "z": 664.9,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 661.5,
+    "y": "open+6",
+    "z": 670.2,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": 722.5,
+    "y": "open+6",
+    "z": 746.8,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_molten_flats",
+  "name": "the_molten_flats-structure-piglin_outstation",
+  "x": 7.8,
+  "y": "open+8",
+  "z": -155.6,
+  "why": "start of nova_structures:piglin_outstation, 267 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -140,
+   18,
+   -316,
+   69,
+   91,
+   -107
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "nova_structures:piglin_outstation",
+  "fromSpawn": 267,
+  "alternates": [
+   {
+    "x": 34.4,
+    "y": "open+8",
+    "z": -202.1,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -43.9,
+    "y": "open+8",
+    "z": -141.6,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 20.4,
+    "y": "open+8",
+    "z": -253.8,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -90.4,
+    "y": "open+8",
+    "z": -168.2,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -26.1,
+    "y": "open+8",
+    "z": -280.4,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -104.4,
+    "y": "open+8",
+    "z": -219.9,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -77.8,
+    "y": "open+8",
+    "z": -266.4,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 7.8,
+    "y": "open+16",
+    "z": -155.6,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 20.4,
+    "y": "open+16",
+    "z": -253.8,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -77.8,
+    "y": "open+16",
+    "z": -266.4,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -90.4,
+    "y": "open+16",
+    "z": -168.2,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -5.0,
+    "y": "open+6",
+    "z": -172.2,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -65.0,
+    "y": "open+6",
+    "z": -249.8,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_forged_depths",
+  "name": "the_forged_depths-structure-bastion_remnant",
+  "x": 50.5,
+  "y": "open+8",
+  "z": -391.8,
+  "why": "start of minecraft:bastion_remnant, 334 blocks from spawn; bearing +0 from the approach, 48 out, 8 over the floor",
+  "subject": [
+   35,
+   31,
+   -463,
+   82,
+   86,
+   -416
+  ],
+  "radius": 8,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "minecraft:bastion_remnant",
+  "fromSpawn": 334,
+  "alternates": [
+   {
+    "x": 86.4,
+    "y": "open+8",
+    "z": -399.6,
+    "why": "bearing +45 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": 19.6,
+    "y": "open+8",
+    "z": -411.6,
+    "why": "bearing -45 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": 106.2,
+    "y": "open+8",
+    "z": -430.5,
+    "why": "bearing +90 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": 11.8,
+    "y": "open+8",
+    "z": -447.5,
+    "why": "bearing -90 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": 98.4,
+    "y": "open+8",
+    "z": -466.4,
+    "why": "bearing +135 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": 31.6,
+    "y": "open+8",
+    "z": -478.4,
+    "why": "bearing -135 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": 67.5,
+    "y": "open+8",
+    "z": -486.2,
+    "why": "bearing +180 from the approach, 48 out, 8 over the floor"
+   },
+   {
+    "x": 50.5,
+    "y": "open+16",
+    "z": -391.8,
+    "why": "bearing +0 from the approach, 48 out, 16 over the floor"
+   },
+   {
+    "x": 106.2,
+    "y": "open+16",
+    "z": -430.5,
+    "why": "bearing +90 from the approach, 48 out, 16 over the floor"
+   },
+   {
+    "x": 67.5,
+    "y": "open+16",
+    "z": -486.2,
+    "why": "bearing +180 from the approach, 48 out, 16 over the floor"
+   },
+   {
+    "x": 11.8,
+    "y": "open+16",
+    "z": -447.5,
+    "why": "bearing -90 from the approach, 48 out, 16 over the floor"
+   },
+   {
+    "x": 53.1,
+    "y": "open+6",
+    "z": -406.0,
+    "why": "bearing +0 from the approach, 34 out, 6 over the floor"
+   },
+   {
+    "x": 64.9,
+    "y": "open+6",
+    "z": -472.0,
+    "why": "bearing +180 from the approach, 34 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_forged_depths",
+  "name": "the_forged_depths-structure-fortress",
+  "x": 92.8,
+  "y": "open+8",
+  "z": -211.8,
+  "why": "start of minecraft:fortress, 208 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   50,
+   48,
+   -384,
+   229,
+   72,
+   -144
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "minecraft:fortress",
+  "fromSpawn": 208,
+  "alternates": [
+   {
+    "x": 143.2,
+    "y": "open+8",
+    "z": -193.6,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 70.1,
+    "y": "open+8",
+    "z": -260.3,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 191.7,
+    "y": "open+8",
+    "z": -216.3,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 88.3,
+    "y": "open+8",
+    "z": -310.7,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 209.9,
+    "y": "open+8",
+    "z": -266.7,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 136.8,
+    "y": "open+8",
+    "z": -333.4,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 187.2,
+    "y": "open+8",
+    "z": -315.2,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 92.8,
+    "y": "open+16",
+    "z": -211.8,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 191.7,
+    "y": "open+16",
+    "z": -216.3,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 187.2,
+    "y": "open+16",
+    "z": -315.2,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 88.3,
+    "y": "open+16",
+    "z": -310.7,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 107.0,
+    "y": "open+6",
+    "z": -227.3,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": 173.0,
+    "y": "open+6",
+    "z": -299.7,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_forged_depths",
+  "name": "the_forged_depths-structure-crimson_forge",
+  "x": 27.5,
+  "y": "open+8",
+  "z": -106.5,
+  "why": "start of mns:crimson_forge, 16 blocks from spawn; bearing +0 from the approach, 43 out, 8 over the floor",
+  "subject": [
+   -37,
+   42,
+   -132,
+   5,
+   77,
+   -93
+  ],
+  "radius": 7,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:crimson_forge",
+  "fromSpawn": 16,
+  "alternates": [
+   {
+    "x": 18.8,
+    "y": "open+8",
+    "z": -138.5,
+    "why": "bearing +45 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": 11.0,
+    "y": "open+8",
+    "z": -77.7,
+    "why": "bearing -45 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -10.0,
+    "y": "open+8",
+    "z": -155.0,
+    "why": "bearing +90 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -21.0,
+    "y": "open+8",
+    "z": -69.0,
+    "why": "bearing -90 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -42.0,
+    "y": "open+8",
+    "z": -146.3,
+    "why": "bearing +135 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -49.8,
+    "y": "open+8",
+    "z": -85.5,
+    "why": "bearing -135 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -58.5,
+    "y": "open+8",
+    "z": -117.5,
+    "why": "bearing +180 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": 27.5,
+    "y": "open+16",
+    "z": -106.5,
+    "why": "bearing +0 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -10.0,
+    "y": "open+16",
+    "z": -155.0,
+    "why": "bearing +90 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -58.5,
+    "y": "open+16",
+    "z": -117.5,
+    "why": "bearing +180 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -21.0,
+    "y": "open+16",
+    "z": -69.0,
+    "why": "bearing -90 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": 14.6,
+    "y": "open+6",
+    "z": -108.1,
+    "why": "bearing +0 from the approach, 30 out, 6 over the floor"
+   },
+   {
+    "x": -45.6,
+    "y": "open+6",
+    "z": -115.9,
+    "why": "bearing +180 from the approach, 30 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_forged_depths",
+  "name": "the_forged_depths-structure-nether_keep",
+  "x": -45.8,
+  "y": "open+8",
+  "z": -237.1,
+  "why": "start of nova_structures:nether_keep, 205 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -175,
+   31,
+   -386,
+   35,
+   111,
+   -221
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "nova_structures:nether_keep",
+  "fromSpawn": 205,
+  "alternates": [
+   {
+    "x": -6.2,
+    "y": "open+8",
+    "z": -273.2,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -99.3,
+    "y": "open+8",
+    "z": -239.7,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -3.6,
+    "y": "open+8",
+    "z": -326.7,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -135.4,
+    "y": "open+8",
+    "z": -279.3,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -39.7,
+    "y": "open+8",
+    "z": -366.3,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -132.8,
+    "y": "open+8",
+    "z": -332.8,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -93.2,
+    "y": "open+8",
+    "z": -368.9,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -45.8,
+    "y": "open+16",
+    "z": -237.1,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -3.6,
+    "y": "open+16",
+    "z": -326.7,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -93.2,
+    "y": "open+16",
+    "z": -368.9,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -135.4,
+    "y": "open+16",
+    "z": -279.3,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -52.9,
+    "y": "open+6",
+    "z": -256.9,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -86.1,
+    "y": "open+6",
+    "z": -349.1,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_forged_depths",
+  "name": "the_forged_depths-structure-piglin_donjon",
+  "x": -5.1,
+  "y": "open+8",
+  "z": -44.8,
+  "why": "start of nova_structures:piglin_donjon, 135 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -131,
+   28,
+   -89,
+   109,
+   103,
+   138
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "nova_structures:piglin_donjon",
+  "fromSpawn": 135,
+  "alternates": [
+   {
+    "x": -56.0,
+    "y": "open+8",
+    "z": -28.2,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 42.7,
+    "y": "open+8",
+    "z": -20.5,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -80.3,
+    "y": "open+8",
+    "z": 19.6,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 59.3,
+    "y": "open+8",
+    "z": 30.4,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -63.7,
+    "y": "open+8",
+    "z": 70.5,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 35.0,
+    "y": "open+8",
+    "z": 78.2,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -15.9,
+    "y": "open+8",
+    "z": 94.8,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -5.1,
+    "y": "open+16",
+    "z": -44.8,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -80.3,
+    "y": "open+16",
+    "z": 19.6,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -15.9,
+    "y": "open+16",
+    "z": 94.8,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 59.3,
+    "y": "open+16",
+    "z": 30.4,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -6.7,
+    "y": "open+6",
+    "z": -23.9,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -14.3,
+    "y": "open+6",
+    "z": 73.9,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_wailing_narrows",
+  "name": "the_wailing_narrows-structure-ancient_city",
+  "x": 166.0,
+  "y": "open+8",
+  "z": -155.8,
+  "why": "start of minecraft:ancient_city, 100 blocks from spawn; bearing +0 from the approach, 53 out, 8 over the floor",
+  "subject": [
+   176,
+   -64,
+   -208,
+   240,
+   -10,
+   -167
+  ],
+  "radius": 8,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "minecraft:ancient_city",
+  "fromSpawn": 100,
+  "alternates": [
+   {
+    "x": 200.5,
+    "y": "open+8",
+    "z": -134.9,
+    "why": "bearing +45 from the approach, 53 out, 8 over the floor"
+   },
+   {
+    "x": 156.4,
+    "y": "open+8",
+    "z": -195.0,
+    "why": "bearing -45 from the approach, 53 out, 8 over the floor"
+   },
+   {
+    "x": 239.7,
+    "y": "open+8",
+    "z": -144.5,
+    "why": "bearing +90 from the approach, 53 out, 8 over the floor"
+   },
+   {
+    "x": 177.3,
+    "y": "open+8",
+    "z": -229.5,
+    "why": "bearing -90 from the approach, 53 out, 8 over the floor"
+   },
+   {
+    "x": 260.6,
+    "y": "open+8",
+    "z": -179.0,
+    "why": "bearing +135 from the approach, 53 out, 8 over the floor"
+   },
+   {
+    "x": 216.5,
+    "y": "open+8",
+    "z": -239.1,
+    "why": "bearing -135 from the approach, 53 out, 8 over the floor"
+   },
+   {
+    "x": 251.0,
+    "y": "open+8",
+    "z": -218.2,
+    "why": "bearing +180 from the approach, 53 out, 8 over the floor"
+   },
+   {
+    "x": 166.0,
+    "y": "open+16",
+    "z": -155.8,
+    "why": "bearing +0 from the approach, 53 out, 16 over the floor"
+   },
+   {
+    "x": 239.7,
+    "y": "open+16",
+    "z": -144.5,
+    "why": "bearing +90 from the approach, 53 out, 16 over the floor"
+   },
+   {
+    "x": 251.0,
+    "y": "open+16",
+    "z": -218.2,
+    "why": "bearing +180 from the approach, 53 out, 16 over the floor"
+   },
+   {
+    "x": 177.3,
+    "y": "open+16",
+    "z": -229.5,
+    "why": "bearing -90 from the approach, 53 out, 16 over the floor"
+   },
+   {
+    "x": 178.7,
+    "y": "open+6",
+    "z": -165.2,
+    "why": "bearing +0 from the approach, 37 out, 6 over the floor"
+   },
+   {
+    "x": 238.3,
+    "y": "open+6",
+    "z": -208.8,
+    "why": "bearing +180 from the approach, 37 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_wailing_narrows",
+  "name": "the_wailing_narrows-structure-bridge_1",
+  "x": 158.2,
+  "y": "open+8",
+  "z": -107.7,
+  "why": "start of mns:bridge_1, 58 blocks from spawn; bearing +0 from the approach, 22 out, 8 over the floor",
+  "subject": [
+   172,
+   30,
+   -98,
+   180,
+   34,
+   -94
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:bridge_1",
+  "fromSpawn": 58,
+  "alternates": [
+   {
+    "x": 154.9,
+    "y": "open+8",
+    "z": -91.2,
+    "why": "bearing +45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 172.2,
+    "y": "open+8",
+    "z": -117.1,
+    "why": "bearing -45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 164.3,
+    "y": "open+8",
+    "z": -77.2,
+    "why": "bearing +90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 188.7,
+    "y": "open+8",
+    "z": -113.8,
+    "why": "bearing -90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 180.8,
+    "y": "open+8",
+    "z": -73.9,
+    "why": "bearing +135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 198.1,
+    "y": "open+8",
+    "z": -99.8,
+    "why": "bearing -135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 194.8,
+    "y": "open+8",
+    "z": -83.3,
+    "why": "bearing +180 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 158.2,
+    "y": "open+16",
+    "z": -107.7,
+    "why": "bearing +0 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 164.3,
+    "y": "open+16",
+    "z": -77.2,
+    "why": "bearing +90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 194.8,
+    "y": "open+16",
+    "z": -83.3,
+    "why": "bearing +180 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 188.7,
+    "y": "open+16",
+    "z": -113.8,
+    "why": "bearing -90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 163.7,
+    "y": "open+6",
+    "z": -104.1,
+    "why": "bearing +0 from the approach, 15 out, 6 over the floor"
+   },
+   {
+    "x": 189.3,
+    "y": "open+6",
+    "z": -86.9,
+    "why": "bearing +180 from the approach, 15 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_wailing_narrows",
+  "name": "the_wailing_narrows-structure-bridge_2",
+  "x": 29.5,
+  "y": "open+8",
+  "z": 13.7,
+  "why": "start of mns:bridge_2, 195 blocks from spawn; bearing +0 from the approach, 23 out, 8 over the floor",
+  "subject": [
+   8,
+   30,
+   30,
+   24,
+   33,
+   34
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:bridge_2",
+  "fromSpawn": 195,
+  "alternates": [
+   {
+    "x": 12.4,
+    "y": "open+8",
+    "z": 10.0,
+    "why": "bearing +45 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 39.0,
+    "y": "open+8",
+    "z": 28.4,
+    "why": "bearing -45 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": -2.3,
+    "y": "open+8",
+    "z": 19.5,
+    "why": "bearing +90 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 35.3,
+    "y": "open+8",
+    "z": 45.5,
+    "why": "bearing -90 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": -6.0,
+    "y": "open+8",
+    "z": 36.6,
+    "why": "bearing +135 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 20.6,
+    "y": "open+8",
+    "z": 55.0,
+    "why": "bearing -135 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 3.5,
+    "y": "open+8",
+    "z": 51.3,
+    "why": "bearing +180 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 29.5,
+    "y": "open+16",
+    "z": 13.7,
+    "why": "bearing +0 from the approach, 23 out, 16 over the floor"
+   },
+   {
+    "x": -2.3,
+    "y": "open+16",
+    "z": 19.5,
+    "why": "bearing +90 from the approach, 23 out, 16 over the floor"
+   },
+   {
+    "x": 3.5,
+    "y": "open+16",
+    "z": 51.3,
+    "why": "bearing +180 from the approach, 23 out, 16 over the floor"
+   },
+   {
+    "x": 35.3,
+    "y": "open+16",
+    "z": 45.5,
+    "why": "bearing -90 from the approach, 23 out, 16 over the floor"
+   },
+   {
+    "x": 25.6,
+    "y": "open+6",
+    "z": 19.4,
+    "why": "bearing +0 from the approach, 16 out, 6 over the floor"
+   },
+   {
+    "x": 7.4,
+    "y": "open+6",
+    "z": 45.6,
+    "why": "bearing +180 from the approach, 16 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_wailing_narrows",
+  "name": "the_wailing_narrows-structure-bridge_3",
+  "x": 82.2,
+  "y": "open+8",
+  "z": 474.6,
+  "why": "start of mns:bridge_3, 626 blocks from spawn; bearing +0 from the approach, 22 out, 8 over the floor",
+  "subject": [
+   76,
+   30,
+   494,
+   84,
+   34,
+   498
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:bridge_3",
+  "fromSpawn": 626,
+  "alternates": [
+   {
+    "x": 66.2,
+    "y": "open+8",
+    "z": 479.8,
+    "why": "bearing +45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 97.2,
+    "y": "open+8",
+    "z": 482.2,
+    "why": "bearing -45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 58.6,
+    "y": "open+8",
+    "z": 494.8,
+    "why": "bearing +90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 102.4,
+    "y": "open+8",
+    "z": 498.2,
+    "why": "bearing -90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 63.8,
+    "y": "open+8",
+    "z": 510.8,
+    "why": "bearing +135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 94.8,
+    "y": "open+8",
+    "z": 513.2,
+    "why": "bearing -135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 78.8,
+    "y": "open+8",
+    "z": 518.4,
+    "why": "bearing +180 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 82.2,
+    "y": "open+16",
+    "z": 474.6,
+    "why": "bearing +0 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 58.6,
+    "y": "open+16",
+    "z": 494.8,
+    "why": "bearing +90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 78.8,
+    "y": "open+16",
+    "z": 518.4,
+    "why": "bearing +180 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 102.4,
+    "y": "open+16",
+    "z": 498.2,
+    "why": "bearing -90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 81.7,
+    "y": "open+6",
+    "z": 481.1,
+    "why": "bearing +0 from the approach, 15 out, 6 over the floor"
+   },
+   {
+    "x": 79.3,
+    "y": "open+6",
+    "z": 511.9,
+    "why": "bearing +180 from the approach, 15 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_wailing_narrows",
+  "name": "the_wailing_narrows-structure-bridge_4",
+  "x": 294.3,
+  "y": "open+8",
+  "z": 189.0,
+  "why": "start of mns:bridge_4, 380 blocks from spawn; bearing +0 from the approach, 22 out, 8 over the floor",
+  "subject": [
+   298,
+   30,
+   206,
+   310,
+   34,
+   210
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:bridge_4",
+  "fromSpawn": 380,
+  "alternates": [
+   {
+    "x": 283.5,
+    "y": "open+8",
+    "z": 201.9,
+    "why": "bearing +45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 311.1,
+    "y": "open+8",
+    "z": 187.5,
+    "why": "bearing -45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 285.0,
+    "y": "open+8",
+    "z": 218.7,
+    "why": "bearing +90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 324.0,
+    "y": "open+8",
+    "z": 198.3,
+    "why": "bearing -90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 297.9,
+    "y": "open+8",
+    "z": 229.5,
+    "why": "bearing +135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 325.5,
+    "y": "open+8",
+    "z": 215.1,
+    "why": "bearing -135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 314.7,
+    "y": "open+8",
+    "z": 228.0,
+    "why": "bearing +180 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 294.3,
+    "y": "open+16",
+    "z": 189.0,
+    "why": "bearing +0 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 285.0,
+    "y": "open+16",
+    "z": 218.7,
+    "why": "bearing +90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 314.7,
+    "y": "open+16",
+    "z": 228.0,
+    "why": "bearing +180 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 324.0,
+    "y": "open+16",
+    "z": 198.3,
+    "why": "bearing -90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 297.3,
+    "y": "open+6",
+    "z": 194.9,
+    "why": "bearing +0 from the approach, 15 out, 6 over the floor"
+   },
+   {
+    "x": 311.7,
+    "y": "open+6",
+    "z": 222.1,
+    "why": "bearing +180 from the approach, 15 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_wailing_narrows",
+  "name": "the_wailing_narrows-structure-bridge_5",
+  "x": 311.3,
+  "y": "open+8",
+  "z": 268.5,
+  "why": "start of mns:bridge_5, 459 blocks from spawn; bearing +0 from the approach, 22 out, 8 over the floor",
+  "subject": [
+   316,
+   30,
+   282,
+   324,
+   34,
+   294
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:bridge_5",
+  "fromSpawn": 459,
+  "alternates": [
+   {
+    "x": 299.9,
+    "y": "open+8",
+    "z": 280.9,
+    "why": "bearing +45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 328.1,
+    "y": "open+8",
+    "z": 267.9,
+    "why": "bearing -45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 300.5,
+    "y": "open+8",
+    "z": 297.7,
+    "why": "bearing +90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 340.5,
+    "y": "open+8",
+    "z": 279.3,
+    "why": "bearing -90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 312.9,
+    "y": "open+8",
+    "z": 309.1,
+    "why": "bearing +135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 341.1,
+    "y": "open+8",
+    "z": 296.1,
+    "why": "bearing -135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 329.7,
+    "y": "open+8",
+    "z": 308.5,
+    "why": "bearing +180 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 311.3,
+    "y": "open+16",
+    "z": 268.5,
+    "why": "bearing +0 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 300.5,
+    "y": "open+16",
+    "z": 297.7,
+    "why": "bearing +90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 329.7,
+    "y": "open+16",
+    "z": 308.5,
+    "why": "bearing +180 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 340.5,
+    "y": "open+16",
+    "z": 279.3,
+    "why": "bearing -90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 314.0,
+    "y": "open+6",
+    "z": 274.5,
+    "why": "bearing +0 from the approach, 15 out, 6 over the floor"
+   },
+   {
+    "x": 327.0,
+    "y": "open+6",
+    "z": 302.5,
+    "why": "bearing +180 from the approach, 15 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_wailing_narrows",
+  "name": "the_wailing_narrows-structure-bridge_6",
+  "x": 217.2,
+  "y": "open+8",
+  "z": 123.8,
+  "why": "start of mns:bridge_6, 289 blocks from spawn; bearing +0 from the approach, 22 out, 8 over the floor",
+  "subject": [
+   222,
+   30,
+   142,
+   226,
+   34,
+   146
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:bridge_6",
+  "fromSpawn": 289,
+  "alternates": [
+   {
+    "x": 204.6,
+    "y": "open+8",
+    "z": 135.0,
+    "why": "bearing +45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 234.0,
+    "y": "open+8",
+    "z": 124.6,
+    "why": "bearing -45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 203.8,
+    "y": "open+8",
+    "z": 151.8,
+    "why": "bearing +90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 245.2,
+    "y": "open+8",
+    "z": 137.2,
+    "why": "bearing -90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 215.0,
+    "y": "open+8",
+    "z": 164.4,
+    "why": "bearing +135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 244.4,
+    "y": "open+8",
+    "z": 154.0,
+    "why": "bearing -135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 231.8,
+    "y": "open+8",
+    "z": 165.2,
+    "why": "bearing +180 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 217.2,
+    "y": "open+16",
+    "z": 123.8,
+    "why": "bearing +0 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 203.8,
+    "y": "open+16",
+    "z": 151.8,
+    "why": "bearing +90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 231.8,
+    "y": "open+16",
+    "z": 165.2,
+    "why": "bearing +180 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 245.2,
+    "y": "open+16",
+    "z": 137.2,
+    "why": "bearing -90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 219.4,
+    "y": "open+6",
+    "z": 130.0,
+    "why": "bearing +0 from the approach, 15 out, 6 over the floor"
+   },
+   {
+    "x": 229.6,
+    "y": "open+6",
+    "z": 159.0,
+    "why": "bearing +180 from the approach, 15 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_wailing_narrows",
+  "name": "the_wailing_narrows-structure-giant_skull",
+  "x": -127.1,
+  "y": "open+8",
+  "z": -315.8,
+  "why": "start of mns:giant_skull, 377 blocks from spawn; bearing +0 from the approach, 60 out, 8 over the floor",
+  "subject": [
+   -205,
+   42,
+   -387,
+   -147,
+   97,
+   -317
+  ],
+  "radius": 9,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:giant_skull",
+  "fromSpawn": 377,
+  "alternates": [
+   {
+    "x": -116.0,
+    "y": "open+8",
+    "z": -360.5,
+    "why": "bearing +45 from the approach, 60 out, 8 over the floor"
+   },
+   {
+    "x": -166.5,
+    "y": "open+8",
+    "z": -292.0,
+    "why": "bearing -45 from the approach, 60 out, 8 over the floor"
+   },
+   {
+    "x": -139.8,
+    "y": "open+8",
+    "z": -399.9,
+    "why": "bearing +90 from the approach, 60 out, 8 over the floor"
+   },
+   {
+    "x": -211.2,
+    "y": "open+8",
+    "z": -303.1,
+    "why": "bearing -90 from the approach, 60 out, 8 over the floor"
+   },
+   {
+    "x": -184.5,
+    "y": "open+8",
+    "z": -411.0,
+    "why": "bearing +135 from the approach, 60 out, 8 over the floor"
+   },
+   {
+    "x": -235.0,
+    "y": "open+8",
+    "z": -342.5,
+    "why": "bearing -135 from the approach, 60 out, 8 over the floor"
+   },
+   {
+    "x": -223.9,
+    "y": "open+8",
+    "z": -387.2,
+    "why": "bearing +180 from the approach, 60 out, 8 over the floor"
+   },
+   {
+    "x": -127.1,
+    "y": "open+16",
+    "z": -315.8,
+    "why": "bearing +0 from the approach, 60 out, 16 over the floor"
+   },
+   {
+    "x": -139.8,
+    "y": "open+16",
+    "z": -399.9,
+    "why": "bearing +90 from the approach, 60 out, 16 over the floor"
+   },
+   {
+    "x": -223.9,
+    "y": "open+16",
+    "z": -387.2,
+    "why": "bearing +180 from the approach, 60 out, 16 over the floor"
+   },
+   {
+    "x": -211.2,
+    "y": "open+16",
+    "z": -303.1,
+    "why": "bearing -90 from the approach, 60 out, 16 over the floor"
+   },
+   {
+    "x": -141.6,
+    "y": "open+6",
+    "z": -326.5,
+    "why": "bearing +0 from the approach, 42 out, 6 over the floor"
+   },
+   {
+    "x": -209.4,
+    "y": "open+6",
+    "z": -376.5,
+    "why": "bearing +180 from the approach, 42 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_wailing_narrows",
+  "name": "the_wailing_narrows-structure-large_blackstone_pillars",
+  "x": 74.2,
+  "y": "open+8",
+  "z": 89.5,
+  "why": "start of mns:large_blackstone_pillars, 264 blocks from spawn; bearing +0 from the approach, 40 out, 8 over the floor",
+  "subject": [
+   46,
+   8,
+   110,
+   82,
+   42,
+   146
+  ],
+  "radius": 7,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:large_blackstone_pillars",
+  "fromSpawn": 264,
+  "alternates": [
+   {
+    "x": 43.8,
+    "y": "open+8",
+    "z": 94.1,
+    "why": "bearing +45 from the approach, 40 out, 8 over the floor"
+   },
+   {
+    "x": 98.9,
+    "y": "open+8",
+    "z": 107.8,
+    "why": "bearing -45 from the approach, 40 out, 8 over the floor"
+   },
+   {
+    "x": 25.5,
+    "y": "open+8",
+    "z": 118.8,
+    "why": "bearing +90 from the approach, 40 out, 8 over the floor"
+   },
+   {
+    "x": 103.5,
+    "y": "open+8",
+    "z": 138.2,
+    "why": "bearing -90 from the approach, 40 out, 8 over the floor"
+   },
+   {
+    "x": 30.1,
+    "y": "open+8",
+    "z": 149.2,
+    "why": "bearing +135 from the approach, 40 out, 8 over the floor"
+   },
+   {
+    "x": 85.2,
+    "y": "open+8",
+    "z": 162.9,
+    "why": "bearing -135 from the approach, 40 out, 8 over the floor"
+   },
+   {
+    "x": 54.8,
+    "y": "open+8",
+    "z": 167.5,
+    "why": "bearing +180 from the approach, 40 out, 8 over the floor"
+   },
+   {
+    "x": 74.2,
+    "y": "open+16",
+    "z": 89.5,
+    "why": "bearing +0 from the approach, 40 out, 16 over the floor"
+   },
+   {
+    "x": 25.5,
+    "y": "open+16",
+    "z": 118.8,
+    "why": "bearing +90 from the approach, 40 out, 16 over the floor"
+   },
+   {
+    "x": 54.8,
+    "y": "open+16",
+    "z": 167.5,
+    "why": "bearing +180 from the approach, 40 out, 16 over the floor"
+   },
+   {
+    "x": 103.5,
+    "y": "open+16",
+    "z": 138.2,
+    "why": "bearing -90 from the approach, 40 out, 16 over the floor"
+   },
+   {
+    "x": 71.3,
+    "y": "open+6",
+    "z": 101.2,
+    "why": "bearing +0 from the approach, 28 out, 6 over the floor"
+   },
+   {
+    "x": 57.7,
+    "y": "open+6",
+    "z": 155.8,
+    "why": "bearing +180 from the approach, 28 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_gilded_pit",
+  "name": "the_gilded_pit-structure-dark_keep",
+  "x": 367.1,
+  "y": "open+8",
+  "z": 361.4,
+  "why": "start of ati_structures:dark_keep, 968 blocks from spawn; bearing +0 from the approach, 32 out, 8 over the floor",
+  "subject": [
+   367,
+   103,
+   378,
+   391,
+   161,
+   402
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "ati_structures:dark_keep",
+  "fromSpawn": 968,
+  "alternates": [
+   {
+    "x": 350.1,
+    "y": "open+8",
+    "z": 378.7,
+    "why": "bearing +45 from the approach, 32 out, 8 over the floor"
+   },
+   {
+    "x": 391.3,
+    "y": "open+8",
+    "z": 361.1,
+    "why": "bearing -45 from the approach, 32 out, 8 over the floor"
+   },
+   {
+    "x": 350.4,
+    "y": "open+8",
+    "z": 402.9,
+    "why": "bearing +90 from the approach, 32 out, 8 over the floor"
+   },
+   {
+    "x": 408.6,
+    "y": "open+8",
+    "z": 378.1,
+    "why": "bearing -90 from the approach, 32 out, 8 over the floor"
+   },
+   {
+    "x": 367.7,
+    "y": "open+8",
+    "z": 419.9,
+    "why": "bearing +135 from the approach, 32 out, 8 over the floor"
+   },
+   {
+    "x": 408.9,
+    "y": "open+8",
+    "z": 402.3,
+    "why": "bearing -135 from the approach, 32 out, 8 over the floor"
+   },
+   {
+    "x": 391.9,
+    "y": "open+8",
+    "z": 419.6,
+    "why": "bearing +180 from the approach, 32 out, 8 over the floor"
+   },
+   {
+    "x": 367.1,
+    "y": "open+16",
+    "z": 361.4,
+    "why": "bearing +0 from the approach, 32 out, 16 over the floor"
+   },
+   {
+    "x": 350.4,
+    "y": "open+16",
+    "z": 402.9,
+    "why": "bearing +90 from the approach, 32 out, 16 over the floor"
+   },
+   {
+    "x": 391.9,
+    "y": "open+16",
+    "z": 419.6,
+    "why": "bearing +180 from the approach, 32 out, 16 over the floor"
+   },
+   {
+    "x": 408.6,
+    "y": "open+16",
+    "z": 378.1,
+    "why": "bearing -90 from the approach, 32 out, 16 over the floor"
+   },
+   {
+    "x": 370.8,
+    "y": "open+6",
+    "z": 370.1,
+    "why": "bearing +0 from the approach, 22 out, 6 over the floor"
+   },
+   {
+    "x": 388.2,
+    "y": "open+6",
+    "z": 410.9,
+    "why": "bearing +180 from the approach, 22 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_gilded_pit",
+  "name": "the_gilded_pit-structure-bastion_remnant",
+  "x": 231.7,
+  "y": "open+8",
+  "z": -37.5,
+  "why": "start of minecraft:bastion_remnant, 574 blocks from spawn; bearing +0 from the approach, 57 out, 8 over the floor",
+  "subject": [
+   225,
+   31,
+   -15,
+   288,
+   95,
+   40
+  ],
+  "radius": 9,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "minecraft:bastion_remnant",
+  "fromSpawn": 574,
+  "alternates": [
+   {
+    "x": 203.4,
+    "y": "open+8",
+    "z": -4.8,
+    "why": "bearing +45 from the approach, 57 out, 8 over the floor"
+   },
+   {
+    "x": 274.8,
+    "y": "open+8",
+    "z": -40.6,
+    "why": "bearing -45 from the approach, 57 out, 8 over the floor"
+   },
+   {
+    "x": 206.5,
+    "y": "open+8",
+    "z": 38.3,
+    "why": "bearing +90 from the approach, 57 out, 8 over the floor"
+   },
+   {
+    "x": 307.5,
+    "y": "open+8",
+    "z": -12.3,
+    "why": "bearing -90 from the approach, 57 out, 8 over the floor"
+   },
+   {
+    "x": 239.2,
+    "y": "open+8",
+    "z": 66.6,
+    "why": "bearing +135 from the approach, 57 out, 8 over the floor"
+   },
+   {
+    "x": 310.6,
+    "y": "open+8",
+    "z": 30.8,
+    "why": "bearing -135 from the approach, 57 out, 8 over the floor"
+   },
+   {
+    "x": 282.3,
+    "y": "open+8",
+    "z": 63.5,
+    "why": "bearing +180 from the approach, 57 out, 8 over the floor"
+   },
+   {
+    "x": 231.7,
+    "y": "open+16",
+    "z": -37.5,
+    "why": "bearing +0 from the approach, 57 out, 16 over the floor"
+   },
+   {
+    "x": 206.5,
+    "y": "open+16",
+    "z": 38.3,
+    "why": "bearing +90 from the approach, 57 out, 16 over the floor"
+   },
+   {
+    "x": 282.3,
+    "y": "open+16",
+    "z": 63.5,
+    "why": "bearing +180 from the approach, 57 out, 16 over the floor"
+   },
+   {
+    "x": 307.5,
+    "y": "open+16",
+    "z": -12.3,
+    "why": "bearing -90 from the approach, 57 out, 16 over the floor"
+   },
+   {
+    "x": 239.3,
+    "y": "open+6",
+    "z": -22.4,
+    "why": "bearing +0 from the approach, 40 out, 6 over the floor"
+   },
+   {
+    "x": 274.7,
+    "y": "open+6",
+    "z": 48.4,
+    "why": "bearing +180 from the approach, 40 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_gilded_pit",
+  "name": "the_gilded_pit-structure-fortress",
+  "x": -444.0,
+  "y": "open+8",
+  "z": -551.0,
+  "why": "start of minecraft:fortress, 517 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -595,
+   48,
+   -660,
+   -433,
+   79,
+   -459
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "minecraft:fortress",
+  "fromSpawn": 517,
+  "alternates": [
+   {
+    "x": -458.7,
+    "y": "open+8",
+    "z": -602.5,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -470.0,
+    "y": "open+8",
+    "z": -504.2,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -505.5,
+    "y": "open+8",
+    "z": -628.5,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -521.5,
+    "y": "open+8",
+    "z": -489.5,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -557.0,
+    "y": "open+8",
+    "z": -613.8,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -568.3,
+    "y": "open+8",
+    "z": -515.5,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -583.0,
+    "y": "open+8",
+    "z": -567.0,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -444.0,
+    "y": "open+16",
+    "z": -551.0,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -505.5,
+    "y": "open+16",
+    "z": -628.5,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -583.0,
+    "y": "open+16",
+    "z": -567.0,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -521.5,
+    "y": "open+16",
+    "z": -489.5,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -464.8,
+    "y": "open+6",
+    "z": -553.4,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -562.2,
+    "y": "open+6",
+    "z": -564.6,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_gilded_pit",
+  "name": "the_gilded_pit-structure-crimson_forge",
+  "x": -34.2,
+  "y": "open+8",
+  "z": -393.3,
+  "why": "start of mns:crimson_forge, 155 blocks from spawn; bearing +0 from the approach, 43 out, 8 over the floor",
+  "subject": [
+   -69,
+   61,
+   -372,
+   -27,
+   96,
+   -333
+  ],
+  "radius": 7,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:crimson_forge",
+  "fromSpawn": 155,
+  "alternates": [
+   {
+    "x": -67.3,
+    "y": "open+8",
+    "z": -390.6,
+    "why": "bearing +45 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -8.9,
+    "y": "open+8",
+    "z": -371.8,
+    "why": "bearing -45 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -88.8,
+    "y": "open+8",
+    "z": -365.3,
+    "why": "bearing +90 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -6.2,
+    "y": "open+8",
+    "z": -338.7,
+    "why": "bearing -90 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -86.1,
+    "y": "open+8",
+    "z": -332.2,
+    "why": "bearing +135 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -27.7,
+    "y": "open+8",
+    "z": -313.4,
+    "why": "bearing -135 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -60.8,
+    "y": "open+8",
+    "z": -310.7,
+    "why": "bearing +180 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -34.2,
+    "y": "open+16",
+    "z": -393.3,
+    "why": "bearing +0 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -88.8,
+    "y": "open+16",
+    "z": -365.3,
+    "why": "bearing +90 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -60.8,
+    "y": "open+16",
+    "z": -310.7,
+    "why": "bearing +180 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -6.2,
+    "y": "open+16",
+    "z": -338.7,
+    "why": "bearing -90 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -38.2,
+    "y": "open+6",
+    "z": -380.9,
+    "why": "bearing +0 from the approach, 30 out, 6 over the floor"
+   },
+   {
+    "x": -56.8,
+    "y": "open+6",
+    "z": -323.1,
+    "why": "bearing +180 from the approach, 30 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_gilded_pit",
+  "name": "the_gilded_pit-structure-large_blackstone_walls",
+  "x": 424.3,
+  "y": "open+8",
+  "z": -540.2,
+  "why": "start of mns:large_blackstone_walls, 467 blocks from spawn; bearing +0 from the approach, 40 out, 8 over the floor",
+  "subject": [
+   450,
+   67,
+   -566,
+   478,
+   100,
+   -523
+  ],
+  "radius": 7,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:large_blackstone_walls",
+  "fromSpawn": 467,
+  "alternates": [
+   {
+    "x": 438.8,
+    "y": "open+8",
+    "z": -512.9,
+    "why": "bearing +45 from the approach, 40 out, 8 over the floor"
+   },
+   {
+    "x": 433.4,
+    "y": "open+8",
+    "z": -569.7,
+    "why": "bearing -45 from the approach, 40 out, 8 over the floor"
+   },
+   {
+    "x": 468.3,
+    "y": "open+8",
+    "z": -503.8,
+    "why": "bearing +90 from the approach, 40 out, 8 over the floor"
+   },
+   {
+    "x": 460.7,
+    "y": "open+8",
+    "z": -584.2,
+    "why": "bearing -90 from the approach, 40 out, 8 over the floor"
+   },
+   {
+    "x": 495.6,
+    "y": "open+8",
+    "z": -518.3,
+    "why": "bearing +135 from the approach, 40 out, 8 over the floor"
+   },
+   {
+    "x": 490.2,
+    "y": "open+8",
+    "z": -575.1,
+    "why": "bearing -135 from the approach, 40 out, 8 over the floor"
+   },
+   {
+    "x": 504.7,
+    "y": "open+8",
+    "z": -547.8,
+    "why": "bearing +180 from the approach, 40 out, 8 over the floor"
+   },
+   {
+    "x": 424.3,
+    "y": "open+16",
+    "z": -540.2,
+    "why": "bearing +0 from the approach, 40 out, 16 over the floor"
+   },
+   {
+    "x": 468.3,
+    "y": "open+16",
+    "z": -503.8,
+    "why": "bearing +90 from the approach, 40 out, 16 over the floor"
+   },
+   {
+    "x": 504.7,
+    "y": "open+16",
+    "z": -547.8,
+    "why": "bearing +180 from the approach, 40 out, 16 over the floor"
+   },
+   {
+    "x": 460.7,
+    "y": "open+16",
+    "z": -584.2,
+    "why": "bearing -90 from the approach, 40 out, 16 over the floor"
+   },
+   {
+    "x": 436.4,
+    "y": "open+6",
+    "z": -541.3,
+    "why": "bearing +0 from the approach, 28 out, 6 over the floor"
+   },
+   {
+    "x": 492.6,
+    "y": "open+6",
+    "z": -546.7,
+    "why": "bearing +180 from the approach, 28 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_gilded_pit",
+  "name": "the_gilded_pit-structure-mega_fortress",
+  "x": -255.5,
+  "y": "open+8",
+  "z": -112.0,
+  "why": "start of mns:mega_fortress, 535 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -432,
+   19,
+   -184,
+   -157,
+   74,
+   76
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:mega_fortress",
+  "fromSpawn": 535,
+  "alternates": [
+   {
+    "x": -308.1,
+    "y": "open+8",
+    "z": -122.1,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -225.4,
+    "y": "open+8",
+    "z": -67.6,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -352.5,
+    "y": "open+8",
+    "z": -92.0,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -235.5,
+    "y": "open+8",
+    "z": -15.0,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -362.6,
+    "y": "open+8",
+    "z": -39.4,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -279.9,
+    "y": "open+8",
+    "z": 15.1,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -332.5,
+    "y": "open+8",
+    "z": 5.0,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -255.5,
+    "y": "open+16",
+    "z": -112.0,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -352.5,
+    "y": "open+16",
+    "z": -92.0,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -332.5,
+    "y": "open+16",
+    "z": 5.0,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -235.5,
+    "y": "open+16",
+    "z": -15.0,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -267.1,
+    "y": "open+6",
+    "z": -94.4,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -320.9,
+    "y": "open+6",
+    "z": -12.6,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_gilded_pit",
+  "name": "the_gilded_pit-structure-nether_tower",
+  "x": -423.6,
+  "y": "open+8",
+  "z": -232.7,
+  "why": "start of mns:nether_tower, 548 blocks from spawn; bearing +0 from the approach, 47 out, 8 over the floor",
+  "subject": [
+   -487,
+   72,
+   -231,
+   -441,
+   141,
+   -185
+  ],
+  "radius": 8,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:nether_tower",
+  "fromSpawn": 548,
+  "alternates": [
+   {
+    "x": -453.1,
+    "y": "open+8",
+    "z": -253.6,
+    "why": "bearing +45 from the approach, 47 out, 8 over the floor"
+   },
+   {
+    "x": -417.4,
+    "y": "open+8",
+    "z": -197.1,
+    "why": "bearing -45 from the approach, 47 out, 8 over the floor"
+   },
+   {
+    "x": -488.7,
+    "y": "open+8",
+    "z": -247.4,
+    "why": "bearing +90 from the approach, 47 out, 8 over the floor"
+   },
+   {
+    "x": -438.3,
+    "y": "open+8",
+    "z": -167.6,
+    "why": "bearing -90 from the approach, 47 out, 8 over the floor"
+   },
+   {
+    "x": -509.6,
+    "y": "open+8",
+    "z": -217.9,
+    "why": "bearing +135 from the approach, 47 out, 8 over the floor"
+   },
+   {
+    "x": -473.9,
+    "y": "open+8",
+    "z": -161.4,
+    "why": "bearing -135 from the approach, 47 out, 8 over the floor"
+   },
+   {
+    "x": -503.4,
+    "y": "open+8",
+    "z": -182.3,
+    "why": "bearing +180 from the approach, 47 out, 8 over the floor"
+   },
+   {
+    "x": -423.6,
+    "y": "open+16",
+    "z": -232.7,
+    "why": "bearing +0 from the approach, 47 out, 16 over the floor"
+   },
+   {
+    "x": -488.7,
+    "y": "open+16",
+    "z": -247.4,
+    "why": "bearing +90 from the approach, 47 out, 16 over the floor"
+   },
+   {
+    "x": -503.4,
+    "y": "open+16",
+    "z": -182.3,
+    "why": "bearing +180 from the approach, 47 out, 16 over the floor"
+   },
+   {
+    "x": -438.3,
+    "y": "open+16",
+    "z": -167.6,
+    "why": "bearing -90 from the approach, 47 out, 16 over the floor"
+   },
+   {
+    "x": -435.5,
+    "y": "open+6",
+    "z": -225.1,
+    "why": "bearing +0 from the approach, 33 out, 6 over the floor"
+   },
+   {
+    "x": -491.5,
+    "y": "open+6",
+    "z": -189.9,
+    "why": "bearing +180 from the approach, 33 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_gilded_pit",
+  "name": "the_gilded_pit-structure-hamlet",
+  "x": -87.1,
+  "y": "open+8",
+  "z": -484.7,
+  "why": "start of nova_structures:hamlet, 158 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -233,
+   12,
+   -538,
+   -80,
+   73,
+   -408
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "nova_structures:hamlet",
+  "fromSpawn": 158,
+  "alternates": [
+   {
+    "x": -115.8,
+    "y": "open+8",
+    "z": -529.8,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -98.7,
+    "y": "open+8",
+    "z": -432.3,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -168.2,
+    "y": "open+8",
+    "z": -541.4,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -143.8,
+    "y": "open+8",
+    "z": -403.6,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -213.3,
+    "y": "open+8",
+    "z": -512.7,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -196.2,
+    "y": "open+8",
+    "z": -415.2,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -224.9,
+    "y": "open+8",
+    "z": -460.3,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -87.1,
+    "y": "open+16",
+    "z": -484.7,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -168.2,
+    "y": "open+16",
+    "z": -541.4,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -224.9,
+    "y": "open+16",
+    "z": -460.3,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -143.8,
+    "y": "open+16",
+    "z": -403.6,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -107.7,
+    "y": "open+6",
+    "z": -481.0,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -204.3,
+    "y": "open+6",
+    "z": -464.0,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_gilded_pit",
+  "name": "the_gilded_pit-structure-nether_keep",
+  "x": 23.8,
+  "y": "open+8",
+  "z": 273.5,
+  "why": "start of nova_structures:nether_keep, 844 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -73,
+   31,
+   246,
+   124,
+   110,
+   440
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "nova_structures:nether_keep",
+  "fromSpawn": 844,
+  "alternates": [
+   {
+    "x": -25.0,
+    "y": "open+8",
+    "z": 295.6,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 73.9,
+    "y": "open+8",
+    "z": 292.5,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -44.0,
+    "y": "open+8",
+    "z": 345.7,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 96.0,
+    "y": "open+8",
+    "z": 341.3,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -21.9,
+    "y": "open+8",
+    "z": 394.5,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 77.0,
+    "y": "open+8",
+    "z": 391.4,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 28.2,
+    "y": "open+8",
+    "z": 413.5,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 23.8,
+    "y": "open+16",
+    "z": 273.5,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -44.0,
+    "y": "open+16",
+    "z": 345.7,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 28.2,
+    "y": "open+16",
+    "z": 413.5,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 96.0,
+    "y": "open+16",
+    "z": 341.3,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 24.5,
+    "y": "open+6",
+    "z": 294.5,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": 27.5,
+    "y": "open+6",
+    "z": 392.5,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_gilded_pit",
+  "name": "the_gilded_pit-structure-nether_port",
+  "x": -1.9,
+  "y": "open+8",
+  "z": -510.6,
+  "why": "start of nova_structures:nether_port, 81 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -120,
+   18,
+   -681,
+   90,
+   73,
+   -479
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "nova_structures:nether_port",
+  "fromSpawn": 81,
+  "alternates": [
+   {
+    "x": 43.1,
+    "y": "open+8",
+    "z": -539.7,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -54.3,
+    "y": "open+8",
+    "z": -521.9,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 54.4,
+    "y": "open+8",
+    "z": -592.1,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -83.4,
+    "y": "open+8",
+    "z": -566.9,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 25.3,
+    "y": "open+8",
+    "z": -637.1,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -72.1,
+    "y": "open+8",
+    "z": -619.3,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -27.1,
+    "y": "open+8",
+    "z": -648.4,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -1.9,
+    "y": "open+16",
+    "z": -510.6,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 54.4,
+    "y": "open+16",
+    "z": -592.1,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -27.1,
+    "y": "open+16",
+    "z": -648.4,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -83.4,
+    "y": "open+16",
+    "z": -566.9,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -5.7,
+    "y": "open+6",
+    "z": -531.3,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -23.3,
+    "y": "open+6",
+    "z": -627.7,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_gilded_pit",
+  "name": "the_gilded_pit-structure-piglin_donjon",
+  "x": -267.1,
+  "y": "open+8",
+  "z": 186.8,
+  "why": "start of nova_structures:piglin_donjon, 807 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -381,
+   28,
+   150,
+   -205,
+   103,
+   353
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "nova_structures:piglin_donjon",
+  "fromSpawn": 807,
+  "alternates": [
+   {
+    "x": -320.7,
+    "y": "open+8",
+    "z": 187.9,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -228.4,
+    "y": "open+8",
+    "z": 223.8,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -357.7,
+    "y": "open+8",
+    "z": 226.6,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -227.3,
+    "y": "open+8",
+    "z": 277.4,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -356.6,
+    "y": "open+8",
+    "z": 280.2,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -264.3,
+    "y": "open+8",
+    "z": 316.1,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -317.9,
+    "y": "open+8",
+    "z": 317.2,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -267.1,
+    "y": "open+16",
+    "z": 186.8,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -357.7,
+    "y": "open+16",
+    "z": 226.6,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -317.9,
+    "y": "open+16",
+    "z": 317.2,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -227.3,
+    "y": "open+16",
+    "z": 277.4,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -274.7,
+    "y": "open+6",
+    "z": 206.3,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -310.3,
+    "y": "open+6",
+    "z": 297.7,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_gilded_pit",
+  "name": "the_gilded_pit-structure-piglin_outstation",
+  "x": 125.5,
+  "y": "open+8",
+  "z": -558.5,
+  "why": "start of nova_structures:piglin_outstation, 208 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   84,
+   18,
+   -693,
+   293,
+   91,
+   -484
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "nova_structures:piglin_outstation",
+  "fromSpawn": 208,
+  "alternates": [
+   {
+    "x": 165.0,
+    "y": "open+8",
+    "z": -522.2,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 123.2,
+    "y": "open+8",
+    "z": -612.0,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 218.5,
+    "y": "open+8",
+    "z": -524.5,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 159.5,
+    "y": "open+8",
+    "z": -651.5,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 254.8,
+    "y": "open+8",
+    "z": -564.0,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 213.0,
+    "y": "open+8",
+    "z": -653.8,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 252.5,
+    "y": "open+8",
+    "z": -617.5,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 125.5,
+    "y": "open+16",
+    "z": -558.5,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 218.5,
+    "y": "open+16",
+    "z": -524.5,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 252.5,
+    "y": "open+16",
+    "z": -617.5,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 159.5,
+    "y": "open+16",
+    "z": -651.5,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 144.6,
+    "y": "open+6",
+    "z": -567.3,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": 233.4,
+    "y": "open+6",
+    "z": -608.7,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_gilded_pit",
+  "name": "the_gilded_pit-structure-sealing_halls",
+  "x": -537.5,
+  "y": "open+8",
+  "z": -368.6,
+  "why": "start of nova_structures:sealing_halls, 623 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -733,
+   5,
+   -478,
+   -479,
+   113,
+   -227
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "nova_structures:sealing_halls",
+  "fromSpawn": 623,
+  "alternates": [
+   {
+    "x": -569.2,
+    "y": "open+8",
+    "z": -411.8,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -545.7,
+    "y": "open+8",
+    "z": -315.7,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -622.1,
+    "y": "open+8",
+    "z": -420.0,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -588.9,
+    "y": "open+8",
+    "z": -284.0,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -665.3,
+    "y": "open+8",
+    "z": -388.3,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -641.8,
+    "y": "open+8",
+    "z": -292.2,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -673.5,
+    "y": "open+8",
+    "z": -335.4,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -537.5,
+    "y": "open+16",
+    "z": -368.6,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -622.1,
+    "y": "open+16",
+    "z": -420.0,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -673.5,
+    "y": "open+16",
+    "z": -335.4,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -588.9,
+    "y": "open+16",
+    "z": -284.0,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -557.9,
+    "y": "open+6",
+    "z": -363.6,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -653.1,
+    "y": "open+6",
+    "z": -340.4,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_bloodroot_wastes",
+  "name": "the_bloodroot_wastes-structure-crimson_forge",
+  "x": -27.4,
+  "y": "open+8",
+  "z": 0.2,
+  "why": "start of mns:crimson_forge, 80 blocks from spawn; bearing +0 from the approach, 43 out, 8 over the floor",
+  "subject": [
+   -4,
+   12,
+   -21,
+   35,
+   47,
+   21
+  ],
+  "radius": 7,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:crimson_forge",
+  "fromSpawn": 80,
+  "alternates": [
+   {
+    "x": -14.9,
+    "y": "open+8",
+    "z": 31.0,
+    "why": "bearing +45 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -14.5,
+    "y": "open+8",
+    "z": -30.4,
+    "why": "bearing -45 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": 15.7,
+    "y": "open+8",
+    "z": 43.9,
+    "why": "bearing +90 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": 16.3,
+    "y": "open+8",
+    "z": -42.9,
+    "why": "bearing -90 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": 46.5,
+    "y": "open+8",
+    "z": 31.4,
+    "why": "bearing +135 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": 46.9,
+    "y": "open+8",
+    "z": -30.0,
+    "why": "bearing -135 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": 59.4,
+    "y": "open+8",
+    "z": 0.8,
+    "why": "bearing +180 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -27.4,
+    "y": "open+16",
+    "z": 0.2,
+    "why": "bearing +0 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": 15.7,
+    "y": "open+16",
+    "z": 43.9,
+    "why": "bearing +90 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": 59.4,
+    "y": "open+16",
+    "z": 0.8,
+    "why": "bearing +180 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": 16.3,
+    "y": "open+16",
+    "z": -42.9,
+    "why": "bearing -90 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -14.4,
+    "y": "open+6",
+    "z": 0.3,
+    "why": "bearing +0 from the approach, 30 out, 6 over the floor"
+   },
+   {
+    "x": 46.4,
+    "y": "open+6",
+    "z": 0.7,
+    "why": "bearing +180 from the approach, 30 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_bloodroot_wastes",
+  "name": "the_bloodroot_wastes-structure-crimson_lava_well",
+  "x": -138.0,
+  "y": "open+8",
+  "z": -98.8,
+  "why": "start of mns:crimson_lava_well, 159 blocks from spawn; bearing +0 from the approach, 36 out, 8 over the floor",
+  "subject": [
+   -175,
+   73,
+   -143,
+   -145,
+   107,
+   -113
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:crimson_lava_well",
+  "fromSpawn": 159,
+  "alternates": [
+   {
+    "x": -123.9,
+    "y": "open+8",
+    "z": -122.4,
+    "why": "bearing +45 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": -164.6,
+    "y": "open+8",
+    "z": -91.9,
+    "why": "bearing -45 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": -130.8,
+    "y": "open+8",
+    "z": -149.0,
+    "why": "bearing +90 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": -188.2,
+    "y": "open+8",
+    "z": -106.0,
+    "why": "bearing -90 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": -154.4,
+    "y": "open+8",
+    "z": -163.1,
+    "why": "bearing +135 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": -195.1,
+    "y": "open+8",
+    "z": -132.6,
+    "why": "bearing -135 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": -181.0,
+    "y": "open+8",
+    "z": -156.2,
+    "why": "bearing +180 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": -138.0,
+    "y": "open+16",
+    "z": -98.8,
+    "why": "bearing +0 from the approach, 36 out, 16 over the floor"
+   },
+   {
+    "x": -130.8,
+    "y": "open+16",
+    "z": -149.0,
+    "why": "bearing +90 from the approach, 36 out, 16 over the floor"
+   },
+   {
+    "x": -181.0,
+    "y": "open+16",
+    "z": -156.2,
+    "why": "bearing +180 from the approach, 36 out, 16 over the floor"
+   },
+   {
+    "x": -188.2,
+    "y": "open+16",
+    "z": -106.0,
+    "why": "bearing -90 from the approach, 36 out, 16 over the floor"
+   },
+   {
+    "x": -144.4,
+    "y": "open+6",
+    "z": -107.4,
+    "why": "bearing +0 from the approach, 25 out, 6 over the floor"
+   },
+   {
+    "x": -174.6,
+    "y": "open+6",
+    "z": -147.6,
+    "why": "bearing +180 from the approach, 25 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_bloodroot_wastes",
+  "name": "the_bloodroot_wastes-structure-medium_crimson_fungus",
+  "x": -54.1,
+  "y": "open+8",
+  "z": -57.3,
+  "why": "start of mns:medium_crimson_fungus, 97 blocks from spawn; bearing +0 from the approach, 39 out, 8 over the floor",
+  "subject": [
+   -65,
+   48,
+   -113,
+   -31,
+   91,
+   -79
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:medium_crimson_fungus",
+  "fromSpawn": 97,
+  "alternates": [
+   {
+    "x": -25.2,
+    "y": "open+8",
+    "z": -63.8,
+    "why": "bearing +45 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": -79.2,
+    "y": "open+8",
+    "z": -73.2,
+    "why": "bearing -45 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": -9.3,
+    "y": "open+8",
+    "z": -88.9,
+    "why": "bearing +90 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": -85.7,
+    "y": "open+8",
+    "z": -102.1,
+    "why": "bearing -90 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": -15.8,
+    "y": "open+8",
+    "z": -117.8,
+    "why": "bearing +135 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": -69.8,
+    "y": "open+8",
+    "z": -127.2,
+    "why": "bearing -135 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": -40.9,
+    "y": "open+8",
+    "z": -133.7,
+    "why": "bearing +180 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": -54.1,
+    "y": "open+16",
+    "z": -57.3,
+    "why": "bearing +0 from the approach, 39 out, 16 over the floor"
+   },
+   {
+    "x": -9.3,
+    "y": "open+16",
+    "z": -88.9,
+    "why": "bearing +90 from the approach, 39 out, 16 over the floor"
+   },
+   {
+    "x": -40.9,
+    "y": "open+16",
+    "z": -133.7,
+    "why": "bearing +180 from the approach, 39 out, 16 over the floor"
+   },
+   {
+    "x": -85.7,
+    "y": "open+16",
+    "z": -102.1,
+    "why": "bearing -90 from the approach, 39 out, 16 over the floor"
+   },
+   {
+    "x": -52.1,
+    "y": "open+6",
+    "z": -68.8,
+    "why": "bearing +0 from the approach, 27 out, 6 over the floor"
+   },
+   {
+    "x": -42.9,
+    "y": "open+6",
+    "z": -122.2,
+    "why": "bearing +180 from the approach, 27 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_bloodroot_wastes",
+  "name": "the_bloodroot_wastes-structure-medium_crimson_fungus_2",
+  "x": 73.9,
+  "y": "open+8",
+  "z": 25.1,
+  "why": "start of mns:medium_crimson_fungus_2, 179 blocks from spawn; bearing +0 from the approach, 39 out, 8 over the floor",
+  "subject": [
+   95,
+   74,
+   14,
+   128,
+   114,
+   49
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:medium_crimson_fungus_2",
+  "fromSpawn": 179,
+  "alternates": [
+   {
+    "x": 80.1,
+    "y": "open+8",
+    "z": 54.1,
+    "why": "bearing +45 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": 89.9,
+    "y": "open+8",
+    "z": 0.1,
+    "why": "bearing -45 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": 105.1,
+    "y": "open+8",
+    "z": 70.1,
+    "why": "bearing +90 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": 118.9,
+    "y": "open+8",
+    "z": -6.1,
+    "why": "bearing -90 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": 134.1,
+    "y": "open+8",
+    "z": 63.9,
+    "why": "bearing +135 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": 143.9,
+    "y": "open+8",
+    "z": 9.9,
+    "why": "bearing -135 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": 150.1,
+    "y": "open+8",
+    "z": 38.9,
+    "why": "bearing +180 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": 73.9,
+    "y": "open+16",
+    "z": 25.1,
+    "why": "bearing +0 from the approach, 39 out, 16 over the floor"
+   },
+   {
+    "x": 105.1,
+    "y": "open+16",
+    "z": 70.1,
+    "why": "bearing +90 from the approach, 39 out, 16 over the floor"
+   },
+   {
+    "x": 150.1,
+    "y": "open+16",
+    "z": 38.9,
+    "why": "bearing +180 from the approach, 39 out, 16 over the floor"
+   },
+   {
+    "x": 118.9,
+    "y": "open+16",
+    "z": -6.1,
+    "why": "bearing -90 from the approach, 39 out, 16 over the floor"
+   },
+   {
+    "x": 85.3,
+    "y": "open+6",
+    "z": 27.1,
+    "why": "bearing +0 from the approach, 27 out, 6 over the floor"
+   },
+   {
+    "x": 138.7,
+    "y": "open+6",
+    "z": 36.9,
+    "why": "bearing +180 from the approach, 27 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_bloodroot_wastes",
+  "name": "the_bloodroot_wastes-structure-medium_crimson_well",
+  "x": 15.8,
+  "y": "open+8",
+  "z": 159.1,
+  "why": "start of mns:medium_crimson_well, 215 blocks from spawn; bearing +0 from the approach, 37 out, 8 over the floor",
+  "subject": [
+   16,
+   48,
+   176,
+   48,
+   89,
+   208
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:medium_crimson_well",
+  "fromSpawn": 215,
+  "alternates": [
+   {
+    "x": -2.9,
+    "y": "open+8",
+    "z": 180.7,
+    "why": "bearing +45 from the approach, 37 out, 8 over the floor"
+   },
+   {
+    "x": 44.3,
+    "y": "open+8",
+    "z": 157.1,
+    "why": "bearing -45 from the approach, 37 out, 8 over the floor"
+   },
+   {
+    "x": -0.9,
+    "y": "open+8",
+    "z": 209.2,
+    "why": "bearing +90 from the approach, 37 out, 8 over the floor"
+   },
+   {
+    "x": 65.9,
+    "y": "open+8",
+    "z": 175.8,
+    "why": "bearing -90 from the approach, 37 out, 8 over the floor"
+   },
+   {
+    "x": 20.7,
+    "y": "open+8",
+    "z": 227.9,
+    "why": "bearing +135 from the approach, 37 out, 8 over the floor"
+   },
+   {
+    "x": 67.9,
+    "y": "open+8",
+    "z": 204.3,
+    "why": "bearing -135 from the approach, 37 out, 8 over the floor"
+   },
+   {
+    "x": 49.2,
+    "y": "open+8",
+    "z": 225.9,
+    "why": "bearing +180 from the approach, 37 out, 8 over the floor"
+   },
+   {
+    "x": 15.8,
+    "y": "open+16",
+    "z": 159.1,
+    "why": "bearing +0 from the approach, 37 out, 16 over the floor"
+   },
+   {
+    "x": -0.9,
+    "y": "open+16",
+    "z": 209.2,
+    "why": "bearing +90 from the approach, 37 out, 16 over the floor"
+   },
+   {
+    "x": 49.2,
+    "y": "open+16",
+    "z": 225.9,
+    "why": "bearing +180 from the approach, 37 out, 16 over the floor"
+   },
+   {
+    "x": 65.9,
+    "y": "open+16",
+    "z": 175.8,
+    "why": "bearing -90 from the approach, 37 out, 16 over the floor"
+   },
+   {
+    "x": 20.8,
+    "y": "open+6",
+    "z": 169.1,
+    "why": "bearing +0 from the approach, 26 out, 6 over the floor"
+   },
+   {
+    "x": 44.2,
+    "y": "open+6",
+    "z": 215.9,
+    "why": "bearing +180 from the approach, 26 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_bloodroot_wastes",
+  "name": "the_bloodroot_wastes-structure-piglin_camp",
+  "x": -229.2,
+  "y": "open+8",
+  "z": -13.0,
+  "why": "start of nova_structures:piglin_camp, 236 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -364,
+   46,
+   -66,
+   -235,
+   74,
+   28
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "nova_structures:piglin_camp",
+  "fromSpawn": 236,
+  "alternates": [
+   {
+    "x": -245.8,
+    "y": "open+8",
+    "z": -64.0,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -253.5,
+    "y": "open+8",
+    "z": 34.7,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -293.5,
+    "y": "open+8",
+    "z": -88.3,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -304.5,
+    "y": "open+8",
+    "z": 51.3,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -344.5,
+    "y": "open+8",
+    "z": -71.7,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -352.2,
+    "y": "open+8",
+    "z": 27.0,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -368.8,
+    "y": "open+8",
+    "z": -24.0,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -229.2,
+    "y": "open+16",
+    "z": -13.0,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -293.5,
+    "y": "open+16",
+    "z": -88.3,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -368.8,
+    "y": "open+16",
+    "z": -24.0,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -304.5,
+    "y": "open+16",
+    "z": 51.3,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -250.2,
+    "y": "open+6",
+    "z": -14.7,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -347.8,
+    "y": "open+6",
+    "z": -22.3,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_bloodroot_wastes",
+  "name": "the_bloodroot_wastes-structure-piglin_camp_collony",
+  "x": -68.5,
+  "y": "open+8",
+  "z": 63.2,
+  "why": "start of nova_structures:piglin_camp_collony, 133 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -146,
+   52,
+   32,
+   -2,
+   82,
+   233
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "nova_structures:piglin_camp_collony",
+  "fromSpawn": 133,
+  "alternates": [
+   {
+    "x": -119.3,
+    "y": "open+8",
+    "z": 80.1,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -20.6,
+    "y": "open+8",
+    "z": 87.2,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -143.3,
+    "y": "open+8",
+    "z": 128.0,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -3.7,
+    "y": "open+8",
+    "z": 138.0,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -126.4,
+    "y": "open+8",
+    "z": 178.8,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -27.7,
+    "y": "open+8",
+    "z": 185.9,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -78.5,
+    "y": "open+8",
+    "z": 202.8,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -68.5,
+    "y": "open+16",
+    "z": 63.2,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -143.3,
+    "y": "open+16",
+    "z": 128.0,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -78.5,
+    "y": "open+16",
+    "z": 202.8,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -3.7,
+    "y": "open+16",
+    "z": 138.0,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -70.0,
+    "y": "open+6",
+    "z": 84.1,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -77.0,
+    "y": "open+6",
+    "z": 181.9,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-structure-astral_meteorite",
+  "x": -1398.7,
+  "y": "open+8",
+  "z": -543.5,
+  "why": "start of mes:astral_meteorite, 1545 blocks from spawn; bearing +0 from the approach, 44 out, 8 over the floor",
+  "subject": [
+   -1464,
+   51,
+   -578,
+   -1417,
+   84,
+   -542
+  ],
+  "radius": 7,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "mes:astral_meteorite",
+  "fromSpawn": 1545,
+  "alternates": [
+   {
+    "x": -1399.5,
+    "y": "open+8",
+    "z": -577.4,
+    "why": "bearing +45 from the approach, 44 out, 8 over the floor"
+   },
+   {
+    "x": -1422.1,
+    "y": "open+8",
+    "z": -519.0,
+    "why": "bearing -45 from the approach, 44 out, 8 over the floor"
+   },
+   {
+    "x": -1424.0,
+    "y": "open+8",
+    "z": -600.8,
+    "why": "bearing +90 from the approach, 44 out, 8 over the floor"
+   },
+   {
+    "x": -1456.0,
+    "y": "open+8",
+    "z": -518.2,
+    "why": "bearing -90 from the approach, 44 out, 8 over the floor"
+   },
+   {
+    "x": -1457.9,
+    "y": "open+8",
+    "z": -600.0,
+    "why": "bearing +135 from the approach, 44 out, 8 over the floor"
+   },
+   {
+    "x": -1480.5,
+    "y": "open+8",
+    "z": -541.6,
+    "why": "bearing -135 from the approach, 44 out, 8 over the floor"
+   },
+   {
+    "x": -1481.3,
+    "y": "open+8",
+    "z": -575.5,
+    "why": "bearing +180 from the approach, 44 out, 8 over the floor"
+   },
+   {
+    "x": -1398.7,
+    "y": "open+16",
+    "z": -543.5,
+    "why": "bearing +0 from the approach, 44 out, 16 over the floor"
+   },
+   {
+    "x": -1424.0,
+    "y": "open+16",
+    "z": -600.8,
+    "why": "bearing +90 from the approach, 44 out, 16 over the floor"
+   },
+   {
+    "x": -1481.3,
+    "y": "open+16",
+    "z": -575.5,
+    "why": "bearing +180 from the approach, 44 out, 16 over the floor"
+   },
+   {
+    "x": -1456.0,
+    "y": "open+16",
+    "z": -518.2,
+    "why": "bearing -90 from the approach, 44 out, 16 over the floor"
+   },
+   {
+    "x": -1411.1,
+    "y": "open+6",
+    "z": -548.3,
+    "why": "bearing +0 from the approach, 31 out, 6 over the floor"
+   },
+   {
+    "x": -1468.9,
+    "y": "open+6",
+    "z": -570.7,
+    "why": "bearing +180 from the approach, 31 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-structure-ender_spire",
+  "x": 16.0,
+  "y": "open+8",
+  "z": -1115.6,
+  "why": "start of mes:ender_spire, 1152 blocks from spawn; bearing +0 from the approach, 36 out, 8 over the floor",
+  "subject": [
+   1,
+   45,
+   -1167,
+   31,
+   86,
+   -1137
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "mes:ender_spire",
+  "fromSpawn": 1152,
+  "alternates": [
+   {
+    "x": 41.5,
+    "y": "open+8",
+    "z": -1125.7,
+    "why": "bearing +45 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": -9.3,
+    "y": "open+8",
+    "z": -1126.5,
+    "why": "bearing -45 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": 52.4,
+    "y": "open+8",
+    "z": -1151.0,
+    "why": "bearing +90 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": -19.4,
+    "y": "open+8",
+    "z": -1152.0,
+    "why": "bearing -90 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": 42.3,
+    "y": "open+8",
+    "z": -1176.5,
+    "why": "bearing +135 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": -8.5,
+    "y": "open+8",
+    "z": -1177.3,
+    "why": "bearing -135 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": 17.0,
+    "y": "open+8",
+    "z": -1187.4,
+    "why": "bearing +180 from the approach, 36 out, 8 over the floor"
+   },
+   {
+    "x": 16.0,
+    "y": "open+16",
+    "z": -1115.6,
+    "why": "bearing +0 from the approach, 36 out, 16 over the floor"
+   },
+   {
+    "x": 52.4,
+    "y": "open+16",
+    "z": -1151.0,
+    "why": "bearing +90 from the approach, 36 out, 16 over the floor"
+   },
+   {
+    "x": 17.0,
+    "y": "open+16",
+    "z": -1187.4,
+    "why": "bearing +180 from the approach, 36 out, 16 over the floor"
+   },
+   {
+    "x": -19.4,
+    "y": "open+16",
+    "z": -1152.0,
+    "why": "bearing -90 from the approach, 36 out, 16 over the floor"
+   },
+   {
+    "x": 16.1,
+    "y": "open+6",
+    "z": -1126.4,
+    "why": "bearing +0 from the approach, 25 out, 6 over the floor"
+   },
+   {
+    "x": 16.9,
+    "y": "open+6",
+    "z": -1176.6,
+    "why": "bearing +180 from the approach, 25 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-structure-enderbloom_grove",
+  "x": -2427.9,
+  "y": "open+8",
+  "z": -740.5,
+  "why": "start of mes:enderbloom_grove, 2576 blocks from spawn; bearing +0 from the approach, 38 out, 8 over the floor",
+  "subject": [
+   -2481,
+   47,
+   -768,
+   -2448,
+   85,
+   -736
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "mes:enderbloom_grove",
+  "fromSpawn": 2576,
+  "alternates": [
+   {
+    "x": -2430.7,
+    "y": "open+8",
+    "z": -769.2,
+    "why": "bearing +45 from the approach, 38 out, 8 over the floor"
+   },
+   {
+    "x": -2446.3,
+    "y": "open+8",
+    "z": -718.2,
+    "why": "bearing -45 from the approach, 38 out, 8 over the floor"
+   },
+   {
+    "x": -2453.0,
+    "y": "open+8",
+    "z": -787.6,
+    "why": "bearing +90 from the approach, 38 out, 8 over the floor"
+   },
+   {
+    "x": -2475.0,
+    "y": "open+8",
+    "z": -715.4,
+    "why": "bearing -90 from the approach, 38 out, 8 over the floor"
+   },
+   {
+    "x": -2481.7,
+    "y": "open+8",
+    "z": -784.8,
+    "why": "bearing +135 from the approach, 38 out, 8 over the floor"
+   },
+   {
+    "x": -2497.3,
+    "y": "open+8",
+    "z": -733.8,
+    "why": "bearing -135 from the approach, 38 out, 8 over the floor"
+   },
+   {
+    "x": -2500.1,
+    "y": "open+8",
+    "z": -762.5,
+    "why": "bearing +180 from the approach, 38 out, 8 over the floor"
+   },
+   {
+    "x": -2427.9,
+    "y": "open+16",
+    "z": -740.5,
+    "why": "bearing +0 from the approach, 38 out, 16 over the floor"
+   },
+   {
+    "x": -2453.0,
+    "y": "open+16",
+    "z": -787.6,
+    "why": "bearing +90 from the approach, 38 out, 16 over the floor"
+   },
+   {
+    "x": -2500.1,
+    "y": "open+16",
+    "z": -762.5,
+    "why": "bearing +180 from the approach, 38 out, 16 over the floor"
+   },
+   {
+    "x": -2475.0,
+    "y": "open+16",
+    "z": -715.4,
+    "why": "bearing -90 from the approach, 38 out, 16 over the floor"
+   },
+   {
+    "x": -2438.8,
+    "y": "open+6",
+    "z": -743.8,
+    "why": "bearing +0 from the approach, 26 out, 6 over the floor"
+   },
+   {
+    "x": -2489.2,
+    "y": "open+6",
+    "z": -759.2,
+    "why": "bearing +180 from the approach, 26 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-structure-enderskog",
+  "x": 2828.2,
+  "y": "open+8",
+  "z": 1406.0,
+  "why": "start of mes:enderskog, 3199 blocks from spawn; bearing +0 from the approach, 41 out, 8 over the floor",
+  "subject": [
+   2846,
+   49,
+   1405,
+   2882,
+   82,
+   1442
+  ],
+  "radius": 7,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "mes:enderskog",
+  "fromSpawn": 3199,
+  "alternates": [
+   {
+    "x": 2826.1,
+    "y": "open+8",
+    "z": 1436.9,
+    "why": "bearing +45 from the approach, 41 out, 8 over the floor"
+   },
+   {
+    "x": 2851.6,
+    "y": "open+8",
+    "z": 1385.6,
+    "why": "bearing -45 from the approach, 41 out, 8 over the floor"
+   },
+   {
+    "x": 2846.5,
+    "y": "open+8",
+    "z": 1460.3,
+    "why": "bearing +90 from the approach, 41 out, 8 over the floor"
+   },
+   {
+    "x": 2882.5,
+    "y": "open+8",
+    "z": 1387.7,
+    "why": "bearing -90 from the approach, 41 out, 8 over the floor"
+   },
+   {
+    "x": 2877.4,
+    "y": "open+8",
+    "z": 1462.4,
+    "why": "bearing +135 from the approach, 41 out, 8 over the floor"
+   },
+   {
+    "x": 2902.9,
+    "y": "open+8",
+    "z": 1411.1,
+    "why": "bearing -135 from the approach, 41 out, 8 over the floor"
+   },
+   {
+    "x": 2900.8,
+    "y": "open+8",
+    "z": 1442.0,
+    "why": "bearing +180 from the approach, 41 out, 8 over the floor"
+   },
+   {
+    "x": 2828.2,
+    "y": "open+16",
+    "z": 1406.0,
+    "why": "bearing +0 from the approach, 41 out, 16 over the floor"
+   },
+   {
+    "x": 2846.5,
+    "y": "open+16",
+    "z": 1460.3,
+    "why": "bearing +90 from the approach, 41 out, 16 over the floor"
+   },
+   {
+    "x": 2900.8,
+    "y": "open+16",
+    "z": 1442.0,
+    "why": "bearing +180 from the approach, 41 out, 16 over the floor"
+   },
+   {
+    "x": 2882.5,
+    "y": "open+16",
+    "z": 1387.7,
+    "why": "bearing -90 from the approach, 41 out, 16 over the floor"
+   },
+   {
+    "x": 2839.1,
+    "y": "open+6",
+    "z": 1411.4,
+    "why": "bearing +0 from the approach, 28 out, 6 over the floor"
+   },
+   {
+    "x": 2889.9,
+    "y": "open+6",
+    "z": 1436.6,
+    "why": "bearing +180 from the approach, 28 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-structure-mega_ship",
+  "x": 771.1,
+  "y": "open+8",
+  "z": 630.2,
+  "why": "start of mes:mega_ship, 1064 blocks from spawn; bearing +0 from the approach, 68 out, 8 over the floor",
+  "subject": [
+   776,
+   105,
+   648,
+   871,
+   152,
+   698
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "mes:mega_ship",
+  "fromSpawn": 1064,
+  "alternates": [
+   {
+    "x": 756.0,
+    "y": "open+8",
+    "z": 680.3,
+    "why": "bearing +45 from the approach, 68 out, 8 over the floor"
+   },
+   {
+    "x": 817.2,
+    "y": "open+8",
+    "z": 605.5,
+    "why": "bearing -45 from the approach, 68 out, 8 over the floor"
+   },
+   {
+    "x": 780.7,
+    "y": "open+8",
+    "z": 726.4,
+    "why": "bearing +90 from the approach, 68 out, 8 over the floor"
+   },
+   {
+    "x": 867.3,
+    "y": "open+8",
+    "z": 620.6,
+    "why": "bearing -90 from the approach, 68 out, 8 over the floor"
+   },
+   {
+    "x": 830.8,
+    "y": "open+8",
+    "z": 741.5,
+    "why": "bearing +135 from the approach, 68 out, 8 over the floor"
+   },
+   {
+    "x": 892.0,
+    "y": "open+8",
+    "z": 666.7,
+    "why": "bearing -135 from the approach, 68 out, 8 over the floor"
+   },
+   {
+    "x": 876.9,
+    "y": "open+8",
+    "z": 716.8,
+    "why": "bearing +180 from the approach, 68 out, 8 over the floor"
+   },
+   {
+    "x": 771.1,
+    "y": "open+16",
+    "z": 630.2,
+    "why": "bearing +0 from the approach, 68 out, 16 over the floor"
+   },
+   {
+    "x": 780.7,
+    "y": "open+16",
+    "z": 726.4,
+    "why": "bearing +90 from the approach, 68 out, 16 over the floor"
+   },
+   {
+    "x": 876.9,
+    "y": "open+16",
+    "z": 716.8,
+    "why": "bearing +180 from the approach, 68 out, 16 over the floor"
+   },
+   {
+    "x": 867.3,
+    "y": "open+16",
+    "z": 620.6,
+    "why": "bearing -90 from the approach, 68 out, 16 over the floor"
+   },
+   {
+    "x": 787.0,
+    "y": "open+6",
+    "z": 643.2,
+    "why": "bearing +0 from the approach, 48 out, 6 over the floor"
+   },
+   {
+    "x": 861.0,
+    "y": "open+6",
+    "z": 703.8,
+    "why": "bearing +180 from the approach, 48 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-structure-monolith",
+  "x": 157.6,
+  "y": "open+8",
+  "z": 2073.9,
+  "why": "start of mes:monolith, 2119 blocks from spawn; bearing +0 from the approach, 39 out, 8 over the floor",
+  "subject": [
+   143,
+   47,
+   2095,
+   177,
+   106,
+   2129
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "mes:monolith",
+  "fromSpawn": 2119,
+  "alternates": [
+   {
+    "x": 131.1,
+    "y": "open+8",
+    "z": 2087.3,
+    "why": "bearing +45 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": 185.7,
+    "y": "open+8",
+    "z": 2083.1,
+    "why": "bearing -45 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": 121.9,
+    "y": "open+8",
+    "z": 2115.4,
+    "why": "bearing +90 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": 199.1,
+    "y": "open+8",
+    "z": 2109.6,
+    "why": "bearing -90 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": 135.3,
+    "y": "open+8",
+    "z": 2141.9,
+    "why": "bearing +135 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": 189.9,
+    "y": "open+8",
+    "z": 2137.7,
+    "why": "bearing -135 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": 163.4,
+    "y": "open+8",
+    "z": 2151.1,
+    "why": "bearing +180 from the approach, 39 out, 8 over the floor"
+   },
+   {
+    "x": 157.6,
+    "y": "open+16",
+    "z": 2073.9,
+    "why": "bearing +0 from the approach, 39 out, 16 over the floor"
+   },
+   {
+    "x": 121.9,
+    "y": "open+16",
+    "z": 2115.4,
+    "why": "bearing +90 from the approach, 39 out, 16 over the floor"
+   },
+   {
+    "x": 163.4,
+    "y": "open+16",
+    "z": 2151.1,
+    "why": "bearing +180 from the approach, 39 out, 16 over the floor"
+   },
+   {
+    "x": 199.1,
+    "y": "open+16",
+    "z": 2109.6,
+    "why": "bearing -90 from the approach, 39 out, 16 over the floor"
+   },
+   {
+    "x": 158.4,
+    "y": "open+6",
+    "z": 2085.5,
+    "why": "bearing +0 from the approach, 27 out, 6 over the floor"
+   },
+   {
+    "x": 162.6,
+    "y": "open+6",
+    "z": 2139.5,
+    "why": "bearing +180 from the approach, 27 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-structure-mystical_archway",
+  "x": 2447.9,
+  "y": "open+8",
+  "z": -3458.1,
+  "why": "start of mes:mystical_archway, 4292 blocks from spawn; bearing +0 from the approach, 56 out, 8 over the floor",
+  "subject": [
+   2454,
+   49,
+   -3536,
+   2505,
+   120,
+   -3472
+  ],
+  "radius": 9,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "mes:mystical_archway",
+  "fromSpawn": 4292,
+  "alternates": [
+   {
+    "x": 2489.4,
+    "y": "open+8",
+    "z": -3448.7,
+    "why": "bearing +45 from the approach, 56 out, 8 over the floor"
+   },
+   {
+    "x": 2425.2,
+    "y": "open+8",
+    "z": -3494.1,
+    "why": "bearing -45 from the approach, 56 out, 8 over the floor"
+   },
+   {
+    "x": 2525.4,
+    "y": "open+8",
+    "z": -3471.4,
+    "why": "bearing +90 from the approach, 56 out, 8 over the floor"
+   },
+   {
+    "x": 2434.6,
+    "y": "open+8",
+    "z": -3535.6,
+    "why": "bearing -90 from the approach, 56 out, 8 over the floor"
+   },
+   {
+    "x": 2534.8,
+    "y": "open+8",
+    "z": -3512.9,
+    "why": "bearing +135 from the approach, 56 out, 8 over the floor"
+   },
+   {
+    "x": 2470.6,
+    "y": "open+8",
+    "z": -3558.3,
+    "why": "bearing -135 from the approach, 56 out, 8 over the floor"
+   },
+   {
+    "x": 2512.1,
+    "y": "open+8",
+    "z": -3548.9,
+    "why": "bearing +180 from the approach, 56 out, 8 over the floor"
+   },
+   {
+    "x": 2447.9,
+    "y": "open+16",
+    "z": -3458.1,
+    "why": "bearing +0 from the approach, 56 out, 16 over the floor"
+   },
+   {
+    "x": 2525.4,
+    "y": "open+16",
+    "z": -3471.4,
+    "why": "bearing +90 from the approach, 56 out, 16 over the floor"
+   },
+   {
+    "x": 2512.1,
+    "y": "open+16",
+    "z": -3548.9,
+    "why": "bearing +180 from the approach, 56 out, 16 over the floor"
+   },
+   {
+    "x": 2434.6,
+    "y": "open+16",
+    "z": -3535.6,
+    "why": "bearing -90 from the approach, 56 out, 16 over the floor"
+   },
+   {
+    "x": 2457.5,
+    "y": "open+6",
+    "z": -3471.7,
+    "why": "bearing +0 from the approach, 39 out, 6 over the floor"
+   },
+   {
+    "x": 2502.5,
+    "y": "open+6",
+    "z": -3535.3,
+    "why": "bearing +180 from the approach, 39 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-structure-phantom_citadel",
+  "x": -795.0,
+  "y": "open+8",
+  "z": 1216.4,
+  "why": "start of mes:phantom_citadel, 1492 blocks from spawn; bearing +0 from the approach, 38 out, 8 over the floor",
+  "subject": [
+   -833,
+   85,
+   1231,
+   -800,
+   118,
+   1265
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "mes:phantom_citadel",
+  "fromSpawn": 1492,
+  "alternates": [
+   {
+    "x": -823.9,
+    "y": "open+8",
+    "z": 1210.9,
+    "why": "bearing +45 from the approach, 38 out, 8 over the floor"
+   },
+   {
+    "x": -778.4,
+    "y": "open+8",
+    "z": 1240.6,
+    "why": "bearing -45 from the approach, 38 out, 8 over the floor"
+   },
+   {
+    "x": -848.1,
+    "y": "open+8",
+    "z": 1227.5,
+    "why": "bearing +90 from the approach, 38 out, 8 over the floor"
+   },
+   {
+    "x": -783.9,
+    "y": "open+8",
+    "z": 1269.5,
+    "why": "bearing -90 from the approach, 38 out, 8 over the floor"
+   },
+   {
+    "x": -853.6,
+    "y": "open+8",
+    "z": 1256.4,
+    "why": "bearing +135 from the approach, 38 out, 8 over the floor"
+   },
+   {
+    "x": -808.1,
+    "y": "open+8",
+    "z": 1286.1,
+    "why": "bearing -135 from the approach, 38 out, 8 over the floor"
+   },
+   {
+    "x": -837.0,
+    "y": "open+8",
+    "z": 1280.6,
+    "why": "bearing +180 from the approach, 38 out, 8 over the floor"
+   },
+   {
+    "x": -795.0,
+    "y": "open+16",
+    "z": 1216.4,
+    "why": "bearing +0 from the approach, 38 out, 16 over the floor"
+   },
+   {
+    "x": -848.1,
+    "y": "open+16",
+    "z": 1227.5,
+    "why": "bearing +90 from the approach, 38 out, 16 over the floor"
+   },
+   {
+    "x": -837.0,
+    "y": "open+16",
+    "z": 1280.6,
+    "why": "bearing +180 from the approach, 38 out, 16 over the floor"
+   },
+   {
+    "x": -783.9,
+    "y": "open+16",
+    "z": 1269.5,
+    "why": "bearing -90 from the approach, 38 out, 16 over the floor"
+   },
+   {
+    "x": -801.3,
+    "y": "open+6",
+    "z": 1226.0,
+    "why": "bearing +0 from the approach, 27 out, 6 over the floor"
+   },
+   {
+    "x": -830.7,
+    "y": "open+6",
+    "z": 1271.0,
+    "why": "bearing +180 from the approach, 27 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-structure-placid_prairie",
+  "x": 0.5,
+  "y": "open+8",
+  "z": 1882.5,
+  "why": "start of mes:placid_prairie, 1905 blocks from spawn; bearing +0 from the approach, 22 out, 8 over the floor",
+  "subject": [
+   -5,
+   79,
+   1899,
+   5,
+   92,
+   1909
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "mes:placid_prairie",
+  "fromSpawn": 1905,
+  "alternates": [
+   {
+    "x": -15.1,
+    "y": "open+8",
+    "z": 1888.9,
+    "why": "bearing +45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 16.1,
+    "y": "open+8",
+    "z": 1888.9,
+    "why": "bearing -45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": -21.5,
+    "y": "open+8",
+    "z": 1904.5,
+    "why": "bearing +90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 22.5,
+    "y": "open+8",
+    "z": 1904.5,
+    "why": "bearing -90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": -15.1,
+    "y": "open+8",
+    "z": 1920.1,
+    "why": "bearing +135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 16.1,
+    "y": "open+8",
+    "z": 1920.1,
+    "why": "bearing -135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 0.5,
+    "y": "open+8",
+    "z": 1926.5,
+    "why": "bearing +180 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 0.5,
+    "y": "open+16",
+    "z": 1882.5,
+    "why": "bearing +0 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": -21.5,
+    "y": "open+16",
+    "z": 1904.5,
+    "why": "bearing +90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 0.5,
+    "y": "open+16",
+    "z": 1926.5,
+    "why": "bearing +180 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 22.5,
+    "y": "open+16",
+    "z": 1904.5,
+    "why": "bearing -90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 0.5,
+    "y": "open+6",
+    "z": 1889.1,
+    "why": "bearing +0 from the approach, 15 out, 6 over the floor"
+   },
+   {
+    "x": 0.5,
+    "y": "open+6",
+    "z": 1919.9,
+    "why": "bearing +180 from the approach, 15 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-structure-end_city",
+  "x": -344.1,
+  "y": "open+8",
+  "z": -905.1,
+  "why": "start of minecraft:end_city, 1038 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -430,
+   62,
+   -997,
+   -309,
+   162,
+   -945
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "minecraft:end_city",
+  "fromSpawn": 1038,
+  "alternates": [
+   {
+    "x": -305.1,
+    "y": "open+8",
+    "z": -941.8,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -397.7,
+    "y": "open+8",
+    "z": -906.6,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -303.6,
+    "y": "open+8",
+    "z": -995.4,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -434.4,
+    "y": "open+8",
+    "z": -945.6,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -340.3,
+    "y": "open+8",
+    "z": -1034.4,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -432.9,
+    "y": "open+8",
+    "z": -999.2,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -393.9,
+    "y": "open+8",
+    "z": -1035.9,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -344.1,
+    "y": "open+16",
+    "z": -905.1,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -303.6,
+    "y": "open+16",
+    "z": -995.4,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -393.9,
+    "y": "open+16",
+    "z": -1035.9,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -434.4,
+    "y": "open+16",
+    "z": -945.6,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -351.6,
+    "y": "open+6",
+    "z": -924.7,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -386.4,
+    "y": "open+6",
+    "z": -1016.3,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-structure-end_castle",
+  "x": -1724.0,
+  "y": "open+8",
+  "z": 973.6,
+  "why": "start of nova_structures:end_castle, 2050 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -1873,
+   108,
+   906,
+   -1698,
+   251,
+   1109
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "nova_structures:end_castle",
+  "fromSpawn": 2050,
+  "alternates": [
+   {
+    "x": -1766.2,
+    "y": "open+8",
+    "z": 940.6,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -1717.6,
+    "y": "open+8",
+    "z": 1026.8,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -1819.4,
+    "y": "open+8",
+    "z": 947.0,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -1750.6,
+    "y": "open+8",
+    "z": 1069.0,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -1852.4,
+    "y": "open+8",
+    "z": 989.2,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -1803.8,
+    "y": "open+8",
+    "z": 1075.4,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -1846.0,
+    "y": "open+8",
+    "z": 1042.4,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -1724.0,
+    "y": "open+16",
+    "z": 973.6,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -1819.4,
+    "y": "open+16",
+    "z": 947.0,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -1846.0,
+    "y": "open+16",
+    "z": 1042.4,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -1750.6,
+    "y": "open+16",
+    "z": 1069.0,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -1742.3,
+    "y": "open+6",
+    "z": 983.9,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -1827.7,
+    "y": "open+6",
+    "z": 1032.1,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-structure-end_lighthouse",
+  "x": -1608.6,
+  "y": "open+8",
+  "z": 2222.3,
+  "why": "start of nova_structures:end_lighthouse, 2787 blocks from spawn; bearing +0 from the approach, 43 out, 8 over the floor",
+  "subject": [
+   -1656,
+   61,
+   2238,
+   -1613,
+   120,
+   2276
+  ],
+  "radius": 7,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "nova_structures:end_lighthouse",
+  "fromSpawn": 2787,
+  "alternates": [
+   {
+    "x": -1640.9,
+    "y": "open+8",
+    "z": 2214.6,
+    "why": "bearing +45 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -1591.1,
+    "y": "open+8",
+    "z": 2250.6,
+    "why": "bearing -45 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -1669.2,
+    "y": "open+8",
+    "z": 2232.1,
+    "why": "bearing +90 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -1598.8,
+    "y": "open+8",
+    "z": 2282.9,
+    "why": "bearing -90 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -1676.9,
+    "y": "open+8",
+    "z": 2264.4,
+    "why": "bearing +135 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -1627.1,
+    "y": "open+8",
+    "z": 2300.4,
+    "why": "bearing -135 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -1659.4,
+    "y": "open+8",
+    "z": 2292.7,
+    "why": "bearing +180 from the approach, 43 out, 8 over the floor"
+   },
+   {
+    "x": -1608.6,
+    "y": "open+16",
+    "z": 2222.3,
+    "why": "bearing +0 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -1669.2,
+    "y": "open+16",
+    "z": 2232.1,
+    "why": "bearing +90 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -1659.4,
+    "y": "open+16",
+    "z": 2292.7,
+    "why": "bearing +180 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -1598.8,
+    "y": "open+16",
+    "z": 2282.9,
+    "why": "bearing -90 from the approach, 43 out, 16 over the floor"
+   },
+   {
+    "x": -1616.2,
+    "y": "open+6",
+    "z": 2232.9,
+    "why": "bearing +0 from the approach, 30 out, 6 over the floor"
+   },
+   {
+    "x": -1651.8,
+    "y": "open+6",
+    "z": 2282.1,
+    "why": "bearing +180 from the approach, 30 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_nether",
+  "name": "the_nether-structure-bastion_remnant",
+  "x": -399.1,
+  "y": "open+8",
+  "z": -407.3,
+  "why": "start of minecraft:bastion_remnant, 575 blocks from spawn; bearing +0 from the approach, 49 out, 8 over the floor",
+  "subject": [
+   -461,
+   31,
+   -463,
+   -412,
+   86,
+   -416
+  ],
+  "radius": 8,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "minecraft:bastion_remnant",
+  "fromSpawn": 575,
+  "alternates": [
+   {
+    "x": -387.5,
+    "y": "open+8",
+    "z": -442.6,
+    "why": "bearing +45 from the approach, 49 out, 8 over the floor"
+   },
+   {
+    "x": -432.4,
+    "y": "open+8",
+    "z": -390.5,
+    "why": "bearing -45 from the approach, 49 out, 8 over the floor"
+   },
+   {
+    "x": -404.3,
+    "y": "open+8",
+    "z": -475.9,
+    "why": "bearing +90 from the approach, 49 out, 8 over the floor"
+   },
+   {
+    "x": -467.7,
+    "y": "open+8",
+    "z": -402.1,
+    "why": "bearing -90 from the approach, 49 out, 8 over the floor"
+   },
+   {
+    "x": -439.6,
+    "y": "open+8",
+    "z": -487.5,
+    "why": "bearing +135 from the approach, 49 out, 8 over the floor"
+   },
+   {
+    "x": -484.5,
+    "y": "open+8",
+    "z": -435.4,
+    "why": "bearing -135 from the approach, 49 out, 8 over the floor"
+   },
+   {
+    "x": -472.9,
+    "y": "open+8",
+    "z": -470.7,
+    "why": "bearing +180 from the approach, 49 out, 8 over the floor"
+   },
+   {
+    "x": -399.1,
+    "y": "open+16",
+    "z": -407.3,
+    "why": "bearing +0 from the approach, 49 out, 16 over the floor"
+   },
+   {
+    "x": -404.3,
+    "y": "open+16",
+    "z": -475.9,
+    "why": "bearing +90 from the approach, 49 out, 16 over the floor"
+   },
+   {
+    "x": -472.9,
+    "y": "open+16",
+    "z": -470.7,
+    "why": "bearing +180 from the approach, 49 out, 16 over the floor"
+   },
+   {
+    "x": -467.7,
+    "y": "open+16",
+    "z": -402.1,
+    "why": "bearing -90 from the approach, 49 out, 16 over the floor"
+   },
+   {
+    "x": -410.2,
+    "y": "open+6",
+    "z": -416.8,
+    "why": "bearing +0 from the approach, 34 out, 6 over the floor"
+   },
+   {
+    "x": -461.8,
+    "y": "open+6",
+    "z": -461.2,
+    "why": "bearing +180 from the approach, 34 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_nether",
+  "name": "the_nether-structure-fortress",
+  "x": 336.4,
+  "y": "open+8",
+  "z": -365.8,
+  "why": "start of minecraft:fortress, 522 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   311,
+   48,
+   -528,
+   465,
+   74,
+   -298
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "minecraft:fortress",
+  "fromSpawn": 522,
+  "alternates": [
+   {
+    "x": 384.7,
+    "y": "open+8",
+    "z": -342.6,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 318.6,
+    "y": "open+8",
+    "z": -416.3,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 435.2,
+    "y": "open+8",
+    "z": -360.4,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 341.8,
+    "y": "open+8",
+    "z": -464.6,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 458.4,
+    "y": "open+8",
+    "z": -408.7,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 392.3,
+    "y": "open+8",
+    "z": -482.4,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 440.6,
+    "y": "open+8",
+    "z": -459.2,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 336.4,
+    "y": "open+16",
+    "z": -365.8,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 435.2,
+    "y": "open+16",
+    "z": -360.4,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 440.6,
+    "y": "open+16",
+    "z": -459.2,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 341.8,
+    "y": "open+16",
+    "z": -464.6,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 352.0,
+    "y": "open+6",
+    "z": -379.8,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": 425.0,
+    "y": "open+6",
+    "z": -445.2,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_nether",
+  "name": "the_nether-structure-nether_fossil",
+  "x": -2.2,
+  "y": "open+8",
+  "z": 197.3,
+  "why": "start of minecraft:nether_fossil, 297 blocks from spawn; bearing +0 from the approach, 35 out, 8 over the floor",
+  "subject": [
+   -18,
+   24,
+   218,
+   12,
+   52,
+   246
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "minecraft:nether_fossil",
+  "fromSpawn": 297,
+  "alternates": [
+   {
+    "x": -27.2,
+    "y": "open+8",
+    "z": 207.4,
+    "why": "bearing +45 from the approach, 35 out, 8 over the floor"
+   },
+   {
+    "x": 22.6,
+    "y": "open+8",
+    "z": 207.8,
+    "why": "bearing -45 from the approach, 35 out, 8 over the floor"
+   },
+   {
+    "x": -37.7,
+    "y": "open+8",
+    "z": 232.2,
+    "why": "bearing +90 from the approach, 35 out, 8 over the floor"
+   },
+   {
+    "x": 32.7,
+    "y": "open+8",
+    "z": 232.8,
+    "why": "bearing -90 from the approach, 35 out, 8 over the floor"
+   },
+   {
+    "x": -27.6,
+    "y": "open+8",
+    "z": 257.2,
+    "why": "bearing +135 from the approach, 35 out, 8 over the floor"
+   },
+   {
+    "x": 22.2,
+    "y": "open+8",
+    "z": 257.6,
+    "why": "bearing -135 from the approach, 35 out, 8 over the floor"
+   },
+   {
+    "x": -2.8,
+    "y": "open+8",
+    "z": 267.7,
+    "why": "bearing +180 from the approach, 35 out, 8 over the floor"
+   },
+   {
+    "x": -2.2,
+    "y": "open+16",
+    "z": 197.3,
+    "why": "bearing +0 from the approach, 35 out, 16 over the floor"
+   },
+   {
+    "x": -37.7,
+    "y": "open+16",
+    "z": 232.2,
+    "why": "bearing +90 from the approach, 35 out, 16 over the floor"
+   },
+   {
+    "x": -2.8,
+    "y": "open+16",
+    "z": 267.7,
+    "why": "bearing +180 from the approach, 35 out, 16 over the floor"
+   },
+   {
+    "x": 32.7,
+    "y": "open+16",
+    "z": 232.8,
+    "why": "bearing -90 from the approach, 35 out, 16 over the floor"
+   },
+   {
+    "x": -2.3,
+    "y": "open+6",
+    "z": 207.8,
+    "why": "bearing +0 from the approach, 25 out, 6 over the floor"
+   },
+   {
+    "x": -2.7,
+    "y": "open+6",
+    "z": 257.2,
+    "why": "bearing +180 from the approach, 25 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_nether",
+  "name": "the_nether-structure-bridge_1",
+  "x": 39.8,
+  "y": "open+8",
+  "z": 28.3,
+  "why": "start of mns:bridge_1, 123 blocks from spawn; bearing +0 from the approach, 22 out, 8 over the floor",
+  "subject": [
+   46,
+   30,
+   44,
+   50,
+   34,
+   52
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:bridge_1",
+  "fromSpawn": 123,
+  "alternates": [
+   {
+    "x": 28.1,
+    "y": "open+8",
+    "z": 40.4,
+    "why": "bearing +45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 56.6,
+    "y": "open+8",
+    "z": 28.1,
+    "why": "bearing -45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 28.3,
+    "y": "open+8",
+    "z": 57.2,
+    "why": "bearing +90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 68.7,
+    "y": "open+8",
+    "z": 39.8,
+    "why": "bearing -90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 40.4,
+    "y": "open+8",
+    "z": 68.9,
+    "why": "bearing +135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 68.9,
+    "y": "open+8",
+    "z": 56.6,
+    "why": "bearing -135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 57.2,
+    "y": "open+8",
+    "z": 68.7,
+    "why": "bearing +180 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 39.8,
+    "y": "open+16",
+    "z": 28.3,
+    "why": "bearing +0 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 28.3,
+    "y": "open+16",
+    "z": 57.2,
+    "why": "bearing +90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 57.2,
+    "y": "open+16",
+    "z": 68.7,
+    "why": "bearing +180 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 68.7,
+    "y": "open+16",
+    "z": 39.8,
+    "why": "bearing -90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 42.4,
+    "y": "open+6",
+    "z": 34.4,
+    "why": "bearing +0 from the approach, 15 out, 6 over the floor"
+   },
+   {
+    "x": 54.6,
+    "y": "open+6",
+    "z": 62.6,
+    "why": "bearing +180 from the approach, 15 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_nether",
+  "name": "the_nether-structure-bridge_2",
+  "x": 448.9,
+  "y": "open+8",
+  "z": 415.8,
+  "why": "start of mns:bridge_2, 680 blocks from spawn; bearing +0 from the approach, 23 out, 8 over the floor",
+  "subject": [
+   462,
+   30,
+   424,
+   466,
+   33,
+   440
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:bridge_2",
+  "fromSpawn": 680,
+  "alternates": [
+   {
+    "x": 441.7,
+    "y": "open+8",
+    "z": 431.7,
+    "why": "bearing +45 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 465.3,
+    "y": "open+8",
+    "z": 409.7,
+    "why": "bearing -45 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 447.8,
+    "y": "open+8",
+    "z": 448.1,
+    "why": "bearing +90 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 481.2,
+    "y": "open+8",
+    "z": 416.9,
+    "why": "bearing -90 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 463.7,
+    "y": "open+8",
+    "z": 455.3,
+    "why": "bearing +135 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 487.3,
+    "y": "open+8",
+    "z": 433.3,
+    "why": "bearing -135 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 480.1,
+    "y": "open+8",
+    "z": 449.2,
+    "why": "bearing +180 from the approach, 23 out, 8 over the floor"
+   },
+   {
+    "x": 448.9,
+    "y": "open+16",
+    "z": 415.8,
+    "why": "bearing +0 from the approach, 23 out, 16 over the floor"
+   },
+   {
+    "x": 447.8,
+    "y": "open+16",
+    "z": 448.1,
+    "why": "bearing +90 from the approach, 23 out, 16 over the floor"
+   },
+   {
+    "x": 480.1,
+    "y": "open+16",
+    "z": 449.2,
+    "why": "bearing +180 from the approach, 23 out, 16 over the floor"
+   },
+   {
+    "x": 481.2,
+    "y": "open+16",
+    "z": 416.9,
+    "why": "bearing -90 from the approach, 23 out, 16 over the floor"
+   },
+   {
+    "x": 453.6,
+    "y": "open+6",
+    "z": 420.8,
+    "why": "bearing +0 from the approach, 16 out, 6 over the floor"
+   },
+   {
+    "x": 475.4,
+    "y": "open+6",
+    "z": 444.2,
+    "why": "bearing +180 from the approach, 16 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_nether",
+  "name": "the_nether-structure-bridge_3",
+  "x": 496.2,
+  "y": "open+8",
+  "z": 385.7,
+  "why": "start of mns:bridge_3, 692 blocks from spawn; bearing +0 from the approach, 22 out, 8 over the floor",
+  "subject": [
+   508,
+   30,
+   398,
+   516,
+   34,
+   402
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:bridge_3",
+  "fromSpawn": 692,
+  "alternates": [
+   {
+    "x": 490.5,
+    "y": "open+8",
+    "z": 401.6,
+    "why": "bearing +45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 511.4,
+    "y": "open+8",
+    "z": 378.5,
+    "why": "bearing -45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 497.7,
+    "y": "open+8",
+    "z": 416.8,
+    "why": "bearing +90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 527.3,
+    "y": "open+8",
+    "z": 384.2,
+    "why": "bearing -90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 513.6,
+    "y": "open+8",
+    "z": 422.5,
+    "why": "bearing +135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 534.5,
+    "y": "open+8",
+    "z": 399.4,
+    "why": "bearing -135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 528.8,
+    "y": "open+8",
+    "z": 415.3,
+    "why": "bearing +180 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 496.2,
+    "y": "open+16",
+    "z": 385.7,
+    "why": "bearing +0 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 497.7,
+    "y": "open+16",
+    "z": 416.8,
+    "why": "bearing +90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 528.8,
+    "y": "open+16",
+    "z": 415.3,
+    "why": "bearing +180 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 527.3,
+    "y": "open+16",
+    "z": 384.2,
+    "why": "bearing -90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 501.1,
+    "y": "open+6",
+    "z": 390.2,
+    "why": "bearing +0 from the approach, 15 out, 6 over the floor"
+   },
+   {
+    "x": 523.9,
+    "y": "open+6",
+    "z": 410.8,
+    "why": "bearing +180 from the approach, 15 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_nether",
+  "name": "the_nether-structure-bridge_4",
+  "x": 39.8,
+  "y": "open+8",
+  "z": 28.3,
+  "why": "start of mns:bridge_4, 123 blocks from spawn; bearing +0 from the approach, 22 out, 8 over the floor",
+  "subject": [
+   46,
+   30,
+   42,
+   50,
+   34,
+   54
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:bridge_4",
+  "fromSpawn": 123,
+  "alternates": [
+   {
+    "x": 28.1,
+    "y": "open+8",
+    "z": 40.4,
+    "why": "bearing +45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 56.6,
+    "y": "open+8",
+    "z": 28.1,
+    "why": "bearing -45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 28.3,
+    "y": "open+8",
+    "z": 57.2,
+    "why": "bearing +90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 68.7,
+    "y": "open+8",
+    "z": 39.8,
+    "why": "bearing -90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 40.4,
+    "y": "open+8",
+    "z": 68.9,
+    "why": "bearing +135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 68.9,
+    "y": "open+8",
+    "z": 56.6,
+    "why": "bearing -135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 57.2,
+    "y": "open+8",
+    "z": 68.7,
+    "why": "bearing +180 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 39.8,
+    "y": "open+16",
+    "z": 28.3,
+    "why": "bearing +0 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 28.3,
+    "y": "open+16",
+    "z": 57.2,
+    "why": "bearing +90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 57.2,
+    "y": "open+16",
+    "z": 68.7,
+    "why": "bearing +180 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 68.7,
+    "y": "open+16",
+    "z": 39.8,
+    "why": "bearing -90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 42.4,
+    "y": "open+6",
+    "z": 34.4,
+    "why": "bearing +0 from the approach, 15 out, 6 over the floor"
+   },
+   {
+    "x": 54.6,
+    "y": "open+6",
+    "z": 62.6,
+    "why": "bearing +180 from the approach, 15 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_nether",
+  "name": "the_nether-structure-bridge_5",
+  "x": 136.8,
+  "y": "open+8",
+  "z": 299.9,
+  "why": "start of mns:bridge_5, 411 blocks from spawn; bearing +0 from the approach, 22 out, 8 over the floor",
+  "subject": [
+   140,
+   30,
+   314,
+   148,
+   34,
+   326
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:bridge_5",
+  "fromSpawn": 411,
+  "alternates": [
+   {
+    "x": 124.5,
+    "y": "open+8",
+    "z": 311.4,
+    "why": "bearing +45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 153.6,
+    "y": "open+8",
+    "z": 300.5,
+    "why": "bearing -45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 123.9,
+    "y": "open+8",
+    "z": 328.2,
+    "why": "bearing +90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 165.1,
+    "y": "open+8",
+    "z": 312.8,
+    "why": "bearing -90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 135.4,
+    "y": "open+8",
+    "z": 340.5,
+    "why": "bearing +135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 164.5,
+    "y": "open+8",
+    "z": 329.6,
+    "why": "bearing -135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 152.2,
+    "y": "open+8",
+    "z": 341.1,
+    "why": "bearing +180 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 136.8,
+    "y": "open+16",
+    "z": 299.9,
+    "why": "bearing +0 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 123.9,
+    "y": "open+16",
+    "z": 328.2,
+    "why": "bearing +90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 152.2,
+    "y": "open+16",
+    "z": 341.1,
+    "why": "bearing +180 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 165.1,
+    "y": "open+16",
+    "z": 312.8,
+    "why": "bearing -90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 139.1,
+    "y": "open+6",
+    "z": 306.1,
+    "why": "bearing +0 from the approach, 15 out, 6 over the floor"
+   },
+   {
+    "x": 149.9,
+    "y": "open+6",
+    "z": 334.9,
+    "why": "bearing +180 from the approach, 15 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_nether",
+  "name": "the_nether-structure-bridge_6",
+  "x": 42.1,
+  "y": "open+8",
+  "z": 75.4,
+  "why": "start of mns:bridge_6, 168 blocks from spawn; bearing +0 from the approach, 22 out, 8 over the floor",
+  "subject": [
+   46,
+   30,
+   94,
+   50,
+   34,
+   98
+  ],
+  "radius": 6,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:bridge_6",
+  "fromSpawn": 168,
+  "alternates": [
+   {
+    "x": 29.1,
+    "y": "open+8",
+    "z": 86.1,
+    "why": "bearing +45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 58.9,
+    "y": "open+8",
+    "z": 77.1,
+    "why": "bearing -45 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 27.4,
+    "y": "open+8",
+    "z": 102.9,
+    "why": "bearing +90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 69.6,
+    "y": "open+8",
+    "z": 90.1,
+    "why": "bearing -90 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 38.1,
+    "y": "open+8",
+    "z": 115.9,
+    "why": "bearing +135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 67.9,
+    "y": "open+8",
+    "z": 106.9,
+    "why": "bearing -135 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 54.9,
+    "y": "open+8",
+    "z": 117.6,
+    "why": "bearing +180 from the approach, 22 out, 8 over the floor"
+   },
+   {
+    "x": 42.1,
+    "y": "open+16",
+    "z": 75.4,
+    "why": "bearing +0 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 27.4,
+    "y": "open+16",
+    "z": 102.9,
+    "why": "bearing +90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 54.9,
+    "y": "open+16",
+    "z": 117.6,
+    "why": "bearing +180 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 69.6,
+    "y": "open+16",
+    "z": 90.1,
+    "why": "bearing -90 from the approach, 22 out, 16 over the floor"
+   },
+   {
+    "x": 44.0,
+    "y": "open+6",
+    "z": 81.8,
+    "why": "bearing +0 from the approach, 15 out, 6 over the floor"
+   },
+   {
+    "x": 53.0,
+    "y": "open+6",
+    "z": 111.2,
+    "why": "bearing +180 from the approach, 15 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_nether",
+  "name": "the_nether-structure-mega_fortress",
+  "x": 233.7,
+  "y": "open+8",
+  "z": 238.1,
+  "why": "start of mns:mega_fortress, 452 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   150,
+   19,
+   160,
+   402,
+   74,
+   426
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "mns:mega_fortress",
+  "fromSpawn": 452,
+  "alternates": [
+   {
+    "x": 207.1,
+    "y": "open+8",
+    "z": 284.6,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 285.4,
+    "y": "open+8",
+    "z": 224.1,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 221.1,
+    "y": "open+8",
+    "z": 336.3,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 331.9,
+    "y": "open+8",
+    "z": 250.7,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 267.6,
+    "y": "open+8",
+    "z": 362.9,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 345.9,
+    "y": "open+8",
+    "z": 302.4,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 319.3,
+    "y": "open+8",
+    "z": 348.9,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": 233.7,
+    "y": "open+16",
+    "z": 238.1,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 221.1,
+    "y": "open+16",
+    "z": 336.3,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 319.3,
+    "y": "open+16",
+    "z": 348.9,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 331.9,
+    "y": "open+16",
+    "z": 250.7,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": 246.5,
+    "y": "open+6",
+    "z": 254.7,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": 306.5,
+    "y": "open+6",
+    "z": 332.3,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_nether",
+  "name": "the_nether-structure-sealing_halls",
+  "x": -575.7,
+  "y": "open+8",
+  "z": -335.6,
+  "why": "start of nova_structures:sealing_halls, 707 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -766,
+   5,
+   -493,
+   -513,
+   113,
+   -239
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "nova_structures:sealing_halls",
+  "fromSpawn": 707,
+  "alternates": [
+   {
+    "x": -573.1,
+    "y": "open+8",
+    "z": -389.1,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -615.4,
+    "y": "open+8",
+    "z": -299.6,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -609.1,
+    "y": "open+8",
+    "z": -428.8,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -668.9,
+    "y": "open+8",
+    "z": -302.2,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -662.6,
+    "y": "open+8",
+    "z": -431.4,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -704.9,
+    "y": "open+8",
+    "z": -341.9,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -702.3,
+    "y": "open+8",
+    "z": -395.4,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -575.7,
+    "y": "open+16",
+    "z": -335.6,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -609.1,
+    "y": "open+16",
+    "z": -428.8,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -702.3,
+    "y": "open+16",
+    "z": -395.4,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -668.9,
+    "y": "open+16",
+    "z": -302.2,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -594.7,
+    "y": "open+6",
+    "z": -344.6,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -683.3,
+    "y": "open+6",
+    "z": -386.4,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_nether",
+  "name": "the_nether-structure-exclusives_village_piglin",
+  "x": -354.9,
+  "y": "open+8",
+  "z": 42.4,
+  "why": "start of towns_and_towers:exclusives/village_piglin, 441 blocks from spawn; bearing +0 from the approach, 70 out, 8 over the floor",
+  "subject": [
+   -488,
+   115,
+   2,
+   -357,
+   158,
+   122
+  ],
+  "radius": 10,
+  "hold": 4,
+  "nightVision": false,
+  "pair": true,
+  "layer": "structure",
+  "structure": "towns_and_towers:exclusives/village_piglin",
+  "fromSpawn": 441,
+  "alternates": [
+   {
+    "x": -388.8,
+    "y": "open+8",
+    "z": 0.9,
+    "why": "bearing +45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -360.4,
+    "y": "open+8",
+    "z": 95.7,
+    "why": "bearing -45 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -442.1,
+    "y": "open+8",
+    "z": -4.6,
+    "why": "bearing +90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -401.9,
+    "y": "open+8",
+    "z": 129.6,
+    "why": "bearing -90 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -483.6,
+    "y": "open+8",
+    "z": 29.3,
+    "why": "bearing +135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -455.2,
+    "y": "open+8",
+    "z": 124.1,
+    "why": "bearing -135 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -489.1,
+    "y": "open+8",
+    "z": 82.6,
+    "why": "bearing +180 from the approach, 70 out, 8 over the floor"
+   },
+   {
+    "x": -354.9,
+    "y": "open+16",
+    "z": 42.4,
+    "why": "bearing +0 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -442.1,
+    "y": "open+16",
+    "z": -4.6,
+    "why": "bearing +90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -489.1,
+    "y": "open+16",
+    "z": 82.6,
+    "why": "bearing +180 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -401.9,
+    "y": "open+16",
+    "z": 129.6,
+    "why": "bearing -90 from the approach, 70 out, 16 over the floor"
+   },
+   {
+    "x": -375.1,
+    "y": "open+6",
+    "z": 48.4,
+    "why": "bearing +0 from the approach, 49 out, 6 over the floor"
+   },
+   {
+    "x": -468.9,
+    "y": "open+6",
+    "z": 76.6,
+    "why": "bearing +180 from the approach, 49 out, 6 over the floor"
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone1-chorus_forest",
+  "x": 1113.6,
+  "y": "open+14",
+  "z": 324.8,
+  "at": [
+   1156,
+   60,
+   340
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:chorus_forest",
+  "landPixels": 49,
+  "why": "zone 1 (adventure:chorus_forest, centre 1194 369): its densest land at 1152 336 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": 1140.8,
+    "y": "open+14",
+    "z": 374.4
+   },
+   {
+    "x": 1163.2,
+    "y": "open+14",
+    "z": 297.6
+   },
+   {
+    "x": 1190.4,
+    "y": "open+14",
+    "z": 347.2
+   },
+   {
+    "x": 1116.9,
+    "y": "open+14",
+    "z": 355.2
+   },
+   {
+    "x": 1132.8,
+    "y": "open+14",
+    "z": 300.9
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone2-glowing_grasslands",
+  "x": 193.6,
+  "y": "open+14",
+  "z": 1192.5,
+  "at": [
+   204,
+   60,
+   1236
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:glowing_grasslands",
+  "landPixels": 49,
+  "why": "zone 2 (adventure:glowing_grasslands, centre 277 1219): its densest land at 200 1232 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": 160.5,
+    "y": "open+14",
+    "z": 1238.4
+   },
+   {
+    "x": 239.5,
+    "y": "open+14",
+    "z": 1225.6
+   },
+   {
+    "x": 206.4,
+    "y": "open+14",
+    "z": 1271.5
+   },
+   {
+    "x": 167.5,
+    "y": "open+14",
+    "z": 1208.6
+   },
+   {
+    "x": 223.4,
+    "y": "open+14",
+    "z": 1199.5
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone3-foggy_mushroomland",
+  "x": -835.3,
+  "y": "open+14",
+  "z": 812.1,
+  "at": [
+   -860,
+   60,
+   844
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:foggy_mushroomland",
+  "landPixels": 49,
+  "why": "zone 3 (adventure:foggy_mushroomland, centre -917 849): its densest land at -864 840 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": -891.9,
+    "y": "open+14",
+    "z": 811.3
+   },
+   {
+    "x": -836.1,
+    "y": "open+14",
+    "z": 868.7
+   },
+   {
+    "x": -892.7,
+    "y": "open+14",
+    "z": 867.9
+   },
+   {
+    "x": -863.4,
+    "y": "open+14",
+    "z": 800.0
+   },
+   {
+    "x": -824.0,
+    "y": "open+14",
+    "z": 840.6
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone4-lantern_woods",
+  "x": -1129.2,
+  "y": "open+14",
+  "z": -286.2,
+  "at": [
+   -1164,
+   60,
+   -292
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:lantern_woods",
+  "landPixels": 49,
+  "why": "zone 4 (adventure:lantern_woods, centre -1194 -369): its densest land at -1168 -296 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": -1158.2,
+    "y": "open+14",
+    "z": -334.8
+   },
+   {
+    "x": -1177.8,
+    "y": "open+14",
+    "z": -257.2
+   },
+   {
+    "x": -1206.8,
+    "y": "open+14",
+    "z": -305.8
+   },
+   {
+    "x": -1133.6,
+    "y": "open+14",
+    "z": -316.5
+   },
+   {
+    "x": -1147.5,
+    "y": "open+14",
+    "z": -261.6
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone5-sulphur_springs",
+  "x": -232.5,
+  "y": "open+14",
+  "z": -1224.7,
+  "at": [
+   -236,
+   60,
+   -1260
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:sulphur_springs",
+  "landPixels": 49,
+  "why": "zone 5 (adventure:sulphur_springs, centre -277 -1219): its densest land at -240 -1264 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": -200.7,
+    "y": "open+14",
+    "z": -1271.5
+   },
+   {
+    "x": -279.3,
+    "y": "open+14",
+    "z": -1256.5
+   },
+   {
+    "x": -247.5,
+    "y": "open+14",
+    "z": -1303.3
+   },
+   {
+    "x": -206.9,
+    "y": "open+14",
+    "z": -1241.5
+   },
+   {
+    "x": -262.5,
+    "y": "open+14",
+    "z": -1230.9
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone6-megalake",
+  "x": 866.9,
+  "y": "open+14",
+  "z": -820.5,
+  "at": [
+   900,
+   60,
+   -844
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:megalake",
+  "landPixels": 49,
+  "why": "zone 6 (adventure:megalake, centre 917 -849): its densest land at 896 -848 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": 923.5,
+    "y": "open+14",
+    "z": -818.9
+   },
+   {
+    "x": 868.5,
+    "y": "open+14",
+    "z": -877.1
+   },
+   {
+    "x": 925.1,
+    "y": "open+14",
+    "z": -875.5
+   },
+   {
+    "x": 894.9,
+    "y": "open+14",
+    "z": -808.0
+   },
+   {
+    "x": 856.0,
+    "y": "open+14",
+    "z": -849.1
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone7-lantern_woods",
+  "x": 1180.7,
+  "y": "open+14",
+  "z": 1266.7,
+  "at": [
+   1212,
+   60,
+   1300
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:lantern_woods",
+  "landPixels": 49,
+  "why": "zone 7 (adventure:lantern_woods, centre 1194 1280): its densest land at 1208 1296 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": 1178.7,
+    "y": "open+14",
+    "z": 1323.3
+   },
+   {
+    "x": 1237.3,
+    "y": "open+14",
+    "z": 1268.7
+   },
+   {
+    "x": 1235.3,
+    "y": "open+14",
+    "z": 1325.3
+   },
+   {
+    "x": 1168.0,
+    "y": "open+14",
+    "z": 1294.6
+   },
+   {
+    "x": 1209.4,
+    "y": "open+14",
+    "z": 1256.0
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone8-sulphur_springs",
+  "x": -460.9,
+  "y": "open+14",
+  "z": 1593.6,
+  "at": [
+   -468,
+   60,
+   1636
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:sulphur_springs",
+  "landPixels": 49,
+  "why": "zone 8 (adventure:sulphur_springs, centre -511 1674): its densest land at -472 1632 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": -510.4,
+    "y": "open+14",
+    "z": 1620.9
+   },
+   {
+    "x": -433.6,
+    "y": "open+14",
+    "z": 1643.1
+   },
+   {
+    "x": -483.1,
+    "y": "open+14",
+    "z": 1670.4
+   },
+   {
+    "x": -491.3,
+    "y": "open+14",
+    "z": 1597.0
+   },
+   {
+    "x": -437.0,
+    "y": "open+14",
+    "z": 1612.7
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone9-megalake",
+  "x": -1664.9,
+  "y": "open+14",
+  "z": 359.6,
+  "at": [
+   -1700,
+   60,
+   372
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:megalake",
+  "landPixels": 49,
+  "why": "zone 9 (adventure:megalake, centre -1705 394): its densest land at -1704 368 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": -1712.4,
+    "y": "open+14",
+    "z": 328.9
+   },
+   {
+    "x": -1695.6,
+    "y": "open+14",
+    "z": 407.1
+   },
+   {
+    "x": -1743.1,
+    "y": "open+14",
+    "z": 376.4
+   },
+   {
+    "x": -1682.3,
+    "y": "open+14",
+    "z": 334.4
+   },
+   {
+    "x": -1670.4,
+    "y": "open+14",
+    "z": 389.7
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone10-chorus_forest",
+  "x": -1187.8,
+  "y": "open+14",
+  "z": -1195.6,
+  "at": [
+   -1212,
+   60,
+   -1220
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:chorus_forest",
+  "landPixels": 49,
+  "why": "zone 10 (adventure:chorus_forest, centre -1194 -1280): its densest land at -1216 -1224 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": -1187.6,
+    "y": "open+14",
+    "z": -1252.2
+   },
+   {
+    "x": -1244.4,
+    "y": "open+14",
+    "z": -1195.8
+   },
+   {
+    "x": -1244.2,
+    "y": "open+14",
+    "z": -1252.4
+   },
+   {
+    "x": -1176.0,
+    "y": "open+14",
+    "z": -1223.9
+   },
+   {
+    "x": -1216.1,
+    "y": "open+14",
+    "z": -1184.0
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone11-glowing_grasslands",
+  "x": 500.3,
+  "y": "open+14",
+  "z": -1633.8,
+  "at": [
+   516,
+   60,
+   -1668
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:glowing_grasslands",
+  "landPixels": 49,
+  "why": "zone 11 (adventure:glowing_grasslands, centre 511 -1674): its densest land at 512 -1672 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": 550.2,
+    "y": "open+14",
+    "z": -1660.3
+   },
+   {
+    "x": 473.8,
+    "y": "open+14",
+    "z": -1683.7
+   },
+   {
+    "x": 523.7,
+    "y": "open+14",
+    "z": -1710.2
+   },
+   {
+    "x": 530.8,
+    "y": "open+14",
+    "z": -1636.7
+   },
+   {
+    "x": 476.7,
+    "y": "open+14",
+    "z": -1653.2
+   }
+  ]
+ },
+ {
+  "dimension": "minecraft:the_end",
+  "name": "the_end-zone12-foggy_mushroomland",
+  "x": 1736.7,
+  "y": "open+14",
+  "z": -320.7,
+  "at": [
+   1780,
+   60,
+   -324
+  ],
+  "radius": 8,
+  "hold": 6,
+  "nightVision": false,
+  "layer": "zone",
+  "zoneBiome": "adventure:foggy_mushroomland",
+  "landPixels": 49,
+  "why": "zone 12 (adventure:foggy_mushroomland, centre 1705 -394): its densest land at 1776 -328 (49 of 49 pixels round it)",
+  "alternates": [
+   {
+    "x": 1783.3,
+    "y": "open+14",
+    "z": -288.7
+   },
+   {
+    "x": 1768.7,
+    "y": "open+14",
+    "z": -367.3
+   },
+   {
+    "x": 1815.3,
+    "y": "open+14",
+    "z": -335.3
+   },
+   {
+    "x": 1753.3,
+    "y": "open+14",
+    "z": -295.0
+   },
+   {
+    "x": 1743.0,
+    "y": "open+14",
+    "z": -350.7
+   }
+  ]
+ },
+ {
+  "dimension": "adventure:the_abyssal_shrine",
+  "name": "the_abyssal_shrine-structure-monument",
+  "x": 86.2,
+  "y": "open+8",
+  "z": -70.1,
+  "why": "start of minecraft:monument, 179 blocks from spawn; bearing +0 from the approach, 55 out, 8 over the floor",
+  "subject": [
+   67,
+   39,
+   -45,
+   124,
+   61,
+   12
+  ],
+  "radius": 9,
+  "hold": 4,
+  "nightVision": false,
+  "pair": false,
+  "layer": "structure",
+  "structure": "minecraft:monument",
+  "fromSpawn": 179,
+  "alternates": [
+   {
+    "x": 50.8,
+    "y": "open+8",
+    "z": -47.3,
+    "why": "bearing +45 from the approach, 55 out, 8 over the floor"
+   },
+   {
+    "x": 127.3,
+    "y": "open+8",
+    "z": -61.2,
+    "why": "bearing -45 from the approach, 55 out, 8 over the floor"
+   },
+   {
+    "x": 41.9,
+    "y": "open+8",
+    "z": -6.2,
+    "why": "bearing +90 from the approach, 55 out, 8 over the floor"
+   },
+   {
+    "x": 150.1,
+    "y": "open+8",
+    "z": -25.8,
+    "why": "bearing -90 from the approach, 55 out, 8 over the floor"
+   },
+   {
+    "x": 64.7,
+    "y": "open+8",
+    "z": 29.2,
+    "why": "bearing +135 from the approach, 55 out, 8 over the floor"
+   },
+   {
+    "x": 141.2,
+    "y": "open+8",
+    "z": 15.3,
+    "why": "bearing -135 from the approach, 55 out, 8 over the floor"
+   },
+   {
+    "x": 105.8,
+    "y": "open+8",
+    "z": 38.1,
+    "why": "bearing +180 from the approach, 55 out, 8 over the floor"
+   },
+   {
+    "x": 86.2,
+    "y": "open+16",
+    "z": -70.1,
+    "why": "bearing +0 from the approach, 55 out, 16 over the floor"
+   },
+   {
+    "x": 41.9,
+    "y": "open+16",
+    "z": -6.2,
+    "why": "bearing +90 from the approach, 55 out, 16 over the floor"
+   },
+   {
+    "x": 105.8,
+    "y": "open+16",
+    "z": 38.1,
+    "why": "bearing +180 from the approach, 55 out, 16 over the floor"
+   },
+   {
+    "x": 150.1,
+    "y": "open+16",
+    "z": -25.8,
+    "why": "bearing -90 from the approach, 55 out, 16 over the floor"
+   },
+   {
+    "x": 89.1,
+    "y": "open+6",
+    "z": -53.9,
+    "why": "bearing +0 from the approach, 39 out, 6 over the floor"
+   },
+   {
+    "x": 102.9,
+    "y": "open+6",
+    "z": 21.9,
+    "why": "bearing +180 from the approach, 39 out, 6 over the floor"
+   }
+  ]
+ }
+]

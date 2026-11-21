@@ -1,0 +1,11 @@
+[
+ {
+  "sha": "eec4f06183592c4f4cdacffd9af01905def07aeb",
+  "filename": "docker/kuma-init/Dockerfile",
+  "status": "modified",
+  "additions": 1,
+  "deletions": 1,
+  "changes": 2,
+  "patch": "@@ -1,4 +1,4 @@\n-FROM python:3.14.6-alpine3.24\n+FROM python:3.14.7-alpine3.24\n \n ARG REPO_URL=https://github.com/piprees/minecraft-server-template\n LABEL org.opencontainers.image.source=${REPO_URL} \\"
+ }
+]

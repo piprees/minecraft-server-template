@@ -1,0 +1,6 @@
+{
+  "reason": "G8: landShare 0.9 holds a sealed pocket grove with a stream, not a lake (ocean 20.2%, water 56.5%) for any seed.",
+  "terrain": {
+    "landShare": 0.9
+  }
+}

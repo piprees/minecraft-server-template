@@ -1,0 +1,53 @@
+{
+ "slug": "the_greywoods",
+ "targets": [
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 15,
+   "from": "\"woodland where the fog sits low\": a wood, not a sea"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:ocean + surface.biomesPercent.minecraft:warm_ocean + surface.biomesPercent.minecraft:lukewarm_ocean + surface.biomesPercent.minecraft:cold_ocean + surface.biomesPercent.minecraft:deep_ocean + surface.biomesPercent.minecraft:deep_lukewarm_ocean + surface.biomesPercent.minecraft:deep_cold_ocean + surface.biomesPercent.minecraft:frozen_ocean",
+   "op": "<=",
+   "value": 5,
+   "from": "1.21.1 biomes list no ocean"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": ">=",
+   "value": 80,
+   "from": "\"Gloomy cedar woodland\""
+  },
+  {
+   "key": "surface.canopyPercent",
+   "op": ">=",
+   "value": 35,
+   "from": "\"Gloomy\": closed canopy"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:sugi_forest + surface.biomesPercent.minecraft:dark_forest + surface.biomesPercent.minecraft:old_growth_spruce_taiga + surface.biomesPercent.adventure:dying_forest + surface.biomesPercent.minecraft:pale_garden",
+   "op": ">=",
+   "value": 45,
+   "from": "1.21.1 cedar_thicket, dark_forest, fir_forest, dying_forest, dark_birch_forest"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.15,
+   "from": "1.21.1 ambientLight 0.1"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one gloomy wood): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

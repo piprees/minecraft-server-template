@@ -1,0 +1,46 @@
+{
+ "slug": "the_burning_archipelago",
+ "targets": [
+  {
+   "key": "placeness.places.islands.dominantPlacePercent",
+   "op": ">=",
+   "value": 55,
+   "from": "place kind meeting: each island mostly one Nether place"
+  },
+  {
+   "key": "placeness.places.islands.dominantPlacePercent",
+   "op": ">=",
+   "value": 75,
+   "from": "restated: on islands every islet under 1 ha is a speck whatever its place (kit gap: no speck measure inside islands); a meeting judged by place: at most a quarter of each island outside its own place",
+   "was": {
+    "key": "placeness.places.landRegions.specksPercent",
+    "op": "<=",
+    "value": 5
+   }
+  },
+  {
+   "key": "placeness.places.byPlace.crimson.landPercent",
+   "op": ">=",
+   "value": 12,
+   "from": "\"the piglins and endermen fought across these straits\": crimson is a place"
+  },
+  {
+   "key": "placeness.places.byPlace.warped.landPercent",
+   "op": ">=",
+   "value": 8,
+   "from": "warped is a place across the strait from crimson"
+  },
+  {
+   "key": "placeness.places.byPlace.deltas.landPercent",
+   "op": ">=",
+   "value": 12,
+   "from": "\"islands that still smoulder\": the deltas are a place"
+  },
+  {
+   "key": "placeness.places.byPlace.wastes.landPercent",
+   "op": ">=",
+   "value": 10,
+   "from": "the wastes are a place"
+  }
+ ]
+}

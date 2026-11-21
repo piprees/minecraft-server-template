@@ -1,0 +1,153 @@
+{
+  "type": "adventure:the_wuthering_wisteria",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "customdimensions:zoned",
+      "base": {
+        "type": "minecraft:multi_noise",
+        "biomes": [
+          {
+            "biome": "adventure:magmatic_caves",
+            "parameters": {
+              "temperature": [-2.0, 2.0],
+              "humidity": [-2.0, 0.032],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [0.2, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:lush_caves",
+            "parameters": {
+              "temperature": [-2.0, 2.0],
+              "humidity": [0.032, 2.0],
+              "continentalness": [-2.0, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [0.2, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:meadow",
+            "parameters": {
+              "temperature": [-2.0, 0.3407],
+              "humidity": [-2.0, -0.5815],
+              "continentalness": [-0.19, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.2],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:old_growth_birch_forest",
+            "parameters": {
+              "temperature": [-2.0, 0.3407],
+              "humidity": [0.032, 2.0],
+              "continentalness": [-0.19, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.2],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:old_growth_birch_forest",
+            "parameters": {
+              "temperature": [-2.0, 0.3407],
+              "humidity": [-0.5815, 0.032],
+              "continentalness": [-0.19, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.2],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:wisteria_grove",
+            "parameters": {
+              "temperature": [0.3407, 2.0],
+              "humidity": [-2.0, -0.3252],
+              "continentalness": [-0.19, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.2],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:cherry_grove",
+            "parameters": {
+              "temperature": [0.3407, 2.0],
+              "humidity": [0.032, 2.0],
+              "continentalness": [-0.19, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.2],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:cherry_grove",
+            "parameters": {
+              "temperature": [0.3407, 2.0],
+              "humidity": [-0.3252, 0.032],
+              "continentalness": [-0.19, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.2],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:ocean",
+            "parameters": {
+              "temperature": [-2.0, 2.0],
+              "humidity": [0.032, 2.0],
+              "continentalness": [-2.0, -0.19],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.2],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:ocean",
+            "parameters": {
+              "temperature": [-2.0, 2.0],
+              "humidity": [-2.0, 0.032],
+              "continentalness": [-2.0, -0.19],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 0.2],
+              "offset": 0.0
+            }
+          }
+        ]
+      },
+      "regions": {
+        "axes": [
+          "temperature",
+          "humidity"
+        ],
+        "areas": [
+          {
+            "role": "land",
+            "continentalness": [-0.19, 2.0],
+            "columns": [0.3407]
+          },
+          {
+            "role": "ocean",
+            "continentalness": [-2.0, -0.19]
+          }
+        ],
+        "radius": 512
+      }
+    },
+    "settings": "adventure:the_wuthering_wisteria"
+  }
+}

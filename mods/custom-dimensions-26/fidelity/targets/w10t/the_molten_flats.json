@@ -1,0 +1,62 @@
+{
+ "slug": "the_molten_flats",
+ "targets": [
+  {
+   "key": "terrain.slopes.flatUnder15Percent",
+   "op": ">=",
+   "value": 55,
+   "from": "\"Industrial lava flats\""
+  },
+  {
+   "key": "terrain.surfaceHeight.p95",
+   "op": "<=",
+   "value": 50,
+   "from": "\"flats\", against the vanilla Nether's cliffs. Restated from terrain.reliefMedian <= 50: patch relief counts the few columns the survey reads in pockets of the roof mass, at up to 119 in every patch of every Nether preset; the 95th percentile of the floor is the flat's own height"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "between",
+   "value": [
+    20,
+    45
+   ],
+   "from": "\"built over the melt\": lava beside the flats"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:magma_block + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:smooth_basalt + surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:tuff + surface.groundBlocksPercent.minecraft:obsidian",
+   "op": ">=",
+   "value": 35,
+   "from": "1.21.1 volcanic_deltas, inferno, ash_barrens: melt-country ground"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:ash_barrens",
+   "op": ">=",
+   "value": 10,
+   "from": "1.21.1 lists incendium:ash_barrens first"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "<=",
+   "value": 2,
+   "from": "\"Industrial\": no forest"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 85,
+   "from": "1.21.1 type nether: a roof over the world"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one flat): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

@@ -105,10 +105,24 @@ def fetch_client_side(slugs):
     return result
 
 
+def default_lists():
+    """(manifest, server mod list) for the platform's Minecraft version.
+
+    The modpack-builder image carries this script without minecraft_version.py
+    and always passes both paths, so the shared names are the fallback.
+    """
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    try:
+        import minecraft_version
+    except ImportError:
+        return (os.path.join(REPO, "modpack/adventure.mrpack.json"), os.path.join(REPO, "config/modrinth-mods.txt"))
+    return (minecraft_version.manifest(REPO), minecraft_version.mod_list(REPO))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--manifest", default=os.path.join(REPO, "modpack/adventure.mrpack.json"))
-    ap.add_argument("--server", default=os.path.join(REPO, "config/modrinth-mods.txt"))
+    ap.add_argument("--manifest", default=str(default_lists()[0]))
+    ap.add_argument("--server", default=str(default_lists()[1]))
     ap.add_argument("--extra", help="consumer overlay/mods-extra.txt")
     ap.add_argument("--remove", help="consumer overlay/mods-remove.txt")
     ap.add_argument("--offline", action="store_true", help="skip direction B")

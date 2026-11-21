@@ -1,0 +1,1945 @@
+[
+ {
+  "slug": "the_violet_spire",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_violet_spire-far.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_violet_spire-far.jpg",
+    "shows": "Stone leads the frame, with grass, amethyst and vines, in lavender fields and wisteria grove; open sky over a quarter of the view. Lavender fields is 8.4% of this world's surface, 3rd of its 6 surface biomes.",
+    "censusCaption": "sky 27.5%; void 17.2%; mid: stone 3.8%, grass_block 1.9%; far: stone 14.1%, grass_block 8.8%; biomes: adventure:lavender_fields 59.6%, adventure:wisteria_grove 40.3%",
+    "layer": "vista",
+    "place": "far: the border ring at bearing 243, facing the centre; 0.0% of rays could reach the border",
+    "camera": {
+     "x": -337.6,
+     "y": 288.6200000047684,
+     "z": -667.0,
+     "yaw": -26.799988,
+     "pitch": 25.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 11.0 < 30"
+     ],
+     "luma": 11.0,
+     "fogPercent": 58.1
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_violet_spire-far",
+    "voidFeature": true
+   },
+   {
+    "kind": "far-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_violet_spire-far-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_violet_spire-far-nv.jpg",
+    "shows": "Stone leads the frame, with grass, amethyst and vines, in lavender fields and wisteria grove; open sky over a quarter of the view. Lavender fields is 8.4% of this world's surface, 3rd of its 6 surface biomes.",
+    "censusCaption": "sky 27.5%; void 17.2%; mid: stone 3.8%, grass_block 1.9%; far: stone 14.1%, grass_block 8.8%; biomes: adventure:lavender_fields 59.6%, adventure:wisteria_grove 40.3%",
+    "layer": "vista",
+    "place": "far: the border ring at bearing 243, facing the centre; 0.0% of rays could reach the border",
+    "camera": {
+     "x": -337.6,
+     "y": 288.6200000047684,
+     "z": -667.0,
+     "yaw": -26.799988,
+     "pitch": 25.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 72.3,
+     "fogPercent": 0.0
+    },
+    "frame": "with night vision",
+    "pairOf": "the_violet_spire-far",
+    "voidFeature": true
+   },
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_violet_spire-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_violet_spire-surface-t1.jpg",
+    "shows": "Vines, grass and flowers fill most of the frame, with stone, in lavender fields and wisteria grove. Lavender fields is 8.4% of this world's surface, 3rd of its 6 surface biomes.",
+    "censusCaption": "sky 0.3%; near: vine 31.2%, grass_block 20.2%; mid: stone 10.4%; biomes: adventure:lavender_fields 60.4%, adventure:wisteria_grove 39.6%",
+    "layer": "surface",
+    "place": "surface type 1: 78.6% of cells; biome adventure:wisteria_grove; ground grass_block; top grass_block; height 153",
+    "camera": {
+     "x": -215.5,
+     "y": 141.62000000476837,
+     "z": -535.5,
+     "yaw": 135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 24.0 < 30"
+     ],
+     "luma": 24.0,
+     "fogPercent": 10.7
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_violet_spire-surface-t1"
+   },
+   {
+    "kind": "surface-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_violet_spire-surface-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_violet_spire-surface-t1-nv.jpg",
+    "shows": "Vines, grass and flowers fill most of the frame, with stone, in lavender fields and wisteria grove. Lavender fields is 8.4% of this world's surface, 3rd of its 6 surface biomes.",
+    "censusCaption": "sky 0.3%; near: vine 31.2%, grass_block 20.2%; mid: stone 10.4%; biomes: adventure:lavender_fields 60.4%, adventure:wisteria_grove 39.6%",
+    "layer": "surface",
+    "place": "surface type 1: 78.6% of cells; biome adventure:wisteria_grove; ground grass_block; top grass_block; height 153",
+    "camera": {
+     "x": -215.5,
+     "y": 141.62000000476837,
+     "z": -535.5,
+     "yaw": 135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 67.3,
+     "fogPercent": 0.6
+    },
+    "frame": "with night vision",
+    "pairOf": "the_violet_spire-surface-t1"
+   },
+   {
+    "kind": "underground-t3",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_violet_spire-underground-t3.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_violet_spire-underground-t3.jpg",
+    "shows": "Stone and amethyst fill most of the frame, in sky highlands. Sky highlands is 12.1% of this world's surface, 2nd of its 6 surface biomes.",
+    "censusCaption": "sky 0.3%; void 1.6%; near: stone 72.6%, amethyst_block 21.7%; mid: stone 1.8%; biomes: adventure:sky_highlands 100%",
+    "layer": "underground",
+    "place": "underground type 3: 20.0% of cells; notableId coal_ore; biome adventure:lavender_fields; height 185; neighbour step 3.1 (layer 0.8); relief over 16 blocks 95.5 (layer 25.6); notable-block density (log) 1.1 (layer 0.8)",
+    "camera": {
+     "x": 289.5,
+     "y": 89.50000000476837,
+     "z": -558.5,
+     "yaw": 0.0,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 6.9 < 30",
+      "fog wall: 98.9% of pixels within 24 of the fog colour"
+     ],
+     "luma": 6.9,
+     "fogPercent": 98.9
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_violet_spire-underground-t3"
+   },
+   {
+    "kind": "underground-t3-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_violet_spire-underground-t3-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_violet_spire-underground-t3-nv.jpg",
+    "shows": "Stone and amethyst fill most of the frame, in sky highlands. Sky highlands is 12.1% of this world's surface, 2nd of its 6 surface biomes.",
+    "censusCaption": "sky 0.3%; void 1.6%; near: stone 72.6%, amethyst_block 21.7%; mid: stone 1.8%; biomes: adventure:sky_highlands 100%",
+    "layer": "underground",
+    "place": "underground type 3: 20.0% of cells; notableId coal_ore; biome adventure:lavender_fields; height 185; neighbour step 3.1 (layer 0.8); relief over 16 blocks 95.5 (layer 25.6); notable-block density (log) 1.1 (layer 0.8)",
+    "camera": {
+     "x": 289.5,
+     "y": 89.50000000476837,
+     "z": -558.5,
+     "yaw": 0.0,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 59.3,
+     "fogPercent": 0.0
+    },
+    "frame": "with night vision",
+    "pairOf": "the_violet_spire-underground-t3"
+   },
+   {
+    "kind": "underground-lm1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_violet_spire-underground-lm1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_violet_spire-underground-lm1.jpg",
+    "shows": "Stone and grass fill most of the frame, with dirt, in umbrella jungle. Umbrella jungle is 4.4% of this world's surface, 5th of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: stone 45.8%, grass_block 39.7%; mid: stone 3%, grass_block 2%; biomes: adventure:umbrella_jungle 100%",
+    "layer": "underground",
+    "place": "underground landmark: biome adventure:umbrella_jungle (type none); cave pockets 95% (type 0%); cave air 14% (type 0%); notable-block density (log) 0.0 (type 0.9)",
+    "camera": {
+     "x": 366.5,
+     "y": 72.50000000476837,
+     "z": -34.5,
+     "yaw": -180.0,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 6.6 < 30",
+      "fog wall: 100.0% of pixels within 24 of the fog colour"
+     ],
+     "luma": 6.6,
+     "fogPercent": 100.0
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_violet_spire-underground-lm1"
+   },
+   {
+    "kind": "underground-lm1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_violet_spire-underground-lm1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_violet_spire-underground-lm1-nv.jpg",
+    "shows": "Stone and grass fill most of the frame, with dirt, in umbrella jungle. Umbrella jungle is 4.4% of this world's surface, 5th of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: stone 45.8%, grass_block 39.7%; mid: stone 3%, grass_block 2%; biomes: adventure:umbrella_jungle 100%",
+    "layer": "underground",
+    "place": "underground landmark: biome adventure:umbrella_jungle (type none); cave pockets 95% (type 0%); cave air 14% (type 0%); notable-block density (log) 0.0 (type 0.9)",
+    "camera": {
+     "x": 366.5,
+     "y": 72.50000000476837,
+     "z": -34.5,
+     "yaw": -180.0,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 57.0,
+     "fogPercent": 0.0
+    },
+    "frame": "with night vision",
+    "pairOf": "the_violet_spire-underground-lm1"
+   }
+  ]
+ },
+ {
+  "slug": "the_sunken_temple",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_sunken_temple-far.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_sunken_temple-far.jpg",
+    "shows": "Water and jungle trees fill most of the frame, with oak trees and vines, in jungle. Jungle is 23.3% of this world's surface, 1st of its 7 surface biomes.",
+    "censusCaption": "sky 11.3%; near: jungle_leaves 5.9%, vine 1%; mid: jungle_leaves 5.9%, oak_leaves 4.9%; far: water 47.3%, oak_leaves 5.1%; biomes: jungle 81.8%, warm_ocean 14.3%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": 864.5,
+     "y": 308.6200000047684,
+     "z": -3807.5,
+     "yaw": -21.8,
+     "pitch": 45.5
+    },
+    "lookingAt": [
+     928,
+     133,
+     -3648
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 119.3,
+     "fogPercent": 15.0
+    },
+    "voidFeature": true
+   },
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_sunken_temple-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_sunken_temple-surface-t1.jpg",
+    "shows": "Water fills most of the frame, with vines, oak trees and jungle trees, in warm ocean and jungle. The distance did not load, so the frame says nothing past it.",
+    "censusCaption": "sky 4.2%; unloaded 23.4%; near: water 51.6%; mid: water 3.9%, oak_leaves 1.8%; far: vine 2.5%, jungle_leaves 2.3%; biomes: warm_ocean 74.4%, jungle 20.3%, adventure:hanging_gardens 5.2%",
+    "layer": "surface",
+    "place": "surface type 1: 61.7% of cells; biome warm_ocean; ground sand; top water; height 140; ground plants 0% (layer 6%); liquid cover 96% (layer 60%)",
+    "camera": {
+     "x": 3352.5,
+     "y": 166.62000000476837,
+     "z": -375.5,
+     "yaw": 45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 132.5,
+     "fogPercent": 3.1
+    }
+   },
+   {
+    "kind": "sky-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_sunken_temple-sky-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_sunken_temple-sky-t1.jpg",
+    "shows": "Grass and quartz lead the frame, with grass tufts, in sky highlands. Sky highlands is 11.2% of this world's surface, 4th of its 7 surface biomes.",
+    "censusCaption": "sky 18.7%; unloaded 18.8%; near: grass_block 24.3%, quartz_block 22.3%; far: grass_block 1.2%; biomes: adventure:sky_highlands 98.4%",
+    "layer": "sky",
+    "place": "sky type 1: 53.0% of cells; biome adventure:sky_highlands; ground grass_block; height 198; trees per cell 0.2 (layer 5.3); notable-block density (log) 0.4 (layer 0.6)",
+    "camera": {
+     "x": 2840.5,
+     "y": 200.62000000476837,
+     "z": -951.5,
+     "yaw": -45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 161.8,
+     "fogPercent": 38.9
+    }
+   },
+   {
+    "kind": "underground-t4",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_sunken_temple-underground-t4.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_sunken_temple-underground-t4.jpg",
+    "shows": "Grass and stone fill most of the frame, with vines and moss, in hanging gardens. Hanging gardens is 10.5% of this world's surface, 5th of its 7 surface biomes.",
+    "censusCaption": "sky 0%; near: grass_block 57.9%, stone 18.6%; biomes: adventure:hanging_gardens 100%",
+    "layer": "underground",
+    "place": "underground type 4: 9.5% of cells; notableId cave_vines_plant; biome adventure:hanging_gardens; height 168; cave air 5% (layer 0%); cave pockets 31% (layer 5%)",
+    "camera": {
+     "x": -2977.5,
+     "y": 151.50000000476837,
+     "z": 2349.5,
+     "yaw": 0.0,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 75.0,
+     "fogPercent": 0.0
+    }
+   },
+   {
+    "kind": "structure-sinking_temple",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_sunken_temple-structure-sinking_temple.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_sunken_temple-structure-sinking_temple.jpg",
+    "shows": "Grass leads the frame, with grass tufts and water, in sky highlands. Sky highlands is 11.2% of this world's surface, 4th of its 7 surface biomes.",
+    "censusCaption": "sky 5.3%; void 38.9%; unloaded 1.6%; mid: grass_block 21.6%, short_grass 4.7%; far: cave_vines_plant 1.3%; biomes: adventure:sky_highlands 86.4%, adventure:hanging_gardens 12.2%",
+    "layer": "structure",
+    "place": "want start of ati_structures:sinking_temple",
+    "camera": {
+     "x": -228.5,
+     "y": 221.62000000476837,
+     "z": 43.5,
+     "yaw": -45.0,
+     "pitch": 67.9
+    },
+    "lookingAt": [
+     -200,
+     120,
+     72
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 164.7,
+     "fogPercent": 45.6
+    }
+   }
+  ]
+ },
+ {
+  "slug": "the_abyssal_shrine",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_abyssal_shrine-far.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_abyssal_shrine-far.jpg",
+    "shows": "Grass leads the frame, with grass tufts, water and stone, in sky highlands; open sky over a quarter of the view. Sky highlands is 21.1% of this world's surface, 1st of its 5 surface biomes.",
+    "censusCaption": "sky 48.5%; void 4.9%; far: grass_block 25.4%, short_grass 7.7%; biomes: adventure:sky_highlands 89.9%, deep_ocean 8.9%",
+    "layer": "vista",
+    "place": "far: the border ring at bearing 96, facing the centre; 0.0% of rays could reach the border",
+    "camera": {
+     "x": -51.3,
+     "y": 296.6200000047684,
+     "z": 496.0,
+     "yaw": -174.1,
+     "pitch": 25.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 62.4,
+     "fogPercent": 34.0
+    },
+    "voidFeature": true
+   },
+   {
+    "kind": "sky-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_abyssal_shrine-sky-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_abyssal_shrine-sky-t1.jpg",
+    "shows": "Water leads the frame, with grass, calcite and stone, in deep cold ocean and deep ocean; open sky over a quarter of the view. Deep cold ocean is 9.2% of this world's surface, 4th of its 5 surface biomes.",
+    "censusCaption": "sky 40.4%; near: grass_block 9.3%, calcite 3.9%; mid: water 13.4%; far: water 19.5%, grass_block 3.9%; biomes: deep_cold_ocean 37.9%, deep_ocean 22.8%, adventure:sky_highlands 21.4%",
+    "layer": "sky",
+    "place": "sky type 1: 100.0% of cells; biome adventure:sky_highlands; ground grass_block; height 180",
+    "camera": {
+     "x": 24.5,
+     "y": 194.62000000476837,
+     "z": 136.5,
+     "yaw": -180.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 64.5,
+     "fogPercent": 6.2
+    }
+   },
+   {
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_abyssal_shrine-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_abyssal_shrine-underground-t1.jpg",
+    "shows": "Stone fills most of the frame, in deep ocean. Deep ocean is 8.8% of this world's surface, 5th of its 5 surface biomes.",
+    "censusCaption": "sky 0%; near: stone 96.7%, coal_ore 3.1%; biomes: deep_ocean 95.4%",
+    "layer": "underground",
+    "place": "underground type 1: 76.6% of cells; notableId coal_ore; biome adventure:chalk_cliffs; height 142",
+    "camera": {
+     "x": 318.5,
+     "y": 138.50000000476837,
+     "z": 106.5,
+     "yaw": -112.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 64.8,
+     "fogPercent": 0.2
+    }
+   }
+  ]
+ },
+ {
+  "slug": "the_molten_flats",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_molten_flats-far.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_molten_flats-far.jpg",
+    "shows": "Blackstone and netherrack fill most of the frame, with lava and obsidian, in magma land. Magma land is 54.1% of this world's surface, 1st of its 5 surface biomes.",
+    "censusCaption": "sky 12.7%; near: blackstone 2.8%, lava 1.8%; mid: blackstone 27.6%, lava 7.6%; far: netherrack 27.5%, blackstone 8%; biomes: adventure:magma_land 96.4%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": 160.5,
+     "y": 57.62000000476837,
+     "z": -447.5,
+     "yaw": -90.0,
+     "pitch": 7.5
+    },
+    "lookingAt": [
+     320,
+     36,
+     -448
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "fog wall: 62.5% of pixels within 24 of the fog colour"
+     ],
+     "luma": 53.6,
+     "fogPercent": 62.5
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_molten_flats-far"
+   },
+   {
+    "kind": "far-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_molten_flats-far-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_molten_flats-far-nv.jpg",
+    "shows": "Blackstone and netherrack fill most of the frame, with lava and obsidian, in magma land. Magma land is 54.1% of this world's surface, 1st of its 5 surface biomes.",
+    "censusCaption": "sky 12.7%; near: blackstone 2.8%, lava 1.8%; mid: blackstone 27.6%, lava 7.6%; far: netherrack 27.5%, blackstone 8%; biomes: adventure:magma_land 96.4%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": 160.5,
+     "y": 57.62000000476837,
+     "z": -447.5,
+     "yaw": -90.0,
+     "pitch": 7.5
+    },
+    "lookingAt": [
+     320,
+     36,
+     -448
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 80.7,
+     "fogPercent": 6.2
+    },
+    "frame": "with night vision",
+    "pairOf": "the_molten_flats-far"
+   },
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_molten_flats-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_molten_flats-surface-t1.jpg",
+    "shows": "Blackstone and netherrack fill most of the frame, in magma land. Magma land is 54.1% of this world's surface, 1st of its 5 surface biomes.",
+    "censusCaption": "sky 8.9%; unloaded 5.1%; near: blackstone 52%; mid: blackstone 3.6%; far: netherrack 28.8%; biomes: adventure:magma_land 100%",
+    "layer": "surface",
+    "place": "surface type 1: 44.0% of cells; biome adventure:magma_land; ground blackstone; top blackstone; height 37; bare rock 87% (layer 66%)",
+    "camera": {
+     "x": -439.5,
+     "y": 37.62000000476837,
+     "z": -471.5,
+     "yaw": 0.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 33.4,
+     "fogPercent": 45.9
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_molten_flats-surface-t1"
+   },
+   {
+    "kind": "surface-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_molten_flats-surface-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_molten_flats-surface-t1-nv.jpg",
+    "shows": "Blackstone and netherrack fill most of the frame, in magma land. Magma land is 54.1% of this world's surface, 1st of its 5 surface biomes.",
+    "censusCaption": "sky 10.4%; unloaded 3.4%; near: blackstone 52%; mid: blackstone 3.6%; far: netherrack 29.1%; biomes: adventure:magma_land 100%",
+    "layer": "surface",
+    "place": "surface type 1: 44.0% of cells; biome adventure:magma_land; ground blackstone; top blackstone; height 37; bare rock 87% (layer 66%)",
+    "camera": {
+     "x": -439.5,
+     "y": 37.62000000476837,
+     "z": -471.5,
+     "yaw": 0.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 58.1,
+     "fogPercent": 0.6
+    },
+    "frame": "with night vision",
+    "pairOf": "the_molten_flats-surface-t1"
+   },
+   {
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_molten_flats-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_molten_flats-underground-t1.jpg",
+    "shows": "Blackstone and netherrack fill most of the frame, with bone, in magma land and gravel desert. Magma land is 54.1% of this world's surface, 1st of its 5 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 17.1%; near: blackstone 57.2%, bone_block 2.7%; mid: bone_block 2.4%, gravel 1.1%; far: netherrack 16.6%; biomes: adventure:magma_land 73.4%, adventure:gravel_desert 22.8%",
+    "layer": "underground",
+    "place": "underground type 1: 29.5% of cells; notableId blackstone; biome adventure:ash_barrens; height 35; relief over 16 blocks 83.4 (layer 56.0)",
+    "camera": {
+     "x": -561.5,
+     "y": 37.500000004768374,
+     "z": 433.5,
+     "yaw": 22.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 31.1,
+     "fogPercent": 37.0
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_molten_flats-underground-t1"
+   },
+   {
+    "kind": "underground-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_molten_flats-underground-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_molten_flats-underground-t1-nv.jpg",
+    "shows": "Blackstone and netherrack fill most of the frame, with bone, in magma land and gravel desert. Magma land is 54.1% of this world's surface, 1st of its 5 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 15.7%; near: blackstone 57.2%, bone_block 2.7%; mid: bone_block 2.4%, gravel 1.1%; far: netherrack 17.9%; biomes: adventure:magma_land 72.6%, adventure:gravel_desert 23.1%",
+    "layer": "underground",
+    "place": "underground type 1: 29.5% of cells; notableId blackstone; biome adventure:ash_barrens; height 35; relief over 16 blocks 83.4 (layer 56.0)",
+    "camera": {
+     "x": -561.5,
+     "y": 37.500000004768374,
+     "z": 433.5,
+     "yaw": 22.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 56.2,
+     "fogPercent": 0.1
+    },
+    "frame": "with night vision",
+    "pairOf": "the_molten_flats-underground-t1"
+   },
+   {
+    "kind": "roof-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_molten_flats-roof-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_molten_flats-roof-t1.jpg",
+    "shows": "Netherrack fills most of the frame, in magma land. Magma land is 54.1% of this world's surface, 1st of its 5 surface biomes.",
+    "censusCaption": "sky 5.3%; unloaded 2.3%; near: netherrack 81.2%; mid: netherrack 6.5%, glowstone 1%; far: netherrack 1.2%, glowstone 1%; biomes: adventure:magma_land 99.5%",
+    "layer": "roof",
+    "place": "roof type 1: 31.6% of cells; notableId nether_quartz_ore; height 113",
+    "camera": {
+     "x": -391.5,
+     "y": 109.50000000476837,
+     "z": 456.5,
+     "yaw": 0.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 24.1 < 30"
+     ],
+     "luma": 24.1,
+     "fogPercent": 16.0
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_molten_flats-roof-t1"
+   },
+   {
+    "kind": "roof-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_molten_flats-roof-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_molten_flats-roof-t1-nv.jpg",
+    "shows": "Netherrack fills most of the frame, in magma land. Magma land is 54.1% of this world's surface, 1st of its 5 surface biomes.",
+    "censusCaption": "sky 6.8%; unloaded 0.8%; near: netherrack 81.2%; mid: netherrack 6.5%, glowstone 1%; far: netherrack 1.2%, glowstone 1%; biomes: adventure:magma_land 99.5%",
+    "layer": "roof",
+    "place": "roof type 1: 31.6% of cells; notableId nether_quartz_ore; height 113",
+    "camera": {
+     "x": -391.5,
+     "y": 109.50000000476837,
+     "z": 456.5,
+     "yaw": 0.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 46.3,
+     "fogPercent": 1.5
+    },
+    "frame": "with night vision",
+    "pairOf": "the_molten_flats-roof-t1"
+   }
+  ]
+ },
+ {
+  "slug": "the_forged_depths",
+  "shots": [
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_forged_depths-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_forged_depths-surface-t1.jpg",
+    "shows": "Crimson fungus and netherrack fill most of the frame, in crimson pinewood. Crimson pinewood is 35.5% of this world's surface, 1st of its 6 surface biomes, flagged features name trees, none on 2.4 ha of land.",
+    "censusCaption": "sky 0%; near: crimson_roots 31.9%, crimson_nylium 30.6%; mid: netherrack 4.3%; far: netherrack 8.2%; biomes: adventure:crimson_pinewood 100%",
+    "layer": "surface",
+    "place": "surface type 1: 40.0% of cells; biome adventure:crimson_pinewood; ground crimson_nylium; top crimson_nylium; height 68; neighbour step 1.8 (layer 4.0); ground plants 17% (layer 9%); liquid cover 2% (layer 19%)",
+    "camera": {
+     "x": -392.5,
+     "y": 65.62000000476837,
+     "z": -583.5,
+     "yaw": 135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 24.0 < 30"
+     ],
+     "luma": 24.0,
+     "fogPercent": 18.9
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_forged_depths-surface-t1"
+   },
+   {
+    "kind": "surface-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_forged_depths-surface-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_forged_depths-surface-t1-nv.jpg",
+    "shows": "Crimson fungus and netherrack fill most of the frame, in crimson pinewood. Crimson pinewood is 35.5% of this world's surface, 1st of its 6 surface biomes, flagged features name trees, none on 2.4 ha of land.",
+    "censusCaption": "sky 0%; near: crimson_roots 31.9%, crimson_nylium 30.6%; mid: netherrack 4.3%; far: netherrack 8.2%; biomes: adventure:crimson_pinewood 100%",
+    "layer": "surface",
+    "place": "surface type 1: 40.0% of cells; biome adventure:crimson_pinewood; ground crimson_nylium; top crimson_nylium; height 68; neighbour step 1.8 (layer 4.0); ground plants 17% (layer 9%); liquid cover 2% (layer 19%)",
+    "camera": {
+     "x": -392.5,
+     "y": 65.62000000476837,
+     "z": -583.5,
+     "yaw": 135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 58.1,
+     "fogPercent": 26.8
+    },
+    "frame": "with night vision",
+    "pairOf": "the_forged_depths-surface-t1"
+   },
+   {
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_forged_depths-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_forged_depths-underground-t1.jpg",
+    "shows": "Netherrack and crimson fungus fill most of the frame, in crimson pinewood. Crimson pinewood is 35.5% of this world's surface, 1st of its 6 surface biomes, flagged features name trees, none on 2.4 ha of land.",
+    "censusCaption": "sky 0.4%; near: netherrack 54.4%, crimson_nylium 22.9%; mid: netherrack 8.2%, crimson_nylium 1.5%; far: netherrack 3%; biomes: adventure:crimson_pinewood 100%",
+    "layer": "underground",
+    "place": "underground type 1: 60.7% of cells; notableId magma_block; biome adventure:magma_land; height 67",
+    "camera": {
+     "x": -506.5,
+     "y": 72.50000000476837,
+     "z": 74.5,
+     "yaw": -157.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 20.1 < 30"
+     ],
+     "luma": 20.1,
+     "fogPercent": 11.1
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_forged_depths-underground-t1"
+   },
+   {
+    "kind": "underground-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_forged_depths-underground-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_forged_depths-underground-t1-nv.jpg",
+    "shows": "Netherrack and crimson fungus fill most of the frame, in crimson pinewood. Crimson pinewood is 35.5% of this world's surface, 1st of its 6 surface biomes, flagged features name trees, none on 2.4 ha of land.",
+    "censusCaption": "sky 0.4%; near: netherrack 54.4%, crimson_nylium 22.9%; mid: netherrack 8.2%, crimson_nylium 1.5%; far: netherrack 3%; biomes: adventure:crimson_pinewood 100%",
+    "layer": "underground",
+    "place": "underground type 1: 60.7% of cells; notableId magma_block; biome adventure:magma_land; height 67",
+    "camera": {
+     "x": -506.5,
+     "y": 72.50000000476837,
+     "z": 74.5,
+     "yaw": -157.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 58.1,
+     "fogPercent": 49.3
+    },
+    "frame": "with night vision",
+    "pairOf": "the_forged_depths-underground-t1"
+   },
+   {
+    "kind": "roof-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_forged_depths-roof-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_forged_depths-roof-t1.jpg",
+    "shows": "Netherrack fills most of the frame, with basalt, in nether wastes. Nether wastes is 2.9% of this world's surface, 6th of its 6 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 1.6%; near: netherrack 78.6%; mid: netherrack 11.5%, basalt 5.5%; biomes: nether_wastes 91.8%, basalt_deltas 8.2%",
+    "layer": "roof",
+    "place": "roof type 1: 38.1% of cells; notableId nether_quartz_ore; height 110",
+    "camera": {
+     "x": -263.5,
+     "y": 105.50000000476837,
+     "z": 424.5,
+     "yaw": 0.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 20.3 < 30"
+     ],
+     "luma": 20.3,
+     "fogPercent": 9.1
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_forged_depths-roof-t1"
+   },
+   {
+    "kind": "roof-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_forged_depths-roof-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_forged_depths-roof-t1-nv.jpg",
+    "shows": "Netherrack fills most of the frame, with basalt, in nether wastes. Nether wastes is 2.9% of this world's surface, 6th of its 6 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 1.6%; near: netherrack 78.6%; mid: netherrack 11.5%, basalt 5.5%; biomes: nether_wastes 91.7%, basalt_deltas 8.3%",
+    "layer": "roof",
+    "place": "roof type 1: 38.1% of cells; notableId nether_quartz_ore; height 110",
+    "camera": {
+     "x": -263.5,
+     "y": 105.50000000476837,
+     "z": 424.5,
+     "yaw": 0.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 55.4,
+     "fogPercent": 44.7
+    },
+    "frame": "with night vision",
+    "pairOf": "the_forged_depths-roof-t1"
+   }
+  ]
+ },
+ {
+  "slug": "the_wailing_narrows",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_wailing_narrows-far.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_wailing_narrows-far.jpg",
+    "shows": "Basalt fills most of the frame, in basalt deltas. Basalt deltas is 48.0% of this world's surface, 2nd of its 2 surface biomes.",
+    "censusCaption": "sky 0.1%; near: basalt 67.4%; mid: basalt 24.8%; far: basalt 4.2%; biomes: basalt_deltas 100%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": -458.5,
+     "y": 104.62000000476837,
+     "z": -466.5,
+     "yaw": -44.5,
+     "pitch": 26.9
+    },
+    "lookingAt": [
+     -523,
+     23,
+     -611
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 26.4 < 30"
+     ],
+     "luma": 26.4,
+     "fogPercent": 17.8
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_wailing_narrows-far"
+   },
+   {
+    "kind": "far-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_wailing_narrows-far-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_wailing_narrows-far-nv.jpg",
+    "shows": "Basalt fills most of the frame, in basalt deltas. Basalt deltas is 48.0% of this world's surface, 2nd of its 2 surface biomes.",
+    "censusCaption": "sky 0.1%; near: basalt 67.4%; mid: basalt 24.8%; far: basalt 4.2%; biomes: basalt_deltas 100%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": -458.5,
+     "y": 104.62000000476837,
+     "z": -466.5,
+     "yaw": -44.5,
+     "pitch": 26.9
+    },
+    "lookingAt": [
+     -523,
+     23,
+     -611
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 65.3,
+     "fogPercent": 23.5
+    },
+    "frame": "with night vision",
+    "pairOf": "the_wailing_narrows-far"
+   },
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_wailing_narrows-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_wailing_narrows-surface-t1.jpg",
+    "shows": "Soul sand fills most of the frame, with netherrack, in soul sand valley. Soul sand valley is 52.0% of this world's surface, 1st of its 2 surface biomes.",
+    "censusCaption": "sky 0%; near: soul_sand 42.7%, soul_soil 12.2%; mid: soul_sand 14.9%, soul_soil 8.6%; far: soul_soil 4.9%, soul_sand 4.9%; biomes: soul_sand_valley 100%",
+    "layer": "surface",
+    "place": "surface type 1: 52.9% of cells; biome soul_sand_valley; ground soul_sand; top soul_sand; height 44; bare rock 9% (layer 40%)",
+    "camera": {
+     "x": 328.5,
+     "y": 22.62000000476837,
+     "z": -551.5,
+     "yaw": 135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 17.4 < 30"
+     ],
+     "luma": 17.4,
+     "fogPercent": 0.0
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_wailing_narrows-surface-t1"
+   },
+   {
+    "kind": "surface-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_wailing_narrows-surface-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_wailing_narrows-surface-t1-nv.jpg",
+    "shows": "Soul sand fills most of the frame, with netherrack, in soul sand valley. Soul sand valley is 52.0% of this world's surface, 1st of its 2 surface biomes.",
+    "censusCaption": "sky 0%; near: soul_sand 42.7%, soul_soil 12.2%; mid: soul_sand 14.9%, soul_soil 8.6%; far: soul_soil 4.9%, soul_sand 4.9%; biomes: soul_sand_valley 100%",
+    "layer": "surface",
+    "place": "surface type 1: 52.9% of cells; biome soul_sand_valley; ground soul_sand; top soul_sand; height 44; bare rock 9% (layer 40%)",
+    "camera": {
+     "x": 328.5,
+     "y": 22.62000000476837,
+     "z": -551.5,
+     "yaw": 135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 69.1,
+     "fogPercent": 2.6
+    },
+    "frame": "with night vision",
+    "pairOf": "the_wailing_narrows-surface-t1"
+   },
+   {
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_wailing_narrows-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_wailing_narrows-underground-t1.jpg",
+    "shows": "Basalt fills most of the frame, with soul sand, gravel and blackstone, in basalt deltas and soul sand valley. Basalt deltas is 48.0% of this world's surface, 2nd of its 2 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 6.2%; near: basalt 51%, gravel 4.2%; mid: basalt 17.1%; far: soul_sand 7.5%, soul_soil 7.2%; biomes: basalt_deltas 81.8%, soul_sand_valley 18.1%",
+    "layer": "underground",
+    "place": "underground type 1: 49.6% of cells; notableId blackstone; biome soul_sand_valley; height 28; cave pockets 0% (layer 10%)",
+    "camera": {
+     "x": -266.5,
+     "y": 35.500000004768374,
+     "z": 238.5,
+     "yaw": -112.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 30.3,
+     "fogPercent": 32.6
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_wailing_narrows-underground-t1"
+   },
+   {
+    "kind": "underground-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_wailing_narrows-underground-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_wailing_narrows-underground-t1-nv.jpg",
+    "shows": "Basalt and soul sand fill most of the frame, with gravel and blackstone, in basalt deltas and soul sand valley. Basalt deltas is 48.0% of this world's surface, 2nd of its 2 surface biomes.",
+    "censusCaption": "sky 0%; unloaded 4.3%; near: basalt 51%, gravel 4.2%; mid: basalt 17.1%; far: soul_sand 8.4%, soul_soil 8.2%; biomes: basalt_deltas 80.3%, soul_sand_valley 19.7%",
+    "layer": "underground",
+    "place": "underground type 1: 49.6% of cells; notableId blackstone; biome soul_sand_valley; height 28; cave pockets 0% (layer 10%)",
+    "camera": {
+     "x": -266.5,
+     "y": 35.500000004768374,
+     "z": 238.5,
+     "yaw": -112.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 82.0,
+     "fogPercent": 15.5
+    },
+    "frame": "with night vision",
+    "pairOf": "the_wailing_narrows-underground-t1"
+   },
+   {
+    "kind": "roof-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_wailing_narrows-roof-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_wailing_narrows-roof-t1.jpg",
+    "shows": "Basalt fills most of the frame, in basalt deltas. Basalt deltas is 48.0% of this world's surface, 2nd of its 2 surface biomes.",
+    "censusCaption": "sky 2.7%; near: basalt 80.2%; mid: basalt 7.9%; far: basalt 5.7%, soul_sand 1.2%; biomes: basalt_deltas 97.6%",
+    "layer": "roof",
+    "place": "roof type 1: 41.8% of cells; notableId blackstone; height 108",
+    "camera": {
+     "x": -215.5,
+     "y": 104.50000000476837,
+     "z": -599.5,
+     "yaw": 0.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 24.9 < 30"
+     ],
+     "luma": 24.9,
+     "fogPercent": 20.2
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_wailing_narrows-roof-t1"
+   },
+   {
+    "kind": "roof-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_wailing_narrows-roof-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_wailing_narrows-roof-t1-nv.jpg",
+    "shows": "Basalt fills most of the frame, in basalt deltas. Basalt deltas is 48.0% of this world's surface, 2nd of its 2 surface biomes.",
+    "censusCaption": "sky 2.8%; near: basalt 80.2%; mid: basalt 7.9%; far: basalt 5.7%, soul_sand 1.2%; biomes: basalt_deltas 97.6%",
+    "layer": "roof",
+    "place": "roof type 1: 41.8% of cells; notableId blackstone; height 108",
+    "camera": {
+     "x": -215.5,
+     "y": 104.50000000476837,
+     "z": -599.5,
+     "yaw": 0.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 73.9,
+     "fogPercent": 16.0
+    },
+    "frame": "with night vision",
+    "pairOf": "the_wailing_narrows-roof-t1"
+   }
+  ]
+ },
+ {
+  "slug": "the_gilded_pit",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_gilded_pit-far.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_gilded_pit-far.jpg",
+    "shows": "Blackstone and netherrack fill most of the frame, with crimson fungus and glowstone, in blackstone basin and nether wastes. Blackstone basin is 41.0% of this world's surface, 2nd of its 6 surface biomes.",
+    "censusCaption": "sky 1.4%; near: netherrack 8.6%, glowstone 3.5%; mid: netherrack 19.5%, polished_blackstone_bricks 14.9%; far: blackstone 9%, netherrack 7.5%; biomes: adventure:blackstone_basin 45%, nether_wastes 39.8%, crimson_forest 15.2%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": -402.5,
+     "y": 101.62000000476837,
+     "z": 269.5,
+     "yaw": -90.0,
+     "pitch": 25.4
+    },
+    "lookingAt": [
+     -243,
+     25,
+     269
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 21.4 < 30",
+      "fog wall: 91.8% of pixels within 24 of the fog colour"
+     ],
+     "luma": 21.4,
+     "fogPercent": 91.8
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_gilded_pit-far"
+   },
+   {
+    "kind": "far-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_gilded_pit-far-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_gilded_pit-far-nv.jpg",
+    "shows": "Blackstone and netherrack fill most of the frame, with crimson fungus and glowstone, in blackstone basin and nether wastes. Blackstone basin is 41.0% of this world's surface, 2nd of its 6 surface biomes.",
+    "censusCaption": "sky 1.4%; near: netherrack 8.6%, glowstone 3.5%; mid: netherrack 19.5%, polished_blackstone_bricks 14.9%; far: blackstone 9%, netherrack 7.5%; biomes: adventure:blackstone_basin 45%, nether_wastes 39.8%, crimson_forest 15.2%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": -402.5,
+     "y": 101.62000000476837,
+     "z": 269.5,
+     "yaw": -90.0,
+     "pitch": 25.4
+    },
+    "lookingAt": [
+     -243,
+     25,
+     269
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 75.6,
+     "fogPercent": 0.1
+    },
+    "frame": "with night vision",
+    "pairOf": "the_gilded_pit-far"
+   },
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_gilded_pit-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_gilded_pit-surface-t1.jpg",
+    "shows": "Netherrack fills most of the frame, with blackstone, in nether wastes. Nether wastes is 44.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 3.7%; near: netherrack 40.5%; mid: netherrack 40.7%, lava 1.1%; far: netherrack 6.8%, blackstone 4.3%; biomes: nether_wastes 95.1%",
+    "layer": "surface",
+    "place": "surface type 1: 49.0% of cells; biome nether_wastes; ground netherrack; top netherrack; height 74",
+    "camera": {
+     "x": 600.5,
+     "y": 85.62000000476837,
+     "z": -167.5,
+     "yaw": 90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 17.0 < 30",
+      "fog wall: 86.7% of pixels within 24 of the fog colour"
+     ],
+     "luma": 17.0,
+     "fogPercent": 86.7
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_gilded_pit-surface-t1"
+   },
+   {
+    "kind": "surface-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_gilded_pit-surface-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_gilded_pit-surface-t1-nv.jpg",
+    "shows": "Netherrack fills most of the frame, with blackstone, in nether wastes. Nether wastes is 44.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 3.7%; near: netherrack 40.5%; mid: netherrack 40.7%, lava 1.1%; far: netherrack 6.8%, blackstone 4.3%; biomes: nether_wastes 95.1%",
+    "layer": "surface",
+    "place": "surface type 1: 49.0% of cells; biome nether_wastes; ground netherrack; top netherrack; height 74",
+    "camera": {
+     "x": 600.5,
+     "y": 85.62000000476837,
+     "z": -167.5,
+     "yaw": 90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 56.9,
+     "fogPercent": 12.7
+    },
+    "frame": "with night vision",
+    "pairOf": "the_gilded_pit-surface-t1"
+   },
+   {
+    "kind": "sky-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_gilded_pit-sky-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_gilded_pit-sky-t1.jpg",
+    "shows": "Blackstone and netherrack fill most of the frame, with crimson fungus and lava, in blackstone basin and crimson forest. Blackstone basin is 41.0% of this world's surface, 2nd of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: blackstone 5.2%; mid: blackstone 34.3%, lava 3.4%; far: netherrack 31.9%, blackstone 7.2%; biomes: adventure:blackstone_basin 51.9%, crimson_forest 46.3%",
+    "layer": "sky",
+    "place": "sky type 1: 100.0% of cells; biome adventure:blackstone_basin; ground blackstone; height 60",
+    "camera": {
+     "x": -7.5,
+     "y": 64.62000000476837,
+     "z": 343.5,
+     "yaw": 45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "fog wall: 86.3% of pixels within 24 of the fog colour"
+     ],
+     "luma": 37.2,
+     "fogPercent": 86.3
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_gilded_pit-sky-t1"
+   },
+   {
+    "kind": "sky-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_gilded_pit-sky-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_gilded_pit-sky-t1-nv.jpg",
+    "shows": "Blackstone and netherrack fill most of the frame, with crimson fungus and lava, in blackstone basin and crimson forest. Blackstone basin is 41.0% of this world's surface, 2nd of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: blackstone 5.2%; mid: blackstone 34.3%, lava 3.4%; far: netherrack 31.9%, blackstone 7.2%; biomes: adventure:blackstone_basin 51.9%, crimson_forest 46.3%",
+    "layer": "sky",
+    "place": "sky type 1: 100.0% of cells; biome adventure:blackstone_basin; ground blackstone; height 60",
+    "camera": {
+     "x": -7.5,
+     "y": 64.62000000476837,
+     "z": 343.5,
+     "yaw": 45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 189.6,
+     "fogPercent": 1.2
+    },
+    "frame": "with night vision",
+    "pairOf": "the_gilded_pit-sky-t1"
+   },
+   {
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_gilded_pit-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_gilded_pit-underground-t1.jpg",
+    "shows": "Netherrack fills most of the frame, with blackstone, in nether wastes. Nether wastes is 44.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 4.4%; near: netherrack 49.3%, nether_quartz_ore 2.9%; mid: netherrack 21%, nether_bricks 2.4%; far: netherrack 6.3%, blackstone 5%; biomes: nether_wastes 87.6%, adventure:blackstone_basin 12.4%",
+    "layer": "underground",
+    "place": "underground type 1: 56.0% of cells; notableId magma_block; biome nether_wastes; height 80; notable-block density (log) 1.7 (layer 1.1)",
+    "camera": {
+     "x": -469.5,
+     "y": 85.50000000476837,
+     "z": 149.5,
+     "yaw": -157.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 17.6 < 30",
+      "fog wall: 83.0% of pixels within 24 of the fog colour"
+     ],
+     "luma": 17.6,
+     "fogPercent": 83.0
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_gilded_pit-underground-t1"
+   },
+   {
+    "kind": "underground-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_gilded_pit-underground-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_gilded_pit-underground-t1-nv.jpg",
+    "shows": "Netherrack fills most of the frame, with blackstone, in nether wastes. Nether wastes is 44.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 4.4%; near: netherrack 49.3%, nether_quartz_ore 2.9%; mid: netherrack 21%, nether_bricks 2.4%; far: netherrack 6.3%, blackstone 5%; biomes: nether_wastes 87.6%, adventure:blackstone_basin 12.4%",
+    "layer": "underground",
+    "place": "underground type 1: 56.0% of cells; notableId magma_block; biome nether_wastes; height 80; notable-block density (log) 1.7 (layer 1.1)",
+    "camera": {
+     "x": -469.5,
+     "y": 85.50000000476837,
+     "z": 149.5,
+     "yaw": -157.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 57.2,
+     "fogPercent": 18.9
+    },
+    "frame": "with night vision",
+    "pairOf": "the_gilded_pit-underground-t1"
+   },
+   {
+    "kind": "roof-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_gilded_pit-roof-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_gilded_pit-roof-t1.jpg",
+    "shows": "Netherrack fills most of the frame, in nether wastes. Nether wastes is 44.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 2.1%; near: netherrack 83%; mid: netherrack 5.5%, glowstone 1.8%; far: netherrack 2.6%, nether_wart_block 1.2%; biomes: nether_wastes 96.9%",
+    "layer": "roof",
+    "place": "roof type 1: 39.9% of cells; notableId nether_quartz_ore; height 107",
+    "camera": {
+     "x": -487.5,
+     "y": 104.50000000476837,
+     "z": 168.5,
+     "yaw": 0.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 16.9 < 30",
+      "fog wall: 75.2% of pixels within 24 of the fog colour"
+     ],
+     "luma": 16.9,
+     "fogPercent": 75.2
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_gilded_pit-roof-t1"
+   },
+   {
+    "kind": "roof-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_gilded_pit-roof-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_gilded_pit-roof-t1-nv.jpg",
+    "shows": "Netherrack fills most of the frame, in nether wastes. Nether wastes is 44.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 2.1%; near: netherrack 83%; mid: netherrack 5.5%, glowstone 1.8%; far: netherrack 2.6%, nether_wart_block 1.2%; biomes: nether_wastes 96.9%",
+    "layer": "roof",
+    "place": "roof type 1: 39.9% of cells; notableId nether_quartz_ore; height 107",
+    "camera": {
+     "x": -487.5,
+     "y": 104.50000000476837,
+     "z": 168.5,
+     "yaw": 0.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 45.4,
+     "fogPercent": 27.8
+    },
+    "frame": "with night vision",
+    "pairOf": "the_gilded_pit-roof-t1"
+   },
+   {
+    "kind": "landing",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_gilded_pit-landing.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_gilded_pit-landing.jpg",
+    "shows": "Netherrack and blackstone fill most of the frame, in nether wastes and blackstone basin. Nether wastes is 44.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 4.1%; near: netherrack 48.2%; mid: netherrack 16.1%, blackstone 7.7%; far: blackstone 19.3%; biomes: nether_wastes 70.2%, adventure:blackstone_basin 29.8%",
+    "layer": "surface",
+    "place": "the arrival: spawn on the ledge, looking over the pit",
+    "camera": {
+     "x": 0.5,
+     "y": 88.62000000476837,
+     "z": -499.5,
+     "yaw": 0.0,
+     "pitch": 9.1
+    },
+    "lookingAt": [
+     0,
+     40,
+     -200
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 17.1 < 30",
+      "fog wall: 77.9% of pixels within 24 of the fog colour"
+     ],
+     "luma": 17.1,
+     "fogPercent": 77.9
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_gilded_pit-landing"
+   },
+   {
+    "kind": "landing-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_gilded_pit-landing-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_gilded_pit-landing-nv.jpg",
+    "shows": "Netherrack and blackstone fill most of the frame, in nether wastes and blackstone basin. Nether wastes is 44.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 4.1%; near: netherrack 48.2%; mid: netherrack 16.1%, blackstone 7.7%; far: blackstone 19.3%; biomes: nether_wastes 70.2%, adventure:blackstone_basin 29.8%",
+    "layer": "surface",
+    "place": "the arrival: spawn on the ledge, looking over the pit",
+    "camera": {
+     "x": 0.5,
+     "y": 88.62000000476837,
+     "z": -499.5,
+     "yaw": 0.0,
+     "pitch": 9.1
+    },
+    "lookingAt": [
+     0,
+     40,
+     -200
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 56.3,
+     "fogPercent": 21.5
+    },
+    "frame": "with night vision",
+    "pairOf": "the_gilded_pit-landing"
+   }
+  ]
+ },
+ {
+  "slug": "the_bloodroot_wastes",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_bloodroot_wastes-far.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_bloodroot_wastes-far.jpg",
+    "shows": "Crimson fungus, netherrack and warped fungus fill most of the frame, in nether jungle. Nether jungle is 22.2% of this world's surface, 2nd of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: weeping_vines_plant 39.9%, netherrack 24%; biomes: adventure:nether_jungle 100%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": 616.5,
+     "y": 109.62000000476837,
+     "z": -775.5,
+     "yaw": 38.4,
+     "pitch": 29.2
+    },
+    "lookingAt": [
+     616,
+     20,
+     -936
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 29.9 < 30"
+     ],
+     "luma": 29.9,
+     "fogPercent": 14.0
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_bloodroot_wastes-far"
+   },
+   {
+    "kind": "far-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_bloodroot_wastes-far-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_bloodroot_wastes-far-nv.jpg",
+    "shows": "Crimson fungus, netherrack and warped fungus fill most of the frame, in nether jungle. Nether jungle is 22.2% of this world's surface, 2nd of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: weeping_vines_plant 39.9%, netherrack 24%; biomes: adventure:nether_jungle 100%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": 616.5,
+     "y": 109.62000000476837,
+     "z": -775.5,
+     "yaw": 38.4,
+     "pitch": 29.2
+    },
+    "lookingAt": [
+     616,
+     20,
+     -936
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 55.5,
+     "fogPercent": 19.9
+    },
+    "frame": "with night vision",
+    "pairOf": "the_bloodroot_wastes-far"
+   },
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_bloodroot_wastes-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_bloodroot_wastes-surface-t1.jpg",
+    "shows": "Crimson fungus fill most of the frame, in crimson forest. Crimson forest is 57.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: nether_wart_block 45.5%, crimson_roots 23.6%; mid: netherrack 1.4%; biomes: crimson_forest 100%",
+    "layer": "surface",
+    "place": "surface type 1: 43.2% of cells; biome crimson_forest; ground crimson_nylium; top nether_wart_block; height 78; trees per cell 4.0 (layer 2.1); ground plants 14% (layer 8%); liquid cover 2% (layer 16%); bare rock 15% (layer 32%); cave pockets 62% (layer 43%)",
+    "camera": {
+     "x": 217.5,
+     "y": 78.62000000476837,
+     "z": -377.5,
+     "yaw": -45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 21.6 < 30"
+     ],
+     "luma": 21.6,
+     "fogPercent": 12.5
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_bloodroot_wastes-surface-t1"
+   },
+   {
+    "kind": "surface-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_bloodroot_wastes-surface-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_bloodroot_wastes-surface-t1-nv.jpg",
+    "shows": "Crimson fungus fill most of the frame, in crimson forest. Crimson forest is 57.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: nether_wart_block 45.5%, crimson_roots 23.6%; mid: netherrack 1.4%; biomes: crimson_forest 100%",
+    "layer": "surface",
+    "place": "surface type 1: 43.2% of cells; biome crimson_forest; ground crimson_nylium; top nether_wart_block; height 78; trees per cell 4.0 (layer 2.1); ground plants 14% (layer 8%); liquid cover 2% (layer 16%); bare rock 15% (layer 32%); cave pockets 62% (layer 43%)",
+    "camera": {
+     "x": 217.5,
+     "y": 78.62000000476837,
+     "z": -377.5,
+     "yaw": -45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 30.9,
+     "fogPercent": 18.2
+    },
+    "frame": "with night vision",
+    "pairOf": "the_bloodroot_wastes-surface-t1"
+   },
+   {
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_bloodroot_wastes-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_bloodroot_wastes-underground-t1.jpg",
+    "shows": "Crimson fungus and netherrack fill most of the frame, with lava, in crimson forest. Crimson forest is 57.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: nether_wart_block 52.1%, netherrack 5.4%; mid: netherrack 10.3%, nether_wart_block 6.3%; biomes: crimson_forest 100%",
+    "layer": "underground",
+    "place": "underground type 1: 62.1% of cells; notableId magma_block; biome crimson_forest; height 80",
+    "camera": {
+     "x": 236.5,
+     "y": 83.50000000476837,
+     "z": -362.5,
+     "yaw": 67.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 20.6 < 30"
+     ],
+     "luma": 20.6,
+     "fogPercent": 6.1
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_bloodroot_wastes-underground-t1"
+   },
+   {
+    "kind": "underground-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_bloodroot_wastes-underground-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_bloodroot_wastes-underground-t1-nv.jpg",
+    "shows": "Crimson fungus and netherrack fill most of the frame, with lava, in crimson forest. Crimson forest is 57.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: nether_wart_block 52.1%, netherrack 5.4%; mid: netherrack 10.3%, nether_wart_block 6.3%; biomes: crimson_forest 100%",
+    "layer": "underground",
+    "place": "underground type 1: 62.1% of cells; notableId magma_block; biome crimson_forest; height 80",
+    "camera": {
+     "x": 236.5,
+     "y": 83.50000000476837,
+     "z": -362.5,
+     "yaw": 67.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 36.8,
+     "fogPercent": 20.8
+    },
+    "frame": "with night vision",
+    "pairOf": "the_bloodroot_wastes-underground-t1"
+   },
+   {
+    "kind": "roof-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_bloodroot_wastes-roof-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_bloodroot_wastes-roof-t1.jpg",
+    "shows": "Crimson fungus and netherrack fill most of the frame, in nether jungle. Nether jungle is 22.2% of this world's surface, 2nd of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: weeping_vines_plant 61.6%, netherrack 34.5%; biomes: adventure:nether_jungle 100%",
+    "layer": "roof",
+    "place": "roof type 1: 32.6% of cells; notableId weeping_vines_plant; height 107; relief over 16 blocks 18.4 (layer 34.1)",
+    "camera": {
+     "x": -647.5,
+     "y": 106.50000000476837,
+     "z": -951.5,
+     "yaw": 0.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 17.3 < 30"
+     ],
+     "luma": 17.3,
+     "fogPercent": 2.7
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_bloodroot_wastes-roof-t1"
+   },
+   {
+    "kind": "roof-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_bloodroot_wastes-roof-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_bloodroot_wastes-roof-t1-nv.jpg",
+    "shows": "Crimson fungus and netherrack fill most of the frame, in nether jungle. Nether jungle is 22.2% of this world's surface, 2nd of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: weeping_vines_plant 61.6%, netherrack 34.5%; biomes: adventure:nether_jungle 100%",
+    "layer": "roof",
+    "place": "roof type 1: 32.6% of cells; notableId weeping_vines_plant; height 107; relief over 16 blocks 18.4 (layer 34.1)",
+    "camera": {
+     "x": -647.5,
+     "y": 106.50000000476837,
+     "z": -951.5,
+     "yaw": 0.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 42.0,
+     "fogPercent": 47.2
+    },
+    "frame": "with night vision",
+    "pairOf": "the_bloodroot_wastes-roof-t1"
+   }
+  ]
+ },
+ {
+  "slug": "the_end",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_end-far.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_end-far.jpg",
+    "shows": "End stone leads the frame, with chorus, in end midlands and end highlands. End midlands is 18.9% of this world's surface, 2nd of its 4 surface biomes.",
+    "censusCaption": "sky 20.8%; void 40.7%; mid: end_stone 13.9%; far: end_stone 20.5%, chorus_plant 2.7%; biomes: end_midlands 37.2%, end_highlands 26%, small_end_islands 20.6%",
+    "layer": "vista",
+    "place": "far: the border ring at bearing 288, facing the centre; 0.0% of rays could reach the border",
+    "camera": {
+     "x": 1348.8,
+     "y": 109.62000000476837,
+     "z": -4080.0,
+     "yaw": 18.3,
+     "pitch": 25.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 33.0,
+     "fogPercent": 68.6
+    },
+    "voidFeature": true
+   },
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_end-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_end-surface-t1.jpg",
+    "shows": "End stone fills most of the frame, with chorus, in end midlands; open sky over a quarter of the view. End midlands is 18.9% of this world's surface, 2nd of its 4 surface biomes.",
+    "censusCaption": "sky 30.2%; unloaded 0.2%; near: end_stone 59.9%, chorus_plant 1.1%; mid: chorus_plant 5.3%, chorus_flower 1.2%; biomes: end_midlands 88%, end_highlands 11.6%",
+    "layer": "surface",
+    "place": "surface type 1: 62.1% of cells; biome end_midlands; ground end_stone; top end_stone; height 55; notable-block density (log) 0.0 (layer 0.1); bare rock 100% (layer 97%)",
+    "camera": {
+     "x": -2023.5,
+     "y": 58.62000000476837,
+     "z": 1480.5,
+     "yaw": -180.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 61.7,
+     "fogPercent": 40.6
+    }
+   },
+   {
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_end-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_end-underground-t1.jpg",
+    "shows": "End stone fills most of the frame, with chorus, in end highlands and end midlands; open sky over a quarter of the view. End highlands is 27.1% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 26.5%; unloaded 2.5%; near: end_stone 50.2%, chorus_plant 6.6%; mid: end_stone 10.3%; far: end_stone 1%, chorus_plant 1%; biomes: end_highlands 80.7%, end_midlands 16.1%",
+    "layer": "underground",
+    "place": "underground type 1: 33.6% of cells; biome end_midlands; notableId chorus_flower; height 59",
+    "camera": {
+     "x": 2862.5,
+     "y": 62.500000004768374,
+     "z": -2494.5,
+     "yaw": 45.0,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 106.3,
+     "fogPercent": 32.7
+    }
+   },
+   {
+    "kind": "surface-lm1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_end-surface-lm1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_end-surface-lm1.jpg",
+    "shows": "End stone leads the frame, in end midlands and end barrens; open sky over a quarter of the view. End midlands is 18.9% of this world's surface, 2nd of its 4 surface biomes.",
+    "censusCaption": "sky 36.3%; void 11.8%; unloaded 3.2%; near: end_stone 35.6%, chorus_plant 1.5%; mid: end_stone 9.7%; biomes: end_midlands 43.3%, end_barrens 41.2%, small_end_islands 11.3%",
+    "layer": "surface",
+    "place": "surface landmark: biome end_barrens (type end_midlands); cave pockets 14% (type 0%); layer present in 25% (type 100%); neighbour step 1.5 (type 0.3)",
+    "camera": {
+     "x": -2231.5,
+     "y": 58.62000000476837,
+     "z": 3075.5,
+     "yaw": 90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 44.7,
+     "fogPercent": 55.1
+    }
+   },
+   {
+    "kind": "structure-phantom_citadel",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_end-structure-phantom_citadel.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_end-structure-phantom_citadel.jpg",
+    "shows": "End stone fills most of the frame, with purpur, in end midlands; open sky over a quarter of the view. End midlands is 18.9% of this world's surface, 2nd of its 4 surface biomes.",
+    "censusCaption": "sky 37.1%; unloaded 2%; near: end_stone 40.9%; mid: end_stone 15.4%; far: purpur_block 2%, purpur_stairs 1.4%; biomes: end_midlands 76.6%, end_barrens 13.2%",
+    "layer": "structure",
+    "place": "want start of mes:phantom_citadel",
+    "camera": {
+     "x": -1412.5,
+     "y": 31.62000000476837,
+     "z": 123.5,
+     "yaw": -45.0,
+     "pitch": -43.5
+    },
+    "lookingAt": [
+     -1384,
+     70,
+     152
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 41.0,
+     "fogPercent": 41.9
+    }
+   }
+  ]
+ },
+ {
+  "slug": "the_nether",
+  "shots": [
+   {
+    "kind": "surface-t2",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_nether-surface-t2.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_nether-surface-t2.jpg",
+    "shows": "Lava and netherrack fill most of the frame, in nether wastes. Nether wastes is 29.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: lava 51.6%; mid: netherrack 37.9%, lava 3.8%; far: netherrack 4.3%; biomes: nether_wastes 100%",
+    "layer": "surface",
+    "place": "surface type 2: 23.5% of cells; biome nether_wastes; ground netherrack; top lava; height 32; trees per cell 0.1 (layer 1.3); canopy 2% (layer 13%); ground plants 1% (layer 6%); liquid cover 81% (layer 27%); bare rock 9% (layer 34%); overhangs 20% (layer 40%); cave pockets 5% (layer 34%)",
+    "camera": {
+     "x": 520.5,
+     "y": 33.62000000476837,
+     "z": -343.5,
+     "yaw": 0.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 64.9,
+     "fogPercent": 45.4
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_nether-surface-t2"
+   },
+   {
+    "kind": "surface-t2-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_nether-surface-t2-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_nether-surface-t2-nv.jpg",
+    "shows": "Lava and netherrack fill most of the frame, in nether wastes. Nether wastes is 29.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: lava 51.6%; mid: netherrack 37.9%, lava 3.9%; far: netherrack 4.1%; biomes: nether_wastes 100%",
+    "layer": "surface",
+    "place": "surface type 2: 23.5% of cells; biome nether_wastes; ground netherrack; top lava; height 32; trees per cell 0.1 (layer 1.3); canopy 2% (layer 13%); ground plants 1% (layer 6%); liquid cover 81% (layer 27%); bare rock 9% (layer 34%); overhangs 20% (layer 40%); cave pockets 5% (layer 34%)",
+    "camera": {
+     "x": 520.5,
+     "y": 33.62000000476837,
+     "z": -343.5,
+     "yaw": 0.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 87.7,
+     "fogPercent": 0.0
+    },
+    "frame": "with night vision",
+    "pairOf": "the_nether-surface-t2"
+   },
+   {
+    "kind": "roof-t1",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_nether-roof-t1.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_nether-roof-t1.jpg",
+    "shows": "Netherrack fills most of the frame, in nether wastes. Nether wastes is 29.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: netherrack 90.5%; mid: netherrack 9%; biomes: nether_wastes 100%",
+    "layer": "roof",
+    "place": "roof type 1: 62.4% of cells; notableId nether_quartz_ore; height 106; neighbour step 0.8 (layer 1.6); relief over 16 blocks 18.0 (layer 32.6)",
+    "camera": {
+     "x": 296.5,
+     "y": 101.50000000476837,
+     "z": -951.5,
+     "yaw": 0.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 13.6 < 30"
+     ],
+     "luma": 13.6,
+     "fogPercent": 59.3
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_nether-roof-t1"
+   },
+   {
+    "kind": "roof-t1-nv",
+    "file": "/tmp/claude-0/w10r/runs/rig-w1/screenshots/the_nether-roof-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10r/shots/the_nether-roof-t1-nv.jpg",
+    "shows": "Netherrack fills most of the frame, in nether wastes. Nether wastes is 29.6% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: netherrack 90.5%; mid: netherrack 9%; biomes: nether_wastes 100%",
+    "layer": "roof",
+    "place": "roof type 1: 62.4% of cells; notableId nether_quartz_ore; height 106; neighbour step 0.8 (layer 1.6); relief over 16 blocks 18.0 (layer 32.6)",
+    "camera": {
+     "x": 296.5,
+     "y": 101.50000000476837,
+     "z": -951.5,
+     "yaw": 0.0,
+     "pitch": -30.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 35.1,
+     "fogPercent": 39.9
+    },
+    "frame": "with night vision",
+    "pairOf": "the_nether-roof-t1"
+   }
+  ]
+ }
+]

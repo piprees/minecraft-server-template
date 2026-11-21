@@ -1,0 +1,12 @@
+Exception in thread "main" java.lang.IllegalArgumentException: the_sunken_temple: biomeLayout.places: no automatic arrangement keeps highlands (50.0%) round its site in biomeLayout.places.at with 205 blocks to spare while every place holds its share; give it a bigger share, or move its site away from the border and the other sites; a place at the centre can be the heart of a core
+	at com.customdimensions.compiler.datapack.PlaceLayout.error(PlaceLayout.java:442)
+	at com.customdimensions.compiler.datapack.PlaceLayout.build(PlaceLayout.java:206)
+	at com.customdimensions.compiler.datapack.RegionLayout.places(RegionLayout.java:511)
+	at com.customdimensions.compiler.datapack.RegionLayout.plan(RegionLayout.java:342)
+	at com.customdimensions.compiler.datapack.DatapackCompiler.generator(DatapackCompiler.java:629)
+	at com.customdimensions.compiler.datapack.DatapackCompiler.compile(DatapackCompiler.java:273)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at com.customdimensions.compiler.datapack.DatapackCompiler.compileAll(DatapackCompiler.java:171)
+	at com.customdimensions.compiler.datapack.DatapackCompiler.compile(DatapackCompiler.java:134)
+	at com.customdimensions.compiler.datapack.DatapackCompiler.compile(DatapackCompiler.java:121)
+	at com.customdimensions.compiler.datapack.K8Land.main(K8Land.java:26)

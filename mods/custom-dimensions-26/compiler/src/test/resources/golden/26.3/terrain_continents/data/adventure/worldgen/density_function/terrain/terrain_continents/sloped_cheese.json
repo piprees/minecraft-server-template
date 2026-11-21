@@ -1,0 +1,35 @@
+{
+  "input": {
+    "left": {
+      "left": {
+        "input": {
+          "left": {
+            "left": "adventure:terrain/terrain_continents/depth",
+            "right": {
+              "left": "adventure:terrain/terrain_continents/jaggedness",
+              "right": {
+                "input": {
+                  "noise": "minecraft:jagged",
+                  "type": "minecraft:noise",
+                  "xz_scale": 1500.0,
+                  "y_scale": 0.0
+                },
+                "type": "minecraft:half_negative"
+              },
+              "type": "minecraft:mul"
+            },
+            "type": "minecraft:add"
+          },
+          "right": "adventure:terrain/terrain_continents/factor",
+          "type": "minecraft:mul"
+        },
+        "type": "minecraft:quarter_negative"
+      },
+      "right": 4.0,
+      "type": "minecraft:mul"
+    },
+    "right": "minecraft:overworld/base_3d_noise",
+    "type": "minecraft:add"
+  },
+  "type": "minecraft:cache"
+}

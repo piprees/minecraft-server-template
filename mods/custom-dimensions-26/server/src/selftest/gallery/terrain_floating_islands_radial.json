@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: floating islands gathered into one mass round the centre, open sky past 500 blocks.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "coverage": 0.5,
+      "size": 2
+    },
+    "layout": {
+      "type": "radial",
+      "radius": 200,
+      "falloff": 300,
+      "strength": 1
+    }
+  },
+  "borders": {
+    "player": 2048
+  }
+}

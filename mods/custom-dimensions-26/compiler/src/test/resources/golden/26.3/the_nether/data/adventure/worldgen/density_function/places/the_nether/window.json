@@ -1,0 +1,27 @@
+{
+  "input": {
+    "input": {
+      "left": {
+        "left": {
+          "left": {
+            "input": "adventure:places/the_nether/x",
+            "type": "minecraft:abs"
+          },
+          "right": {
+            "input": "adventure:places/the_nether/z",
+            "type": "minecraft:abs"
+          },
+          "type": "minecraft:max"
+        },
+        "right": -1.0,
+        "type": "minecraft:add"
+      },
+      "right": -2.50980392,
+      "type": "minecraft:mul"
+    },
+    "max": 1.0,
+    "min": 0.0,
+    "type": "minecraft:clamp"
+  },
+  "type": "minecraft:cache"
+}

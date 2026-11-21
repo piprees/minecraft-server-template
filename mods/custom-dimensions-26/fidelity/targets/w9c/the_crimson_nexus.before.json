@@ -1,0 +1,79 @@
+{
+ "slug": "the_crimson_nexus",
+ "pass": 1,
+ "fail": 7,
+ "results": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:netherrack + surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:crimson_nylium + surface.groundBlocksPercent.minecraft:warped_nylium + surface.groundBlocksPercent.minecraft:mud + surface.groundBlocksPercent.minecraft:packed_mud + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:smooth_basalt + surface.groundBlocksPercent.minecraft:magma_block + surface.groundBlocksPercent.minecraft:red_sand + surface.groundBlocksPercent.minecraft:red_sandstone + surface.groundBlocksPercent.minecraft:soul_soil + surface.groundBlocksPercent.minecraft:soul_sand + surface.groundBlocksPercent.minecraft:nether_wart_block + surface.groundBlocksPercent.minecraft:cinnabar + surface.groundBlocksPercent.minecraft:quartz_block + surface.groundBlocksPercent.minecraft:terracotta + surface.groundBlocksPercent.minecraft:white_terracotta + surface.groundBlocksPercent.minecraft:orange_terracotta + surface.groundBlocksPercent.minecraft:yellow_terracotta + surface.groundBlocksPercent.minecraft:brown_terracotta + surface.groundBlocksPercent.minecraft:red_terracotta + surface.groundBlocksPercent.minecraft:light_gray_terracotta + surface.groundBlocksPercent.minecraft:black_terracotta + surface.groundBlocksPercent.minecraft:gray_terracotta + surface.groundBlocksPercent.minecraft:pink_terracotta + surface.groundBlocksPercent.minecraft:purple_terracotta",
+   "op": ">=",
+   "value": 70,
+   "measured": 38.5,
+   "pass": false,
+   "note": "minecraft:netherrack not listed; minecraft:crimson_nylium not listed; minecraft:warped_nylium not listed; minecraft:mud not listed; minecraft:packed_mud not listed; minecraft:smooth_basalt not listed; minecraft:red_sand not listed; minecraft:soul_sand not listed; minecraft:nether_wart_block not listed; minecraft:white_terracotta not listed; minecraft:yellow_terracotta not listed; minecraft:brown_terracotta not listed; minecraft:red_terracotta not listed; minecraft:light_gray_terracotta not listed; minecraft:black_terracotta not listed; minecraft:gray_terracotta not listed; minecraft:pink_terracotta not listed; minecraft:purple_terracotta not listed",
+   "from": "owner: \"badlands but made from nether blocks and red / dark blocks like mud\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 5,
+   "measured": 32.4,
+   "pass": false,
+   "note": "",
+   "from": "owner: \"badlands, birch ... don't make sense\""
+  },
+  {
+   "key": "vegetation.species.minecraft:birch_log.perHectare + vegetation.species.minecraft:oak_log.perHectare",
+   "op": "<=",
+   "value": 0.5,
+   "measured": 11.5,
+   "pass": false,
+   "note": "",
+   "from": "owner: \"birch ... don't make sense\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 3,
+   "measured": 30.4,
+   "pass": false,
+   "note": "",
+   "from": "owner: \"lava don't make sense\", chasms \"not filled with lava\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 2,
+   "measured": 0.2,
+   "pass": true,
+   "note": "",
+   "from": "\"the nether brought to the overworld\""
+  },
+  {
+   "key": "terrain.belowZeroPercent",
+   "op": ">=",
+   "value": 2,
+   "measured": 0.2,
+   "pass": false,
+   "note": "",
+   "from": "\"deep seams that go down very far ... down to deepslate\""
+  },
+  {
+   "key": "terrain.surfaceHeight.p5",
+   "op": "<=",
+   "value": 10,
+   "measured": 35.0,
+   "pass": false,
+   "note": "",
+   "from": "\"chasms ... cracks in the world\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:badlands + surface.biomesPercent.minecraft:eroded_badlands + surface.biomesPercent.minecraft:wooded_badlands",
+   "op": ">=",
+   "value": 20,
+   "measured": 10.7,
+   "pass": false,
+   "note": "minecraft:wooded_badlands not listed",
+   "from": "\"it should be badlands\"; 1.21.1: \"scarred badlands\""
+  }
+ ]
+}

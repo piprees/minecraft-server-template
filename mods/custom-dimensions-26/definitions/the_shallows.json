@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 2,
+  "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water — ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris.",
+  "seed": -8451995168785269352,
+  "spawn": [64, 63, -256],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "islands",
+    "setting": "gentle",
+    "params": {
+      "seaFloor": 60,
+      "trench": 0,
+      "islandHeight": 4,
+      "coverage": 0.25,
+      "relief": 0,
+      "roughness": 0,
+      "crust": 16
+    }
+  },
+  "biomes": [
+    "minecraft:warm_ocean",
+    "minecraft:beach",
+    "adventure:tropical_shores",
+    "minecraft:lukewarm_ocean",
+    "adventure:desert_oasis",
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.0099],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "weirdness": [-0.0099, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:warm_ocean": 40.6,
+      "minecraft:beach": 24.3,
+      "adventure:tropical_shores": 17.3,
+      "minecraft:lukewarm_ocean": 11.2,
+      "adventure:desert_oasis": 5.3
+    }
+  },
+  "liquids": {
+    "seaLevel": 61,
+    "aquifers": "off"
+  },
+  "carvers": {
+    "canyon": false,
+    "cave": false,
+    "cave_extra_underground": false
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 0.7,
+    "playerLuck": 1.8
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:prismarine",
+      "igniterItem": "minecraft:nautilus_shell",
+      "color": "3BAFAF",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "anchor": {
+        "pos": [327, 64, -189],
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "orientation": "horizontal"
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "minecraft:beach",
+      "adventure:tropical_shores"
+    ],
+    "water": "sea",
+    "wants": {
+      "shipwreck": "near_spawn",
+      "buried_treasure": "near_spawn",
+      "minecraft:ocean_ruin_warm": "spread",
+      "ati_structures:lighthouse": "spread",
+      "mvs:ocean_tower": "spread",
+      "mtr:ocean_temple": "near_border"
+    },
+    "shuns": [
+      "village",
+      "mansion",
+      "mss:arena",
+      "ancient_city",
+      "trial_chambers"
+    ]
+  }
+}

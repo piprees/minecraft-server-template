@@ -121,6 +121,9 @@ write_dim endexit '{"borders": {"player": 1024},
 write_dim anchored '{"borders": {"player": 256},
  "portal": {"frameBlock": "minecraft:tuff", "igniterItem": "minecraft:amethyst_shard",
             "scale": 16.0, "anchor": [10, 70, 10]}}'
+write_dim bedanchor '{"borders": {"player": 256},
+ "portal": {"frameBlock": "minecraft:cherry_planks", "igniterItem": "minecraft:cherry_sapling",
+            "scale": 2.0, "anchor": {"pos": "spawn", "exit": "bed"}}}'
 write_dim wideaura '{"borders": {"player": 4096},
  "portal": {"frameBlock": "minecraft:basalt", "igniterItem": "minecraft:blaze_rod",
             "scale": 2.0, "aura": {"subsume": "everything", "radius": 32}}}'
@@ -362,17 +365,37 @@ bays = {b["id"]: b for b in p["bays"]}
 skipped = {s["slug"]: s["reason"] for s in p["skipped"]}
 
 check("every fixture dimension is either a bay or a skip with a reason",
-      len(set(b["slug"] for b in p["bays"]) | set(skipped)) == 14,
+      len(set(b["slug"] for b in p["bays"]) | set(skipped)) == 15,
       sorted(set(b["slug"] for b in p["bays"]) | set(skipped)))
 # A sidecar counted as a dimension would double the denominator and add a
 # "no portal block" skip for a file that was never a dimension.
 check("a _thumb.json sidecar is not read as a dimension",
-      p["source"]["dimensionsRead"] == 14 and p["source"]["sidecarsIgnored"] == 1,
+      p["source"]["dimensionsRead"] == 15 and p["source"]["sidecarsIgnored"] == 1,
       (p["source"]["dimensionsRead"], p["source"]["sidecarsIgnored"]))
 check("and it produces no bay and no skip record of its own",
       "standard_thumb" not in skipped
       and all(b["slug"] != "standard_thumb" for b in p["bays"]),
       sorted(skipped))
+# Schema v2 (26.x) lists portals; the matrix builds the one vanilla does not own.
+V2 = {"schemaVersion": 2, "portals": [
+    {"vanillaManaged": True, "frameBlock": "minecraft:obsidian"},
+    {"frameBlock": "minecraft:calcite", "igniterItem": "minecraft:diamond", "scale": 2.0}]}
+check("a v2 definition's portal is its first that vanilla does not own",
+      (plan.portal_of(V2) or {}).get("frameBlock") == "minecraft:calcite", plan.portal_of(V2))
+check("an all-vanilla v2 definition answers its vanilla portal, so the skip says vanillaManaged",
+      plan.portal_of({"portals": [{"vanillaManaged": True}]}) == {"vanillaManaged": True},
+      plan.portal_of({"portals": [{"vanillaManaged": True}]}))
+check("a v1 config's portal block reads as it always did",
+      plan.portal_of({"portal": {"frameBlock": "minecraft:stone"}}) == {"frameBlock": "minecraft:stone"},
+      plan.portal_of({"portal": {"frameBlock": "minecraft:stone"}}))
+import tempfile
+with tempfile.TemporaryDirectory() as v2dir:
+    for name, body in (("settings.json", {"namespace": "adventure"}), ("one.json", V2)):
+        with open(os.path.join(v2dir, name), "w") as handle:
+            json.dump(body, handle)
+    read, ignored = plan.load_dimensions(v2dir)
+check("a v2 directory's settings.json is not read as a dimension",
+      sorted(read) == ["one"] and ignored == 1, (sorted(read), ignored))
 check("a consumesIgniter dimension asserts the item is gone",
       bays["greedy_x"]["igniterExpectation"] == "consumed"
       and bays["greedy_x"]["igniterVerdict"] == "absent"
@@ -437,6 +460,11 @@ check("--horizontal none skips the Y-only dimensions WITH a reason",
       [s for s in p_none["skipped"] if s["slug"] == "flatonly"])
 
 # --- expectations derived from the mod's own code -------------------------
+check("a bay without an anchor exit returns to its source frame",
+      bays["anchored_x"]["returnTo"] == "source" and bays["standard_x"]["returnTo"] == "source",
+      (bays["anchored_x"]["returnTo"], bays["standard_x"]["returnTo"]))
+check("an anchor whose exit is bed returns to the respawn point",
+      bays["bedanchor_x"]["returnTo"] == "respawn", bays["bedanchor_x"]["returnTo"])
 check("an anchor dimension does not break symmetrically",
       bays["anchored_x"]["breaksSymmetrically"] is False
       and bays["anchored_x"]["relightExpectation"] == "linked-to-old",
@@ -571,7 +599,13 @@ cat > "$FXS" <<'JSON'
    "axis": "X", "resident": true, "frameStands": true,
    "interior": [[57, 74, 74], [58, 74, 74]]},
   {"kind": "arrival", "world": "minecraft:overworld", "targetWorld": "adventure:the_crucible",
-   "axis": "X", "resident": true, "frameStands": true, "interior": [[300, 70, 300]]}]}
+   "axis": "X", "resident": true, "frameStands": true, "interior": [[300, 70, 300]]},
+  {"kind": "arrival", "world": "adventure:the_abyssal_shrine", "targetWorld": "minecraft:overworld",
+   "axis": "Y", "resident": true, "frameStands": true,
+   "interior": [[-425, 90, -375], [-424, 90, -375], [-425, 90, -374], [-424, 90, -374]]},
+  {"kind": "arrival", "world": "adventure:the_greywoods", "targetWorld": "minecraft:overworld",
+   "axis": "Z", "resident": true, "frameStands": true,
+   "interior": [[-40, 64, -12], [-40, 65, -12], [-40, 64, -11], [-40, 65, -11]]}]}
 JSON
 # shellcheck disable=SC2034  # read by lib.sh's state helpers
 STATE_FILE="$FXS"
@@ -591,6 +625,74 @@ expect "keyed on the world it STANDS in, the crucible holds exactly one arrival"
 expect "a source zone's own cell is not an arrival" fail "0" \
   assert_json "the source cell" "$FXS" \
   "[$(arrival_zone_select adventure:the_crucible 228 130 297)] | length" 1
+
+say "A flat arrival is landed on, one cell above its plane"
+expect_rc "a landing one above a flat opening finds it" 0 \
+  test "$(state_read "[$(arrival_landed_select adventure:the_abyssal_shrine -425 91 -375)] | length")" = "1"
+expect_rc "the plane cell itself finds it too" 0 \
+  test "$(state_read "[$(arrival_landed_select adventure:the_abyssal_shrine -425 90 -375)] | length")" = "1"
+expect_rc "one above an UPRIGHT opening's top is not that opening" 0 \
+  test "$(state_read "[$(arrival_landed_select adventure:the_greywoods -40 66 -12)] | length")" = "0"
+expect_rc "an upright opening's lowest cell finds it" 0 \
+  test "$(state_read "[$(arrival_landed_select adventure:the_crucible 57 74 74)] | length")" = "1"
+
+say "Block centres for tp — \$x.5 is the wrong block below zero"
+expect_rc "-425 centres at -424.5" 0 test "$(block_centre -425)" = "-424.5"
+expect_rc "57 centres at 57.5" 0 test "$(block_centre 57)" = "57.5"
+expect_rc "0 centres at 0.5" 0 test "$(block_centre 0)" = "0.5"
+expect_rc "a sentence is refused" 2 block_centre "No entity was found"
+
+say "The way out of an arrival and back in"
+expect_rc "flat: out onto the frame ring, in at the plane's corner" 0 \
+  test "$(arrival_way_out adventure:the_abyssal_shrine -425 91 -375)" = "-425.5 91 -374.5 -424.5 90 -374.5"
+expect_rc "upright X: out to the egress cell on the low z side" 0 \
+  test "$(arrival_way_out adventure:the_crucible 57 74 74)" = "57.5 74 73.5 57.5 74 74.5"
+expect_rc "upright Z: out to the egress cell on the low x side" 0 \
+  test "$(arrival_way_out adventure:the_greywoods -40 64 -12)" = "-40.5 64 -11.5 -39.5 64 -11.5"
+expect_rc "no arrival at the landing prints nothing" 0 \
+  test -z "$(arrival_way_out adventure:the_crucible 0 0 0)"
+
+say "The game mode is put back as /gamemode names it"
+expect_rc "0 is survival" 0 test "$(game_mode_name 0)" = "survival"
+expect_rc "1 is creative" 0 test "$(game_mode_name 1)" = "creative"
+expect_rc "an unreadable reply restores nothing" 1 game_mode_name ""
+
+say "Keeping one run alive — rules, scores, deaths, resume"
+expect_rc "a gamerule reply's value is its last word" 0 \
+  test "$(rule_value 'Gamerule random_tick_speed is currently set to: 3')" = "3"
+expect_rc "a boolean rule reads true" 0 \
+  test "$(rule_value 'Gamerule immediate_respawn is currently set to: true')" = "true"
+expect_rc "an error reply reads empty, so nothing is put back" 0 \
+  test -z "$(rule_value 'Incorrect argument for command')"
+expect_rc "a score reads its number" 0 test "$(score_value 'selftest has 2 [e2e_deaths]')" = "2"
+expect_rc "no score set reads 0" 0 \
+  test "$(score_value "Can't get value of e2e_deaths for selftest; none is set")" = "0"
+DLOG="$RUN_DIR/death.log"
+printf '%s\n' '[02:19:20] [Server thread/INFO]: System chat: selftest joined the game' \
+  '[02:19:26] [Server thread/INFO]: System chat: selftest was blown up by Ghast' \
+  '[02:19:30] [Server thread/INFO]: System chat: selftest left the game' > "$DLOG"
+expect_rc "the death message is found, joins and leaves are not" 0 \
+  test "$(death_cause "$DLOG" selftest)" = "selftest was blown up by Ghast"
+expect_rc "a log with no death gives nothing" 0 test -z "$(death_cause "$RUN_DIR/nothing.log" selftest)"
+RPLAN="$RUN_DIR/resume-plan.json"
+printf '%s' '{"bays":[{"id":"the_a_x","dimension":"adventure:the_a"},{"id":"the_b_x","dimension":"adventure:the_b"},{"id":"the_c_x","dimension":"adventure:the_c"},{"id":"the_c_y","dimension":"adventure:the_c"},{"id":"the_d_x","dimension":"adventure:the_d"}]}' > "$RPLAN"
+RSUM="$RUN_DIR/resume-summary.tsv"
+printf 'bay\tdimension\taxis\tignite\ttravel\treturn\tbreak\trelight\tproximity\trender\tpass\tfail\tvalid\n' > "$RSUM"
+{
+  printf 'the_a_x\tadventure:the_a\tX\tok\tok\tok\tok\tok\tok\tskip\t21\t0\tyes\n'
+  printf 'the_b_x\tadventure:the_b\tX\tok\tok\tfail\tok\tok\tok\tskip\t13\t6\tinvalid: selftest drowned\n'
+  printf 'the_c_x\tadventure:the_c\tX\tok\tok\tok\tok\tok\tok\tskip\t20\t1\tyes\n'
+} >> "$RSUM"
+expect_rc "resume runs the invalid bay, the unrun bays, and a dimension with one bay left" 0 \
+  test "$(resume_slugs "$RPLAN" "$RSUM")" = "the_b,the_c,the_d"
+OSUM="$RUN_DIR/resume-old.tsv"
+printf 'bay\tdimension\taxis\tignite\ttravel\treturn\tbreak\trelight\tproximity\trender\tpass\tfail\n' > "$OSUM"
+{
+  printf 'the_a_x\tadventure:the_a\tX\tok\tok\tok\tok\tok\tok\tskip\t21\t0\n'
+  printf 'the_b_x\tadventure:the_b\tX\tok\tok\tok\tok\tok\tok\tskip\t20\t1\n'
+} >> "$OSUM"
+expect_rc "a summary without the valid column counts only a row that failed nothing" 0 \
+  test "$(resume_slugs "$RPLAN" "$OSUM")" = "the_b,the_c,the_d"
 
 say "An unloaded destination is not an unlink"
 expect_rc "a loaded world reads 1" 0 test "$(world_loaded adventure:the_crucible)" = "1"

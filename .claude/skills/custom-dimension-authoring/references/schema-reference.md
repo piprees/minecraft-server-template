@@ -121,7 +121,15 @@ Observed shipped patterns: peaceful `mobMultiplier: 0.0` + `hostileSpawning: fal
 - `spacing` — map of structure **set** id → `{"spacing": N, "separation": M}`. This one IS read by the mod at runtime (new chunks only) — actually rescales placement, not just scoring.
 - `mode` + `list` — `"allow"`/`"reject"`/`"none"` filter on organic structure sets. Runtime.
 - `force` — exact placements: `{"structure": "<full id>", "x": N, "z": N}` (structure ids here, not short names, not set ids). Runtime.
-- `clearSpawnRadius` — overrides the mood-derived default (see `references/scoring-internals.md`) for how close a structure is allowed to spawn before it penalises the roll.
+- `clearSpawnRadius` — blocks around spawn where the hostile groups (`dungeons`, `endgame`) may not place. A real placement exclusion: `NoiseFieldIndex` never produces a candidate inside the disc. Generation-affecting; 0 or absent means no disc.
+- `noise` — per-group noise profile: `"sparse"` for every group, or `{"dungeons": "sparse", …}` per group. Profiles: `sparse`, `normal`, `dense`, `none` (suppresses the group). Groups not named keep the world type's default.
+- `radial` — per-group radial curve: `{"settlements": [1.5, 1.2, …]}`, exactly 10 points from spawn to border, each 0.0–3.0; anything else warns and falls back to the type's curve.
+- `rarity` — per-structure-SET rarity override, e.g. `{"minecraft:trial_chambers": "common"}`. Changes the set's share of its group and can move it between groups; the endgame group needs rare or rarer.
+- `exclude` — structure SET ids removed from the noise pool entirely.
+- `include` — structure SET ids forced into the noise pool, bypassing the biome filter.
+- `terrainAdaptation` — per-dimension Beardifier override: full STRUCTURE id or noise group name → `none` \| `beard_thin` \| `beard_box` \| `bury` \| `encapsulate`.
+
+Group names, rarity tiers and how the pool is weighed: [`docs/mod-internals/worldgen-structures.md`](../../../../docs/mod-internals/worldgen-structures.md).
 
 ## `portal` object
 

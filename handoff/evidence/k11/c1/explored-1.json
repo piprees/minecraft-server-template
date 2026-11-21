@@ -1,0 +1,34 @@
+{
+  "dimension": "the_aviary",
+  "updatedAt": 1794639107,
+  "path": "explored",
+  "rule": "finished saved chunks inside the border, read without loading them; each pixel the mean of its 4 x 4 columns from above, in the generated terrain's palette and relief; transparent where no chunk is saved",
+  "regions": 4,
+  "regionsRead": 4,
+  "chunksRead": 196,
+  "chunksKept": 0,
+  "chunksUnreadable": 0,
+  "chunksUnfinished": 0,
+  "readMillis": 77,
+  "columnsPerSecond": 651636,
+  "tiles": 7,
+  "bytes": 4304,
+  "index": {
+    "0": [
+      "0/0"
+    ],
+    "1": [
+      "0/0",
+      "1/0"
+    ],
+    "2": [
+      "1/1",
+      "2/1"
+    ],
+    "3": [
+      "3/3",
+      "4/3"
+    ]
+  },
+  "millis": 209
+}

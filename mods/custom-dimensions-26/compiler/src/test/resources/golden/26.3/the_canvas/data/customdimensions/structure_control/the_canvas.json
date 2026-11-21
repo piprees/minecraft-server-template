@@ -1,0 +1,35 @@
+{
+  "level": "adventure:the_canvas",
+  "density": "none",
+  "noise": false,
+  "suppressedReason": "density none",
+  "radiusChunks": 256,
+  "spawnChunk": [0, 0],
+  "groups": {},
+  "mode": "none",
+  "list": [],
+  "exclude": [],
+  "include": [],
+  "rarity": {},
+  "spacing": {},
+  "force": [
+    {
+      "structure": "mss:small_oak_house",
+      "x": 1200,
+      "z": -880,
+      "radius": 0,
+      "exclusive": true
+    },
+    {
+      "structure": "minecraft:ancient_city",
+      "x": 1200,
+      "z": -880,
+      "radius": 0,
+      "exclusive": true
+    }
+  ],
+  "wants": [],
+  "shuns": [],
+  "replace": {},
+  "terrainAdaptation": {}
+}

@@ -1,0 +1,109 @@
+{
+ "slug": "the_greenreach",
+ "pass": 2,
+ "fail": 9,
+ "results": [
+  {
+   "key": "surface.topBlocksPercent.minecraft:grass_block + surface.topBlocksPercent.minecraft:short_grass + surface.topBlocksPercent.minecraft:tall_grass + surface.topBlocksPercent.minecraft:short_dry_grass + surface.topBlocksPercent.minecraft:tall_dry_grass + surface.topBlocksPercent.minecraft:wheat + surface.topBlocksPercent.minecraft:hay_block + surface.topBlocksPercent.minecraft:farmland + surface.topBlocksPercent.minecraft:sunflower",
+   "op": ">=",
+   "value": 70,
+   "measured": 71.5,
+   "pass": true,
+   "note": "minecraft:wheat not listed; minecraft:farmland not listed; minecraft:sunflower not listed",
+   "from": "\"rolling hills of long grass\", \"smooth rolling green and gold\""
+  },
+  {
+   "key": "vegetation.treesPerHectare",
+   "op": "<=",
+   "value": 2,
+   "measured": 9.7,
+   "pass": false,
+   "note": "",
+   "from": "\"barely any trees\""
+  },
+  {
+   "key": "surface.canopyPercent",
+   "op": "<=",
+   "value": 3,
+   "measured": 3.7,
+   "pass": false,
+   "note": "",
+   "from": "\"not ... woods\""
+  },
+  {
+   "key": "terrain.reliefMedian",
+   "op": "between",
+   "value": [
+    6,
+    25
+   ],
+   "measured": 15.0,
+   "pass": true,
+   "note": "",
+   "from": "\"rolling hills\""
+  },
+  {
+   "key": "terrain.slopes.over45Percent",
+   "op": "<=",
+   "value": 5,
+   "measured": 8.1,
+   "pass": false,
+   "note": "",
+   "from": "\"edge to horizon should be smooth rolling\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 8,
+   "measured": 17.6,
+   "pass": false,
+   "note": "",
+   "from": "\"an infinite grassy world\""
+  },
+  {
+   "key": "surface.biomesPercent.adventure:pumpkin_fields",
+   "op": "<=",
+   "value": 5,
+   "measured": 48.5,
+   "pass": false,
+   "note": "",
+   "from": "\"not pumpkins\""
+  },
+  {
+   "key": "surface.biomesPercent.adventure:barley_fields",
+   "op": ">=",
+   "value": 10,
+   "measured": 0.9,
+   "pass": false,
+   "note": "",
+   "from": "\"it should have wheat and barley\""
+  },
+  {
+   "key": "surface.topBlocksPercent.minecraft:wheat",
+   "op": ">=",
+   "value": 1,
+   "measured": 0.0,
+   "pass": false,
+   "note": "minecraft:wheat not listed",
+   "from": "\"wheat and barley\" (ripe wheat stands on the surface)"
+  },
+  {
+   "key": "surface.groundPlantsPercent.grass",
+   "op": ">=",
+   "value": 30,
+   "measured": 17.2,
+   "pass": false,
+   "note": "",
+   "from": "\"long grass\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:sunflower_plains + surface.biomesPercent.adventure:prairie",
+   "op": ">=",
+   "value": 15,
+   "measured": 7.0,
+   "pass": false,
+   "note": "",
+   "from": "1.21.1: \"rolling prairie and sunflowers\""
+  }
+ ]
+}

@@ -1,0 +1,77 @@
+{
+ "slug": "the_frozen_hearth",
+ "targets": [
+  {
+   "key": "placeness.landformRegions.largestPercent",
+   "op": ">=",
+   "value": 39.8,
+   "from": "meeting: \"a warm hearth in one frozen world\" (measured 44.3)"
+  },
+  {
+   "key": "placeness.biomeRegions.largestPercent",
+   "op": ">=",
+   "value": 10.5,
+   "from": "meeting: \"a warm hearth in one frozen world\" (measured 11.7)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:dying_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:frozen_peaks",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:frozen_river",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:grove",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:ice_spikes",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:jagged_peaks",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:snowy_beach",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:snowy_plains",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:snowy_slopes",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:snowy_taiga",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  }
+ ]
+}

@@ -1,0 +1,388 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "overworld",
+  "inspiredBy": "Regions Unexplored's chalk cliffs: white sea cliffs where high downland meets the coast.",
+  "differs": "Vanilla stony shores are low and grey; here the ground under a short pale turf is white calcite seamed with diorite, so every cut and steep face shows white, with calcite boulders, wind-bent oaks, gravel coves and sea pickles in bright shallows.",
+  "climate": {
+    "temperature": [
+      -0.15,
+      0.2
+    ],
+    "humidity": [
+      -0.35,
+      0.1
+    ],
+    "continentalness": [
+      -0.19,
+      0.03
+    ],
+    "erosion": [
+      -1.0,
+      -0.2225
+    ],
+    "depth": [
+      -2.0,
+      0.2
+    ]
+  },
+  "palette": {
+    "top": "minecraft:grass_block",
+    "filler": "minecraft:calcite",
+    "cliffs": "minecraft:calcite",
+    "beaches": "minecraft:gravel"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.overworld.stony_peaks"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "ambient": [
+              {
+                "type": "minecraft:bat",
+                "count": 8,
+                "weight": 10
+              }
+            ],
+            "creature": [
+              {
+                "type": "minecraft:sheep",
+                "count": 4,
+                "weight": 12
+              },
+              {
+                "type": "minecraft:chicken",
+                "count": 4,
+                "weight": 10
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:spider",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:zombie",
+                "count": 4,
+                "weight": 90
+              },
+              {
+                "type": "minecraft:zombie_villager",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:zombie_horse",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:skeleton",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:creeper",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:slime",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 1
+                },
+                "weight": 10
+              },
+              {
+                "type": "minecraft:witch",
+                "count": 1,
+                "weight": 5
+              }
+            ],
+            "underground_water_creature": [
+              {
+                "type": "minecraft:glow_squid",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 4
+                },
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/fog_color": "#dfe9f2",
+      "minecraft:visual/sky_color": "#9cc4f0",
+      "minecraft:visual/water_fog_color": "#1f6f99"
+    },
+    "carvers": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ],
+    "downfall": 0.5,
+    "effects": {
+      "grass_color": "#9cbf86",
+      "foliage_color": "#7fa565",
+      "water_color": "#3fb0e0"
+    },
+    "features": [
+      [],
+      [
+        "minecraft:lake_lava_underground",
+        "minecraft:lake_lava_surface"
+      ],
+      [
+        "minecraft:amethyst_geode"
+      ],
+      [
+        "minecraft:monster_room",
+        "minecraft:monster_room_deep"
+      ],
+      [],
+      [],
+      [
+        "minecraft:ore_dirt",
+        "minecraft:ore_gravel",
+        "minecraft:ore_granite_upper",
+        "minecraft:ore_granite_lower",
+        "minecraft:ore_diorite_upper",
+        "minecraft:ore_diorite_lower",
+        "minecraft:ore_andesite_upper",
+        "minecraft:ore_andesite_lower",
+        "minecraft:ore_tuff",
+        "minecraft:ore_coal_upper",
+        "minecraft:ore_coal_lower",
+        "minecraft:ore_iron_upper",
+        "minecraft:ore_iron_middle",
+        "minecraft:ore_iron_small",
+        "minecraft:ore_gold",
+        "minecraft:ore_gold_lower",
+        "minecraft:ore_redstone",
+        "minecraft:ore_redstone_lower",
+        "minecraft:ore_diamond",
+        "minecraft:ore_diamond_medium",
+        "minecraft:ore_diamond_large",
+        "minecraft:ore_diamond_buried",
+        "minecraft:ore_lapis",
+        "minecraft:ore_lapis_buried",
+        "minecraft:ore_copper",
+        "minecraft:underwater_magma",
+        "minecraft:disk_sand",
+        "minecraft:disk_clay",
+        "minecraft:disk_gravel",
+        "~diorite_seams"
+      ],
+      [],
+      [
+        "minecraft:spring_water",
+        "minecraft:spring_lava"
+      ],
+      [
+        "minecraft:glow_lichen",
+        "~bent_oak",
+        "~calcite_boulders",
+        "~sea_pickles",
+        "minecraft:patch_grass_plain",
+        "minecraft:flower_default"
+      ],
+      [
+        "minecraft:freeze_top_layer"
+      ]
+    ],
+    "has_precipitation": true,
+    "temperature": 0.6
+  },
+  "features": {
+    "diorite_seams": {
+      "feature": {
+        "type": "minecraft:ore",
+        "discard_chance_on_air_exposure": 0.0,
+        "size": 24,
+        "targets": [
+          {
+            "state": "minecraft:diorite",
+            "target": {
+              "predicate_type": "minecraft:block_match",
+              "block": "minecraft:calcite"
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 24
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "min_inclusive": {
+              "absolute": 50
+            },
+            "max_inclusive": {
+              "absolute": 200
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "calcite_boulders": {
+      "feature": {
+        "type": "minecraft:block_blob",
+        "can_place_on": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:grass_block",
+            "minecraft:dirt",
+            "minecraft:gravel",
+            "minecraft:calcite",
+            "minecraft:stone"
+          ]
+        },
+        "state": "minecraft:calcite"
+      },
+      "placement": [
+        {
+          "type": "minecraft:rarity_filter",
+          "chance": 2
+        },
+        {
+          "type": "minecraft:count",
+          "count": 1
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "bent_oak": {
+      "feature": {
+        "type": "minecraft:tree",
+        "below_trunk_provider": "minecraft:soil_beneath_tree",
+        "decorators": [],
+        "foliage_placer": {
+          "type": "minecraft:blob_foliage_placer",
+          "height": 2,
+          "offset": 0,
+          "radius": 2
+        },
+        "foliage_provider": {
+          "id": "minecraft:oak_leaves",
+          "properties": {
+            "distance": "7",
+            "persistent": "false",
+            "waterlogged": "false"
+          }
+        },
+        "ignore_vines": true,
+        "minimum_size": {
+          "type": "minecraft:two_layers_feature_size"
+        },
+        "trunk_placer": {
+          "type": "minecraft:bending_trunk_placer",
+          "base_height": 2,
+          "bend_length": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 3,
+            "min_inclusive": 2
+          },
+          "height_rand_a": 1,
+          "height_rand_b": 0,
+          "min_height_for_leaves": 2
+        },
+        "trunk_provider": {
+          "id": "minecraft:oak_log",
+          "properties": {
+            "axis": "y"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:rarity_filter",
+          "chance": 3
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:would_survive",
+            "state": "minecraft:oak_sapling"
+          }
+        }
+      ]
+    },
+    "sea_pickles": {
+      "feature": "minecraft:sea_pickle",
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 6
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_blocks",
+            "blocks": "minecraft:water"
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    }
+  }
+}

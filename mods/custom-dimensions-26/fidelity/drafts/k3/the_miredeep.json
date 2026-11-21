@@ -1,0 +1,6 @@
+{
+  "reason": "G8: landShare 0.85 holds a mire whose wet is its wetland biomes, not deep sea (ocean 25.0%, beach 11.5%) for any seed.",
+  "terrain": {
+    "landShare": 0.85
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: the biome library's ashen woodland and crystal hollows beside plains in 16-block cells, with every diamond ore removed and nether gold added, which change plains only.",
+  "seed": 35,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "checkerboard",
+    "cellScale": 0
+  },
+  "biomes": ["adventure:ashen_woodland", "adventure:crystal_hollows", "minecraft:plains"],
+  "ores": {
+    "add": [
+      {"id": "gilded", "block": "minecraft:nether_gold_ore", "size": 9, "count": 16, "minY": -48, "maxY": 48}
+    ],
+    "remove": ["minecraft:ore_diamond", "minecraft:ore_diamond_medium", "minecraft:ore_diamond_large", "minecraft:ore_diamond_buried"]
+  },
+  "borders": {
+    "player": 256
+  }
+}

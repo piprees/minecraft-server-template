@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture and showcase: the biome library's golden skygrove filling a whole level of floating islands, for the biomes section's per-biome checks, renders and screenshots.",
+  "seed": 7,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "single_biome",
+    "preset": "floating_islands",
+    "biome": "adventure:golden_skygrove"
+  },
+  "borders": {
+    "player": 512
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 2,
+  "description": "Cherry-blossom gardens where the first villagers planted a life worth protecting. Villages and taverns grew among the petals, peaceful by decree. The portal at the centre is the oldest gate in the garden — everything was built around it.",
+  "seed": -1484124298185960397,
+  "spawn": [768, 92, 640],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "terraces",
+    "setting": "gentle",
+    "scales": {
+      "continents": 1.3,
+      "erosion": 2.0,
+      "ridges": 1.4,
+      "climate": 4.0
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [768, 640],
+      "radius": 700,
+      "falloff": 900,
+      "strength": 0.35
+    },
+    "params": {
+      "coast": -0.45,
+      "relief": 6
+    }
+  },
+  "biomes": [
+    "minecraft:river",
+    "minecraft:beach",
+    {
+      "id": "adventure:alpine_meadow",
+      "climate": {
+        "continentalness": [0.1, 2.0],
+        "erosion": [-2.0, -0.25]
+      }
+    },
+    {
+      "id": "minecraft:windswept_hills",
+      "climate": {
+        "continentalness": [-0.11, 0.1],
+        "erosion": [-2.0, -0.25]
+      }
+    },
+    {
+      "id": "adventure:orchid_marsh",
+      "climate": {
+        "humidity": [0.0, 2.0],
+        "continentalness": [-0.11, 0.2],
+        "erosion": [0.35, 2.0]
+      }
+    },
+    "adventure:aspen_forest",
+    "minecraft:birch_forest",
+    "minecraft:meadow",
+    "adventure:lavender_fields",
+    "adventure:carnation_fields",
+    "adventure:alpha_grove",
+    "minecraft:old_growth_birch_forest",
+    "minecraft:plains",
+    "minecraft:sunflower_plains",
+    "adventure:barley_fields",
+    "adventure:maple_woodland",
+    "minecraft:forest",
+    "minecraft:cherry_grove",
+    "minecraft:flower_forest",
+    "adventure:magnolia_woodland",
+    "adventure:sugi_forest",
+    "adventure:wisteria_grove",
+    "minecraft:pale_garden"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:aspen_forest": 4.7,
+      "minecraft:birch_forest": 2,
+      "minecraft:meadow": 4,
+      "adventure:lavender_fields": 1,
+      "adventure:carnation_fields": 5.2,
+      "adventure:alpha_grove": 5.4,
+      "minecraft:old_growth_birch_forest": 3.6,
+      "minecraft:plains": 6.6,
+      "minecraft:sunflower_plains": 3.7,
+      "adventure:barley_fields": 2.3,
+      "adventure:maple_woodland": 2.8,
+      "minecraft:forest": 3.2,
+      "minecraft:cherry_grove": 14,
+      "minecraft:flower_forest": 13.4,
+      "adventure:magnolia_woodland": 5.8,
+      "adventure:sugi_forest": 6.7,
+      "adventure:wisteria_grove": 5.5,
+      "minecraft:pale_garden": 4.5,
+      "minecraft:river": 1.8,
+      "minecraft:beach": 3.2
+    }
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 0.0,
+    "playerLuck": 3.0,
+    "hostileSpawning": false
+  },
+  "structures": {
+    "force": [
+      {
+        "structure": "mvs:large_mushroom",
+        "x": -1450,
+        "z": 980,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:cherry_planks",
+      "igniterItem": "minecraft:cherry_sapling",
+      "color": "FFB7C5",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "particleType": "minecraft:cherry_leaves",
+      "shape": "doorway",
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "minecraft:cherry_grove"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "tavern": "spread",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
+      "mvs:small_oak_lantern": "near_spawn",
+      "ati_structures:haunted_ruin": "spread",
+      "mvs:campsite": "near_spawn",
+      "ati_structures:lighthouse": "near_border"
+    },
+    "shuns": [
+      "ancient_city",
+      "trial_chambers",
+      "mansion",
+      "mss:arena",
+      "monument"
+    ]
+  }
+}

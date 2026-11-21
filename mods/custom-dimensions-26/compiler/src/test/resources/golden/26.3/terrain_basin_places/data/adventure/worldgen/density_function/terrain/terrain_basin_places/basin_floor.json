@@ -1,0 +1,49 @@
+{
+  "input": {
+    "left": {
+      "spline": {
+        "coordinate": "adventure:terrain/terrain_basin_places/lakes",
+        "points": [
+          {
+            "derivative": 0.0,
+            "location": 0.064484045,
+            "value": 144.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.07448405,
+            "value": 146.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.09800405,
+            "value": 154.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.13328405,
+            "value": 154.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.16856405,
+            "value": 148.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 0.30968404,
+            "value": 142.0
+          }
+        ]
+      },
+      "type": "minecraft:spline"
+    },
+    "right": {
+      "left": "adventure:terrain/terrain_basin_places/gap",
+      "right": 9.0,
+      "type": "minecraft:mul"
+    },
+    "type": "minecraft:sub"
+  },
+  "type": "minecraft:cache"
+}

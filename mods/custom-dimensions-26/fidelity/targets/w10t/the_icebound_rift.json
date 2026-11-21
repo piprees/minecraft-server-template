@@ -1,0 +1,44 @@
+{
+ "slug": "the_icebound_rift",
+ "targets": [
+  {
+   "key": "surface.voidPercent",
+   "op": ">=",
+   "value": 99,
+   "from": "\"the ground does not\" remain"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.underground",
+   "op": "<=",
+   "value": 1,
+   "from": "\"the ground does not\" remain"
+  },
+  {
+   "key": "vegetation.trees",
+   "op": "<=",
+   "value": 0,
+   "from": "\"the ground does not\" remain"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:ice_spikes + placeness.biomesPercent.minecraft:frozen_ocean + placeness.biomesPercent.minecraft:snowy_plains + placeness.biomesPercent.minecraft:frozen_peaks",
+   "op": ">",
+   "value": 0,
+   "from": "\"The biomes remain \u2014 their cold, their fog, their sounds\": frozen biomes present over the void"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "between",
+   "value": [
+    0.1,
+    0.3
+   ],
+   "from": "1.21.1 ambientLight 0.2"
+  },
+  {
+   "key": "surface.fluidCoverPercent.water + surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 0,
+   "from": "\"Whatever broke this world left only the memory of ice\""
+  }
+ ]
+}

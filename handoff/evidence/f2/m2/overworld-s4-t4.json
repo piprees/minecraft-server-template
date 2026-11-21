@@ -1,0 +1,659 @@
+{
+  "kind": "fastrender",
+  "dimension": "overworld",
+  "seed": 4705305050088502262,
+  "seedSource": "level",
+  "radius": 8192,
+  "step": 4,
+  "side": 4096,
+  "centre": [
+    0,
+    0
+  ],
+  "pixel": "the column at the north-west corner of each step x step cell; north is up",
+  "surface": "OCEAN_FLOOR_WG: one above the top motion-blocking block; under a roof, one above the first motion-blocking block below the roof's underside",
+  "biomeY": "the surface height, clamped into the dimension (the generator's noise biome there)",
+  "seaLevel": 63,
+  "files": {
+    "biome": "fast-4705305050088502262-r8192-biome.png",
+    "height": "fast-4705305050088502262-r8192-height.png",
+    "hillshade": "fast-4705305050088502262-r8192-hillshade.png",
+    "map": "fast-4705305050088502262-r8192-map.png",
+    "tier1": "fast-4705305050088502262-r8192-tier1.png",
+    "tier2": "fast-4705305050088502262-r8192-tier2.png",
+    "structures": "fast-4705305050088502262-r8192-structures.png"
+  },
+  "timings": {
+    "prepare": 0,
+    "prescan": 2435,
+    "sample": 222033,
+    "sampleScanThreadMillis": 626465,
+    "sampleDressThreadMillis": 261667,
+    "structures": 6769,
+    "compare": 6324,
+    "images": 11255,
+    "runs": 74,
+    "total": 249028,
+    "columns": 16777216,
+    "threads": 4,
+    "columnsPerSecond": 75562
+  },
+  "legend": {
+    "biomes": [
+      {
+        "id": "minecraft:plains",
+        "colour": "#8db360",
+        "fixed": true,
+        "pixels": 1866447
+      },
+      {
+        "id": "minecraft:forest",
+        "colour": "#3e8e2e",
+        "fixed": true,
+        "pixels": 1681262
+      },
+      {
+        "id": "minecraft:savanna",
+        "colour": "#bdb25f",
+        "fixed": true,
+        "pixels": 1596861
+      },
+      {
+        "id": "minecraft:ocean",
+        "colour": "#2040a0",
+        "fixed": true,
+        "pixels": 1591921
+      },
+      {
+        "id": "minecraft:lukewarm_ocean",
+        "colour": "#1a6eb0",
+        "fixed": true,
+        "pixels": 1431706
+      },
+      {
+        "id": "minecraft:river",
+        "colour": "#3060d8",
+        "fixed": true,
+        "pixels": 1089976
+      },
+      {
+        "id": "minecraft:deep_ocean",
+        "colour": "#14307a",
+        "fixed": true,
+        "pixels": 953484
+      },
+      {
+        "id": "minecraft:cold_ocean",
+        "colour": "#2e4f9e",
+        "fixed": true,
+        "pixels": 779326
+      },
+      {
+        "id": "minecraft:deep_lukewarm_ocean",
+        "colour": "#0e5a86",
+        "fixed": true,
+        "pixels": 648088
+      },
+      {
+        "id": "minecraft:taiga",
+        "colour": "#3c6e52",
+        "fixed": true,
+        "pixels": 584736
+      },
+      {
+        "id": "minecraft:beach",
+        "colour": "#f0e2a0",
+        "fixed": true,
+        "pixels": 475306
+      },
+      {
+        "id": "minecraft:jungle",
+        "colour": "#3e9e10",
+        "fixed": true,
+        "pixels": 408438
+      },
+      {
+        "id": "minecraft:deep_cold_ocean",
+        "colour": "#1f3a7a",
+        "fixed": true,
+        "pixels": 289747
+      },
+      {
+        "id": "minecraft:stony_shore",
+        "colour": "#7a7a7a",
+        "fixed": true,
+        "pixels": 280050
+      },
+      {
+        "id": "minecraft:dark_forest",
+        "colour": "#2f5a1e",
+        "fixed": true,
+        "pixels": 275129
+      },
+      {
+        "id": "minecraft:sparse_jungle",
+        "colour": "#64b020",
+        "fixed": true,
+        "pixels": 246305
+      },
+      {
+        "id": "minecraft:old_growth_birch_forest",
+        "colour": "#74bc6a",
+        "fixed": true,
+        "pixels": 241068
+      },
+      {
+        "id": "minecraft:birch_forest",
+        "colour": "#5fa85a",
+        "fixed": true,
+        "pixels": 229346
+      },
+      {
+        "id": "minecraft:dappled_forest",
+        "colour": "#4c8a3a",
+        "fixed": true,
+        "pixels": 195236
+      },
+      {
+        "id": "minecraft:meadow",
+        "colour": "#9ad06a",
+        "fixed": true,
+        "pixels": 179470
+      },
+      {
+        "id": "minecraft:old_growth_spruce_taiga",
+        "colour": "#4e6232",
+        "fixed": true,
+        "pixels": 174471
+      },
+      {
+        "id": "minecraft:savanna_plateau",
+        "colour": "#a79d64",
+        "fixed": true,
+        "pixels": 164820
+      },
+      {
+        "id": "minecraft:swamp",
+        "colour": "#4c7a4a",
+        "fixed": true,
+        "pixels": 136233
+      },
+      {
+        "id": "minecraft:old_growth_pine_taiga",
+        "colour": "#5a6e3a",
+        "fixed": true,
+        "pixels": 125714
+      },
+      {
+        "id": "minecraft:bamboo_jungle",
+        "colour": "#6e9e1e",
+        "fixed": true,
+        "pixels": 124801
+      },
+      {
+        "id": "minecraft:flower_forest",
+        "colour": "#7cb342",
+        "fixed": true,
+        "pixels": 117123
+      },
+      {
+        "id": "minecraft:mangrove_swamp",
+        "colour": "#4a6e3a",
+        "fixed": true,
+        "pixels": 87490
+      },
+      {
+        "id": "minecraft:frozen_ocean",
+        "colour": "#7088c8",
+        "fixed": true,
+        "pixels": 78847
+      },
+      {
+        "id": "minecraft:warm_ocean",
+        "colour": "#00a0c8",
+        "fixed": true,
+        "pixels": 78125
+      },
+      {
+        "id": "minecraft:grove",
+        "colour": "#9ec4b0",
+        "fixed": true,
+        "pixels": 74538
+      },
+      {
+        "id": "minecraft:sunflower_plains",
+        "colour": "#b5db60",
+        "fixed": true,
+        "pixels": 67928
+      },
+      {
+        "id": "minecraft:desert",
+        "colour": "#e8d27a",
+        "fixed": true,
+        "pixels": 59645
+      },
+      {
+        "id": "minecraft:cherry_grove",
+        "colour": "#f2a9c9",
+        "fixed": true,
+        "pixels": 53783
+      },
+      {
+        "id": "minecraft:snowy_plains",
+        "colour": "#f2f6fa",
+        "fixed": true,
+        "pixels": 49880
+      },
+      {
+        "id": "minecraft:windswept_savanna",
+        "colour": "#e0d080",
+        "fixed": true,
+        "pixels": 46949
+      },
+      {
+        "id": "minecraft:windswept_hills",
+        "colour": "#7a8a7a",
+        "fixed": true,
+        "pixels": 46158
+      },
+      {
+        "id": "minecraft:windswept_forest",
+        "colour": "#5a7a5a",
+        "fixed": true,
+        "pixels": 40947
+      },
+      {
+        "id": "minecraft:deep_frozen_ocean",
+        "colour": "#3a4e8a",
+        "fixed": true,
+        "pixels": 37985
+      },
+      {
+        "id": "minecraft:frozen_peaks",
+        "colour": "#c8dcf0",
+        "fixed": true,
+        "pixels": 34109
+      },
+      {
+        "id": "minecraft:stony_peaks",
+        "colour": "#9a9a9a",
+        "fixed": true,
+        "pixels": 30357
+      },
+      {
+        "id": "minecraft:mushroom_fields",
+        "colour": "#a070b0",
+        "fixed": true,
+        "pixels": 28656
+      },
+      {
+        "id": "minecraft:snowy_beach",
+        "colour": "#f0f0d8",
+        "fixed": true,
+        "pixels": 17869
+      },
+      {
+        "id": "minecraft:jagged_peaks",
+        "colour": "#e6e6ee",
+        "fixed": true,
+        "pixels": 17743
+      },
+      {
+        "id": "minecraft:snowy_slopes",
+        "colour": "#dce6f0",
+        "fixed": true,
+        "pixels": 13146
+      },
+      {
+        "id": "minecraft:frozen_river",
+        "colour": "#a8c0f0",
+        "fixed": true,
+        "pixels": 10924
+      },
+      {
+        "id": "minecraft:snowy_taiga",
+        "colour": "#30594a",
+        "fixed": true,
+        "pixels": 9712
+      },
+      {
+        "id": "minecraft:pale_garden",
+        "colour": "#b8bcb0",
+        "fixed": true,
+        "pixels": 3545
+      },
+      {
+        "id": "minecraft:lush_caves",
+        "colour": "#60b040",
+        "fixed": true,
+        "pixels": 580
+      },
+      {
+        "id": "minecraft:dripstone_caves",
+        "colour": "#8a6a4a",
+        "fixed": true,
+        "pixels": 423
+      },
+      {
+        "id": "minecraft:badlands",
+        "colour": "#d9773a",
+        "fixed": true,
+        "pixels": 373
+      },
+      {
+        "id": "minecraft:ice_spikes",
+        "colour": "#b4e0f0",
+        "fixed": true,
+        "pixels": 300
+      },
+      {
+        "id": "minecraft:sulfur_caves",
+        "colour": "#c8c040",
+        "fixed": true,
+        "pixels": 139
+      },
+      {
+        "id": "minecraft:deep_dark",
+        "colour": "#0e2a30",
+        "fixed": true,
+        "pixels": 1
+      }
+    ],
+    "height": {
+      "lowest": -60,
+      "highest": 229,
+      "greyFrom": 63,
+      "greyTo": 142,
+      "grey": "60 at greyFrom to 230 at greyTo (the dry surface's 1st and 99th percentile), lit from the north-west",
+      "contourEvery": 16,
+      "water": "blue, darker by depth below sea level",
+      "lava": "#d8581c",
+      "empty": "#000000"
+    }
+  },
+  "fast": {
+    "stride": 4,
+    "threads": 4,
+    "tile": 16,
+    "columnsPerSecond": 75561,
+    "referenceColumnsPerSecond": 10363,
+    "speedup": 7.29,
+    "noiseRange": [
+      -64,
+      319
+    ],
+    "scout": {
+      "cellXz": 4,
+      "cellY": 8,
+      "mode": "lattice",
+      "rule": "every block of a tile in one batch: each interpolated term's input sampled on the cell corners under the tile's columns and filled as vanilla interpolates it, the terms outside it applied per block; the density each block of a noise column gets",
+      "evaluationsPerColumn": 63.76,
+      "evaluationsRule": "density evaluations below the outermost interpolation per column: scout points, or corners summed over the interpolated terms; a block refined in refine mode costs its cell's two corner rows more"
+    },
+    "runs": {
+      "cap": 24,
+      "max": 8,
+      "mean": 1.29,
+      "atCap": 0,
+      "file": "fast-4705305050088502262-r8192-runs.bin.gz",
+      "window": {
+        "mode": "surface",
+        "rule": "from 32 blocks under the lowest surface near the tile to 16 over the highest, on cell rows; the lowest run cut off at the window's floor; a tile with ground at its window's top widened to the noise top, one with a column with no ground to the noise floor",
+        "tiles": 65536,
+        "tilesScannedAgain": 2500,
+        "meanBlocks": 92.9
+      },
+      "format": "gzip members, big-endian: int magic 0x43445231, int side, int step, int x0, int z0, int minY, int noiseTop; then per pixel, rows north to south, west to east: u8 count, and per run topmost first i16 top, i16 bottom, u16 topBlock, u16 undersideBlock, u16 fluidBlock, i16 fluidLevel (block indices into palette, 65535 for none; fluidLevel is the block above the fluid's surface)"
+    },
+    "roofedShare": 0.0,
+    "roofLayers": false,
+    "cut": {
+      "y": 127,
+      "rule": "the middle of the noise: no roofed column on the coarse grid",
+      "prescanColumns": 65536,
+      "prescanRoofed": 0,
+      "prescanFloating": 0
+    },
+    "tiers": [
+      1,
+      2
+    ],
+    "tierRule": "tierN shows run N+1 from the top, drawn when 0.02 of columns have it",
+    "fluids": "the level's global fluid picker (sea level, lava level, dry zones) at the lowest open block over each run; an aquifer's local water tables need a noise chunk and are not sampled",
+    "surfaceBlocks": "the level's compiled material rule at each run's top, and at a roof's underside",
+    "structures": {
+      "footprints": 424,
+      "rule": "starts from the level's placement state with its structure control (Sampler.starts), at most 64 of each structure, outlined by the start's bounding box",
+      "legend": {
+        "minecraft:mineshaft": "#26e0ff",
+        "minecraft:ruined_portal_ocean": "#ff2691",
+        "minecraft:trial_chambers": "#ffa126",
+        "minecraft:trail_ruins": "#26ff75",
+        "minecraft:buried_treasure": "#26cdff",
+        "minecraft:abandoned_camp_forest": "#ff2681",
+        "minecraft:abandoned_camp_taiga": "#ff5226",
+        "minecraft:ruined_portal": "#6aff26",
+        "minecraft:stronghold": "#fd26ff",
+        "minecraft:abandoned_camp_old_growth_pine_taiga": "#e026ff",
+        "minecraft:village_taiga": "#47ff26",
+        "minecraft:village_plains": "#3bff26",
+        "minecraft:ruined_portal_mountain": "#ff2667",
+        "minecraft:shipwreck": "#a026ff",
+        "minecraft:abandoned_camp_dappled_forest": "#a2ff26",
+        "minecraft:abandoned_camp_cherry_grove": "#c0ff26",
+        "minecraft:ruined_portal_swamp": "#f6ff26",
+        "minecraft:ocean_ruin_cold": "#26a3ff",
+        "minecraft:pillager_outpost": "#7aff26",
+        "minecraft:swamp_hut": "#b8ff26",
+        "minecraft:abandoned_camp_birch_forest": "#26ff2f",
+        "minecraft:abandoned_camp_old_growth_birch_forest": "#ff26e7",
+        "minecraft:ruined_portal_jungle": "#ff2687",
+        "minecraft:abandoned_camp_flower_forest": "#ff26f7",
+        "minecraft:abandoned_camp_savanna": "#ff26ea",
+        "minecraft:village_savanna": "#ff2699",
+        "minecraft:abandoned_camp_sparse_jungle": "#bf26ff",
+        "minecraft:abandoned_camp_old_growth_spruce_taiga": "#ff3626",
+        "minecraft:mineshaft_mesa": "#ff262e"
+      }
+    },
+    "comparison": {
+      "spacing": 64,
+      "columns": 65536,
+      "heightsWithinOne": 0.9961,
+      "heightsExact": 0.9955,
+      "biomesEqual": 0.9998,
+      "fluidsEqual": 0.994,
+      "referenceMillis": 6324,
+      "examples": [
+        "-4096,-7296: height 59 against 62, biome minecraft:plains against minecraft:plains",
+        "-8192,-5056: height 53 against 56, biome minecraft:desert against minecraft:desert",
+        "4160,-1600: height 30 against 36, biome minecraft:ocean against minecraft:ocean",
+        "-8128,128: height 19 against 38, biome minecraft:ocean against minecraft:ocean",
+        "-4032,128: height -7 against 36, biome minecraft:cold_ocean against minecraft:cold_ocean",
+        "4160,2368: height -30 against 27, biome minecraft:birch_forest against minecraft:birch_forest",
+        "-3968,1216: height 56 against 59, biome minecraft:forest against minecraft:forest",
+        "4224,2304: height 14 against 22, biome minecraft:river against minecraft:river",
+        "-8064,2432: height 18 against 26, biome minecraft:deep_ocean against minecraft:deep_ocean",
+        "128,4032: height 51 against 62, biome minecraft:dappled_forest against minecraft:dappled_forest",
+        "192,-8000: height 57 against 63, biome minecraft:plains against minecraft:plains",
+        "192,-7488: height 25 against 30, biome minecraft:lukewarm_ocean against minecraft:lukewarm_ocean",
+        "-3904,-4096: height -37 against -15, biome minecraft:deep_ocean against minecraft:deep_ocean",
+        "-8000,-3840: height 33 against 36, biome minecraft:warm_ocean against minecraft:warm_ocean",
+        "4352,-2752: height 28 against 30, biome minecraft:ocean against minecraft:ocean",
+        "256,3968: height 23 against 26, biome minecraft:cold_ocean against minecraft:cold_ocean"
+      ]
+    },
+    "palette": [
+      {
+        "block": "minecraft:water",
+        "state": "Block{minecraft:water}[level=0]",
+        "mapColour": "#4040ff"
+      },
+      {
+        "block": "minecraft:grass_block",
+        "state": "Block{minecraft:grass_block}[snowy=false]",
+        "mapColour": "#7fb238"
+      },
+      {
+        "block": "minecraft:stone",
+        "state": "Block{minecraft:stone}",
+        "mapColour": "#707070"
+      },
+      {
+        "block": "minecraft:lava",
+        "state": "Block{minecraft:lava}[level=0]",
+        "mapColour": "#ff0000"
+      },
+      {
+        "block": "minecraft:sand",
+        "state": "Block{minecraft:sand}",
+        "mapColour": "#f7e9a3"
+      },
+      {
+        "block": "minecraft:sandstone",
+        "state": "Block{minecraft:sandstone}",
+        "mapColour": "#f7e9a3"
+      },
+      {
+        "block": "minecraft:gravel",
+        "state": "Block{minecraft:gravel}",
+        "mapColour": "#707070"
+      },
+      {
+        "block": "minecraft:terracotta",
+        "state": "Block{minecraft:terracotta}",
+        "mapColour": "#d87f33"
+      },
+      {
+        "block": "minecraft:orange_terracotta",
+        "state": "Block{minecraft:orange_terracotta}",
+        "mapColour": "#9f5224"
+      },
+      {
+        "block": "minecraft:light_gray_terracotta",
+        "state": "Block{minecraft:light_gray_terracotta}",
+        "mapColour": "#876b62"
+      },
+      {
+        "block": "minecraft:yellow_terracotta",
+        "state": "Block{minecraft:yellow_terracotta}",
+        "mapColour": "#ba8524"
+      },
+      {
+        "block": "minecraft:red_terracotta",
+        "state": "Block{minecraft:red_terracotta}",
+        "mapColour": "#8e3c2e"
+      },
+      {
+        "block": "minecraft:white_terracotta",
+        "state": "Block{minecraft:white_terracotta}",
+        "mapColour": "#d1b1a1"
+      },
+      {
+        "block": "minecraft:red_sand",
+        "state": "Block{minecraft:red_sand}",
+        "mapColour": "#d87f33"
+      },
+      {
+        "block": "minecraft:dirt",
+        "state": "Block{minecraft:dirt}",
+        "mapColour": "#976d4d"
+      },
+      {
+        "block": "minecraft:deepslate",
+        "state": "Block{minecraft:deepslate}[axis=y]",
+        "mapColour": "#646464"
+      },
+      {
+        "block": "minecraft:granite",
+        "state": "Block{minecraft:granite}",
+        "mapColour": "#976d4d"
+      },
+      {
+        "block": "minecraft:sulfur",
+        "state": "Block{minecraft:sulfur}",
+        "mapColour": "#e5e533"
+      },
+      {
+        "block": "minecraft:copper_ore",
+        "state": "Block{minecraft:copper_ore}",
+        "mapColour": "#707070"
+      },
+      {
+        "block": "minecraft:cinnabar",
+        "state": "Block{minecraft:cinnabar}",
+        "mapColour": "#993333"
+      },
+      {
+        "block": "minecraft:bedrock",
+        "state": "Block{minecraft:bedrock}",
+        "mapColour": "#707070"
+      },
+      {
+        "block": "minecraft:raw_copper_block",
+        "state": "Block{minecraft:raw_copper_block}",
+        "mapColour": "#d87f33"
+      },
+      {
+        "block": "minecraft:tuff",
+        "state": "Block{minecraft:tuff}",
+        "mapColour": "#392923"
+      },
+      {
+        "block": "minecraft:deepslate_iron_ore",
+        "state": "Block{minecraft:deepslate_iron_ore}",
+        "mapColour": "#646464"
+      },
+      {
+        "block": "minecraft:raw_iron_block",
+        "state": "Block{minecraft:raw_iron_block}",
+        "mapColour": "#d8af93"
+      },
+      {
+        "block": "minecraft:calcite",
+        "state": "Block{minecraft:calcite}",
+        "mapColour": "#d1b1a1"
+      },
+      {
+        "block": "minecraft:mycelium",
+        "state": "Block{minecraft:mycelium}[snowy=false]",
+        "mapColour": "#7f3fb2"
+      },
+      {
+        "block": "minecraft:snow_block",
+        "state": "Block{minecraft:snow_block}",
+        "mapColour": "#ffffff"
+      },
+      {
+        "block": "minecraft:powder_snow",
+        "state": "Block{minecraft:powder_snow}",
+        "mapColour": "#ffffff"
+      },
+      {
+        "block": "minecraft:packed_ice",
+        "state": "Block{minecraft:packed_ice}",
+        "mapColour": "#a0a0ff"
+      },
+      {
+        "block": "minecraft:ice",
+        "state": "Block{minecraft:ice}",
+        "mapColour": "#a0a0ff"
+      },
+      {
+        "block": "minecraft:coarse_dirt",
+        "state": "Block{minecraft:coarse_dirt}",
+        "mapColour": "#976d4d"
+      },
+      {
+        "block": "minecraft:podzol",
+        "state": "Block{minecraft:podzol}[snowy=false]",
+        "mapColour": "#815631"
+      },
+      {
+        "block": "minecraft:mud",
+        "state": "Block{minecraft:mud}",
+        "mapColour": "#575c5c"
+      }
+    ]
+  }
+}

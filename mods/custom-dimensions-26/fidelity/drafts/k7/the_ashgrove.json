@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 2,
+  "description": "Ash-grey savanna under a volcanic sky. A settlement burned here once — abandoned camps and scorched tombs are all that remain. The grove remembers the fire, but not who set it.",
+  "seed": 4161223450669985569,
+  "spawn": [
+    -64,
+    53,
+    128
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    "adventure:saguaro_desert",
+    "adventure:ashen_woodland",
+    "adventure:magma_land",
+    "adventure:blackstone_basin",
+    "minecraft:savanna",
+    "minecraft:wooded_badlands",
+    "minecraft:badlands",
+    "minecraft:eroded_badlands",
+    "minecraft:basalt_deltas",
+    "adventure:joshua_desert",
+    "minecraft:windswept_savanna",
+    "adventure:baobab_savanna",
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "depth": [
+          0.1,
+          2.0
+        ],
+        "humidity": [
+          -2.0,
+          0.004
+        ]
+      }
+    },
+    {
+      "id": "adventure:mineral_strata",
+      "climate": {
+        "depth": [
+          0.1,
+          2.0
+        ],
+        "humidity": [
+          0.004,
+          2.0
+        ]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:saguaro_desert": 2,
+      "adventure:ashen_woodland": 52,
+      "adventure:magma_land": 6,
+      "adventure:blackstone_basin": 4,
+      "minecraft:savanna": 8,
+      "minecraft:wooded_badlands": 2,
+      "minecraft:badlands": 3,
+      "minecraft:eroded_badlands": 2,
+      "minecraft:basalt_deltas": 5,
+      "adventure:joshua_desert": 3,
+      "minecraft:windswept_savanna": 4,
+      "adventure:baobab_savanna": 6
+    },
+    "places": {
+      "groups": {
+        "savanna": [
+          "minecraft:savanna",
+          "adventure:baobab_savanna",
+          "minecraft:windswept_savanna"
+        ],
+        "volcanic": [
+          "adventure:magma_land",
+          "minecraft:basalt_deltas",
+          "adventure:blackstone_basin"
+        ],
+        "badlands_and_desert": [
+          "minecraft:badlands",
+          "minecraft:wooded_badlands",
+          "minecraft:eroded_badlands",
+          "adventure:joshua_desert",
+          "adventure:saguaro_desert"
+        ]
+      },
+      "at": {
+        "adventure:ashen_woodland": [
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "atmosphere": {
+    "fogColor": "#7B6B5B",
+    "ambientLight": 0.2
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.7,
+    "playerLuck": 1.5
+  },
+  "structures": {
+    "density": "sparse",
+    "clearSpawnRadius": 96,
+    "force": [
+      {
+        "structure": "nova_structures:remnant_graveyard",
+        "x": 150,
+        "z": 90,
+        "exclusive": false
+      },
+      {
+        "structure": "ati_structures:haunted_ruin",
+        "x": 540,
+        "z": -610
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:tuff",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "7B8B6B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "particleType": "minecraft:ash",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "adventure:ashen_woodland"
+    ],
+    "wants": {
+      "minecraft:abandoned_camp_forest": "near_spawn",
+      "nova_structures:remnant_graveyard": "spread",
+      "nova_structures:surface_dungeon_desert": "near_border",
+      "mvs:small_ruin": "spread",
+      "nova_structures:remnant_ruin_farmer": "spread",
+      "nova_structures:wild_ruin": "spread",
+      "epic:small_sand_dungeon": "near_border"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "monument"
+    ],
+    "water": "none"
+  },
+  "terrain": {
+    "landShare": 0.97
+  }
+}

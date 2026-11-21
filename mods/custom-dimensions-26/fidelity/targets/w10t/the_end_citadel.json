@@ -1,0 +1,84 @@
+{
+ "slug": "the_end_citadel",
+ "targets": [
+  {
+   "key": "surface.voidPercent",
+   "op": "between",
+   "value": [
+    30,
+    75
+   ],
+   "from": "1.21.1 type end: islands over the void"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:end_highlands",
+   "op": ">=",
+   "value": 0.25,
+   "from": "\"end cities and phantom citadels saturate the highlands\": highlands are the bulk of the land (restated per land column: the old form counted void columns, which a world over a void cannot fill)",
+   "per": "vertical.layerColumnsPercent.surface",
+   "was": {
+    "key": "surface.biomesPercent.minecraft:end_highlands",
+    "op": ">=",
+    "value": 25
+   }
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:end_stone",
+   "op": ">=",
+   "value": 20,
+   "from": "1.21.1 type end: end stone ground"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:end_highlands.placementPercent.land?",
+   "op": ">=",
+   "value": 60,
+   "from": "\"the highlands\": the highlands biome sits on land, not over void"
+  },
+  {
+   "key": "terrain.surfaceHeight.p95 + terrain.reliefMedian",
+   "op": ">=",
+   "value": 90,
+   "from": "\"highlands\": high island tops (p95 height plus relief, End heights sit near y 60)"
+  },
+  {
+   "key": "landforms.sharesPercent.plains + landforms.sharesPercent.hills + landforms.sharesPercent.plateaus + landforms.sharesPercent.mountains",
+   "op": ">=",
+   "value": 20,
+   "from": "\"highlands\": large islands with tops, not only small islets"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:small_end_islands",
+   "op": "<=",
+   "value": 0.1,
+   "from": "\"densest urban centres\": land to build cities on, not scattered islets (restated per land column: the old form counted void columns, which a world over a void cannot fill)",
+   "per": "vertical.layerColumnsPercent.surface",
+   "was": {
+    "key": "surface.biomesPercent.minecraft:small_end_islands",
+    "op": "<=",
+    "value": 10
+   }
+  },
+  {
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind place (citadel country): one highland mass holds a large share of the land (restated: on islands the largest region is the largest island; one place reads as each island in its one biome)",
+   "was": {
+    "key": "placeness.landBiomeRegions.largestPercent",
+    "op": ">=",
+    "value": 20
+   }
+  },
+  {
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 75,
+   "from": "restated: on islands every islet under 1 ha is a speck whatever its biome (kit gap: no speck measure inside islands); no scatter of biome specks reads as at most a quarter of each island outside its own biome",
+   "was": {
+    "key": "placeness.landBiomeRegions.specksPercent",
+    "op": "<=",
+    "value": 5
+   }
+  }
+ ]
+}

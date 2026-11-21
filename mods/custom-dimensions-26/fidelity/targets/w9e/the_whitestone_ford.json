@@ -1,0 +1,47 @@
+{
+ "slug": "the_whitestone_ford",
+ "targets": [
+  {
+   "key": "placeness.dominant.percent",
+   "op": ">=",
+   "value": 54.0,
+   "from": "place: \"wide river country\" (measured 60.1)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:chalk_cliffs",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:lichen_caves",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:muddy_river",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:lush_caves",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:meadow",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:plains",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  }
+ ]
+}

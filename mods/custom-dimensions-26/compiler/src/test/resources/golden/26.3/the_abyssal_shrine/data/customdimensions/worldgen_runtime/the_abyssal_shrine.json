@@ -1,0 +1,13 @@
+{
+  "basins": {
+    "basin": "adventure:terrain/the_abyssal_shrine/basin",
+    "floor": "adventure:terrain/the_abyssal_shrine/basin_floor",
+    "fluid": "minecraft:water",
+    "level": 150
+  },
+  "level": "adventure:the_abyssal_shrine",
+  "remove_features": [
+    "adventure:biome/umbral_wastes/obsidian_spikes",
+    "minecraft:end_gateway_return"
+  ]
+}

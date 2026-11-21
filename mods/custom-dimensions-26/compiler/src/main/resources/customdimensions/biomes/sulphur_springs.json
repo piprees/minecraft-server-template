@@ -1,0 +1,510 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "end",
+  "inspiredBy": "BetterEnd's sulphur springs.",
+  "differs": "The only wet End biome, with 26.x sulphur: steaming pools of pale water sunk in the end stone and ringed with yellow sulfur, wet potent sulfur and bubbling magma on their beds, sulfur crusts and spiked sulfur vents round them, and steam drifting over the islands.",
+  "climate": {
+    "temperature": [
+      -0.4,
+      0.2
+    ],
+    "humidity": [
+      -1.0,
+      -0.3
+    ]
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:block.bubble_column.bubble_pop",
+          "tick_chance": 0.02
+        },
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.cave",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 6000,
+          "replace_current_music": true,
+          "sound": "minecraft:music.end"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "monster": [
+              {
+                "type": "minecraft:enderman",
+                "count": 4,
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:white_smoke"
+            },
+            "probability": 0.012
+          },
+          {
+            "particle": {
+              "type": "minecraft:cloud"
+            },
+            "probability": 0.0015
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#c8c890",
+      "minecraft:visual/sky_color": "#5a5a30"
+    },
+    "carvers": [],
+    "downfall": 0.5,
+    "effects": {
+      "water_color": "#8fd6c0"
+    },
+    "features": [
+      [],
+      [
+        "~springs",
+        "~spring_beds",
+        "~pool_fill"
+      ],
+      [],
+      [],
+      [
+        "minecraft:end_gateway_return",
+        "~sulfur_crusts"
+      ],
+      [],
+      [],
+      [],
+      [],
+      [
+        "~sulfur_vents"
+      ],
+      []
+    ],
+    "has_precipitation": false,
+    "temperature": 1.0
+  },
+  "features": {
+    "springs": {
+      "feature": {
+        "type": "minecraft:sequence",
+        "features": [
+          {
+            "feature": {
+              "type": "minecraft:lake",
+              "barrier": {
+                "id": "minecraft:sulfur"
+              },
+              "can_place_feature": {
+                "type": "minecraft:true"
+              },
+              "can_replace_with_air_or_fluid": {
+                "type": "minecraft:not",
+                "predicate": {
+                  "type": "minecraft:matching_block_tag",
+                  "tag": "minecraft:features_cannot_replace"
+                }
+              },
+              "can_replace_with_barrier": {
+                "type": "minecraft:not",
+                "predicate": {
+                  "type": "minecraft:matching_block_tag",
+                  "tag": "minecraft:lava_pool_stone_cannot_replace"
+                }
+              },
+              "fluid": {
+                "id": "minecraft:water",
+                "properties": {
+                  "level": "0"
+                }
+              }
+            },
+            "placement": []
+          },
+          {
+            "feature": {
+              "type": "minecraft:simple_block",
+              "to_place": {
+                "id": "minecraft:potent_sulfur",
+                "properties": {
+                  "potent_sulfur_state": "wet"
+                }
+              }
+            },
+            "placement": [
+              {
+                "type": "minecraft:environment_scan",
+                "direction_of_search": "down",
+                "max_steps": 4,
+                "target_condition": {
+                  "type": "minecraft:all_of",
+                  "predicates": [
+                    {
+                      "type": "minecraft:solid"
+                    },
+                    {
+                      "type": "minecraft:matching_fluids",
+                      "fluids": "minecraft:water",
+                      "offset": [
+                        0,
+                        1,
+                        0
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 3
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "spring_beds": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:potent_sulfur",
+                "properties": {
+                  "potent_sulfur_state": "wet"
+                }
+              },
+              "weight": 6
+            },
+            {
+              "data": {
+                "id": "minecraft:magma_block"
+              },
+              "weight": 1
+            }
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 48
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": -1,
+          "z": 0
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:solid"
+              },
+              {
+                "type": "minecraft:matching_fluids",
+                "offset": [
+                  0,
+                  1,
+                  0
+                ],
+                "fluids": "minecraft:water"
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  1,
+                  0,
+                  0
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  -1,
+                  0,
+                  0
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  0,
+                  0,
+                  1
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  0,
+                  0,
+                  -1
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "pool_fill": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:true"
+        },
+        "direction": "down",
+        "layers": [
+          {
+            "height": 1,
+            "provider": {
+              "id": "minecraft:air"
+            }
+          },
+          {
+            "height": 1,
+            "provider": {
+              "id": "minecraft:water",
+              "properties": {
+                "level": "0"
+              }
+            }
+          }
+        ],
+        "prioritize_tip": false
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 1024
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 8,
+            "min_inclusive": -8
+          },
+          "y": 0,
+          "z": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 8,
+            "min_inclusive": -8
+          }
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_blocks",
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ],
+                "blocks": [
+                  "minecraft:sulfur",
+                  "minecraft:end_stone",
+                  "minecraft:potent_sulfur"
+                ]
+              },
+              {
+                "type": "minecraft:matching_fluids",
+                "offset": [
+                  1,
+                  -1,
+                  0
+                ],
+                "fluids": "minecraft:water"
+              },
+              {
+                "type": "minecraft:matching_fluids",
+                "offset": [
+                  -1,
+                  -1,
+                  0
+                ],
+                "fluids": "minecraft:water"
+              },
+              {
+                "type": "minecraft:matching_fluids",
+                "offset": [
+                  0,
+                  -1,
+                  1
+                ],
+                "fluids": "minecraft:water"
+              },
+              {
+                "type": "minecraft:matching_fluids",
+                "offset": [
+                  0,
+                  -1,
+                  -1
+                ],
+                "fluids": "minecraft:water"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "sulfur_crusts": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 4,
+          "min_inclusive": 2
+        },
+        "state_provider": {
+          "id": "minecraft:sulfur"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:end_stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 3
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "sulfur_vents": {
+      "feature": {
+        "type": "minecraft:speleothem_cluster",
+        "base_block": "minecraft:sulfur",
+        "chance_of_speleothem_at_max_distance_from_center": 0.1,
+        "density": {
+          "type": "minecraft:uniform",
+          "max_exclusive": 0.7,
+          "min_inclusive": 0.3
+        },
+        "floor_to_ceiling_search_range": 12,
+        "height": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 4,
+          "min_inclusive": 1
+        },
+        "height_deviation": 3,
+        "max_distance_from_center_affecting_height_bias": 8,
+        "max_distance_from_edge_affecting_chance_of_speleothem": 3,
+        "max_stalagmite_stalactite_height_diff": 1,
+        "pointed_block": "minecraft:sulfur_spike",
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 4,
+          "min_inclusive": 2
+        },
+        "replaceable_blocks": "#minecraft:sulfur_spike_replaceable_blocks",
+        "speleothem_block_layer_thickness": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 2,
+          "min_inclusive": 1
+        },
+        "wetness": 0.0
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 1
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_blocks",
+            "blocks": [
+              "minecraft:sulfur",
+              "minecraft:end_stone"
+            ],
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

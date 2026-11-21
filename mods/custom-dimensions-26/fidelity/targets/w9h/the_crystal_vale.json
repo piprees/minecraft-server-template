@@ -1,0 +1,107 @@
+{
+ "slug": "the_crystal_vale",
+ "targets": [
+  {
+   "key": "placeness.landformRegions.largestPercent",
+   "op": ">=",
+   "value": 45.0,
+   "from": "place: \"a vale between emerald peaks\" (measured 50.1)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:alpine_meadow",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.adventure:crystal_hollows.columns? + biomeExpression.biomes.adventure:crystal_hollows.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:glowing_grasslands",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:lavender_fields",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.adventure:mineral_strata.columns? + biomeExpression.biomes.adventure:mineral_strata.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:wisteria_grove",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:birch_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:jungle",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:lush_caves.columns? + biomeExpression.biomes.minecraft:lush_caves.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:meadow",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:pale_garden",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:windswept_hills",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 15.2,
+   "from": "place: biome regions (W9f, measured 17.0); re-cut over land outside sea biomes (W9h, measured 16.9), was >= 15.3 over all columns"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 0.8,
+   "from": "place: biome regions (W9f, measured 0.6); re-cut over land outside sea biomes (W9h, measured 0.2), was <= 1.2 over all columns"
+  },
+  {
+   "key": "placeness.landBiomeRegions.perKm2",
+   "op": "<=",
+   "value": 4.7,
+   "from": "place: biome regions (W9f, measured 3.3); re-cut over land outside sea biomes (W9h, measured 4.0), was <= 3.9 over all columns"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 39.7,
+   "from": "place: biome regions (W9f, measured 44.5); re-cut over land outside sea biomes (W9h, measured 44.1), was >= 40.1 over all columns"
+  }
+ ]
+}

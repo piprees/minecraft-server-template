@@ -1,0 +1,41 @@
+{
+  "reason": "Keeps the caves preset's own cave system (a cave world, not a cavern floor); sea at -40 drains the floors; sculk tops the deep dark, nylium is now the default for the fungal forests and moss replaces grass on cave floors (G6); climate stretched 1.3x (G2).",
+  "terrain": {
+    "scales": {
+      "climate": 1.3
+    }
+  },
+  "liquids": {
+    "seaLevel": -40
+  },
+  "materials": {
+    "biomes": {
+      "minecraft:deep_dark": {
+        "top": "minecraft:sculk"
+      }
+    }
+  },
+  "biomes": [
+    "minecraft:deep_dark",
+    "adventure:bioshroom_caves",
+    "adventure:fungal_fen",
+    "minecraft:crimson_forest",
+    "minecraft:warped_forest",
+    "adventure:lichen_caves",
+    "minecraft:dripstone_caves",
+    "adventure:withered_forest"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:deep_dark": 35,
+      "adventure:bioshroom_caves": 25,
+      "adventure:fungal_fen": 10,
+      "minecraft:crimson_forest": 8,
+      "minecraft:warped_forest": 8,
+      "adventure:lichen_caves": 8,
+      "minecraft:dripstone_caves": 6,
+      "adventure:withered_forest": 5
+    }
+  }
+}

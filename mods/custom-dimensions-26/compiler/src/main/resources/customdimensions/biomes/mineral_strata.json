@@ -1,0 +1,1674 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "caves",
+  "inspiredBy": "YUNG's caves' and Underground Worlds' layered rock: caves striped in bands of coloured stone.",
+  "differs": "Vanilla caves are plain stone with scattered blobs; here every wall is striped in level bands of granite, diorite, andesite, tuff and calcite, five blocks each, from y 92 down into the deepslate, cut by thin seams of raw iron, copper and coal, with granite and diorite boulders on the floors, glow lichen, and dust in the air.",
+  "climate": {
+    "temperature": [
+      -0.45,
+      0.2
+    ],
+    "humidity": [
+      -1.0,
+      -0.35
+    ],
+    "depth": [
+      0.2,
+      0.9
+    ]
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:block.gravel.fall",
+          "tick_chance": 0.002
+        },
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.cave",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.overworld.dripstone_caves"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "ambient": [
+              {
+                "type": "minecraft:bat",
+                "count": 8,
+                "weight": 10
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:spider",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:zombie",
+                "count": 4,
+                "weight": 95
+              },
+              {
+                "type": "minecraft:zombie_villager",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:skeleton",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:creeper",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:slime",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 1
+                },
+                "weight": 10
+              },
+              {
+                "type": "minecraft:witch",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:drowned",
+                "count": 4,
+                "weight": 95
+              }
+            ],
+            "underground_water_creature": [
+              {
+                "type": "minecraft:glow_squid",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 4
+                },
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:white_ash"
+            },
+            "probability": 0.006
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#b8a894",
+      "minecraft:visual/sky_color": "#78a7ff",
+      "minecraft:visual/water_fog_color": "#3d4a55"
+    },
+    "carvers": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ],
+    "downfall": 0.3,
+    "effects": {
+      "water_color": "#5a7590"
+    },
+    "features": [
+      [],
+      [
+        "minecraft:lake_lava_underground"
+      ],
+      [
+        "~band_00",
+        "~band_01",
+        "~band_02",
+        "~band_03",
+        "~band_04",
+        "~band_05",
+        "~band_06",
+        "~band_07",
+        "~band_08",
+        "~band_09",
+        "~band_10",
+        "~band_11",
+        "~band_12",
+        "~band_13",
+        "~band_14",
+        "~band_15",
+        "~band_16",
+        "~band_17",
+        "~band_18",
+        "~band_19",
+        "~band_20",
+        "~band_21",
+        "~band_22",
+        "~band_23",
+        "~band_24",
+        "~band_25",
+        "~band_26",
+        "~band_27",
+        "~band_28"
+      ],
+      [
+        "minecraft:monster_room",
+        "minecraft:monster_room_deep"
+      ],
+      [],
+      [],
+      [
+        "minecraft:ore_dirt",
+        "minecraft:ore_gravel",
+        "minecraft:ore_coal_upper",
+        "minecraft:ore_coal_lower",
+        "minecraft:ore_iron_upper",
+        "minecraft:ore_iron_middle",
+        "minecraft:ore_iron_small",
+        "minecraft:ore_gold",
+        "minecraft:ore_gold_lower",
+        "minecraft:ore_redstone",
+        "minecraft:ore_redstone_lower",
+        "minecraft:ore_diamond",
+        "minecraft:ore_diamond_medium",
+        "minecraft:ore_diamond_large",
+        "minecraft:ore_diamond_buried",
+        "minecraft:ore_lapis",
+        "minecraft:ore_lapis_buried",
+        "minecraft:ore_copper",
+        "~seams"
+      ],
+      [],
+      [
+        "minecraft:spring_water",
+        "minecraft:spring_lava"
+      ],
+      [
+        "~granite_boulders",
+        "~diorite_boulders",
+        "~lichen"
+      ],
+      [
+        "minecraft:freeze_top_layer"
+      ]
+    ],
+    "has_precipitation": true,
+    "temperature": 0.6
+  },
+  "features": {
+    "band_00": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:granite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 92
+            },
+            "min_inclusive": {
+              "absolute": 91
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_01": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:diorite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 87
+            },
+            "min_inclusive": {
+              "absolute": 86
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_02": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:andesite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 82
+            },
+            "min_inclusive": {
+              "absolute": 81
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_03": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:tuff"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 77
+            },
+            "min_inclusive": {
+              "absolute": 76
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_04": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:calcite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 72
+            },
+            "min_inclusive": {
+              "absolute": 71
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_05": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:granite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 67
+            },
+            "min_inclusive": {
+              "absolute": 66
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_06": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:diorite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 62
+            },
+            "min_inclusive": {
+              "absolute": 61
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_07": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:andesite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 57
+            },
+            "min_inclusive": {
+              "absolute": 56
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_08": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:tuff"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 52
+            },
+            "min_inclusive": {
+              "absolute": 51
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_09": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:calcite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 47
+            },
+            "min_inclusive": {
+              "absolute": 46
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_10": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:granite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 42
+            },
+            "min_inclusive": {
+              "absolute": 41
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_11": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:diorite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 37
+            },
+            "min_inclusive": {
+              "absolute": 36
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_12": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:andesite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 32
+            },
+            "min_inclusive": {
+              "absolute": 31
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_13": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:tuff"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 27
+            },
+            "min_inclusive": {
+              "absolute": 26
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_14": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:calcite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 22
+            },
+            "min_inclusive": {
+              "absolute": 21
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_15": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:granite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 17
+            },
+            "min_inclusive": {
+              "absolute": 16
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_16": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:diorite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 12
+            },
+            "min_inclusive": {
+              "absolute": 11
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_17": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:andesite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 7
+            },
+            "min_inclusive": {
+              "absolute": 6
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_18": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:tuff"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 2
+            },
+            "min_inclusive": {
+              "absolute": 1
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_19": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:calcite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": -3
+            },
+            "min_inclusive": {
+              "absolute": -4
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_20": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:granite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": -8
+            },
+            "min_inclusive": {
+              "absolute": -9
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_21": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:diorite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": -13
+            },
+            "min_inclusive": {
+              "absolute": -14
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_22": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:andesite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": -18
+            },
+            "min_inclusive": {
+              "absolute": -19
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_23": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:tuff"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": -23
+            },
+            "min_inclusive": {
+              "absolute": -24
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_24": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:calcite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": -28
+            },
+            "min_inclusive": {
+              "absolute": -29
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_25": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:granite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": -33
+            },
+            "min_inclusive": {
+              "absolute": -34
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_26": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:diorite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": -38
+            },
+            "min_inclusive": {
+              "absolute": -39
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_27": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:andesite"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": -43
+            },
+            "min_inclusive": {
+              "absolute": -44
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "band_28": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 2,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 8,
+          "min_inclusive": 6
+        },
+        "state_provider": {
+          "id": "minecraft:tuff"
+        },
+        "target": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 5
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": -48
+            },
+            "min_inclusive": {
+              "absolute": -49
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "seams": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 0,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 4,
+          "min_inclusive": 2
+        },
+        "state_provider": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": "minecraft:raw_iron_block",
+              "weight": 1
+            },
+            {
+              "data": "minecraft:iron_ore",
+              "weight": 2
+            },
+            {
+              "data": "minecraft:copper_ore",
+              "weight": 2
+            },
+            {
+              "data": "minecraft:coal_ore",
+              "weight": 3
+            }
+          ]
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:granite",
+            "minecraft:diorite",
+            "minecraft:andesite",
+            "minecraft:tuff",
+            "minecraft:calcite",
+            "minecraft:stone"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 10
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 92
+            },
+            "min_inclusive": {
+              "absolute": -8
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "granite_boulders": {
+      "feature": {
+        "type": "minecraft:block_blob",
+        "can_place_on": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        },
+        "state": "minecraft:granite"
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 6
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 256
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:surface_relative_threshold_filter",
+          "heightmap": "OCEAN_FLOOR_WG",
+          "max_inclusive": -13
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "down",
+          "max_steps": 12,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "diorite_boulders": {
+      "feature": {
+        "type": "minecraft:block_blob",
+        "can_place_on": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:base_stone_overworld"
+        },
+        "state": "minecraft:diorite"
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 6
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 256
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:surface_relative_threshold_filter",
+          "heightmap": "OCEAN_FLOOR_WG",
+          "max_inclusive": -13
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "down",
+          "max_steps": 12,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "lichen": {
+      "feature": {
+        "type": "minecraft:multiface_growth",
+        "block": "minecraft:glow_lichen",
+        "can_be_placed_on": [
+          "minecraft:granite",
+          "minecraft:diorite",
+          "minecraft:andesite",
+          "minecraft:tuff",
+          "minecraft:calcite",
+          "minecraft:stone",
+          "minecraft:deepslate"
+        ],
+        "can_place_on_ceiling": true,
+        "can_place_on_wall": true,
+        "search_range": 20
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:uniform",
+            "max_inclusive": 160,
+            "min_inclusive": 120
+          }
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "absolute": 256
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_relative_threshold_filter",
+          "heightmap": "OCEAN_FLOOR_WG",
+          "max_inclusive": -13
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    }
+  }
+}

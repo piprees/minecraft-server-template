@@ -59,6 +59,20 @@ server {
         return 404 "not found";
     }
 
+    # The server resource pack (scripts/server-pack.py). The game client
+    # fetches it with ?sha1=<hash> on a stable path, so the query is the
+    # cache key at Cloudflare and nginx revalidates the file itself. A
+    # missing pack is a plain 404: the client then declines it and sees
+    # vanilla portals, where an HTML redirect would fail its hash check.
+    # ^~ keeps the .zip regex location below from taking these requests.
+    location ^~ /server-pack/ {
+        try_files $uri =404;
+        error_page 404 = @mod_not_found;
+        add_header Cache-Control "no-cache" always;
+        add_header X-Robots-Tag "noindex, nofollow" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
     # Packwiz auto-update index. The .toml metafiles are the update signal
     # for one-click instances - they must never be served stale (AGENTS.md
     # invariant). no-cache forbids reuse without revalidation but still

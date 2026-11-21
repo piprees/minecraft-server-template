@@ -1,0 +1,77 @@
+{
+ "slug": "the_crucible",
+ "targets": [
+  {
+   "key": "placeness.landformRegions.edgeKmPerKm2",
+   "op": ">=",
+   "value": 38.3,
+   "from": "broken: \"terrain that fights back\" (measured 42.57)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:cloud_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.adventure:root_hollows.columns? + biomeExpression.biomes.adventure:root_hollows.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:upside_down_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:bamboo_jungle",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:dark_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:jungle",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:lush_caves.columns? + biomeExpression.biomes.minecraft:lush_caves.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:mangrove_swamp",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomeRegions.largestPercent",
+   "op": ">=",
+   "value": 54.0,
+   "from": "broken: biome regions (W9f, measured 60.0)"
+  },
+  {
+   "key": "placeness.biomeRegions.specksPercent",
+   "op": "<=",
+   "value": 38.5,
+   "from": "broken: biome regions (W9f, measured 30.4)"
+  },
+  {
+   "key": "placeness.landformRegions.largestPercent",
+   "op": "<=",
+   "value": 12.2,
+   "from": "broken: the terrain stays broken (W9f, measured 7.2)"
+  }
+ ]
+}

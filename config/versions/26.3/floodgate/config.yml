@@ -1,0 +1,5 @@
+# Floodgate (26.3 list). discord-sync's player links depend on these two keys
+# (FLOODGATE_PREFIX): a Bedrock player is "." plus the gamertag, spaces as "_",
+# which no Java username can collide with.
+username-prefix: "."
+replace-spaces: true

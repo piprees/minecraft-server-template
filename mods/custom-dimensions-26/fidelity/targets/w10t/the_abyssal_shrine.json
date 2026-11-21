@@ -1,0 +1,68 @@
+{
+ "slug": "the_abyssal_shrine",
+ "targets": [
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "between",
+   "value": [
+    25,
+    60
+   ],
+   "from": "\"deep drowned hollows\""
+  },
+  {
+   "key": "surface.waterDepth.over12Percent",
+   "op": ">=",
+   "value": 40,
+   "from": "\"deep drowned hollows\", \"Guardians circle below\""
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:deep_ocean.placementPercent.water? + biomeExpression.biomes.minecraft:deep_cold_ocean.placementPercent.water?",
+   "op": ">=",
+   "value": 80,
+   "from": "\"drowned hollows\": the deep ocean biomes lie under water, not on islands"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:deep_ocean + surface.biomesPercent.minecraft:deep_cold_ocean",
+   "op": ">=",
+   "value": 20,
+   "from": "1.21.1 biomes deep_ocean, deep_cold_ocean"
+  },
+  {
+   "key": "landforms.sharesPercent.plateaus",
+   "op": ">=",
+   "value": 15,
+   "from": "\"plateau islands ringing\" the hollows; 1.21.1 continental_plateau"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:golden_skygrove",
+   "op": "<=",
+   "value": 5,
+   "from": "\"the sky above is indifferent\": no gold groves"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:deep_dark",
+   "op": "<=",
+   "value": 3,
+   "from": "1.21.1 deep_dark is a cave biome: below, not on the surface"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.25,
+   "from": "1.21.1 ambientLight 0.15: dim"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (a ring of plateaus round one hollow): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

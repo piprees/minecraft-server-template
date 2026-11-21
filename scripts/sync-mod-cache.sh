@@ -36,12 +36,14 @@ import json, pathlib, sys, time, urllib.parse, urllib.request
 
 root = pathlib.Path(sys.argv[1])
 apply_changes = sys.argv[2] == "1"
+sys.path.insert(0, str(root / "scripts"))
+import minecraft_version  # noqa: E402
 UA = {"User-Agent": "piprees/minecraft-server-template sync-mod-cache"}
 
 
 def server_pins():
     pins = {}
-    for raw in (root / "config/modrinth-mods.txt").read_text().splitlines():
+    for raw in minecraft_version.mod_list(root).read_text().splitlines():
         line = raw.split("#")[0].strip()
         if not line:
             continue
@@ -57,7 +59,7 @@ def server_pins():
 
 
 def client_pins():
-    manifest = json.loads((root / "modpack/adventure.mrpack.json").read_text())
+    manifest = json.loads(minecraft_version.manifest(root).read_text())
     cm = manifest["_clientMods"]
     pins = {}
     for key in ("required", "optional"):

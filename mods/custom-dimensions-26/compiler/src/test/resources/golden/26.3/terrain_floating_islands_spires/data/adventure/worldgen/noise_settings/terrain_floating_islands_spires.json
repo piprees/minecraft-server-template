@@ -1,0 +1,10 @@
+{
+  "base": "minecraft:floating_islands",
+  "changed": {
+    "noise_router": "sha1:7d0127edffeb6d775a54d48c8de84db997e9cedb",
+    "sea_level": 0
+  },
+  "removed": [
+    "debug_functions"
+  ]
+}

@@ -1,0 +1,550 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "sky",
+  "inspiredBy": "Paradise Lost's autumn forest: floating groves of gold-leaved trees.",
+  "differs": "Pairs with the maple woodland, but airborne and gold where vanilla's dappled forest is ground-bound and orange: gold-tinted round oaks with bee nests and gold poplars stand on islands of golden grass and podzol, leaf litter carpets the ground among golden dandelions, gold leaves drift down, the light and fog are warm gold, and the clouds drift below the islands.",
+  "climate": {
+    "temperature": [
+      0.2,
+      0.7
+    ],
+    "humidity": [
+      0.0,
+      0.6
+    ]
+  },
+  "palette": {
+    "top": "minecraft:grass_block",
+    "filler": "minecraft:dirt",
+    "cliffs": "minecraft:stone"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.overworld.forest"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "ambient": [
+              {
+                "type": "minecraft:bat",
+                "count": 8,
+                "weight": 10
+              }
+            ],
+            "creature": [
+              {
+                "type": "minecraft:sheep",
+                "count": 4,
+                "weight": 12
+              },
+              {
+                "type": "minecraft:pig",
+                "count": 4,
+                "weight": 10
+              },
+              {
+                "type": "minecraft:chicken",
+                "count": 4,
+                "weight": 10
+              },
+              {
+                "type": "minecraft:cow",
+                "count": 4,
+                "weight": 8
+              },
+              {
+                "type": "minecraft:wolf",
+                "count": 4,
+                "weight": 5
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:spider",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:zombie",
+                "count": 4,
+                "weight": 95
+              },
+              {
+                "type": "minecraft:zombie_villager",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:skeleton",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:creeper",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:slime",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 1
+                },
+                "weight": 10
+              },
+              {
+                "type": "minecraft:witch",
+                "count": 1,
+                "weight": 5
+              }
+            ],
+            "underground_water_creature": [
+              {
+                "type": "minecraft:glow_squid",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 4
+                },
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:yellow_poplar_leaves"
+            },
+            "probability": 0.002
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/cloud_height": 88.0,
+      "minecraft:visual/fog_color": "#f2d48a",
+      "minecraft:visual/sky_color": "#f4dc9a",
+      "minecraft:visual/cloud_color": "#fff2d6a0"
+    },
+    "carvers": [],
+    "downfall": 0.6,
+    "effects": {
+      "grass_color": "#c9b94a",
+      "foliage_color": "#e3b02c",
+      "dry_foliage_color": "#d6a22a",
+      "water_color": "#5fa0d0"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [
+        "~podzol_patches"
+      ],
+      [],
+      [],
+      [
+        "minecraft:ore_coal_upper",
+        "minecraft:ore_iron_upper"
+      ],
+      [],
+      [],
+      [
+        "~gold_oaks",
+        "~gold_poplars",
+        "~golden_dandelions",
+        "minecraft:patch_grass_forest"
+      ],
+      [
+        "minecraft:freeze_top_layer"
+      ]
+    ],
+    "has_precipitation": true,
+    "temperature": 0.7
+  },
+  "features": {
+    "gold_oaks": {
+      "feature": {
+        "type": "minecraft:tree",
+        "below_trunk_provider": "minecraft:soil_beneath_tree",
+        "decorators": [
+          {
+            "type": "minecraft:beehive",
+            "probability": 0.08
+          },
+          {
+            "type": "minecraft:place_on_ground",
+            "block_state_provider": {
+              "type": "minecraft:weighted",
+              "entries": [
+                {
+                  "data": {
+                    "id": "minecraft:leaf_litter",
+                    "properties": {
+                      "facing": "north",
+                      "segment_amount": "1"
+                    }
+                  },
+                  "weight": 1
+                },
+                {
+                  "data": {
+                    "id": "minecraft:leaf_litter",
+                    "properties": {
+                      "facing": "north",
+                      "segment_amount": "2"
+                    }
+                  },
+                  "weight": 1
+                },
+                {
+                  "data": {
+                    "id": "minecraft:leaf_litter",
+                    "properties": {
+                      "facing": "north",
+                      "segment_amount": "3"
+                    }
+                  },
+                  "weight": 1
+                },
+                {
+                  "data": {
+                    "id": "minecraft:leaf_litter",
+                    "properties": {
+                      "facing": "east",
+                      "segment_amount": "1"
+                    }
+                  },
+                  "weight": 1
+                },
+                {
+                  "data": {
+                    "id": "minecraft:leaf_litter",
+                    "properties": {
+                      "facing": "east",
+                      "segment_amount": "2"
+                    }
+                  },
+                  "weight": 1
+                },
+                {
+                  "data": {
+                    "id": "minecraft:leaf_litter",
+                    "properties": {
+                      "facing": "east",
+                      "segment_amount": "3"
+                    }
+                  },
+                  "weight": 1
+                },
+                {
+                  "data": {
+                    "id": "minecraft:leaf_litter",
+                    "properties": {
+                      "facing": "south",
+                      "segment_amount": "1"
+                    }
+                  },
+                  "weight": 1
+                },
+                {
+                  "data": {
+                    "id": "minecraft:leaf_litter",
+                    "properties": {
+                      "facing": "south",
+                      "segment_amount": "2"
+                    }
+                  },
+                  "weight": 1
+                },
+                {
+                  "data": {
+                    "id": "minecraft:leaf_litter",
+                    "properties": {
+                      "facing": "south",
+                      "segment_amount": "3"
+                    }
+                  },
+                  "weight": 1
+                },
+                {
+                  "data": {
+                    "id": "minecraft:leaf_litter",
+                    "properties": {
+                      "facing": "west",
+                      "segment_amount": "1"
+                    }
+                  },
+                  "weight": 1
+                },
+                {
+                  "data": {
+                    "id": "minecraft:leaf_litter",
+                    "properties": {
+                      "facing": "west",
+                      "segment_amount": "2"
+                    }
+                  },
+                  "weight": 1
+                },
+                {
+                  "data": {
+                    "id": "minecraft:leaf_litter",
+                    "properties": {
+                      "facing": "west",
+                      "segment_amount": "3"
+                    }
+                  },
+                  "weight": 1
+                }
+              ]
+            },
+            "height": 2,
+            "radius": 3,
+            "tries": 48
+          }
+        ],
+        "foliage_placer": {
+          "type": "minecraft:blob_foliage_placer",
+          "height": 3,
+          "offset": 0,
+          "radius": 3
+        },
+        "foliage_provider": {
+          "id": "minecraft:oak_leaves",
+          "properties": {
+            "distance": "7",
+            "persistent": "false",
+            "waterlogged": "false"
+          }
+        },
+        "ignore_vines": true,
+        "minimum_size": {
+          "type": "minecraft:two_layers_feature_size"
+        },
+        "trunk_placer": {
+          "type": "minecraft:straight_trunk_placer",
+          "base_height": 4,
+          "height_rand_a": 1,
+          "height_rand_b": 0
+        },
+        "trunk_provider": {
+          "id": "minecraft:oak_log",
+          "properties": {
+            "axis": "y"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:weighted_list",
+            "distribution": [
+              {
+                "data": 5,
+                "weight": 3
+              },
+              {
+                "data": 7,
+                "weight": 1
+              }
+            ]
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:would_survive",
+            "state": "minecraft:oak_sapling"
+          }
+        }
+      ]
+    },
+    "gold_poplars": {
+      "feature": "minecraft:yellow_poplar_leaf_litter",
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:weighted_list",
+            "distribution": [
+              {
+                "data": 1,
+                "weight": 2
+              },
+              {
+                "data": 2,
+                "weight": 1
+              }
+            ]
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:would_survive",
+            "state": "minecraft:poplar_sapling"
+          }
+        }
+      ]
+    },
+    "podzol_patches": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 4,
+          "min_inclusive": 2
+        },
+        "state_provider": {
+          "id": "minecraft:podzol",
+          "properties": {
+            "snowy": "false"
+          }
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:grass_block",
+            "minecraft:dirt"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "golden_dandelions": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "id": "minecraft:golden_dandelion"
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 32
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 3,
+            "min": -3,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:grass_block",
+                  "minecraft:podzol"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

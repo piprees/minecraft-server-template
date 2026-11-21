@@ -1,0 +1,9 @@
+{
+ "slug": "the_end",
+ "targets": [
+  {"key": "surface.voidPercent", "op": "between", "value": [35, 70], "from": "\"The end\": islands over the void"},
+  {"key": "placeness.islands.sizesHa.max", "op": ">=", "value": 100, "from": "place kind place: the End's large islands, not only islets"},
+  {"key": "placeness.biomesPercent.minecraft:end_highlands + placeness.biomesPercent.minecraft:end_midlands", "op": ">=", "value": 30, "from": "end-stone highlands and midlands over the border"},
+  {"key": "placeness.islands.dominantBiomePercent", "op": ">=", "value": 40, "from": "place kind place, read per island (the w10t largest-region form cannot hold on islands parted by void, and vanilla rings each island highlands to barrens)"}
+ ]
+}

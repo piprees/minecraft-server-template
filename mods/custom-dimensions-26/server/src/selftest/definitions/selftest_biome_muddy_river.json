@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture and showcase: the biome library's muddy river filling a whole level on the rivers terrain, low land cut by river channels just below sea level, each holding water to sea level, so its brown water, mud banks and reeds line a channel, for the biomes section's per-biome checks, renders and screenshots.",
+  "seed": 5,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "single_biome",
+    "biome": "adventure:muddy_river"
+  },
+  "terrain": {
+    "base": "rivers",
+    "params": {
+      "width": 0.035,
+      "depth": 6,
+      "bankWidth": 0.08,
+      "coast": -0.5,
+      "landHeight": 74,
+      "relief": 2,
+      "roughness": 0.15
+    }
+  },
+  "borders": {
+    "player": 512
+  }
+}

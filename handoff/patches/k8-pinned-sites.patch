@@ -1,0 +1,994 @@
+# K8 (pinned place sites), unfinished: apply on top of commit 8719275e64b11453e9b6621dc3830322075599d8 with: git am handoff/patches/k8-pinned-sites.patch (then rebase onto the branch head).
+# State and remaining steps: handoff/evidence/k8/STATE.md
+From 202bef515040f79df9c78af1ac48586bbb50daef Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 11 Nov 2026 16:29:39 +0000
+Subject: [PATCH 1/2] wip(cd26): pinned place sites, unfinished [skip ci]
+
+A pinned place point (an at site, the core centre) is held 0.1 border
+units inside its place: exact bisector check, a capacity-constrained
+Lloyd hold for at pins, and a core heart (a disc of its share round the
+centre, the others angular wedges round it) where no power cell can hold
+the centre. Four K7 drafts use it; docs, schema and skills describe the
+core heart.
+
+Proven: before the last change the full build was green (1368 tests)
+with goldens unchanged. Unproven: the last change, generalising the heart
+to any single at pin (hub index, off-centre wedges) to cure the K6
+the_sunken_temple regression (a 50% place pinned at the centre refused by
+the margin). It compiles; PlaceLayoutTest was stopped before it finished.
+State and next steps: mods/custom-dimensions-26/fidelity/drafts/k8/STATE.md.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01YLnzTHFe7j88jnTnken5rK
+---
+ .../custom-dimension-authoring/SKILL.md       |   2 +-
+ .../skills/worldgen-tuning/SKILL.md           |   2 +-
+ docs/design/rebuild-26/placeness.md           |   2 +-
+ docs/design/rebuild-26/worldgen.md            |   2 +-
+ .../compiler/datapack/PlaceLayout.java        |  67 +++++-
+ .../compiler/terrain/PlaceField.java          | 215 +++++++++++++++++-
+ .../compiler/datapack/PlaceLayoutTest.java    | 142 ++++++++++++
+ .../fidelity/drafts/k7/README.md              |  12 +-
+ .../drafts/k7/the_emberglass_foundry.json     |   6 +
+ .../fidelity/drafts/k7/the_forged_depths.json |   2 +-
+ .../fidelity/drafts/k7/the_gilded_pit.json    |   7 +-
+ .../drafts/k7/the_teal_corruption.json        | 168 ++++++++++++++
+ .../fidelity/drafts/k8/STATE.md               |  40 ++++
+ .../schema/definition.schema.json             |   4 +-
+ 14 files changed, 648 insertions(+), 23 deletions(-)
+ create mode 100644 mods/custom-dimensions-26/fidelity/drafts/k7/the_teal_corruption.json
+ create mode 100644 mods/custom-dimensions-26/fidelity/drafts/k8/STATE.md
+
+diff --git a/cutover/files/dot-claude/skills/custom-dimension-authoring/SKILL.md b/cutover/files/dot-claude/skills/custom-dimension-authoring/SKILL.md
+index ec1f2d09..3a3da5cb 100644
+--- a/cutover/files/dot-claude/skills/custom-dimension-authoring/SKILL.md
++++ b/cutover/files/dot-claude/skills/custom-dimension-authoring/SKILL.md
+@@ -28,7 +28,7 @@ Sources of truth, in order: `mods/custom-dimensions-26/schema/definition.schema.
+ | `generator` | `type`: `noise` (with `preset`: `overworld`, `large_biomes`, `amplified`, `caves`, `floating_islands`, `nether`, `end`; `endIsland` for the End), `checkerboard` (`cellScale`, `voidBiomes`: biomes whose cells carry no terrain), `single_biome` (`biome`, `preset`), `flat` (`layers`, `biome`), `void`, `clone` (`of`) |
+ | `terrain` | `base` (a library terrain: the land terrains `continents`, `erosion`, `ridges`, `terraces`, `canyons`, `rivers`, `islands`, `voids`, `shattered`, `spires`; over a void `floating_islands`, `basin_islands`; `roofed`, the only one the `caves` and `nether` presets take; `end`, the only one the `end` preset takes), `setting` (`gentle`, `default`, `extreme`), `params` (per terrain in the schema's `$defs/terrain_<base>`; `crust` on `continents` and `islands` keeps that many blocks under the ground free of noise caves; `tiers`, `tierSpacing`, `tierGap`, `tierShrink`, `tierCoverage` on `floating_islands` and `basin_islands` stack island layers with open sky between; `flatness`, `terraces`, `terraceStep` on `floating_islands` flatten and step the island tops; `spires`, `spireHeight`, `spireThickness`, `spireTaper` on `floating_islands` raise spires on the lowest tier's tops, several to a broad island; `hollowDepth` and `ringLakes` on `basin_islands` under a `ring` layout hold the ring's hollow as one lake), `scale` (0.25–4), `heightMultiplier` (0.25–3), `scales` (`continents`, `erosion`, `ridges`, `climate`; each 0.25–4; without a `base`, `caves`, `nether` and `end` take `climate` alone), `climateShift` (`temperature`, `vegetation`, each −1–1: added to the router's climate, a shift and not a clamp; region layouts rank it away), `climateWarp` (`blocks` 0–1024, `wavelength` 64–4096: biome boundaries wander by about `blocks`), `layout` (`radial`, `ring`, `linear`: a shape added to continentalness; on `roofed` it places the pits, on `end` it gathers the islands), `landShare` (0–1: that share of the player border is land for any seed, measured when the level loads), `floor` (`spires` only: `land`, `sea`, `void`, `islands`) |
+ | `biomes` | Vanilla 26.3 ids and our library's (`<namespace>:<id>`); an entry may carry a `climate` box |
+-| `biomeLayout` | `mode` (`regions` lays the list out as large regions), `axes`, `weights`, `roles`, `over` (`land`: rank the regions over the islands, not the void), `sea`, `places` (`groups` name → biomes, `arrangement` `auto`/`ring`/`sectors`/`bands`/`core`, `direction` 0–360 compass degrees, `at` place → [x, z] blocks, `neighbours` and `apart` pairs of places, `warp` `blocks` 0–1024 up to 0.15 of `wavelength` 64–4096: each land biome or group one contiguous region of the border, share by weight; at most 16; temperature or humidity as the first axis, which no bound biome may narrow) |
++| `biomeLayout` | `mode` (`regions` lays the list out as large regions), `axes`, `weights`, `roles`, `over` (`land`: rank the regions over the islands, not the void), `sea`, `places` (`groups` name → biomes, `arrangement` `auto`/`ring`/`sectors`/`bands`/`core` (the first place at the centre; smaller than another, a heart: a disc ringed by wedges), `direction` 0–360 compass degrees, `at` place → [x, z] blocks (held inside its place by a tenth of the radius, or refused), `neighbours` and `apart` pairs of places, `warp` `blocks` 0–1024 up to 0.15 of `wavelength` 64–4096: each land biome or group one contiguous region of the border, share by weight; at most 16; temperature or humidity as the first axis, which no bound biome may narrow) |
+ | `liquids` | `seaLevel`, `lavaLevel`, `defaultFluid`, `aquifers` (`on`, `off`, `flooded`, `dry`), `basins` (`basin_islands` only) |
+ | `materials` | `defaultBlock`, `top`, `filler`, `deep`, `cliffs`, `beaches`, `ceilings`, per-biome `biomes` overrides, and `bands`: palettes by depth, each holding below its `below` y, deepest first, over the per-biome palettes |
+ | `carvers` | Vanilla carvers by name (`canyon`, `cave`, `cave_extra_underground`, `nether_cave`): `false` removes one from every biome here, `true` adds it |
+diff --git a/cutover/files/dot-claude/skills/worldgen-tuning/SKILL.md b/cutover/files/dot-claude/skills/worldgen-tuning/SKILL.md
+index 1d9b2d96..d28c4798 100644
+--- a/cutover/files/dot-claude/skills/worldgen-tuning/SKILL.md
++++ b/cutover/files/dot-claude/skills/worldgen-tuning/SKILL.md
+@@ -17,7 +17,7 @@ Every dimension runs on vanilla's noise generator with settings `custom-dimensio
+ | Broader or tighter features overall | `terrain.scale` (0.25–4) | Stretches every terrain noise and the biome climate |
+ | Broader continents, ranges or valleys only | `terrain.scales.continents`, `.ridges`, `.erosion` (each 0.25–4) | Multiplies `scale` per router noise |
+ | Fewer, larger biome regions | `terrain.scales.climate`, or `biomeLayout: {"mode": "regions"}` with `weights`, `roles` and, over a void, `over: land` | [placeness.md](../../../docs/design/rebuild-26/placeness.md) § Biome regions |
+-| One region per biome, or a few places meeting | `biomeLayout.places` (with `mode: regions`): each land biome or named `groups` entry is one contiguous region of the border, its share its weight; `arrangement` `auto` (the seed picks), `ring`, `sectors`, `bands`, `core`, or `at` sites in blocks; `neighbours` and `apart` pairs; `warp` `blocks` up to 0.15 of `wavelength` | Survey `placeness.biomeRegions.major` should equal the places; at most 16 places; stretching `scales.climate` no longer moves the regions, only a group's inner mix |
++| One region per biome, or a few places meeting | `biomeLayout.places` (with `mode: regions`): each land biome or named `groups` entry is one contiguous region of the border, its share its weight; `arrangement` `auto` (the seed picks), `ring`, `sectors`, `bands`, `core` (a small first place becomes a heart: a disc at the centre ringed by wedges), or `at` sites in blocks, each held inside its place by a tenth of the radius or refused; `neighbours` and `apart` pairs; `warp` `blocks` up to 0.15 of `wavelength` | Survey `placeness.biomeRegions.major` should equal the places; at most 16 places; stretching `scales.climate` no longer moves the regions, only a group's inner mix |
+ | Taller or flatter | `terrain.heightMultiplier` (0.25–3) and the shared land parameters `landHeight`, `relief`, `roughness`, `coast`, `seaFloor` | A low `landHeight` pairs with a low `liquids.seaLevel` |
+ | A world composed round a point | `terrain.layout` (`radial`, `ring`, `linear`, with `strength`) | A layout that lowers a land terrain's centre floods it ([T203](../../../TROUBLESHOOTING.md#t203)); on `roofed` it places the pits, on `end` and the sky terrains it gathers the islands |
+ | A set share of land, whatever the seed | `terrain.landShare` (0–1) | Measured over the player border when the level loads; the overworld presets and the land terrains, not islands, roofed, End or sky terrains |
+diff --git a/docs/design/rebuild-26/placeness.md b/docs/design/rebuild-26/placeness.md
+index aefe988a..8c60bef8 100644
+--- a/docs/design/rebuild-26/placeness.md
++++ b/docs/design/rebuild-26/placeness.md
+@@ -48,7 +48,7 @@ Both live in `terrain`, with or without a `base`; without one they shape the `ov
+ - With two axes the regional biomes fill columns along the first axis in list order and rows along the second, the direction alternating by column: consecutive biomes in the list share a border. Put a biome between the two it should sit between.
+ - Region size follows the axes' own noise: `terrain.scales.climate` stretches temperature and humidity for fewer, larger regions. More regional biomes means more, smaller regions.
+ - Zones keep their channels over the regions; a zone with its own `biomes` reads the raw climate.
+-- **Places** (`biomeLayout.places`): each regional land biome, or each named group, takes one contiguous region of the border whose share is its weight, cut by a weighted Voronoi diagram instead of a climate noise ([worldgen.md](worldgen.md) § Climate shift and warp, the places paragraph). A bordered world then reads as exactly as many places as the layout names: `biomeRegions.major` equals the number of places on the ground, `largestPercent` and `top3Percent` follow the weights (top three of weights 3, 2, 1, 1 hold 6/7), and `specksPercent` stays under half a percent (corners where several places meet). A group mixes its biomes inside its place on the second axis's noise, so a place can be varied without becoming a scatter; its members count as separate biome regions, so the place's measures are its group's, `top3Percent` over places is the sum of its groups. Over a void or an ocean the places cut the border and the land inside each takes its biome: `islands.dominantBiomePercent` approaches 100 except for islands a place edge crosses (about the share of islands wider than the warp straddling an edge), and `landBiomeRegions` counts each place's islands as its own regions, so on scattered islands `landBiomeRegions.major` reads the islands, not the places; judge a sky world's places by `biomesPercent` per place group and `islands.dominantBiomePercent`. Each land biome's share of the land equals its weight only where the land is spread evenly; a place over sparse islands holds its share of the border, not of the land. Roles keep their areas: the sea, shores and rivers take each place's own members where a group names one (a warm ocean in a desert place) and the rest everywhere. `terrain.scales.climate` no longer moves the regions, only a group's inner mix. Choose `at` or an arrangement from the description (a heartland at the centre: `core` or `at`; a world that runs from one climate to another: `bands`; places round a hub: `ring` or `sectors`), otherwise leave it automatic so rolled seeds try different arrangements at the same shares.
++- **Places** (`biomeLayout.places`): each regional land biome, or each named group, takes one contiguous region of the border whose share is its weight, cut by a weighted Voronoi diagram instead of a climate noise ([worldgen.md](worldgen.md) § Climate shift and warp, the places paragraph). A bordered world then reads as exactly as many places as the layout names: `biomeRegions.major` equals the number of places on the ground, `largestPercent` and `top3Percent` follow the weights (top three of weights 3, 2, 1, 1 hold 6/7), and `specksPercent` stays under half a percent (corners where several places meet). A group mixes its biomes inside its place on the second axis's noise, so a place can be varied without becoming a scatter; its members count as separate biome regions, so the place's measures are its group's, `top3Percent` over places is the sum of its groups. Over a void or an ocean the places cut the border and the land inside each takes its biome: `islands.dominantBiomePercent` approaches 100 except for islands a place edge crosses (about the share of islands wider than the warp straddling an edge), and `landBiomeRegions` counts each place's islands as its own regions, so on scattered islands `landBiomeRegions.major` reads the islands, not the places; judge a sky world's places by `biomesPercent` per place group and `islands.dominantBiomePercent`. Each land biome's share of the land equals its weight only where the land is spread evenly; a place over sparse islands holds its share of the border, not of the land. Roles keep their areas: the sea, shores and rivers take each place's own members where a group names one (a warm ocean in a desert place) and the rest everywhere. `terrain.scales.climate` no longer moves the regions, only a group's inner mix. A site the author fixes stays inside its own place by a tenth of the border's radius: an `at` site or a `core` centre is where a spawn or a portal arrival can stand. A small heart (it came through at the centre; the forge at spawn) is `core` with the heart first in the biome list: a first place smaller than another becomes a disc round the centre, the rest wedges round it; `at` at the centre cannot hold a place smaller than a neighbour of 45% or more (convex cells), and the compiler says so. Choose `at` or an arrangement from the description (a heartland at the centre: `core` or `at`; a world that runs from one climate to another: `bands`; places round a hub: `ring` or `sectors`), otherwise leave it automatic so rolled seeds try different arrangements at the same shares.
+ 
+ ## Choosing them
+ 
+diff --git a/docs/design/rebuild-26/worldgen.md b/docs/design/rebuild-26/worldgen.md
+index aaa8160d..ec5752ac 100644
+--- a/docs/design/rebuild-26/worldgen.md
++++ b/docs/design/rebuild-26/worldgen.md
+@@ -65,7 +65,7 @@ A canyon floor lies `depth` below the land at its upper reaches. A low-frequency
+ 
+ `climateShift` adds `temperature` and `vegetation` to the router's values after any stretch, on a base terrain, a preset's own terrain, and the `nether`, `caves` and `end` presets alike. It is a shift, not a clamp: a multi-noise biome source picks the nearest climate box, so a biome whose box lies past the shifted range takes less of the map or none, and the box at the warm or cold end takes all that lies beyond it (+0.3 on temperature warms a cold seed by about one vanilla band; −0.5 freezes all but the hottest land). Region layouts and the biome lists of terrains over a void rank the level's own climate over the border (`ClimateRegions`), so a shift leaves their shares unchanged; it acts on the vanilla multi-noise sources, such as the overworld preset's own. `climateWarp` moves every shifted noise in the temperature and vegetation by the `warp_x` and `warp_z` noises, two deviations of which are `blocks`, in features `wavelength` blocks across (vanilla's shifted noise samples at block × `xz_scale` + shift, so a move of b blocks is b × `xz_scale`). Every climate boundary then wanders like an ecotone: region cuts, which a broad `scales.climate` makes ruler-straight across several islands, and band edges alike, with no biome's share changed. It does not touch zones, whose own edge wanders by `edgeJitter`.
+ 
+-`biomeLayout.places` replaces the router's first region axis (temperature, or humidity when `axes` lead with it) with a place field: one value per place, `-1 + (2i + 1) / n` for place `i` of `n`, so each place's biomes take one column of that axis. The field is a power diagram over one site per place in border units (block / radius over the smaller of the player and generation borders): a point belongs to the place whose `|p - site|² - weight` is least. Its cells are convex, so each place is one region of the square border; the weights are solved on a 256-cell grid until every share is within 0.4 percentage points of its weight. In vanilla functions (`<namespace>:places/<slug>/`) each place `i` contributes `floor((|p - site|² - weight + lift) × scale) × 16 + i`, a `min` chain takes the least and `least - 16 × floor(least / 16)` reads `i` back: every term is an integer below 2^24, so the game's float samplers compute it exactly, and the diagram is resolved to 1/scale (a power of two, 2^13–2^15) border units squared. That is 11 nodes a place plus 7, and with warp and seed choice about 13 n + 40 nodes evaluated per biome lookup (one arrangement's chain runs); n is at most 16. The sampling point moves by the `warp_x` and `warp_z` noises (`climateWarp`'s), two deviations of which are `warp.blocks`, over `warp.wavelength`, tapered to nothing over the last 8 × blocks inside the border, so the map is the identity on the border's edge. With blocks at most 0.15 of the wavelength no point moves faster than about 0.7 of its neighbours (measured on the stand-in noise of the unit tests), so the warped map stays one-to-one and every place one region; sharp corners where several places meet leave specks of a cell or two, under 0.5% of the border. Automatic sites are random points relaxed towards their cells' centroids (rounder places), the places assigned to them by a hill climb that keeps `neighbours` touching, `apart` apart and as many consecutive places as it can sharing a border; four such layouts are solved per definition, and two `xz_scale` 0 noises, one constant per level seed, choose the layout and one of the square's eight symmetries (`range_choice` at the noise's octiles), so the roller's candidate seeds and the server see the same arrangement and every arrangement holds the same shares. `at` and the named arrangements do not vary with the seed.
++`biomeLayout.places` replaces the router's first region axis (temperature, or humidity when `axes` lead with it) with a place field: one value per place, `-1 + (2i + 1) / n` for place `i` of `n`, so each place's biomes take one column of that axis. The field is a power diagram over one site per place in border units (block / radius over the smaller of the player and generation borders): a point belongs to the place whose `|p - site|² - weight` is least. Its cells are convex, so each place is one region of the square border; the weights are solved on a 256-cell grid until every share is within 0.4 percentage points of its weight. In vanilla functions (`<namespace>:places/<slug>/`) each place `i` contributes `floor((|p - site|² - weight + lift) × scale) × 16 + i`, a `min` chain takes the least and `least - 16 × floor(least / 16)` reads `i` back: every term is an integer below 2^24, so the game's float samplers compute it exactly, and the diagram is resolved to 1/scale (a power of two, 2^13–2^15) border units squared. That is 11 nodes a place plus 7, and with warp and seed choice about 13 n + 40 nodes evaluated per biome lookup (one arrangement's chain runs); n is at most 16. The sampling point moves by the `warp_x` and `warp_z` noises (`climateWarp`'s), two deviations of which are `warp.blocks`, over `warp.wavelength`, tapered to nothing over the last 8 × blocks inside the border, so the map is the identity on the border's edge. With blocks at most 0.15 of the wavelength no point moves faster than about 0.7 of its neighbours (measured on the stand-in noise of the unit tests), so the warped map stays one-to-one and every place one region; sharp corners where several places meet leave specks of a cell or two, under 0.5% of the border. Automatic sites are random points relaxed towards their cells' centroids (rounder places), the places assigned to them by a hill climb that keeps `neighbours` touching, `apart` apart and as many consecutive places as it can sharing a border; four such layouts are solved per definition, and two `xz_scale` 0 noises, one constant per level seed, choose the layout and one of the square's eight symmetries (`range_choice` at the noise's octiles), so the roller's candidate seeds and the server see the same arrangement and every arrangement holds the same shares. `at` and the named arrangements do not vary with the seed. A site the author fixes is held: each `at` site, and the centre under `core`, lies at least `PIN_MARGIN` (0.1 border units, a tenth of the radius: 68 blocks on a 683-block border) inside its own place, measured exactly from the power bisectors (`PlaceField.reach`), so a spawn or a portal arrival at the site stands inside the place under the default warp of 0.05 border units. A power cell need not contain its site, so where an `at` site is not held the sites move by a capacity-constrained Lloyd iteration (`PlaceField.hold`): each pinned site by the gap from its cell's centroid to the pin, each free site half-way to its centroid, the weights re-solved each round, at most 30 rounds; the compiler refuses the definition, naming the place and the place that reaches over it, when that does not hold. A convex cell clear of a disc of radius m round the centre holds at most (1 − m) / 2 of the square, so no power diagram keeps a small place at the centre beside a neighbour of 45% or more. `core` solves its even ring first and keeps it where the centre holds (every core whose first place is its largest); otherwise the first place is a heart: the disc of radius √(4 share / π) round the centre, its share exactly, and the others wedges from the centre clockwise in list order, the first centred on `direction`, their bearings integrated so each holds its share of the square less the disc. Every wedge meets the heart and reaches the border, so each place is one region. The heart's term is `floor(clamp(|p|² / r², 0, 1)) × (2^24 − 16)`, 0 inside the disc; a wedge's is `floor(clamp(−m × 2^20, 0, 1)) × (2^24 − 16) + k`, m the lesser (span up to 180°) or greater of the point's signed distances to the two bounding rays; the same `min` chain and remainder read the place back, with the node types of the power chain (about 15 nodes a wedge plus 16). A heart narrower than the margin, or within it of the border, is refused.
+ 
+ On `floating_islands` and `basin_islands` `terrain.layout` acts on coverage: its shape times 3 × `strength` deviations moves the islands noise (and on `basin_islands` the lake masses' noise), so `radial` at strength 1 is one mass or a tight cluster round `centre` with an empty sky past `radius` + `falloff`, and `ring` a ring of islands or masses round a hollow. Every terrain over a void also has a place cue, `<prefix>/place`: -1 over the void, -0.4 over a basin's open water, 0.5 on land (the islands noise's core above 0.1, the mass's rim). It becomes the router's continentalness when the biome layout ranks over land (`biomeLayout.over: land`) or gives a biome the `basin` role, and the islands' top (`<prefix>/island_top`) becomes the router's depth, (top − y) / 128, when a biome has the `underside` role.
+ 
+diff --git a/mods/custom-dimensions-26/compiler/src/main/java/com/customdimensions/compiler/datapack/PlaceLayout.java b/mods/custom-dimensions-26/compiler/src/main/java/com/customdimensions/compiler/datapack/PlaceLayout.java
+index f973d00d..5a2e4464 100644
+--- a/mods/custom-dimensions-26/compiler/src/main/java/com/customdimensions/compiler/datapack/PlaceLayout.java
++++ b/mods/custom-dimensions-26/compiler/src/main/java/com/customdimensions/compiler/datapack/PlaceLayout.java
+@@ -172,18 +172,53 @@ public final class PlaceLayout {
+             };
+             PlaceField.Arrangement a = PlaceField.solve(sites[0], sites[1], shares, null, false, PlaceField.SOLVE_GRID);
+             String where = allAt && "auto".equals(arrangement) ? "the sites biomeLayout.places.at gives" : "the " + arrangement + " arrangement";
++            if ("core".equals(arrangement) && (a == null || PlaceField.unheld(a, centre(n)) >= 0)) {
++                a = PlaceField.heart(shares, 0, 0, 0, direction);
++                if (a == null || !oneRegionEach(a)) {
++                    throw error(slug, "biomeLayout.places: the core arrangement cannot keep " + names.get(0) + " (" + percent(shares[0])
++                            + ") at the centre with " + blocks(radius) + " blocks round it while every place holds its share; give it a bigger share, "
++                            + "or lay the places out another way");
++                }
++            }
++            if (allAt && a != null) {
++                PlaceField.Arrangement held = PlaceField.hold(a, shares, at, PlaceField.SOLVE_GRID);
++                if (held == null) throw unheld(slug, a, PlaceField.unheld(a, at), at, names, shares, radius);
++                a = held;
++            }
+             if (a == null) throw error(slug, "biomeLayout.places: " + where + " cannot give every place its share; move the sites apart");
+             String broken = PlaceField.broken(PlaceField.adjacency(a.labels(PlaceField.SOLVE_GRID), PlaceField.SOLVE_GRID, n), hints);
+             if (broken != null) throw error(slug, "biomeLayout.places: in " + where + " " + named(broken, names));
+             arrangements.add(a);
+         } else {
+             PlaceField.Search search = PlaceField.search(shares, at, hints, seed(slug, names));
++            int unheld = search.refusal() != null && search.refusal().startsWith(PlaceField.PIN_REFUSAL)
++                    ? Integer.parseInt(search.refusal().substring(PlaceField.PIN_REFUSAL.length())) : -1;
+             for (PlaceField.Arrangement found : search.arrangements()) {
+-                PlaceField.Arrangement a = PlaceField.refine(found, shares, PlaceField.SOLVE_GRID);
++                PlaceField.Arrangement refined = PlaceField.refine(found, shares, PlaceField.SOLVE_GRID);
++                PlaceField.Arrangement a = PlaceField.hold(refined, shares, at, PlaceField.SOLVE_GRID);
++                if (a == null && refined != null) unheld = PlaceField.unheld(refined, at);
+                 if (a != null && PlaceField.broken(PlaceField.adjacency(a.labels(PlaceField.SOLVE_GRID), PlaceField.SOLVE_GRID, n), hints) == null) {
+                     arrangements.add(a);
+                 }
+             }
++            int pins = 0, pin = -1;
++            for (int p = 0; p < n; p++) if (at[p] != null) {
++                pins++;
++                pin = p;
++            }
++            if (arrangements.isEmpty() && unheld >= 0 && pins == 1) {
++                PlaceField.Arrangement heart = PlaceField.heart(shares, pin, at[pin][0], at[pin][1], direction);
++                if (heart != null && oneRegionEach(heart)
++                        && PlaceField.broken(PlaceField.adjacency(heart.labels(PlaceField.SOLVE_GRID), PlaceField.SOLVE_GRID, n), hints) == null) {
++                    arrangements.add(heart);
++                }
++            }
++            if (arrangements.isEmpty() && unheld >= 0) {
++                int p = unheld;
++                throw error(slug, "biomeLayout.places: no automatic arrangement keeps " + names.get(p) + " (" + percent(shares[p]) + ") round its site in "
++                        + "biomeLayout.places.at with " + blocks(radius) + " blocks to spare while every place holds its share; give it a bigger share, "
++                        + "or move its site away from the border and the other sites; a place at the centre can be the heart of a core");
++            }
+             if (arrangements.isEmpty()) {
+                 throw error(slug, "biomeLayout.places: no automatic arrangement holds the hints: " + named(search.refusal() == null
+                         ? "no arrangement gives every place its share" : search.refusal(), names));
+@@ -193,6 +228,36 @@ public final class PlaceLayout {
+                 warp(slug, spec), axis, allAt && "auto".equals(arrangement) ? "at" : arrangement);
+     }
+ 
++    /** Only the centre anchored, for place 0 of {@code n}. */
++    private static double[][] centre(int n) {
++        double[][] out = new double[n][];
++        out[0] = new double[]{0, 0};
++        return out;
++    }
++
++    private static boolean oneRegionEach(PlaceField.Arrangement a) {
++        for (int count : PlaceField.regions(a.labels(PlaceField.SOLVE_GRID), PlaceField.SOLVE_GRID, a.size())) if (count != 1) return false;
++        return true;
++    }
++
++    /** The refusal for place {@code p} of {@code a}, whose {@code at} site another place reaches over. */
++    private static IllegalArgumentException unheld(String slug, PlaceField.Arrangement a, int p, double[][] at, List<String> names, double[] shares,
++                                                   int radius) {
++        int over = PlaceField.reach(a, p, at[p][0], at[p][1], PlaceField.PIN_MARGIN);
++        return error(slug, "biomeLayout.places: " + names.get(p) + " (" + percent(shares[p]) + ") does not hold " + blocks(radius)
++                + " blocks round its site in biomeLayout.places.at: " + names.get(over) + " (" + percent(shares[over]) + ") reaches over it; give "
++                + names.get(p) + " a bigger share, move the other sites further from it, or pin fewer sites; a place at the centre can be the heart of a core");
++    }
++
++    private static String percent(double share) {
++        return Math.round(share * 1000) / 10.0 + "%";
++    }
++
++    /** {@link PlaceField#PIN_MARGIN} in blocks over a {@code radius}-block border. */
++    static long blocks(int radius) {
++        return Math.round(PlaceField.PIN_MARGIN * radius);
++    }
++
+     /** A deterministic seed for {@code slug}'s automatic search. */
+     static long seed(String slug, List<String> names) {
+         long h = 1125899906842597L;
+diff --git a/mods/custom-dimensions-26/compiler/src/main/java/com/customdimensions/compiler/terrain/PlaceField.java b/mods/custom-dimensions-26/compiler/src/main/java/com/customdimensions/compiler/terrain/PlaceField.java
+index 69c3240a..2d2d8e4b 100644
+--- a/mods/custom-dimensions-26/compiler/src/main/java/com/customdimensions/compiler/terrain/PlaceField.java
++++ b/mods/custom-dimensions-26/compiler/src/main/java/com/customdimensions/compiler/terrain/PlaceField.java
+@@ -37,19 +37,47 @@ public final class PlaceField {
+     static final int SEARCH_GRID = 64;
+     /** Largest share error the solve accepts on {@link #SOLVE_GRID}. */
+     public static final double SHARE_TOLERANCE = 0.004;
++    /** Border units a pinned site's cell reaches round it at least, so a spawn or an arrival at the site stands well inside its place. */
++    public static final double PIN_MARGIN = 0.1;
++    /** A heart or wedge term outside its place: a multiple of 16 below 2^24, so float-exact, above every term inside one. */
++    static final double OUTSIDE_HEART = (1 << 24) - MAX_PLACES;
++    /** The gain that turns a point's border-unit distance outside a wedge into 1 within a millionth of a border unit. */
++    static final double STEEP = 1 << 20;
++    /** Rounds of the anchored Lloyd iteration {@link #hold} runs at most. */
++    static final int HOLD_ROUNDS = 30;
+     /** Border units the coordinates are exact to on either side of the origin; beyond, they hold. */
+     static final double REACH = 2;
+     /** A point's distance to the place's site is measured from a point at most this far outside the border, in border units. */
+     private static final double LIFT_REACH = REACH + 0.25;
+ 
+-    /** One layout of the places: site and weight per place, in border units. */
+-    public record Arrangement(double[] x, double[] z, double[] weight) {
++    /**
++     * One layout of the places: site and weight per place, in border units. With a {@code heart} radius above 0, place
++     * {@code hub} is instead the disc of that radius round its site, and the {@code j}th other place in list order the
++     * wedge from that site clockwise between compass bearings {@code wedges[j]} and {@code wedges[(j + 1) % (size - 1)]}.
++     */
++    public record Arrangement(double[] x, double[] z, double[] weight, double heart, double[] wedges, int hub) {
++        public Arrangement(double[] x, double[] z, double[] weight) {
++            this(x, z, weight, 0, null, 0);
++        }
++
+         public int size() {
+             return x.length;
+         }
+ 
++        /** The place of the {@code j}th wedge round the heart. */
++        public int other(int j) {
++            return j < hub ? j : j + 1;
++        }
++
+         /** The place at border-unit point {@code (u, v)}. */
+         public int place(double u, double v) {
++            if (heart > 0) {
++                double du = u - x[hub], dv = v - z[hub];
++                if (du * du + dv * dv < heart * heart) return hub;
++                int m = x.length - 1;
++                for (int j = 0; j < m; j++) if (inside(wedges[j], wedges[(j + 1) % m], du, dv) >= 0) return other(j);
++                return other(m - 1);
++            }
+             int best = 0;
+             double bestD = Double.POSITIVE_INFINITY;
+             for (int i = 0; i < x.length; i++) {
+@@ -136,6 +164,81 @@ public final class PlaceField {
+         return error <= SHARE_TOLERANCE ? new Arrangement(x, z, w) : null;
+     }
+ 
++    /**
++     * The place whose cell comes within {@code margin} of point {@code (u, v)} of place {@code i}'s cell, or -1 when the cell
++     * holds the whole disc of {@code margin} round the point: the power bisector of {@code i} and {@code j} lies
++     * {@code (|s_j|² - |s_i|² + w_i - w_j - 2 p·(s_j - s_i)) / 2|s_j - s_i|} from {@code p}, inside when positive.
++     */
++    public static int reach(Arrangement a, int i, double u, double v, double margin) {
++        if (a.heart() > 0) {
++            int h = a.hub();
++            double d = Math.hypot(u - a.x()[h], v - a.z()[h]);
++            if (i == h) return a.heart() - d < margin ? a.other(0) : -1;
++            if (d - a.heart() < margin) return h;
++        }
++        int nearest = -1;
++        double least = margin;
++        for (int j = 0; j < a.size(); j++) {
++            if (j == i || a.heart() > 0 && j == a.hub()) continue;
++            double dx = a.x()[j] - a.x()[i], dz = a.z()[j] - a.z()[i], d = Math.hypot(dx, dz);
++            double t = d == 0 ? Double.NEGATIVE_INFINITY
++                    : (a.x()[j] * a.x()[j] + a.z()[j] * a.z()[j] - a.x()[i] * a.x()[i] - a.z()[i] * a.z()[i] + a.weight()[i] - a.weight()[j]
++                    - 2 * (u * dx + v * dz)) / (2 * d);
++            if (t < least) {
++                least = t;
++                nearest = j;
++            }
++        }
++        return nearest;
++    }
++
++    /** The first place with an anchor whose cell does not hold {@link #PIN_MARGIN} round it, or -1; {@code anchors[i]} null is no anchor. */
++    public static int unheld(Arrangement a, double[][] anchors) {
++        for (int i = 0; i < a.size(); i++) if (anchors[i] != null && reach(a, i, anchors[i][0], anchors[i][1], PIN_MARGIN) >= 0) return i;
++        return -1;
++    }
++
++    /**
++     * {@code a} with each place's {@code anchors} point held inside its cell by {@link #PIN_MARGIN}, the shares kept.
++     * {@code a} itself when every anchor already holds; otherwise a capacity-constrained Lloyd iteration: each anchored
++     * site moves by the gap from its cell's centroid to its anchor, so the cell centres on the anchor, each free site
++     * half-way to its cell's centroid, and the weights are re-solved. Null when an anchor still does not hold.
++     */
++    public static Arrangement hold(Arrangement a, double[] target, double[][] anchors, int grid) {
++        if (a == null || unheld(a, anchors) < 0) return a;
++        int n = a.size();
++        double[] x = a.x().clone(), z = a.z().clone(), w = a.weight().clone();
++        for (int round = 0; round < HOLD_ROUNDS; round++) {
++            int[] labels = new Arrangement(x, z, w).labels(grid);
++            double[] cx = new double[n], cz = new double[n], count = new double[n];
++            for (int r = 0; r < grid; r++) {
++                for (int c = 0; c < grid; c++) {
++                    int l = labels[r * grid + c];
++                    cx[l] += -1 + (c + 0.5) * 2 / grid;
++                    cz[l] += -1 + (r + 0.5) * 2 / grid;
++                    count[l]++;
++                }
++            }
++            for (int i = 0; i < n; i++) {
++                if (count[i] == 0) continue;
++                cx[i] /= count[i];
++                cz[i] /= count[i];
++                if (anchors[i] != null) {
++                    x[i] = clampSite(x[i] + anchors[i][0] - cx[i]);
++                    z[i] = clampSite(z[i] + anchors[i][1] - cz[i]);
++                } else {
++                    x[i] = clampSite(0.5 * x[i] + 0.5 * cx[i]);
++                    z[i] = clampSite(0.5 * z[i] + 0.5 * cz[i]);
++                }
++            }
++            Arrangement held = solve(x, z, w, target, null, false, grid);
++            if (held == null) continue;
++            if (unheld(held, anchors) < 0) return held;
++            w = held.weight().clone();
++        }
++        return null;
++    }
++
+     private static double clampSite(double v) {
+         return Math.max(-0.95, Math.min(0.95, v));
+     }
+@@ -228,18 +331,101 @@ public final class PlaceField {
+         return s;
+     }
+ 
++    /**
++     * Place {@code hub} as a heart: the disc round {@code (cx, cz)} whose area is its share, the others round it in wedges
++     * from that point clockwise in list order, the first centred on {@code direction}, each holding its share of the
++     * border. Every wedge meets the heart and reaches the border. Null when the heart is narrower than {@link #PIN_MARGIN}
++     * or comes within it of the border.
++     */
++    public static Arrangement heart(double[] share, int hub, double cx, double cz, double direction) {
++        int n = share.length;
++        double r = Math.sqrt(4 * share[hub] / Math.PI);
++        if (n < 2 || r < PIN_MARGIN || r > 1 - Math.max(Math.abs(cx), Math.abs(cz)) - PIN_MARGIN) return null;
++        double[] ring = new double[n - 1];
++        for (int j = 0; j < n - 1; j++) ring[j] = share[j < hub ? j : j + 1];
++        double[] wedges = wedges(ring, r, cx, cz, direction);
++        for (int pass = 0; pass < 8; pass++) {
++            double first = n == 2 ? 360 : ((wedges[1] - wedges[0]) % 360 + 360) % 360;
++            wedges = wedges(ring, r, cx, cz, direction - first / 2);
++        }
++        double[] x = new double[n], z = new double[n];
++        x[hub] = cx;
++        z[hub] = cz;
++        for (int j = 0; j < n - 1; j++) {
++            double a = wedges[j], span = ((wedges[(j + 1) % (n - 1)] - a) % 360 + 360) % 360;
++            double[] h = heading(a + (span == 0 ? 360 : span) / 2);
++            int p = j < hub ? j : j + 1;
++            x[p] = cx + h[0] * (r + PIN_MARGIN);
++            z[p] = cz + h[1] * (r + PIN_MARGIN);
++        }
++        return new Arrangement(x, z, new double[n], r, wedges, hub);
++    }
++
++    /** Steps a turn the wedge areas are integrated in. */
++    private static final int WEDGE_STEPS = 36_000;
++
++    /**
++     * The bearings, clockwise from {@code start}, that cut the square less the disc of {@code r} round {@code (cx, cz)}
++     * into wedges from that point in proportion to {@code share}.
++     */
++    private static double[] wedges(double[] share, double r, double cx, double cz, double start) {
++        int m = share.length;
++        double[] out = new double[m];
++        out[0] = start;
++        double rest = 0;
++        for (double v : share) rest += v;
++        double total = 0;
++        double[] area = new double[WEDGE_STEPS];
++        for (int s = 0; s < WEDGE_STEPS; s++) {
++            double[] h = heading(start + 360.0 * (s + 0.5) / WEDGE_STEPS);
++            double reach = Math.min(edge(cx, h[0]), edge(cz, h[1]));
++            area[s] = (reach * reach - r * r) / 2;
++            total += area[s];
++        }
++        double cum = 0, want = 0;
++        int k = 1;
++        for (int s = 0; s < WEDGE_STEPS && k < m; s++) {
++            cum += area[s];
++            while (k < m && cum >= (want + share[k - 1] / rest) * total) {
++                want += share[k - 1] / rest;
++                out[k] = start + 360.0 * (s + 1) / WEDGE_STEPS;
++                k++;
++            }
++        }
++        for (int i = 0; i < m; i++) out[i] = (out[i] % 360 + 360) % 360;
++        return out;
++    }
++
++    /** The distance from {@code c} along a step of {@code h} per unit to the border's edge at ±1. */
++    private static double edge(double c, double h) {
++        return h > 0 ? (1 - c) / h : h < 0 ? (-1 - c) / h : Double.POSITIVE_INFINITY;
++    }
++
++    /** How far inside the wedge clockwise from bearing {@code a} to {@code b} the point {@code (u, v)} lies: at or above 0 inside. */
++    static double inside(double a, double b, double u, double v) {
++        double span = ((b - a) % 360 + 360) % 360;
++        if (span == 0) return 1;
++        double[] ha = heading(a), hb = heading(b);
++        double from = ha[0] * v - ha[1] * u, to = hb[1] * u - hb[0] * v;
++        return span <= 180 ? Math.min(from, to) : Math.max(from, to);
++    }
++
+     /** Hints the automatic search honours: pairs that must share a border and pairs that must not. */
+     public record Hints(List<int[]> neighbours, List<int[]> apart) {
+         public static final Hints NONE = new Hints(List.of(), List.of());
+     }
+ 
++    /** A search's refusal when a pinned site cannot hold its place, followed by that place's index. */
++    public static final String PIN_REFUSAL = "unheld pin ";
++
+     /** What an automatic search found: up to {@link #CANDIDATES} arrangements, or why none holds the hints. */
+     public record Search(List<Arrangement> arrangements, String refusal) {}
+ 
+     /**
+      * Up to {@link #CANDIDATES} automatic arrangements of places with {@code share}, deterministic from
+      * {@code seed}: random sites relaxed to round places, the places assigned to sites so the hints hold and as
+-     * many consecutive places as can share a border; {@code at} fixes a place's site where non-null.
++     * many consecutive places as can share a border; {@code at} fixes a place's site where non-null, and the place's cell
++     * holds that point with {@link #PIN_MARGIN} to spare ({@link #hold}).
+      */
+     public static Search search(double[] share, double[][] at, Hints hints, long seed) {
+         int n = share.length;
+@@ -269,6 +455,12 @@ public final class PlaceField {
+             }
+             Arrangement a = solve(px, pz, share, fixed, true, SEARCH_GRID);
+             if (a == null) continue;
++            Arrangement held = hold(a, share, at, SEARCH_GRID);
++            if (held == null) {
++                if (refusal == null) refusal = PIN_REFUSAL + unheld(a, at);
++                continue;
++            }
++            a = held;
+             int[] labels = a.labels(SEARCH_GRID);
+             boolean[][] adj = adjacency(labels, SEARCH_GRID, n);
+             String broken = broken(adj, hints);
+@@ -480,6 +672,23 @@ public final class PlaceField {
+         double max = 2 * Math.pow(LIFT_REACH + 1, 2) + top - bottom;
+         double scale = scale(max);
+         JsonElement out = null;
++        if (a.heart() > 0) {
++            int h = a.hub();
++            JsonElement du = Df.add(u, -a.x()[h]), dv = Df.add(v, -a.z()[h]);
++            out = Df.mul(Df.floor(Df.clamp(Df.mul(Df.add(Df.square(du), Df.square(dv)), 1 / (a.heart() * a.heart())), 0, 1)), OUTSIDE_HEART);
++            if (h > 0) out = Df.add(out, h);
++            nodes[0] += 9 + (h > 0 ? 2 : 0);
++            for (int j = 0; j < n - 1; j++) {
++                double wa = a.wedges()[j], wb = a.wedges()[(j + 1) % (n - 1)];
++                double span = ((wb - wa) % 360 + 360) % 360;
++                double[] ha = heading(wa), hb = heading(wb);
++                JsonElement from = Df.add(Df.mul(dv, ha[0]), Df.mul(du, -ha[1])), to = Df.add(Df.mul(du, hb[1]), Df.mul(dv, -hb[0]));
++                JsonElement m = span == 0 ? Df.c(1) : span <= 180 ? Df.min(from, to) : Df.max(from, to);
++                out = Df.min(out, Df.add(Df.mul(Df.floor(Df.clamp(Df.mul(m, -STEEP), 0, 1)), OUTSIDE_HEART), a.other(j)));
++                nodes[0] += 15;
++            }
++            return out;
++        }
+         for (int i = 0; i < n; i++) {
+             JsonObject d = Df.add(Df.add(Df.square(Df.add(u, -a.x()[i])), Df.square(Df.add(v, -a.z()[i]))), top - a.weight()[i]);
+             JsonObject g = Df.mul(Df.floor(Df.mul(Df.clamp(d, 0, max), scale)), MAX_PLACES);
+diff --git a/mods/custom-dimensions-26/compiler/src/test/java/com/customdimensions/compiler/datapack/PlaceLayoutTest.java b/mods/custom-dimensions-26/compiler/src/test/java/com/customdimensions/compiler/datapack/PlaceLayoutTest.java
+index ed31800a..f2ad8f39 100644
+--- a/mods/custom-dimensions-26/compiler/src/test/java/com/customdimensions/compiler/datapack/PlaceLayoutTest.java
++++ b/mods/custom-dimensions-26/compiler/src/test/java/com/customdimensions/compiler/datapack/PlaceLayoutTest.java
+@@ -218,6 +218,148 @@ class PlaceLayoutTest {
+         assertShares(f.shares(1), new double[]{0.4, 0.2, 0.2, 0.2}, 0.01, "core");
+     }
+ 
++    /** Every sample within {@code margin} blocks of {@code (x, z)}, less a sample's width, lies in place {@code p}. */
++    private static void assertHeld(int[] labels, int x, int z, double margin, int p, String what) {
++        for (int r = 0; r < GRID; r++) {
++            for (int c = 0; c < GRID; c++) {
++                double bx = -RADIUS + STEP / 2.0 + c * STEP, bz = -RADIUS + STEP / 2.0 + r * STEP;
++                if (Math.hypot(bx - x, bz - z) <= margin - STEP) {
++                    assertEquals(p, labels[r * GRID + c], what + ": the sample at " + bx + ", " + bz + " lies outside place " + p);
++                }
++            }
++        }
++    }
++
++    private static final double MARGIN = PlaceField.PIN_MARGIN * RADIUS;
++
++    private static String weights(List<String> ids, double... w) {
++        StringBuilder b = new StringBuilder(", \"weights\": {");
++        for (int i = 0; i < w.length; i++) b.append(i == 0 ? "" : ", ").append('"').append(ids.get(i)).append("\": ").append(w[i]);
++        return b.append('}').toString();
++    }
++
++    @Test
++    void aSmallCoreIsAHeartRingedByTheOthers() {
++        String body = body(null, FOUR, "{\"arrangement\": \"core\", \"warp\": {\"blocks\": 0}}", weights(FOUR, 20, 50, 15, 15));
++        Field f = field("p", body);
++        int[] labels = f.labels(1);
++        assertHeld(labels, 0, 0, MARGIN, 0, "heart");
++        boolean[][] adj = PlaceField.adjacency(labels, GRID, 4);
++        for (int i = 1; i < 4; i++) assertTrue(adj[0][i], "the heart touches place " + i);
++        assertOneRegionEach(labels, 4, "heart");
++        assertShares(f.shares(1), new double[]{0.2, 0.5, 0.15, 0.15}, 0.01, "heart");
++        assertEquals(Fixtures.compile("p", body).files(), Fixtures.compile("p", body).files(), "one heart compiles to one field");
++        Field warped = field("p", body(null, FOUR, "{\"arrangement\": \"core\"}", weights(FOUR, 20, 50, 15, 15)));
++        for (long seed = 1; seed <= 4; seed++) {
++            int[] w = warped.labels(seed);
++            assertHeld(w, 0, 0, MARGIN / 2, 0, "warped heart, seed " + seed);
++            assertOneRegionEach(w, 4, "warped heart, seed " + seed);
++            assertShares(warped.shares(seed), new double[]{0.2, 0.5, 0.15, 0.15}, 0.02, "warped heart, seed " + seed);
++        }
++    }
++
++    @Test
++    void aHeartFieldIsItsDiagramAndATwoPlaceHeartIsAnIsland() {
++        Field f = field("p", body(null, FOUR, "{\"arrangement\": \"core\", \"direction\": 90, \"warp\": {\"blocks\": 0}}", weights(FOUR, 20, 50, 15, 15)));
++        PlaceLayout.Places places = PlaceLayout.build("p", JsonParser.parseString("{\"places\": {\"arrangement\": \"core\", \"direction\": 90}}")
++                .getAsJsonObject(), List.of("temperature", "humidity"), FOUR, FOUR, Map.of("minecraft:plains", 20.0, "minecraft:forest", 50.0,
++                "minecraft:desert", 15.0, "minecraft:snowy_plains", 15.0), List.of(), RADIUS);
++        PlaceField.Arrangement a = places.arrangements().get(0);
++        assertTrue(a.heart() > 0, "a heart below its largest neighbour is a disc");
++        int[] labels = f.labels(1);
++        int differ = 0;
++        for (int r = 0; r < GRID; r++) {
++            for (int c = 0; c < GRID; c++) {
++                double u = (-RADIUS + STEP / 2 + c * STEP) / (double) RADIUS, v = (-RADIUS + STEP / 2 + r * STEP) / (double) RADIUS;
++                if (a.place(u, v) != labels[r * GRID + c]) differ++;
++            }
++        }
++        assertEquals(0, differ, "cells that differ from the diagram");
++        assertEquals(1, labels[(GRID / 2) * GRID + GRID - 2], "the first wedge is centred east");
++        Field two = field("p", body(null, FOUR.subList(0, 2), "{\"arrangement\": \"core\", \"warp\": {\"blocks\": 0}}", weights(FOUR, 10, 90)));
++        int[] l2 = two.labels(1);
++        assertHeld(l2, 0, 0, MARGIN, 0, "island");
++        assertShares(two.shares(1), new double[]{0.1, 0.9}, 0.01, "island");
++        assertOneRegionEach(l2, 2, "island");
++    }
++
++    /** Hearts smaller than their largest neighbour, at four measured shares: 20/50/15/15, 21/51/13/16, 19/51/20/10 and 20/55/25. */
++    @Test
++    void measuredHeartsHoldTheCentre() {
++        double[][] cases = {{20, 50, 15, 15}, {21, 51, 13, 16}, {19, 51, 20, 10}, {20, 55, 25}};
++        for (double[] w : cases) {
++            List<String> ids = FOUR.subList(0, w.length);
++            Field f = field("p", body(null, ids, "{\"arrangement\": \"core\", \"warp\": {\"blocks\": 0}}", weights(ids, w)));
++            int[] labels = f.labels(1);
++            String what = java.util.Arrays.toString(w);
++            assertHeld(labels, 0, 0, MARGIN, 0, what);
++            assertOneRegionEach(labels, w.length, what);
++            double total = java.util.Arrays.stream(w).sum();
++            assertShares(f.shares(1), java.util.Arrays.stream(w).map(x -> x / total).toArray(), 0.01, what);
++        }
++    }
++
++    @Test
++    void aCoreThatAlreadyHoldsKeepsItsEvenRing() {
++        PlaceLayout.Places places = PlaceLayout.build("p", JsonParser.parseString("{\"places\": {\"arrangement\": \"core\"}}").getAsJsonObject(),
++                List.of("temperature", "humidity"), FOUR, FOUR, Map.of("minecraft:plains", 2.0), List.of(), RADIUS);
++        PlaceField.Arrangement a = places.arrangements().get(0);
++        assertEquals(0, a.x()[0], 0);
++        assertEquals(0.6, Math.hypot(a.x()[1], a.z()[1]), 1e-9, "the even ring at its own radius");
++        PlaceLayout.Places heart = PlaceLayout.build("p", JsonParser.parseString("{\"places\": {\"arrangement\": \"core\"}}").getAsJsonObject(),
++                List.of("temperature", "humidity"), FOUR, FOUR, Map.of("minecraft:plains", 20.0, "minecraft:forest", 50.0, "minecraft:desert", 15.0,
++                        "minecraft:snowy_plains", 15.0), List.of(), RADIUS);
++        assertEquals(-1, PlaceField.unheld(heart.arrangements().get(0), new double[][]{{0, 0}, null, null, null}));
++    }
++
++    @Test
++    void aPinnedSiteHoldsItsPlaceWhereverTheOthersFall() {
++        String centre = "{\"at\": {\"minecraft:plains\": [0, 0]}, \"warp\": {\"blocks\": 0}}";
++        Field f = field("p", body(null, FOUR, centre, weights(FOUR, 15, 40, 25, 20)));
++        String corner = "{\"at\": {\"minecraft:plains\": [380, -380]}, \"warp\": {\"blocks\": 0}}";
++        Field c = field("p", body(null, FOUR, corner, weights(FOUR, 8, 52, 20, 20)));
++        for (long seed = 1; seed <= 6; seed++) {
++            int[] labels = f.labels(seed);
++            assertHeld(labels, 0, 0, MARGIN, 0, "centre pin, seed " + seed);
++            assertOneRegionEach(labels, 4, "centre pin, seed " + seed);
++            assertShares(f.shares(seed), new double[]{0.15, 0.4, 0.25, 0.2}, 0.01, "centre pin, seed " + seed);
++            int[] cl = c.labels(seed);
++            assertHeld(cl, 380, -380, MARGIN, 0, "corner pin, seed " + seed);
++            assertShares(c.shares(seed), new double[]{0.08, 0.52, 0.2, 0.2}, 0.01, "corner pin, seed " + seed);
++        }
++    }
++
++    @Test
++    void aLonePinNoPowerCellCanHoldBecomesAHeartAtItsSite() {
++        Field half = field("p", body(null, FOUR.subList(0, 2), "{\"at\": {\"minecraft:forest\": [0, 0]}, \"warp\": {\"blocks\": 0}}", ""));
++        int[] labels = half.labels(1);
++        assertHeld(labels, 0, 0, MARGIN, 1, "half at the centre");
++        assertShares(half.shares(1), new double[]{0.5, 0.5}, 0.01, "half at the centre");
++        assertOneRegionEach(labels, 2, "half at the centre");
++        Field off = field("p", body(null, FOUR, "{\"at\": {\"minecraft:desert\": [-120, 100]}, \"warp\": {\"blocks\": 0}}",
++                weights(FOUR, 15, 60, 10, 15)));
++        int[] ol = off.labels(1);
++        assertHeld(ol, -120, 100, MARGIN, 2, "off-centre heart");
++        assertShares(off.shares(1), new double[]{0.15, 0.6, 0.1, 0.15}, 0.01, "off-centre heart");
++        assertOneRegionEach(ol, 4, "off-centre heart");
++        boolean[][] adj = PlaceField.adjacency(ol, GRID, 4);
++        for (int i : new int[]{0, 1, 3}) assertTrue(adj[2][i], "the heart touches place " + i);
++    }
++
++    @Test
++    void aPinThatCannotHoldIsRefusedNamingThePlace() {
++        String crowded = "{\"at\": {\"minecraft:plains\": [0, 0], \"minecraft:forest\": [60, 0], \"minecraft:desert\": [-400, 400], "
++                + "\"minecraft:snowy_plains\": [400, 400]}}";
++        IllegalArgumentException at = assertThrows(IllegalArgumentException.class, () -> Fixtures.compile("p", body(null, FOUR, crowded,
++                weights(FOUR, 10, 60, 15, 15))));
++        assertTrue(at.getMessage().startsWith("p: biomeLayout.places: minecraft:plains (10.0%) does not hold 51 blocks round its site"), at.getMessage());
++        assertTrue(at.getMessage().contains("minecraft:forest (60.0%) reaches over it; give minecraft:plains a bigger share"), at.getMessage());
++        IllegalArgumentException core = assertThrows(IllegalArgumentException.class, () -> Fixtures.compile("p", body(null, FOUR,
++                "{\"arrangement\": \"core\"}", weights(FOUR, 0.5, 30, 30, 30))));
++        assertTrue(core.getMessage().startsWith("p: biomeLayout.places: the core arrangement cannot keep minecraft:plains (0.6%) at the centre with 51 blocks"),
++                core.getMessage());
++    }
++
+     @Test
+     void bandsAndSectorsLayThePlacesInOrder() {
+         Field bands = field("p", body(null, FOUR, "{\"arrangement\": \"bands\", \"direction\": 90, \"warp\": {\"blocks\": 0}}", ""));
+diff --git a/mods/custom-dimensions-26/fidelity/drafts/k7/README.md b/mods/custom-dimensions-26/fidelity/drafts/k7/README.md
+index d865b95d..c736c821 100644
+--- a/mods/custom-dimensions-26/fidelity/drafts/k7/README.md
++++ b/mods/custom-dimensions-26/fidelity/drafts/k7/README.md
+@@ -4,18 +4,18 @@ Each draft is its base with `biomeLayout.places` added: the k1, k2 or k3 draft w
+ 
+ Kinds. **Meeting**: a few named places. **One place with a fringe**: one biome holds 50–55% of the border as one region, which the one-place target (`landBiomeRegions.largestPercent` ≥ 50) asks for and noise regions do not give (W9g baselines on the intent cards: largest 6–29%); the rest of the list makes two to four fringe places. **One place**, **deliberately broken**, **noise**: no draft, for the reason in the row.
+ 
+-Figures. Shares are the compiled place field sampled on a 128-cell grid over the smaller of the player and generation borders, with the unit tests' stand-in warp noise at seed 20261022 (`/tmp/claude-0/k7/dbg/`, K7Drafts): the server's noise moves the edges, not the shares. In every draft each place is one region of 1% or more and specks are 0.00%; every `neighbours` and `apart` pair held, and every `at` site lies in its own place. The full set (83 definitions, 34 drafts in place) compiles in 3.7 s. A group's biomes mix inside its place on humidity, and count as separate biome regions in the survey. Survey each with `/customdim survey <slug> 1 1`: read `placeness.landBiomeRegions` and `biomesPercent`, and on sky worlds `islands.dominantBiomePercent`.
++Figures. Shares are the compiled place field sampled on a 128-cell grid over the smaller of the player and generation borders, with the unit tests' stand-in warp noise at seed 20261022 (`/tmp/claude-0/k7/dbg/`, K7Drafts): the server's noise moves the edges, not the shares. In every draft each place is one region of 1% or more and specks are 0.00%; every `neighbours` and `apart` pair held, and every `at` site and `core` centre lies inside its own place by at least a tenth of the border's radius (the compiler holds it or refuses). The full set (83 definitions, 35 drafts in place) compiles in 3.7 s. A group's biomes mix inside its place on humidity, and count as separate biome regions in the survey. Survey each with `/customdim survey <slug> 1 1`: read `placeness.landBiomeRegions` and `biomesPercent`, and on sky worlds `islands.dominantBiomePercent`.
+ 
+-Gaps the descriptions show and the layout cannot express: `/tmp/claude-0/k7/kit-gaps.md` (a small heart held at the centre; places by height).
++Gaps the descriptions show and the layout cannot express: `/tmp/claude-0/k7/kit-gaps.md` (places by height). A small heart is `core` with the heart first in the biome list: a disc of its share at the centre, the others in wedges round it.
+ 
+ ## Batch 2 — Nether presets
+ 
+ | Dimension | Kind | Places (share %) | Arrangement, from the description | Should move | Check in a server |
+ | --- | --- | --- | --- | --- | --- |
+-| the_forged_depths | one place with a fringe | crimson_pinewood 55; forge (quartz_flats, crimson_forest) 20; basalt (basalt_deltas, nether_wastes) 25 | `core`, the deep at the centre: "a small brutal deep" over k1's central pit layout | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5 | magma_land stays bound to depth 0.2+ in every place ("hotter downward"); the forge place is a ring, not spawn (kit gap 1): check `at.spawn` and the crimson_forge site |
++| the_forged_depths | one place with a fringe | forge (quartz_flats, crimson_forest) 20.5; crimson_pinewood 55.2; basalt (basalt_deltas, nether_wastes) 24.3 | `core` with the forge first (quartz_flats leads the list): the forge is the heart at spawn, "the last piglin forge still burning" in "a small brutal deep" over k1's central pit layout; spawn [64, 0] stands 273 blocks inside it | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5; `at.spawn` in the forge | magma_land stays bound to depth 0.2+ in every place ("hotter downward"); the crimson_forge site |
+ | the_buried_age | deliberately broken | — | — | — | Card: "deliberately drowned; one lava sea is the place". The lava sea is the place; biomes are what the sea leaves. No draft. |
+ | the_blackstone_keep | one place with a fringe | blackstone_basin 55; ash_and_basalt (basalt_deltas, ash_barrens) 20; soul_sand_valley 10; wart_woods (crimson_pinewood, crimson_forest) 15 | `core`, blackstone at the centre: "bastions and blackstone walls from spawn" | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5 | blackstone_basin's ground and the bastion near spawn; the wart woods' trees stay under the roof (W9g had 38/ha in the sky layer) |
+-| the_gilded_pit | one place with a fringe | blackstone_basin 19; nether_wastes 51; basalt (basalt_deltas, magma_land) 20; ruins (gravel_desert, crimson_forest) 10 | `at` nether_wastes [0, 0], the rest automatic: "the pit: gravel and wastes" round k1's central pit; the gilded ledge (blackstone_basin) is a place on the pit's side, not the landing (kit gap 1) | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5; `at.spawn.biomeEdgeBlocks` ≥ 64 (spawn deep in the wastes) | which place the landing ledge stands in; gilded blackstone on the surface |
++| the_gilded_pit | one place with a fringe | blackstone_basin 20.5; nether_wastes 50.1; basalt (basalt_deltas, magma_land) 20.3; ruins (gravel_desert, crimson_forest) 9.0 | `core`, the gilded ledge (blackstone_basin, first in the list) the heart round k1's central pit: "every portal drops you at the same ledge"; spawn [0, -128] stands 210 blocks inside it, the wastes round it | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5; `at.spawn` in blackstone_basin, `at.spawn.biomeEdgeBlocks` ≥ 64 | gilded blackstone on the surface |
+ | the_molten_flats | one place with a fringe | magma_land 55; ash_barrens 20; basalt_deltas 15; dunes (gravel_desert, nether_wastes) 10 | `core`, magma at the centre: "flat magma and ash ground at lava level" | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5; ash_barrens placed (W9g 0.1%) | the flats are terrain (G1): places only fix the biomes |
+ | the_bloodroot_wastes | one place with a fringe | crimson_forest 55; nether_jungle 20; inverted (upside_down_forest, crimson_pinewood) 17; wastes (nether_wastes, basalt_deltas) 8 | `core`, crimson at the centre: "crimson fungus at spawn" | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5; nether_wastes no longer the largest | crimson nylium ground (netherrack was 53.4%) |
+ | the_obsidian_sanctum | one place with a fringe | withered_forest 52; soul_sand_valley 28; border_wastes (nether_wastes, basalt_deltas) 20 | `core`, withered forest at the centre: "a sanctum and infernal altar at spawn", "soul ground and withered trees"; the wastes place is on the ring that reaches the border ("forbidden castles near the border") | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5 | obsidian on the surface is materials, not places |
+@@ -44,7 +44,7 @@ Gaps the descriptions show and the layout cannot express: `/tmp/claude-0/k7/kit-
+ 
+ | Dimension | Kind | Places (share %) | Arrangement, from the description | Should move | Check in a server |
+ | --- | --- | --- | --- | --- | --- |
+-| the_emberglass_foundry | one place with a fringe | crystal_hollows 13; vents (magmatic_caves, sulfur_caves) 16; blackstone_basin 51; columns (basalt_deltas, quartz_flats) 21 | automatic: "small, self-contained" (border 256); columns at spawn would need a small heart (kit gap 1) | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5; basalt_deltas and magmatic_caves placed (both unplaced at weight 1) | water on the floor (26.6%) is aquifers, not places |
++| the_emberglass_foundry | one place with a fringe | crystal_hollows 11.2; vents (magmatic_caves, sulfur_caves) 16.7; blackstone_basin 53.0; columns (basalt_deltas, quartz_flats) 19.1 | `at` columns at spawn [-128, 128], the rest automatic: "basalt columns", "small, self-contained" (border 256); spawn stands 35 blocks inside the columns (the margin is 26) | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5; basalt_deltas and magmatic_caves placed (both unplaced at weight 1) | water on the floor (26.6%) is aquifers, not places |
+ | the_underdark | meeting | sculk (deep_dark, dripstone_caves) 40; mushroom_halls (bioshroom_caves, fungal_fen, lichen_caves) 40; nether_incursion (crimson_forest, warped_forest, withered_forest) 21 | automatic, three places: "a meeting of three: sculk, mushroom light, Nether fungus"; sculk and mushroom near equal: "in equal measure" | `landBiomeRegions.top3Percent` ≥ 60, `specksPercent` ≤ 5 | the zone at 900, -1500 keeps deep_dark for the forced ancient city whichever place it falls in |
+ | the_weeping_vault | one place | — | — | — | Card: one small dense place, but its dominant ground is a material (blackstone, crying obsidian), not a listed biome; choose the biome first. No draft. |
+ | the_sculked_beyond | one place with a fringe | infested (mycotoxic_undergrowth, umbral_wastes, withered_forest) 19; deep_dark 56; fungal_and_tuff (bioshroom_caves, lichen_caves, dripstone_caves) 14; mantle (magmatic_caves, redstone_abyss) 11 | `at` deep_dark [0, 0]: "a sculk dungeon and camp at spawn", "sculk over everything" | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5; deep_dark placed (unplaced at weight 1) | "an ancient city near the border" wants deep_dark there: the centre place reaches the border on some seeds only |
+@@ -78,7 +78,7 @@ Gaps the descriptions show and the layout cannot express: `/tmp/claude-0/k7/kit-
+ | the_lantern_pools | one place with a fringe | lush_valleys (plains, sparse_jungle) 31; mangrove_fringe (mangrove_swamp, jungle) 16; desert_oasis 52 | `at` desert_oasis [0, 0]: "a turquoise oasis pool ringed with grass and palms" | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5; desert_oasis placed (weight 2.3, unplaced) | warm_ocean's full-range temperature box is dropped (a box on the place axis is refused; [-2, 2] bound nothing): it stays bound on continentalness |
+ | the_chalk_meadows | one place with a fringe | clover_plains (plains, sunflower_plains, alpine_meadow) 18; heather_and_chalk (highland_fells, carnation_fields, chalk_cliffs) 24; flowers (flower_forest, lavender_fields) 7; meadow 50 | `at` meadow [0, 0]: "a village in a hollow among heather and carnations", "rolling downs" | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5; heather (highland_fells) and carnation placed together | chalk on slopes: chalk_cliffs is a land place member here, so it shows in one place only |
+ | the_miredeep | one place with a fringe | dark_fringe (dark_forest, old_growth_birch_forest) 8; orchid_marsh 12; swamp 54; bayou (cypress_wetland, mangrove_swamp) 27 | `at` swamp [0, 0]: "swamps, bayou, orchid swamp, marsh, mangrove" | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5; dark_forest placed | the ocean and beach (a third of the map) are the land share, not places |
+-| the_teal_corruption | one place, composed round the centre | — | — | — | No draft: a 20% teal heart inside 50% red rock cannot be held at the centre (kit gap 1, measured: badlands took the centre under `core` and under `at` for every place). The 420-block zone keeps the teal centre. |
++| the_teal_corruption | one place, composed round the centre | warped_forest 20.5; badlands 50.2; fungus (crimson_forest, upside_down_forest) 12.0; woods (maple_woodland, ashen_woodland) 11.2; mesa_edge (eroded_badlands, blackstone_basin) 6.2 | `core`, warped_forest first: a teal heart of 1,033 blocks radius inside red rock, "it came through at the centre and it is still spreading"; the heart replaces the 420-block zone, and spawn [-384, 0] stands 658 blocks inside it; weights re-drawn (teal 20, badlands 50) | `at.centre.biomeRegionPercent` ≥ 10, `landBiomeRegions.largestPercent` ≥ 50 | the piglin village (forced at 40, -70) stands in the heart, the warped tower (-395, 245) too |
+ | the_claymarsh | one place with a fringe | orchid_marsh 21; swamps (swamp, mangrove_swamp, bamboo_jungle) 16; dark_fringe (dark_forest, old_growth_birch_forest) 7; cypress_wetland 56 | `at` cypress_wetland [0, 0]: "reed beds and a mangrove hut in still water over clay" | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5 | river, muddy_river and beach stay roles; clay ground is materials |
+ | the_soulfields | one place with a fringe | soul_sand_valley 55; grave_fields (ash_barrens, nether_wastes) 27; weeping_valley (nether_jungle, withered_forest) 18 | `core`, soul sand at the centre: "an empty soul-sand plain"; the grave fields round it ("the graves begin some way out") | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5 | the graves thickening outward are structures by distance |
+ | the_dripping_pines | one place with a fringe | pine_slopes (windswept_forest, snowy_taiga) 13; spruce_and_fir (old_growth_spruce_taiga, taiga) 24; old_growth_pine_taiga 52; rainforest (redwood_grove) 11 | `at` old_growth_pine_taiga [0, 0]: "a foraging outpost under dripping pines" | `landBiomeRegions.largestPercent` ≥ 50 (one biome is the place), `specksPercent` ≤ 5; snowy_taiga 36.5 → 6 | moss on the ground is materials |
+diff --git a/mods/custom-dimensions-26/fidelity/drafts/k7/the_emberglass_foundry.json b/mods/custom-dimensions-26/fidelity/drafts/k7/the_emberglass_foundry.json
+index 9ddc34f9..f882c020 100644
+--- a/mods/custom-dimensions-26/fidelity/drafts/k7/the_emberglass_foundry.json
++++ b/mods/custom-dimensions-26/fidelity/drafts/k7/the_emberglass_foundry.json
+@@ -39,6 +39,12 @@
+           "adventure:magmatic_caves",
+           "minecraft:sulfur_caves"
+         ]
++      },
++      "at": {
++        "columns": [
++          -128,
++          128
++        ]
+       }
+     }
+   },
+diff --git a/mods/custom-dimensions-26/fidelity/drafts/k7/the_forged_depths.json b/mods/custom-dimensions-26/fidelity/drafts/k7/the_forged_depths.json
+index 70c6bba5..a36fcb84 100644
+--- a/mods/custom-dimensions-26/fidelity/drafts/k7/the_forged_depths.json
++++ b/mods/custom-dimensions-26/fidelity/drafts/k7/the_forged_depths.json
+@@ -12,8 +12,8 @@
+     "preset": "nether"
+   },
+   "biomes": [
+-    "adventure:crimson_pinewood",
+     "adventure:quartz_flats",
++    "adventure:crimson_pinewood",
+     "minecraft:basalt_deltas",
+     "minecraft:crimson_forest",
+     "minecraft:nether_wastes",
+diff --git a/mods/custom-dimensions-26/fidelity/drafts/k7/the_gilded_pit.json b/mods/custom-dimensions-26/fidelity/drafts/k7/the_gilded_pit.json
+index 310b1644..3c261cfe 100644
+--- a/mods/custom-dimensions-26/fidelity/drafts/k7/the_gilded_pit.json
++++ b/mods/custom-dimensions-26/fidelity/drafts/k7/the_gilded_pit.json
+@@ -40,12 +40,7 @@
+           "minecraft:crimson_forest"
+         ]
+       },
+-      "at": {
+-        "minecraft:nether_wastes": [
+-          0,
+-          0
+-        ]
+-      }
++      "arrangement": "core"
+     }
+   },
+   "borders": {
+diff --git a/mods/custom-dimensions-26/fidelity/drafts/k7/the_teal_corruption.json b/mods/custom-dimensions-26/fidelity/drafts/k7/the_teal_corruption.json
+new file mode 100644
+index 00000000..1605d957
+--- /dev/null
++++ b/mods/custom-dimensions-26/fidelity/drafts/k7/the_teal_corruption.json
+@@ -0,0 +1,168 @@
++{
++  "schemaVersion": 2,
++  "description": "Warped corruption spreading over a mesa world — teal fungus over red rock. The nether bleeding through, but slowly, almost beautifully. It came through at the centre and it is still spreading. The piglins who lived here didn't flee; they adapted. Their outposts stand in the fungus like houses in a rising tide. The tide comes through the portal as well, and it does not ask what you built there.",
++  "seed": -6424833192028303217,
++  "spawn": [
++    -384,
++    183,
++    0
++  ],
++  "generator": {
++    "type": "noise",
++    "preset": "overworld"
++  },
++  "biomes": [
++    "minecraft:warped_forest",
++    "minecraft:badlands",
++    "minecraft:crimson_forest",
++    "adventure:upside_down_forest",
++    "adventure:maple_woodland",
++    "adventure:ashen_woodland",
++    "minecraft:eroded_badlands",
++    "adventure:blackstone_basin",
++    {
++      "id": "minecraft:dripstone_caves",
++      "climate": {
++        "weirdness": [
++          -2.0,
++          -0.255
++        ],
++        "depth": [
++          0.1,
++          2.0
++        ]
++      }
++    },
++    {
++      "id": "minecraft:sulfur_caves",
++      "climate": {
++        "weirdness": [
++          -0.255,
++          0.193
++        ],
++        "depth": [
++          0.1,
++          2.0
++        ]
++      }
++    },
++    {
++      "id": "adventure:lichen_caves",
++      "climate": {
++        "weirdness": [
++          0.193,
++          2.0
++        ],
++        "depth": [
++          0.1,
++          2.0
++        ]
++      }
++    }
++  ],
++  "biomeLayout": {
++    "mode": "regions",
++    "weights": {
++      "minecraft:warped_forest": 20,
++      "minecraft:badlands": 50,
++      "minecraft:crimson_forest": 7,
++      "adventure:upside_down_forest": 5,
++      "adventure:maple_woodland": 7,
++      "adventure:ashen_woodland": 4,
++      "minecraft:eroded_badlands": 4,
++      "adventure:blackstone_basin": 3
++    },
++    "places": {
++      "groups": {
++        "fungus": [
++          "minecraft:crimson_forest",
++          "adventure:upside_down_forest"
++        ],
++        "woods": [
++          "adventure:maple_woodland",
++          "adventure:ashen_woodland"
++        ],
++        "mesa_edge": [
++          "minecraft:eroded_badlands",
++          "adventure:blackstone_basin"
++        ]
++      },
++      "arrangement": "core"
++    }
++  },
++  "liquids": {
++    "seaLevel": -55
++  },
++  "atmosphere": {
++    "fogColor": "#1B4B4B",
++    "ambientLight": 0.2
++  },
++  "rules": {
++    "respawnAnchorsWork": true
++  },
++  "borders": {
++    "player": 2048,
++    "generation": 2048
++  },
++  "difficulty": {
++    "mobMultiplier": 1.6,
++    "playerLuck": 1.4
++  },
++  "structures": {
++    "density": "normal",
++    "force": [
++      {
++        "structure": "towns_and_towers:exclusives/village_piglin",
++        "x": 40,
++        "z": -70
++      },
++      {
++        "structure": "mvs:large_warped_tower",
++        "x": -395,
++        "z": 245
++      }
++    ]
++  },
++  "portals": [
++    {
++      "frameBlock": "minecraft:warped_wart_block",
++      "igniterItem": "minecraft:flint_and_steel",
++      "color": "1BAFAF",
++      "lightLevel": 11,
++      "scale": 4.0,
++      "cooldown": 40,
++      "sounds": {
++        "ignite": "block.portal.trigger",
++        "enter": "block.portal.travel",
++        "exit": "block.portal.travel"
++      },
++      "aura": {
++        "subsume": "everything"
++      }
++    }
++  ],
++  "roll": {
++    "mood": "adventurous",
++    "spawnFilter": [
++      "minecraft:badlands",
++      "minecraft:eroded_badlands",
++      "minecraft:warped_forest"
++    ],
++    "wants": {
++      "mns:sword": "spread",
++      "bastion": "spread",
++      "crimson_forge": "spread",
++      "nether_bridge": "spread",
++      "mns:warped_dome": "spread"
++    },
++    "shuns": [
++      "towns_and_towers:exclusives/village_piglin"
++    ],
++    "water": "none"
++  },
++  "terrain": {
++    "scales": {
++      "climate": 2.0
++    }
++  }
++}
+diff --git a/mods/custom-dimensions-26/fidelity/drafts/k8/STATE.md b/mods/custom-dimensions-26/fidelity/drafts/k8/STATE.md
+new file mode 100644
+index 00000000..abb1b00d
+--- /dev/null
++++ b/mods/custom-dimensions-26/fidelity/drafts/k8/STATE.md
+@@ -0,0 +1,40 @@
++# K8 state: pinned place sites (small heart) — unfinished
++
++Worktree: /home/user/minecraft-server-template/.claude/worktrees/agent-a71605a46a7f6758a, branch worktree-agent-a71605a46a7f6758a (forked from claude/minecraft-dependency-automation-n1w79q at 8719275e; that branch has since moved, to b66da114 or later: rebase before the final build). Brief: /tmp/claude-0/-home-user/5eb91d81-f3fb-5a91-9f20-35496482f7d0/scratchpad/k8-brief.md (common rules beside it). Log: progress.log beside this file.
++
++## The finding that shaped the design
++A convex cell clear of a disc of radius m round the centre holds at most (1 − m)/2 of the square. So no power diagram keeps a small place at the centre beside a neighbour of 45% or more, whatever the solver does (moving free sites outwards, sectors rings, capacity-constrained Lloyd were all tried and fail on 20/50/15/15). The K7 cases (neighbours of 50, 51, 52, 55%) are impossible with convex cells.
++
++## Design as built
++- `PlaceField.PIN_MARGIN` = 0.1 border units: a pinned point must lie that far inside its place. `reach(a, i, u, v, margin)` measures it exactly from the power bisectors; `unheld(a, anchors)`.
++- `hold(a, target, anchors, grid)`: for `at` pins, if a pin does not hold, a capacity-constrained Lloyd iteration (pinned site moves by centroid→pin gap, free sites half-way to centroid, weights re-solved, 30 rounds). Used in the auto search (`search`) and after `refine`, and for all-`at` definitions. Returns `a` unchanged when every pin holds (so goldens do not move).
++- Heart: `Arrangement` gains `heart` (radius), `wedges` (compass bearings) and `hub` (the heart's place index). The hub place is the disc of area = its share (r = √(4 share/π)) round its point; the others are angular wedges from that point clockwise in list order, the first centred on `direction`, bearings integrated (`wedges(...)`, 36,000 steps, reach from the point to the square edge) so each wedge holds its share of the square less the disc. Every wedge meets the heart and reaches the border.
++- DF encoding (compile `least`): heart term `floor(clamp(|p−c|²/r², 0, 1)) × (2^24 − 16) (+ hub)`, wedge term `floor(clamp(−m × 2^20, 0, 1)) × (2^24 − 16) + place`, m = min (span ≤ 180°) or max of the signed distances to the two rays. Node types are the existing ones (add, mul, square, clamp, floor, min, max): T217 shape unchanged in kind, only new constants/terms; no new boot check.
++- Where it applies (PlaceLayout.build): `core` solves its even ring first and keeps it when the centre holds (every core whose first place is its largest: places_core golden unchanged); otherwise `PlaceField.heart(shares, 0, 0, 0, direction)`, refused with "the core arrangement cannot keep X (s%) at the centre with N blocks round it…" when the heart is narrower than the margin or one region check fails. `ring`, `sectors`, `bands` sites are not pinned. All-`at`: Lloyd hold, else refused naming the place and the place that reaches over it. Auto with `at` pins: search+hold; if nothing holds and exactly ONE place is pinned, that place becomes a heart at its site (hub ≠ 0 possible) — this is the fix in progress; else refused.
++
++## Status
++- Committed as wip (see git log). Build: the whole tree built green with 1368 tests (core 712, compiler 541, server 115; head had 1362) and goldens unchanged BEFORE the last change (the hub generalisation in edit4: `hub` field, off-centre wedges, single-pin heart fallback, test `aLonePinNoPowerCellCanHoldBecomesAHeartAtItsSite`). That last change compiled far enough to start `:compiler:test --tests '*PlaceLayoutTest*'`, which was stopped unfinished: UNPROVEN.
++- Regression being fixed: K6 draft `fidelity/drafts/k6/the_sunken_temple.json` (two places 50/50, `at` highlands [0, 0]) was refused by the margin; the single-pin heart should cure it (a 50% disc r = 0.8 at the centre fits inside 1 − 0.1). Re-run the land harness to confirm.
++- Drafts updated and sampled with the pre-hub code (/tmp/claude-0/k8/dbg/four.txt; 128-cell grid, seed 20261022): the_teal_corruption (new; core, warped first, zone removed) 20.5/50.2/12.0/11.2/6.2, spawn 658 blocks inside the heart; the_gilded_pit (core, blackstone_basin heart) 20.5/50.1/20.3/9.0, spawn 210 inside; the_forged_depths (core, quartz_flats moved first so forge is the heart) 20.5/55.2/24.3, spawn 273 inside; the_emberglass_foundry (`at` columns at spawn [-128, 128]) 11.2/16.7/53.0/19.1, spawn 35 inside (margin 26). The other 31 K7 drafts' shares are identical to K7's compile-final.log. README rows updated.
++- Docs edited: worldgen.md places paragraph, placeness.md, schema descriptions (`arrangement`, `at`), both cutover skills (worldgen-tuning, custom-dimension-authoring). They describe core's heart; they do NOT yet mention the single-`at` heart fallback.
++- Goldens/fixtures: none change (places_core's first place is its largest, so its even ring holds).
++
++## Remaining steps, in order
++1. Run `:compiler:test --tests '*PlaceLayoutTest*'`; fix failures in the hub change (wedge order, `other(j)`, heart bounds check, test expectations).
++2. Re-run the K7 harness on k7 and k6 drafts and the land harness; confirm the_sunken_temple compiles and its highlands hold the centre.
++3. Add the single-pin heart to worldgen.md / placeness.md / schema `at` description; then `./cutover/mkshas.sh` and a clean-clone `./cutover/apply.sh --dry-run` (no `!` line).
++4. Rebase on the branch head, full build (compare test count with /tmp/claude-0/w10c1r/progress.log), quick gate `PATH=/tmp/claude-0/pybin:/root/.local/bin:/tmp/claude-0/sc/bin:$PATH ./scripts/test-scripts.sh --quick`, commit with explicit paths and `[skip ci]`.
++5. Write /tmp/claude-0/k8/land-shares.md (notes below) and the report, with trap draft T259 (a power cell need not contain its site; a convex cell clear of a centred disc of m holds at most (1−m)/2; a small heart is a disc + wedges).
++
++## Commands
++- Java: `export JAVA_HOME=/home/user/.local/jdk/jdk-25.0.5+8 PATH=/home/user/.local/jdk/jdk-25.0.5+8/bin:$PATH`; check `free -g` ≥ 5 GB available.
++- From mods/custom-dimensions-26: `./gradlew --max-workers=1 --offline :compiler:test --tests '*PlaceLayoutTest*'` (~2 min), `./gradlew --max-workers=1 --offline build` (~3 min). Vanilla data must be copied into compiler/build/vanilla/26.3 from the main checkout (read-only) in a fresh worktree.
++- Failures: `python3 /tmp/claude-0/k8/scratch/fails.py` (reads compiler/build/test-results/test).
++- K7 harness (samples each draft's compiled field, prints shares, regions, spawn place and its edge distance): `bash /tmp/claude-0/k8/dbg/run.sh <drafts dir>` (needs the compiled test classes; source /tmp/claude-0/k8/dbg/src/.../K7Drafts.java).
++- Land harness (border share vs land share per place over 5 seeds): `bash /tmp/claude-0/k8/dbg/land.sh the_aviary the_sunken_temple the_violet_spire the_burning_archipelago the_shattered_skies` (source K8Land.java; compiles definitions + k6 + k7 drafts).
++- Scratch solver probe: `bash /tmp/claude-0/k8/scratch/run.sh` (Heart.java).
++
++## Land shares write-up (notes, not yet measured)
++- Precedent: `customdimensions:land_share` (server/.../zone/LandShareFunction) measures the seed's own noise when the router compiles (96×96 grid) and shifts continentalness. A place field could do the same: a custom DF type that, at compileSampler, samples the terrain's land cue (`<prefix>/place` > 0, the router's continents on void terrains) on a grid and re-solves the weights against the land mask. Roller and server agree because both compile the router for the seed through the same code. Cost per rolled seed: ~16k cue samples plus a weight solve (n × 16k × ≤400), roughly 0.1–0.2 s. Downsides: a new DF type (T217 shape change and a boot check), weights no longer in the datapack, a step-function objective on sparse islands (an edge through an island splits it; tolerance must follow island granularity), and the 4 × 8 seed-chosen layouts re-solved per seed.
++- Cheaper compile-time alternative: solve against the expected land density (the islands noise's known spread plus `terrain.layout`'s deterministic shape, via Noises.threshold), seed-free, which removes the systematic bias of `radial` clusters (most of a cell in empty sky) but not per-seed scatter.
++- Candidate users: the_aviary, the_sunken_temple, the_violet_spire, the_burning_archipelago (End coverage 0.04: few islands, scatter dominates), the_shattered_skies. K7's recipe for a radial cluster remains `sectors`. Measure the gap with the land harness before deciding.
+diff --git a/mods/custom-dimensions-26/schema/definition.schema.json b/mods/custom-dimensions-26/schema/definition.schema.json
+index efa51c66..db221ce1 100644
+--- a/mods/custom-dimensions-26/schema/definition.schema.json
++++ b/mods/custom-dimensions-26/schema/definition.schema.json
+@@ -456,7 +456,7 @@
+               }
+             },
+             "arrangement": {
+-              "description": "Where the places' sites go: auto (default; deterministic sites relaxed to round places, chosen by the seed), ring (round a ring in list order, meeting near the centre), sectors (wedges round the centre as wide as their shares), bands (parallel bands across the border along direction, in list order, as wide as their shares), core (the first place at the centre, the rest round it).",
++              "description": "Where the places' sites go: auto (default; deterministic sites relaxed to round places, chosen by the seed), ring (round a ring in list order, meeting near the centre), sectors (wedges round the centre as wide as their shares), bands (parallel bands across the border along direction, in list order, as wide as their shares), core (the first place at the centre, the rest round it; a first place smaller than one of the others is a heart, a disc of its share round the centre with the rest in wedges round it, each meeting it).",
+               "enum": [
+                 "auto",
+                 "ring",
+@@ -473,7 +473,7 @@
+               "maximum": 360
+             },
+             "at": {
+-              "description": "A place's site in blocks, [x, z], inside 95% of the border: place name (a group's or a biome id) to its site. Given for every place, the places hold those sites for every seed; given for some, the rest are automatic. Not with a named arrangement.",
++              "description": "A place's site in blocks, [x, z], inside 95% of the border: place name (a group's or a biome id) to its site. The place holds the whole circle a tenth of the border's radius round its site, so a spawn or an arrival there stands inside it, or the compiler refuses the definition naming the place. Given for every place, the places hold those sites for every seed; given for some, the rest are automatic. Not with a named arrangement.",
+               "type": "object",
+               "additionalProperties": {
+                 "type": "array",
+-- 
+2.43.0
+
+
+From d9ac2e00453690b3c229a117c8a08dd1b07f0bef Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 11 Nov 2026 16:29:45 +0000
+Subject: [PATCH 2/2] docs(cd26): k8 progress log beside its state [skip ci]
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01YLnzTHFe7j88jnTnken5rK
+---
+ .../fidelity/drafts/k8/progress.log                | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 mods/custom-dimensions-26/fidelity/drafts/k8/progress.log
+
+diff --git a/mods/custom-dimensions-26/fidelity/drafts/k8/progress.log b/mods/custom-dimensions-26/fidelity/drafts/k8/progress.log
+new file mode 100644
+index 00000000..22d1cc85
+--- /dev/null
++++ b/mods/custom-dimensions-26/fidelity/drafts/k8/progress.log
+@@ -0,0 +1,14 @@
++16:01 — fast-forwarded worktree to 8719275e
++16:02 — read brief, PlaceField, PlaceLayout, tests, K7 gaps; copied vanilla data
++16:03 — implemented PlaceField.reach/unheld/hold, search hold, PlaceLayout heart + pin refusals
++16:07 — first try (push free sites outwards / sectors ring) fails: 20/50/15/15 heart refused. Switching to anchored centroidal solve (pinned site moves so its cell centroid sits on the anchor)
++16:10 — FINDING: a convex cell avoiding a disc of margin m round the centre holds at most (1-m)/2 of the square, so 50/51/55% neighbours of a centred heart are impossible in any power diagram; Lloyd hold oscillates. Plan: core heart as a disc carved at the centre (share-sized), ring solved as sectors over the rest; at pins keep Lloyd hold, else refuse
++16:13 — disc heart works (shares, margin, refusals pass); ring places at radius 0.6 can miss the heart (power triple points outside the disc). Moving ring sites inside the heart (r/4): the ring diagram becomes a fan of cones meeting inside the disc
++16:16 — cones from r/4 sites still wrap: the big ring place takes the heart's whole rim (triple point outside the disc); checking DF ops for an angular ring
++16:17 — DECISION: core heart = disc of its share round the centre + the others as exact angular wedges from the centre (areas of square-minus-disc integrated), encoded with add/mul/min/max/clamp/floor only (no new node types)
++16:17 — wedge heart: 20/50/15/15 gives shares 20.0/50.0/15.0/15.0 on 256 grid, heart touches all three
++16:21 — PlaceLayoutTest green (27). Drafts sampled (/tmp/claude-0/k8/dbg/four.txt): teal 20.5/50.2/12.0/11.2/6.2 centre+spawn in heart (spawn edge 658 b); gilded 20.5/50.1/20.3/9.0 spawn in heart edge 210 b; forged 20.5/55.2/24.3 spawn edge 273 b; emberglass at columns spawn edge 35 b (margin 26), 11.2/16.7/53.0/19.1
++16:24 — full build green: 1368 tests (core 712, compiler 541, server 115; head 1362), goldens unchanged; docs, schema, skills, README rows edited
++16:25 — all 35 K7 drafts compile; field shares of the 31 other drafts identical to K7's compile-final.log (only the four change)
++16:27 — REGRESSION found by the land harness: K6 draft the_sunken_temple (2 places 50/50, at highlands [0,0]) now refused (a 50% half-plane cannot clear the margin). Generalising the heart: a single at-pin that a power diagram cannot hold becomes a disc of its share at its site, the others wedges round it in list order
++16:28 — STOP from coordinator: stopped Gradle (PlaceLayoutTest run with the hub heart unfinished, unproven); wrapping up as wip
+-- 
+2.43.0
+

@@ -1,0 +1,23 @@
+[
+  {
+    "sha": "868d330e5024f78b6e82dab13ca0930c2724e56e",
+    "author": {
+      "login": "dependabot[bot]"
+    },
+    "committer": {
+      "login": "web-flow"
+    },
+    "parents": [
+      {
+        "sha": "77d96f0a26d4abad8199f155afa55cb83063482f"
+      }
+    ],
+    "commit": {
+      "message": "ci: bump actions/setup-java from 5 to 6\n\nBumps [actions/setup-java](https://github.com/actions/setup-java) from 5 to 6.\n- [Release notes](https://github.com/actions/setup-java/releases)\n- [Commits](ht",
+      "verification": {
+        "verified": true,
+        "reason": "valid"
+      }
+    }
+  }
+]

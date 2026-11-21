@@ -1,0 +1,58 @@
+PASS the server does not pause while the self-test runs: pause-when-empty-seconds 0 -> 0
+PASS zone mask parses and samples like core: 2000 points, worst difference 5.494212700352108E-7
+PASS pack installed at start-up by the mod: compiled 3411 files from the running game (jar:file:///home/user/minecraft-server-template/mods/custom-dimensions-26/.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-e686179c32/26.3/minecraft-merged-e686179c32-26.3.jar!/), inputs 1848f2be6397, 0 drift warnings
+PASS pack equivalence: extracted vanilla and the running game compile the same pack: 3411 files identical; 2 parameter lists equal the reports
+PASS compiled timelines decode: 19/19
+PASS compiled dimension types decode: 208/208
+PASS compiled noise settings decode: 169/169
+PASS compiled level stems decode: 208/208
+PASS compiled advancements decode: 7/7
+PASS compiled-pack decoding refuses an unknown reference: Failed to get element customdimensions:not_in_the_pack from registry minecraft:dimension_type
+PASS firewall audit ran at start-up and passed: 7 mods allowed worldgen mixins, 0 structure sets switched off, 12 bridges, 0 biome removals
+PASS firewall: a switched-off structure set leaves the structure state, the others stay: 18 sets in the overworld's state, 17 with minecraft:villages switched off
+PASS firewall: vanilla biomes hold only vanilla and bridged features: 67 vanilla biomes match vanilla's files
+PASS mixin ChunkBlockChangedMixin: a block change reaches the companion feed: ServerChunkCache.blockChanged at -32, 77, -32 reported 1 change(s) to the feed
+PASS mixin ChunkGeneratorAccessor: the overworld generator's biome feature getter reads and writes: the generator called the getter set through the accessor 1 time(s), plains 11 feature steps; the original read back once restored
+PASS mixin NoiseBasedChunkGeneratorAccessor: the overworld generator's fluid rule reads and writes: rule NoiseBasedChunkGenerator$$Lambda/0x000000007a41b3a0 (Water at y 62); a rule set through the accessor read back, the original once restored
+PASS mixin StructureStateMixin: a switched-off structure set leaves a new structure state: 18 sets in the overworld's state, 17 with minecraft:villages switched off
+PASS mixin ChunkMapStructuresMixin: the chunk map builds the overworld's structure state with its control: 9 set(s) kept, 0 dropped, built in 897 ms
+PASS mixin PrepareSpawnTaskMixin: a login saved in a level that is not open is placed at the world spawn: the handler is merged into PrepareSpawnTask; a position saved in a level that is not open is dropped (world spawn), one in the overworld is kept
+PASS mixin DisabledAquiferMixin: a disabled aquifer schedules basin fluid near the rim to flow: basin 0.5: Water, scheduled true (counted 1); basin 1.5: Water, scheduled false
+PASS mixin HolderReferenceAccessor: each runtime-registry entry reads its compiled form by key: 8 entries read their compiled forms
+PASS mixin MappedRegistryAccessor: each runtime-registry entry's compiled form reads back its key: 8 compiled forms read back their keys
+PASS mixin MaterialRuleContextAccessor: the overworld's material rule dresses the fast renderer's run tops outside a chunk: 256 columns, tops {Dirt=7, Grass Block=8, Gravel=190, Stone=51}
+PASS seed and game rule mixins merged: all eight handlers
+PASS seeds minecraft:overworld: 4705305050088502262 in getSeed, random state, structure state, structure check, biome zoom and the seed command; definition 4705305050088502262
+PASS seeds minecraft:the_nether: -6876984017876508741 in getSeed, random state, structure state, structure check, biome zoom and the seed command; definition -6876984017876508741
+PASS seeds minecraft:the_end: -1727347169663540530 in getSeed, random state, structure state, structure check, biome zoom and the seed command; definition -1727347169663540530
+PASS seeds adventure:the_aviary: 7826077224469180302 in getSeed, random state, structure state, structure check, biome zoom and the seed command; definition 7826077224469180302
+PASS runtime registry binds the compiled forms: 8 entries [adventure:the_aviary, adventure:terrain/overworld/continents, adventure:terrain/selftest_biome_ashen_savanna/continents, adventure:terrain/selftest_biome_cedar_forest/continents, adventure:zones/selftest_stamps/1/mask, adventure:zones/selftest_stamps/2/mask, adventure:selftest_checker_void, minecraft:the_nether], open levels on their bound stems [adventure:the_aviary, minecraft:the_nether]
+PASS day length: clock adventure:day_length/54000_18000, period 72000; sun 282.4 at 0, 0.0 at 27000 (noon), 77.6 at 54000 (sunset), 180.0 at 63000 (midnight), 282.4 at 72000; moon FULL_MOON then WANING_GIBBOUS; 151 dimension types share the clock
+PASS lod generator bound to overworld (reach 8192 blocks)
+PASS lod shortcut overworld detail 2 (SURFACE): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.88 whole / 1.88 shortcut, 4096 columns; surface: searched from block 210, 16 over the highest surface, to -64, 32 under the lowest; ground at the floor carried down to the noise floor
+PASS lod shortcut overworld detail 4 (SURFACE): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.86 whole / 1.86 shortcut, 4096 columns; surface: searched from block 210, 16 over the highest surface, to -64, 32 under the lowest; ground at the floor carried down to the noise floor
+PASS lod shortcut overworld detail 6 (SURFACE): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.78 whole / 1.78 shortcut, 4096 columns; surface: searched from block 210, 16 over the highest surface, to -64, 32 under the lowest; ground at the floor carried down to the noise floor
+PASS lod pregen overworld: 257 full-detail requests served by customdimensions, 0 failed, 1052672 columns in all; start: Starting pregen. Progress will be in the server console.; status: Pregen is not running
+PASS lod vs chunks overworld: 32 columns, 0 without LOD data, heights within 1 96.9%, block under the surface 84.4%, biome 90.6% of 32 columns with a surface (bars 90/60/90%); 1 columns' surface read through blocks a carver or feature dug after the noise stage -> /home/user/minecraft-server-template/mods/custom-dimensions-26/server/run/lod-check-overworld.tsv
+PASS lod generator bound to the_nether (reach 1024 blocks)
+PASS lod shortcut the_nether detail 2 (ROOFED): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.71 whole / 1.71 shortcut, 4096 columns; roofed in 1089 of 1089 pre-scan columns: whole columns, the roof left out; no fixed start, as block 104 is open between the ceiling and the floor under it in 557 of 998 roofed pre-scan columns with a floor, under 0.9
+PASS lod shortcut the_nether detail 4 (ROOFED): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.77 whole / 1.77 shortcut, 4096 columns; roofed in 1089 of 1089 pre-scan columns: whole columns, the roof left out; no fixed start, as block 104 is open between the ceiling and the floor under it in 557 of 998 roofed pre-scan columns with a floor, under 0.9
+PASS lod shortcut the_nether detail 6 (ROOFED): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.80 whole / 1.80 shortcut, 4096 columns; roofed in 1089 of 1089 pre-scan columns: whole columns, the roof left out; no fixed start, as block 104 is open between the ceiling and the floor under it in 557 of 998 roofed pre-scan columns with a floor, under 0.9
+PASS lod pregen the_nether: 257 full-detail requests served by customdimensions, 0 failed, 1052672 columns in all; start: Starting pregen. Progress will be in the server console.; status: Pregen is not running
+PASS lod vs chunks the_nether: 32 columns, 0 without LOD data, heights within 1 96.9%, block under the surface 90.6%, biome 100.0% of 32 columns with a surface (bars 90/60/90%); 5 columns' surface read through blocks a carver or feature dug after the noise stage -> /home/user/minecraft-server-template/mods/custom-dimensions-26/server/run/lod-check-the_nether.tsv
+PASS lod generator bound to the_aviary (reach 4096 blocks)
+PASS lod shortcut the_aviary detail 2 (TIERS): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.00 whole / 1.00 shortcut, 4096 columns; floating runs in 8567 of 16384 pre-scan columns: searched from block 255, 16 over the topmost tier band, to 0, 16 under the lowest run
+PASS lod shortcut the_aviary detail 4 (TIERS): heights within 1 99.9%, exact 99.9%, runs kept 100.0%, runs per column 0.73 whole / 0.73 shortcut, 4096 columns; floating runs in 8567 of 16384 pre-scan columns: searched from block 255, 16 over the topmost tier band, to 0, 16 under the lowest run
+PASS lod shortcut the_aviary detail 6 (TIERS): heights within 1 99.9%, exact 99.9%, runs kept 100.0%, runs per column 0.72 whole / 0.72 shortcut, 4096 columns; floating runs in 8567 of 16384 pre-scan columns: searched from block 255, 16 over the topmost tier band, to 0, 16 under the lowest run
+PASS lod pregen the_aviary: 257 full-detail requests served by customdimensions, 0 failed, 1052672 columns in all; start: Starting pregen. Progress will be in the server console.; status: Pregen is not running
+PASS lod vs chunks the_aviary: 32 columns, 0 without LOD data, heights within 1 100.0%, block under the surface 81.3%, biome 100.0% of 18 columns with a surface (bars 90/60/90%); 0 columns' surface read through blocks a carver or feature dug after the noise stage -> /home/user/minecraft-server-template/mods/custom-dimensions-26/server/run/lod-check-the_aviary.tsv
+PASS deaths drop with keepInventory on: 5 diamonds and 70 experience on the ground, inventory empty, level 0
+PASS exits death respawnAt: void death in selftest_void respawned at adventure:selftest_wins 4, -62, 4, inventory empty=true
+PASS deaths keep with keepInventory off: 0 items dropped, 4 diamonds and the sword in their slots and level 7 after respawn
+PASS exits void teleport: fell to y -74 in selftest_keep, arrived in the overworld at -32, 72, -32 with slow falling
+PASS exits death:lava teleport: lava death cancelled and sent to the overworld; a generic death is left alone
+PASS exit shrine: beacon at 16, -60, 16 registered a 6-cell exit zone, still lit after 120 ticks, leading to the overworld at (-31.5, 72.0, -31.5)
+PASS exits enderPearl: the_pillared_void pearl throw taken as the exit to adventure:the_tiled_expanse at 64, 57, -64, pearl kept
+PASS wins each trigger once: enter:arrive, reach:summit, kill:cull, obtain:hoard, survive:endure, advancement:first_steps; root tab done; message "§6cd-win-8 §rearned §eArrived§r in selftest_wins."
+PASS wins exit: summit sent the player on to the overworld at -32, 72, -32
+PASS wins never twice: every trigger checked again and arrive granted again, 0 new messages

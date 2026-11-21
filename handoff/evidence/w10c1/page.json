@@ -1,0 +1,80 @@
+[
+ {
+  "slug": "the_aviary",
+  "terrain": "floating islands in two stacked layers, flat-topped plateaus",
+  "changed": "The single continuous landmass became separate skyland plateaus with open sky between them and a second, smaller layer of islands above. The 14 biomes now come in regions over the land instead of narrow bands.",
+  "fidelity": 4,
+  "why": "Open sky covers 42% of the map and islands stand over islands in 10% of columns. The ground is mostly level tops, and 11 of the 12 surface biomes show their own plants and trees. Wisteria is still only 4.6% of the map, and grove regions are small for a meeting of a few places: the largest three hold 31% of the land.",
+  "ownersEye": [
+   "The boundary between the cherry and meadow regions runs almost straight north to south across several islands. Is that acceptable?",
+   "Should the flat island tops be flatter or more rolling?"
+  ]
+ },
+ {
+  "slug": "overworld",
+  "terrain": "vanilla overworld on its own seed, stretched 1.67 times, 65% land",
+  "changed": "Land share set to 65%. A larger climate scale was tried and rejected because it made the world colder.",
+  "fidelity": 3,
+  "why": "The world has ordinary forests, plains and seas, with water on 37% of it. On this seed it is cold, though: snow or ice covers 28%, and snowy taiga is the largest biome at 16%. The biomes form a scatter, with the largest three land regions holding only 10% of the land.",
+  "exception": "Broad regions need the climate stretched 3 to 4 times. On this seed that spreads the cold to 37% and 47% snow cover. A seed with temperate land near spawn, or a per-dimension temperature shift, would close it.",
+  "ownersEye": []
+ },
+ {
+  "slug": "the_nether",
+  "terrain": "vanilla Nether cavern, biome regions stretched 2.5 times",
+  "changed": "The base Nether now lists the five vanilla biomes plus quartz flats, laid out as large regions with the crimson forest weighted highest.",
+  "fidelity": 4,
+  "why": "Crimson forest is the largest biome at 30% and warped forest covers 22%. Lava covers 17% and the roof covers 94% of the map. The largest three regions hold 61% of the land, but the land splits into ten major regions rather than eight.",
+  "ownersEye": [
+   "Should quartz flats, the white Nether, be part of the base Nether?"
+  ]
+ },
+ {
+  "slug": "the_end",
+  "terrain": "vanilla End on its own seed",
+  "changed": "No generator change. Re-surveyed with the current survey.",
+  "fidelity": 4,
+  "why": "Void covers 47% of the map. End midlands and highlands lead, and all four biomes show. The largest island covers 176 hectares. Chorus is thin at 0.7% of top blocks, and the cities near the gateways were not measured.",
+  "ownersEye": []
+ },
+ {
+  "slug": "the_snowbound_isle",
+  "terrain": "one floating island gathered at spawn, void beyond",
+  "changed": "The island field copied from the Aviary became one snowy island about 800 blocks across, with fir forest, snowy plains, slopes and a dying forest for the autumnal tundra.",
+  "fidelity": 4,
+  "why": "There is one island of 57 hectares in open void, and snow lies on 79% of its ground. All six listed biomes show. The 1.21.1 frozen cliffs are gone, and the island splits into five biome regions rather than reading as one fir forest.",
+  "ownersEye": [
+   "Is an island about 800 blocks across big enough for 'animal country'?"
+  ]
+ },
+ {
+  "slug": "the_abyssal_shrine",
+  "terrain": "a ring of plateau islands with drowned basins",
+  "changed": "The copied island field became a ring of plateau islands 300 blocks out, with deep water basins in it held by the deep oceans. The deep dark surface and the gold grove are gone.",
+  "fidelity": 3,
+  "why": "The basins are deep, with 83% of the water more than 12 blocks deep, and all five listed biomes show. The middle of the ring is void, not water, and water covers only 19% of the ground.",
+  "exception": "There is no single drowned hollow at the centre. The basin terrain lays many small basins, and one big central lake drowned 76% of the ground. A basin terrain whose single lake is the layout's hollow would close it.",
+  "ownersEye": [
+   "The noon shots do not look as dark as the shrine's dark-blue sky asks. Should it be darker?"
+  ]
+ },
+ {
+  "slug": "the_violet_spire",
+  "terrain": "stone spires rising 120 blocks from islets of their own, faced with amethyst",
+  "changed": "The copied island field became spires on islets, with lavender and wisteria leading, amethyst on the spire faces, purpur on the chorus forest, and both crystal and jungle patches kept.",
+  "fidelity": 3,
+  "why": "Lavender (15%) and wisteria (11%) lead. Amethyst is 3.8% of top blocks, and spires reach y 239. The land is 82 islets of at most 5 hectares, so it reads as a scatter: 51% of the land lies in specks.",
+  "exception": "Each spire stands on its own islet. Stacked floating islands in their place lost the spires. Spires that can stand on shared floating islands would close it.",
+  "ownersEye": [
+   "Spires on islets, or wide violet islands without spires: which reads closer to 'violet spires in the sky'?"
+  ]
+ },
+ {
+  "slug": "the_sunken_temple",
+  "terrain": "sky islands joined into large drowned basins, with a second layer of islands above",
+  "changed": "The copied island field became island masses holding warm water in their basins, with the ocean biomes in the water, jungle and highlands on the islands, and a layer of smaller islands above.",
+  "fidelity": 4,
+  "why": "Water covers 45% of the map and void only 13%. The warm oceans lie in the basins, jungle covers 21% and highlands 16%, and islands sit above in 19% of columns. Islets inside the basins break the land into small regions: the largest three hold 14% of it.",
+  "ownersEye": []
+ }
+]

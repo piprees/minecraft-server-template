@@ -1,0 +1,44 @@
+{
+ "slug": "the_basalt_spires",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block + surface.groundBlocksPercent.minecraft:dirt",
+   "op": "<=",
+   "value": 3,
+   "from": "1.21.1: \"basalt pillars standing in lava, bridges slung between columns ... there has never been a sky over it\": a Nether world, no grass or dirt (W9h: 43%)"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "between",
+   "value": [
+    40,
+    80
+   ],
+   "from": "1.21.1: \"basalt pillars standing in lava, bridges slung between columns ... there has never been a sky over it\": a lava sea"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:smooth_basalt + surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:polished_basalt?",
+   "op": ">=",
+   "value": 35,
+   "from": "1.21.1: \"basalt pillars standing in lava, bridges slung between columns ... there has never been a sky over it\": basalt and blackstone"
+  },
+  {
+   "key": "biomeExpression.expressed",
+   "op": ">=",
+   "value": 6,
+   "from": "every 1.21.1 biome expressed, not only placed (W9h: 2 of 7)"
+  },
+  {
+   "key": "terrain.surfaceHeight.max",
+   "op": ">=",
+   "value": 150,
+   "from": "1.21.1: \"basalt pillars standing in lava, bridges slung between columns ... there has never been a sky over it\": pillars stand high over the sea"
+  },
+  {
+   "key": "clusters.types.minecraft:basalt.clusters? + clusters.types.minecraft:polished_basalt.clusters?",
+   "op": ">=",
+   "value": 1,
+   "from": "1.21.1: \"basalt pillars standing in lava, bridges slung between columns ... there has never been a sky over it\": basalt pillars as features"
+  }
+ ]
+}

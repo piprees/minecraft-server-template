@@ -1,0 +1,141 @@
+[
+ {
+  "slug": "the_aviary",
+  "terrain": "floating islands in two stacked layers, flat-topped plateaus, laid out as five skyland places",
+  "changed": "The thirteen grove biomes now form five places, each one region of the world: wisteria with cherry, the highlands, meadows, the golden grove with flowers, and the woods. The islands are a little sparser (coverage 0.38 instead of 0.45), so fewer island masses run across two places.",
+  "fidelity": 4,
+  "why": "Across the whole generated area the wisteria place holds 30% of the land, the highlands 24%, the meadows 18%, the golden grove 16% and the woods 10%. 56% of each island lies in a single place, and wisteria groves alone cover 21% of the land. Open sky lies under 30% of the map, and upper islands are stacked over 12.5% of it. Flat plateau and plain tops make up 27% of the land, short of the 35% the description's plateaus want.",
+  "targets": {
+   "description": "4/9",
+   "placeness": "6/7"
+  },
+  "misses": [
+   "Plateau and plain tops are 27% of the land (wants 35): the island tops read as hills. Lowering the island tilt (spread 12) or flattening them further did not raise it, so this is a named exception that waits on terrain work for flatter island tops.",
+   "Description targets measured on the survey's sample patches: wisteria 3.5% of the map (wants 8; 21% of the land across the whole generated area), plateaus and plains 18.9% of the map, the grove biomes' total, the largest three biome regions at 27.5% and specks at 5.5%. The biome-region figures count each place's two or three biomes as separate regions.",
+   "The survey's patches mostly fall outside the 2,048-block area the places are laid over, so they found no forest, birch forest or cloud reef. The render places each of these on 2.7–4.7% of the land, but how well they are expressed was not measured."
+  ],
+  "ownersEye": [
+   "Each place mixes its two or three biomes in blobs, for example wisteria with cherry. Should a place be one biome with a fringe instead?"
+  ]
+ },
+ {
+  "slug": "overworld",
+  "terrain": "vanilla overworld on its own seed, climate stretched 4 times and one band warmer, 65% land",
+  "changed": "The climate is stretched 4 times and shifted about one vanilla temperature band warmer. The cold that covered the map is now confined to the mountains. This review is interim: a layout that gives each biome one region comes next.",
+  "fidelity": 4,
+  "why": "Snow or ice covers 6% of the surface (it was 28%), water 36%, and plains, ocean, taiga and forest lead. The largest three land regions hold 26% of the land. The biomes still come as many blobs: 6.5 regions per square kilometre and 7% of the land in specks.",
+  "misses": [
+   "6.5 land regions per square kilometre (wants 6 or fewer) and 7.2% of the land in specks (wants 5 or less): vanilla's own biome placement breaks the land into many blobs. The places layout below is the alternative, and the choice between them is the owner's."
+  ],
+  "ownersEye": [
+   "Two looks for the overworld, both measured and neither applied. (a) The committed form uses vanilla's own biome placement, stretched four times and one band warmer. Around spawn it mixes forest, taiga, plains, ocean and snow-capped hills: the largest three land regions hold 26% of the land, there are 22 major regions and 6.5 per square kilometre, snow covers 6% and water 36%. (b) Five places (plains, woods, north, south and wetlands), each several thousand blocks across over the 8,192-block border. Around spawn it is one plains place: plains, meadow and sunflower plains cover 42% of the surface, the largest three land regions hold 36%, there are 14 major regions and 5.7 per square kilometre, snow covers 3% and water 41%. Thirteen listed biomes (taiga, the snowy biomes, desert, savanna, jungle, swamp, mangrove and others) lie beyond the surveyed inner 4,096 blocks, and mountains take their place's biome, with no peaks of their own. Specks are 7.3% of the land either way. Renders: overworld-biome-r2048.jpg beside overworld-places-biome-r2048.jpg."
+  ],
+  "targets": {
+   "description": "8/9",
+   "placeness": "2/4"
+  }
+ },
+ {
+  "slug": "the_nether",
+  "terrain": "vanilla Nether cavern, its six biomes laid out as six places",
+  "changed": "Each of the six Nether biomes is now one solid region of the world, sized by its weight, with gently wavy edges. The cavern, the lava sea and the roof are unchanged.",
+  "fidelity": 4,
+  "why": "Crimson forest covers 24% of the surface, wastes 24%, warped forest 20%, soul sand valley 15%, basalt deltas 10% and quartz flats 7%. The land falls into six regions, the largest three holding 66% of it, with 1.3% in specks. Lava covers 18% and the roof spans 94% of the map. Fortress and bastion reach was not measured.",
+  "targets": {
+   "description": "10/10",
+   "placeness": "5/5"
+  },
+  "misses": [],
+  "ownersEye": [
+   "Should quartz flats, the white Nether, be part of the base Nether?"
+  ]
+ },
+ {
+  "slug": "the_end",
+  "terrain": "vanilla End on its own seed",
+  "changed": "No generator change. Re-surveyed with the current survey.",
+  "fidelity": 4,
+  "why": "Void covers 47% of the map. End midlands and highlands lead, and all four biomes show. The largest island covers 176 hectares. Chorus is thin at 0.7% of top blocks, and the cities near the gateways were not measured.",
+  "ownersEye": [],
+  "targets": {
+   "description": "7/8",
+   "placeness": "4/4"
+  },
+  "misses": [
+   "The largest land region is 0.2% of the land (wants 20): the End's outer islands are many and separate. Not changed in this pass."
+  ]
+ },
+ {
+  "slug": "the_snowbound_isle",
+  "terrain": "one floating island gathered at spawn, void beyond",
+  "changed": "The island field copied from the Aviary became one snowy island about 800 blocks across, with fir forest, snowy plains, slopes and a dying forest for the autumnal tundra.",
+  "fidelity": 4,
+  "why": "There is one island of 57 hectares in open void, and snow lies on 79% of its ground. All six listed biomes show. The 1.21.1 frozen cliffs are gone, and the island splits into five biome regions rather than reading as one fir forest.",
+  "ownersEye": [
+   "Is an island about 800 blocks across big enough for 'animal country'?"
+  ],
+  "targets": {
+   "description": "5/9",
+   "placeness": "7/7"
+  },
+  "misses": [
+   "Snow and ice 25.6% of the map (wants 70), snowfall over 31.6% (wants 85), the snowy biomes below their share and the largest region 36.8% (wants 50). Each of these is measured over the whole map, void included, and this pass did not change the dimension."
+  ]
+ },
+ {
+  "slug": "the_abyssal_shrine",
+  "terrain": "a ring of plateau islands round one deep drowned lake, void beyond",
+  "changed": "The ring is wider (radius 360 instead of 300) with a shorter fall into the hollow, so the lake that fills it is larger.",
+  "fidelity": 4,
+  "why": "The ring reads as one place: its largest region holds 52% of the land and its largest three 93%, with 0.9% in specks. The deep oceans lie in the lake (24% of the surface between them), the plateau highlands cover 23% and the umbral wastes 7%. Water now covers 22% of the map, up from 7%.",
+  "targets": {
+   "description": "8/10",
+   "placeness": "6/6"
+  },
+  "misses": [
+   "Water covers 22% of the map (wants 25 to 60): a still wider ring squeezes the plateau ring thin against the border.",
+   "Plateaus are 3.6% of the landforms (wants 15): the ring's tops read as hills."
+  ],
+  "ownersEye": [
+   "A perfectly round rim holds the lake, with a strip of void between it and the plateau ring. Is that acceptable, or should the rim join the plateaus?",
+   "The noon shots do not look as dark as the shrine's dark-blue sky asks. Should it be darker?"
+  ]
+ },
+ {
+  "slug": "the_violet_spire",
+  "terrain": "broad floating islands carrying thin, pointed spires faced with amethyst, laid out as three bands of places",
+  "changed": "The two worlds now meet as three bands running west to east: wisteria with lavender, the natural skylands with cherry, and an End-ward band of umbrella jungle and chorus forest. Wisteria and lavender are weighted higher, and the islands are larger (size 2.25 instead of 1.75).",
+  "fidelity": 4,
+  "why": "Across the whole generated area the wisteria band holds 43% of the land, the skylands 30% and the End-ward band 27%. The land falls into eight place regions, and 62% of each island lies in a single place. Spires reach y 236 and the sky lies open under half the map. Cliffs are only 5% of the slopes, and the chorus forest grows no trees on its 0.3 hectares.",
+  "targets": {
+   "description": "7/10",
+   "placeness": "7/7"
+  },
+  "misses": [
+   "Cliffs are 5.2% of the slopes (wants 15): the spires are thin and stand on broad, gentle islands.",
+   "Wisteria and lavender cover 18.4% of the map (wants 25). They hold 43% of the land, and open sky covers half the map.",
+   "9 major biome regions (wants 8), because the survey counts the wisteria band's two biomes separately. Counted by place, there are 8."
+  ],
+  "ownersEye": [
+   "Inside the wisteria band, lavender and wisteria dither into each other at their edges on the large-scale map. Is that acceptable?"
+  ]
+ },
+ {
+  "slug": "the_sunken_temple",
+  "terrain": "sky islands joined into large drowned basins, a second layer of islands above, highlands held at spawn",
+  "changed": "The highlands are now a round heart about 3,300 blocks across at spawn, ringed by the jungle coast with its warm basins. The two places hold about half of the generated area each. Before this pass, a straight line ran through spawn between them.",
+  "fidelity": 4,
+  "why": "Water covers 47% of the map and void 7%. The warm ocean fills the jungle's basins (40% of the surface), jungle covers 36%, and islands hang above in 32% of columns. Across the generated area the highland place holds 49% of the land and water, the jungle coast 48%, and the largest three place regions 89%. Monuments half above the water were not measured.",
+  "targets": {
+   "description": "7/10",
+   "placeness": "6/6"
+  },
+  "misses": [
+   "The survey's biome regions (largest three 20.3%, 15 major, specks 10.1%) count every islet in a basin as a region of its own, and the highlands' two biomes separately. Counted by place over ground and held water, the figures are 89.0%, 4 and 2.1%.",
+   "The survey samples the whole 4,096-block player area, but the places are laid over the 2,048-block generated area, so beyond it the jungle coast runs on and the survey sees the highlands as 0.6% of the surface."
+  ],
+  "ownersEye": [
+   "The heart's edge is a near-perfect circle on the large-scale map. Should it wander more?"
+  ]
+ }
+]

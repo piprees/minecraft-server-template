@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 2,
+  "description": "A pocket of tidal shallows — rock pools, gull-grey cliffs and a drowned wreck glinting under clear water. No civilisation ever claimed this; the animals have always had it. The wreck is the only evidence anyone else was ever here.",
+  "seed": 7874909944384856008,
+  "spawn": [128, 64, 192],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    "minecraft:warm_ocean",
+    "minecraft:beach",
+    "minecraft:stony_shore",
+    "minecraft:windswept_gravelly_hills",
+    "minecraft:lukewarm_ocean",
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.279],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "weirdness": [-0.279, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:windswept_gravelly_hills": 24.2,
+      "minecraft:warm_ocean": 2.7,
+      "minecraft:beach": 21.2,
+      "minecraft:stony_shore": 43.4,
+      "minecraft:lukewarm_ocean": 6.6
+    }
+  },
+  "borders": {
+    "player": 256,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 0.0,
+    "playerLuck": 2.0,
+    "hostileSpawning": false
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "mvs:ocean_tower": "bury"
+    },
+    "wants": {
+      "shipwreck": {
+        "min": 0,
+        "max": 256
+      },
+      "buried_treasure": {
+        "min": 0,
+        "max": 256
+      }
+    },
+    "shuns": {
+      "village": {},
+      "monument": {}
+    },
+    "force": [
+      {
+        "structure": "minecraft:ocean_ruin_warm",
+        "x": 200,
+        "z": 74,
+        "exclusive": false
+      },
+      {
+        "structure": "mvs:ocean_tower",
+        "x": -126,
+        "z": -200,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:diorite",
+      "igniterItem": "minecraft:nautilus_shell",
+      "color": "4FC3D0",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "particleType": "minecraft:bubble_pop",
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "item.bucket.empty",
+        "enter": "ambient.underwater.enter",
+        "exit": "ambient.underwater.exit"
+      },
+      "orientation": "horizontal"
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "serene",
+    "water": "high",
+    "spawnFilter": [
+      "minecraft:beach",
+      "minecraft:stony_shore"
+    ]
+  }
+}

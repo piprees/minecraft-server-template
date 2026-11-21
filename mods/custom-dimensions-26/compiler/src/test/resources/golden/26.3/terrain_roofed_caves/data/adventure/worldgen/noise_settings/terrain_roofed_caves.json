@@ -1,0 +1,10 @@
+{
+  "base": "minecraft:caves",
+  "changed": {
+    "material_rule": "adventure:terrain_roofed_caves",
+    "noise_router": "sha1:ead3afe3e0cb150fbe7897c17bb9c940443e1373"
+  },
+  "removed": [
+    "debug_functions"
+  ]
+}

@@ -1,0 +1,62 @@
+{
+ "slug": "overworld",
+ "targets": [
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 40,
+   "from": "\"Villagers settled the plains\": land is the bulk of the world, seas at the edges"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:plains + surface.biomesPercent.minecraft:sunflower_plains + surface.biomesPercent.minecraft:meadow + surface.biomesPercent.minecraft:forest + surface.biomesPercent.minecraft:cherry_grove + surface.biomesPercent.minecraft:flower_forest + surface.biomesPercent.minecraft:birch_forest",
+   "op": ">=",
+   "value": 20,
+   "from": "1.21.1 spawnFilter plains, meadow, forest, sunflower_plains, cherry_grove: settled temperate land"
+  },
+  {
+   "key": "surface.snowIcePercent",
+   "op": "<=",
+   "value": 15,
+   "from": "\"The world where it all begins\": a temperate world, snow in its own regions"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "between",
+   "value": [
+    20,
+    150
+   ],
+   "from": "\"Villagers settled the plains\": open land with woods, not a jungle or a desert"
+  },
+  {
+   "key": "terrain.surfaceHeight.p95",
+   "op": ">=",
+   "value": 110,
+   "from": "base world: overworld mountains present"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.underground",
+   "op": ">=",
+   "value": 90,
+   "from": "\"the ancient cities ... something stirs in them\": caves and the deep dark under the land"
+  },
+  {
+   "key": "placeness.at.spawn.biomeRegionPercent",
+   "op": ">=",
+   "value": 3,
+   "from": "\"Safe at spawn\": spawn sits inside a large settled region, not a sliver"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 25,
+   "from": "base world: a varied overworld read as broad regions"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "base world: no scatter of biome specks"
+  }
+ ]
+}

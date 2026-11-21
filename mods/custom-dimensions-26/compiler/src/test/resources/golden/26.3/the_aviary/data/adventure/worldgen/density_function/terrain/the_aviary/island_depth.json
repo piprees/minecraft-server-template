@@ -1,0 +1,19 @@
+{
+  "input": {
+    "left": {
+      "left": "adventure:terrain/the_aviary/island_top",
+      "right": {
+        "axis": "y",
+        "from_coordinate": 0,
+        "from_value": 0.0,
+        "to_coordinate": 256,
+        "to_value": -256.0,
+        "type": "minecraft:gradient"
+      },
+      "type": "minecraft:add"
+    },
+    "right": 0.0078125,
+    "type": "minecraft:mul"
+  },
+  "type": "minecraft:cache"
+}

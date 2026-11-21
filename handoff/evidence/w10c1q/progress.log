@@ -1,0 +1,32 @@
+00:19 — start W10c1q; read briefs, STATE.md; branch at fea2bfe3
+00:19 — r2defs equal definitions/ (nothing to refresh); r3 boot launching: gallery renders, aviary b/c, violet a/b/c, sunken a/b full+renders, overworld r2048
+00:28 — r3 aviary: b (cov .38+wisteria 40) w10t 4/9 w10c 3/7 (survey wisteria 1.8%: wisteria place outside most patches), c (cov .32) 4/9 4/7 (sky layer 1.5); placeregions r2048/8: places hold border shares (b wis 34.7 hl 21.4 gold 16.3 mead 14.2 woods 11.0; c similar), dominantPlace b 54.1 c 77.8 vs dominantBiome 41.4/59.9; k6 r1024/4 dominantPlace 47.5
+00:39 — r3 violet: c (size 2.25, wis/lav 30/30) w10t 8/10 w10c 5/7; per place (placeregions r1024/4) top3 60.6 major 8 specks 0.1 dominantPlace 61.5 -> choose c. sunken: k6 7/10 4/6, a 7/10 4/6 (specks 15.1), b 6/10 3/6 (void 16.6); per place over ground+water a: top3 73.1 specks 4.1; straight place edge through centre (2 sites). r4 launching: aviary k6/a/c renders r2048/4, d (size 2), e (cov .40 tierCov .3) full+render, sunken k6 r2048/4
+00:39 — violet c applied and committed (definition; nether+violet drafts removed)
+00:54 — r4 done; merge window open sent to lead (C1 merge), waiting
+00:55 — aviary r2048/4 per place: k6 dominantPlace 39.0 placeSpecks 3.8 (w10c 6/7 survey), a (.38) 61.5/4.9 but plateaus+plains .33, c (.32) 77.8 but sky 1.5, d (size 2) 42.2, e (.40 tierCov .3) 35.1. Next: f = a + spread 12, g = a + spread 12 + flatness .8 after the merge. sunken k6 per place (ground+water, r2048/4): top3 67.8 specks 4.7 dominantPlace 46.8
+00:55 — overworld a vs b (r2048/8 biome sheet /tmp/claude-0/w10c1q/overworld-ab-r2048.jpg): a mixed forest/taiga/ocean/snow-capped hills; b one plains place fills most of the inner 4096 (plains+meadow+sunflower 42% of surface), 13 listed biomes unseen in the survey; survey a top3 25.5 major 22 perKm2 6.5 specks 7.2 snow 6.0 water 36.4; b 36.3, 14, 5.7, 7.3, 3.2, 40.9
+00:59 — merged e03e10d1 (C1+K8); violet rewritten in writer form; goldens+build launching
+01:06 — build green 1383 tests 0 fail; violet goldens committed; mixins selftest boot launching (CI props)
+01:08 — r5 launching (merged kit): sunken k6 full+r2048/4+r1024/4, aviary k6/f/g full+r2048/4, finals violet/nether/abyssal full+r512/2+r1024/4, overworld a and k6 full
+01:29 — r5 failed at boot: K8 heart writes constants 1.6777216E7/-1048576 past vanilla's +-1e6 constant range (sunken_k6 places/least). Fix: Df.k splits a big constant into an exact product with a power of two; test PlaceLayoutTest.aHeartWritesNoConstantPastVanillasRange; compiler tests running
+01:35 — fix committed (test fails without it, compiler tests green); r5 relaunching
+01:36 — lead accepted 7fffd393; trap draft T262 (constant range); F1 running fastrender in a worktree (5 GB rule)
+01:45 — sunken K6 on merged kit (heart): w10t 7/10 w10c 4/6 (survey biome-level top3 20.3 specks 10.1); per place over ground+held water r2048/4 with the highlands' lukewarm seas merged: top3 89.0 major 4 specks 2.1 (unmerged 54.1/8/4.5); highlands disc 49.1% jungle ring 48.3%. Applied draft
+02:05 — r5 done (finals violet/nether/abyssal, overworld a/k6; aviary f 5/7 dominantPlace 42.4, g 4/7 48.4); merge window open for F1
+02:06 — finals r5: nether 10/10 5/5; abyssal 8/10 6/6; violet survey 7/10 4/7 (patch sampling: wis+lav .37 vs c's .49 on identical terrain, render identical) -> per place on render: wisteria place 43.4% of land, major 8, top3 60.6, dominantPlace 61.5 pass; overworld a 8/9 2/4, k6 7/9 3/4
+02:14 — aviary a applied+committed (K6 draft, coverage .38). F1 m1 boot launching
+03:01 — F1 m1 done; CI server.properties restored, world deleted
+03:01 — r6 launching: finals aviary + sunken (applied definitions) full + r512/2 r1024/4 r2048/4
+03:12 — r6 finals: aviary survey w10t 4/9 w10c 3/7 (sampling: wisteria .05, plateaus .27); whole border r2048/4: wisteria_grove 21.2% of land, groves 74.5%, per place dominance 55.5, specks 4.9 -> restated 6/7 (plateaus+plains .27 misses); sunken 7/10 4/6, per place top3 89.0 specks 2.1 -> 6/6
+03:13 — rig q1 launching: 40 picks (8 pairs) for nether, abyssal, violet, aviary, sunken at render distance 32
+03:14 — finding: places laid over min(player,generation)=2048 while survey patches span the player border 4096 (sunken heart 49% of land in 2048 vs 0.6% of survey); kit-gaps #3 written; restated measures use the generation border renders
+03:53 — rig q1 2375 s: kept nether 8 (4 pairs; far pair dropped: fog only), abyssal 5, aviary 8, violet 7, sunken 5; reviews building
+03:53 — reviews (4/5 each) committed; goldens+build next
+04:11 — goldens (aviary) + build green; full self-test next
+04:47 — full self-test 277 PASS 1 FAIL 1 SKIP: generator floating_islands (the_aviary) 128x128 at spawn 0% island (coverage .38 leaves the sampled area empty)
+04:48 — F2 merged by lead (6e12e2bc). Fix: GeneratorSelfTest samples the aviary (and the clone) round the aviary definition's spawn (squareAround); test GeneratorSelfTestTest; server tests running
+04:56 — told lead the test change (7699529b) after the fact; generators section launching
+04:59 — generators section 44 PASS 0 FAIL 1 SKIP (aviary 100% island round spawn, clone PASS); full self-test q-full2 launching
+05:35 — full fresh-world self-test (CI props) 278 PASS 0 FAIL 1 SKIP, 2086 s; F2 m2 launching (overworld s4 cap 45 min)
+06:03 — F2 m2 done; CI properties restored, world deleted

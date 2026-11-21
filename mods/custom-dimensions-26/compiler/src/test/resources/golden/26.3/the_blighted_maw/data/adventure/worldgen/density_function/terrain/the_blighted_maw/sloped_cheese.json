@@ -1,0 +1,5 @@
+{
+  "left": "adventure:terrain/the_blighted_maw/islands",
+  "right": "minecraft:end/base_3d_noise",
+  "type": "minecraft:add"
+}

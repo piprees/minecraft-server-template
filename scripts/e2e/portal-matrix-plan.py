@@ -43,7 +43,24 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.dirname(os.path.dirname(HERE))
-PLATFORM_DIMS = os.path.join(TEMPLATE_DIR, "config", "custom-dimensions", "dimensions")
+PLATFORM_DIMS_V1 = os.path.join(TEMPLATE_DIR, "config", "custom-dimensions", "dimensions")
+PLATFORM_DIMS_V2 = os.path.join(TEMPLATE_DIR, "mods", "custom-dimensions-26", "definitions")
+
+
+def minecraft_version():
+    """MC_VERSION_OVERRIDE, else the checkout's .minecraft-version, as lib.sh's mc_version reads it."""
+    override = os.environ.get("MC_VERSION_OVERRIDE", "").strip()
+    if override:
+        return override
+    try:
+        with open(os.path.join(TEMPLATE_DIR, ".minecraft-version")) as handle:
+            return handle.read().strip()
+    except OSError:
+        return ""
+
+
+# A 26.x server reads the schema-v2 definitions; 1.21.1 reads the v1 configs.
+PLATFORM_DIMS = PLATFORM_DIMS_V2 if minecraft_version().startswith("26.") else PLATFORM_DIMS_V1
 CONSUMER_DIR = os.environ.get("CONSUMER_DIR", os.path.expanduser("~/Projects/elfydd"))
 CONSUMER_DIMS = os.path.join(
     CONSUMER_DIR, "data", "config", "custom-dimensions", "dimensions")
@@ -57,6 +74,7 @@ IGNITER_DAMAGEABLE = {
     "minecraft:diamond_sword": True,
     "minecraft:crossbow": True,
     "minecraft:amethyst_shard": False,
+    "minecraft:lilac": False,
     "minecraft:ender_eye": False,
     "minecraft:gold_ingot": False,
     "minecraft:netherite_scrap": False,
@@ -308,7 +326,8 @@ def resolve_igniter(item, mode, consumes_igniter=False):
 
 # `<slug>_thumb.json` is a seed-viewer sidecar, not a dimension. There is one
 # per dimension, they carry no portal, and counting them halves the meaning of
-# every count this plan prints.
+# every count this plan prints. A v2 definitions directory also holds the
+# pack's settings.json beside the dimensions; it is skipped the same way.
 SIDECAR_SUFFIX = "_thumb.json"
 
 
@@ -323,7 +342,7 @@ def load_dimensions(directory):
     for name in sorted(os.listdir(directory)):
         if not name.endswith(".json"):
             continue
-        if name.endswith(SIDECAR_SUFFIX):
+        if name.endswith(SIDECAR_SUFFIX) or name == "settings.json":
             sidecars += 1
             continue
         with open(os.path.join(directory, name)) as handle:
@@ -343,7 +362,7 @@ def portal_drift(primary, secondary):
         other = secondary.get(slug)
         if other is None:
             drift.append(slug)
-        elif config.get("portal") != other.get("portal"):
+        elif portal_of(config) != portal_of(other):
             drift.append(slug)
     return drift
 
@@ -352,12 +371,27 @@ def portal_drift(primary, secondary):
 # Bay construction
 # ---------------------------------------------------------------------------
 
+def portal_of(config):
+    """The one mod-managed portal: v1's `portal` block, or the first of v2's `portals` vanilla does not own.
+
+    A v2 definition whose portals are all vanilla-managed answers its first, so
+    the caller reports the vanillaManaged skip rather than "no portal block".
+    """
+    if isinstance(config.get("portal"), dict):
+        return config["portal"]
+    portals = [p for p in config.get("portals") or [] if isinstance(p, dict)]
+    for portal in portals:
+        if not portal.get("vanillaManaged"):
+            return portal
+    return portals[0] if portals else None
+
+
 def bay_candidates(dimensions, namespace, horizontal_mode):
     """Every (slug, axis) pair worth building, and every reason one was left out."""
     wanted = []
     skipped = []
     for slug, config in sorted(dimensions.items()):
-        portal = config.get("portal")
+        portal = portal_of(config)
         if not isinstance(portal, dict):
             skipped.append({"slug": slug, "reason": "no portal block in the config"})
             continue
@@ -561,6 +595,10 @@ def build_bay(slug, config, portal, shape, orientation, axis, cursor, opts, name
         # PORTAL_TARGETS entries are removed on a symmetric break, so
         # findRegisteredPortalNear has nothing to reuse afterwards.
         "relightExpectation": "linked-to-old" if anchor else "new-arrival",
+        # An anchor's exit "bed" (or "worldSpawn") sends the player to their
+        # respawn point, never back to the frame they entered by.
+        "returnTo": ("respawn" if isinstance(portal.get("anchor"), dict)
+                     and portal["anchor"].get("exit") in ("bed", "worldSpawn") else "source"),
         "destBorder": dest_border,
         "borderApplies": border_applies,
         "borderOk": border_ok,

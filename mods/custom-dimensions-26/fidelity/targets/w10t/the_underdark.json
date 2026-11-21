@@ -1,0 +1,74 @@
+{
+ "slug": "the_underdark",
+ "targets": [
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 95,
+   "from": "\"an endless cavern world\"; 1.21.1 environment hasCeiling true"
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 12,
+   "from": "\"an endless cavern world\": a cavern floor, not a flooded one"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:deep_dark",
+   "op": ">=",
+   "value": 30,
+   "from": "\"The deep dark as an endless cavern world\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:sculk + surface.topBlocksPercent.minecraft:sculk_vein",
+   "op": ">=",
+   "value": 20,
+   "from": "\"colonised by the sculk\", \"sculk glow\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:crimson_forest + surface.biomesPercent.minecraft:warped_forest",
+   "op": "between",
+   "value": [
+    8,
+    30
+   ],
+   "from": "\"crimson and warped fungus where the nether has pushed up through the floor\": present, not dominant"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:mushroom_fields + surface.biomesPercent.adventure:bioshroom_caves + surface.biomesPercent.adventure:fungal_fen",
+   "op": ">=",
+   "value": 10,
+   "from": "\"Mushroom light ... in equal measure\"; 1.21.1 lists mushroom_fields and fungal_fen"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 10,
+   "from": "\"The deep dark\": no sky, so no lawns on the cavern floor"
+  },
+  {
+   "key": "biomeExpression.expressed",
+   "op": ">=",
+   "value": 5,
+   "from": "1.21.1 lists 14 biomes: each placed one shows on the floor"
+  },
+  {
+   "key": "terrain.reliefMedian",
+   "op": ">=",
+   "value": 40,
+   "from": "\"endless cavern world\": tall caverns with floor relief"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting: deep dark, mushroom light and nether incursions in a few large regions"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting"
+  }
+ ]
+}

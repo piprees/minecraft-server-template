@@ -1,0 +1,586 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "nether",
+  "inspiredBy": "BetterNether's nether jungle.",
+  "differs": "Nether forests are open; this one is tangled: tall bare stripped crimson and warped stems carry broad canopies of nether and warped wart lit by shroomlight, lianas of weeping vines hang thick from the canopies and the roof, twisting vines climb from the floor, crimson and warped nylium spread in patches over the netherrack, the floor between the trunks stays open, and a thick red-green fog closes in.",
+  "climate": {
+    "temperature": [
+      0.4,
+      1.0
+    ],
+    "humidity": [
+      0.6,
+      1.0
+    ]
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:ambient.crimson_forest.additions",
+          "tick_chance": 0.0111
+        },
+        "loop": "minecraft:ambient.crimson_forest.loop",
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.crimson_forest.mood",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.nether.crimson_forest"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "creature": [
+              {
+                "type": "minecraft:strider",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 2,
+                  "min_inclusive": 1
+                },
+                "weight": 60
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:zombified_piglin",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 2
+                },
+                "weight": 1
+              },
+              {
+                "type": "minecraft:hoglin",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 3
+                },
+                "weight": 9
+              },
+              {
+                "type": "minecraft:piglin",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 3
+                },
+                "weight": 5
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:crimson_spore"
+            },
+            "probability": 0.02
+          },
+          {
+            "particle": {
+              "type": "minecraft:warped_spore"
+            },
+            "probability": 0.01
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#4e3214",
+      "minecraft:visual/fog_start_distance": {
+        "argument": 0.0,
+        "modifier": "multiply"
+      },
+      "minecraft:visual/fog_end_distance": {
+        "argument": 0.6,
+        "modifier": "multiply"
+      }
+    },
+    "carvers": "minecraft:nether_cave",
+    "downfall": 0.0,
+    "effects": {
+      "water_color": "#3f76e4"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [
+        "minecraft:spring_open",
+        "minecraft:patch_fire",
+        "minecraft:glowstone_extra",
+        "minecraft:glowstone",
+        "minecraft:ore_magma",
+        "minecraft:spring_closed",
+        "minecraft:ore_gravel_nether",
+        "minecraft:ore_blackstone",
+        "minecraft:ore_gold_nether",
+        "minecraft:ore_quartz_nether",
+        "minecraft:ore_ancient_debris_large",
+        "minecraft:ore_debris_small"
+      ],
+      [],
+      [
+        "~nylium_patches",
+        "~crimson_jungle_trees",
+        "~warped_jungle_trees",
+        "~hanging_lianas",
+        "~climbing_lianas"
+      ]
+    ],
+    "has_precipitation": false,
+    "temperature": 2.0
+  },
+  "features": {
+    "nylium_patches": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": 1,
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.3,
+        "ground_state": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:crimson_nylium"
+              },
+              "weight": 1
+            },
+            {
+              "data": {
+                "id": "minecraft:warped_nylium"
+              },
+              "weight": 1
+            }
+          ]
+        },
+        "replaceable": "#minecraft:base_stone_nether",
+        "surface": "floor",
+        "vegetation_chance": 0.15,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "id": "minecraft:nether_sprouts"
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 5,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 6,
+          "min_inclusive": 3
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 2
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "crimson_jungle_trees": {
+      "feature": {
+        "type": "minecraft:tree",
+        "below_trunk_provider": {
+          "type": "minecraft:rule_based",
+          "rules": []
+        },
+        "decorators": [],
+        "foliage_placer": {
+          "type": "minecraft:blob_foliage_placer",
+          "height": 3,
+          "offset": 0,
+          "radius": 3
+        },
+        "foliage_provider": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:nether_wart_block"
+              },
+              "weight": 6
+            },
+            {
+              "data": {
+                "id": "minecraft:warped_wart_block"
+              },
+              "weight": 3
+            },
+            {
+              "data": {
+                "id": "minecraft:shroomlight"
+              },
+              "weight": 1
+            }
+          ]
+        },
+        "ignore_vines": true,
+        "minimum_size": {
+          "type": "minecraft:two_layers_feature_size",
+          "limit": 1,
+          "upper_size": 2
+        },
+        "trunk_placer": {
+          "type": "minecraft:straight_trunk_placer",
+          "base_height": 8,
+          "height_rand_a": 3,
+          "height_rand_b": 2
+        },
+        "trunk_provider": {
+          "id": "minecraft:stripped_crimson_stem",
+          "properties": {
+            "axis": "y"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 14
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:netherrack",
+                  "minecraft:crimson_nylium",
+                  "minecraft:warped_nylium"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "warped_jungle_trees": {
+      "feature": {
+        "type": "minecraft:tree",
+        "below_trunk_provider": {
+          "type": "minecraft:rule_based",
+          "rules": []
+        },
+        "decorators": [],
+        "foliage_placer": {
+          "type": "minecraft:blob_foliage_placer",
+          "height": 3,
+          "offset": 0,
+          "radius": 3
+        },
+        "foliage_provider": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": {
+                "id": "minecraft:nether_wart_block"
+              },
+              "weight": 6
+            },
+            {
+              "data": {
+                "id": "minecraft:warped_wart_block"
+              },
+              "weight": 3
+            },
+            {
+              "data": {
+                "id": "minecraft:shroomlight"
+              },
+              "weight": 1
+            }
+          ]
+        },
+        "ignore_vines": true,
+        "minimum_size": {
+          "type": "minecraft:two_layers_feature_size",
+          "limit": 1,
+          "upper_size": 2
+        },
+        "trunk_placer": {
+          "type": "minecraft:straight_trunk_placer",
+          "base_height": 8,
+          "height_rand_a": 3,
+          "height_rand_b": 2
+        },
+        "trunk_provider": {
+          "id": "minecraft:stripped_warped_stem",
+          "properties": {
+            "axis": "y"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 8
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:netherrack",
+                  "minecraft:crimson_nylium",
+                  "minecraft:warped_nylium"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "hanging_lianas": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "direction": "down",
+        "layers": [
+          {
+            "height": {
+              "type": "minecraft:uniform",
+              "max_inclusive": 13,
+              "min_inclusive": 5
+            },
+            "provider": {
+              "id": "minecraft:weeping_vines_plant"
+            }
+          },
+          {
+            "height": 1,
+            "provider": {
+              "id": "minecraft:weeping_vines",
+              "properties": {
+                "age": "25"
+              }
+            }
+          }
+        ],
+        "prioritize_tip": true
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 260
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "below_top": 0
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          }
+        },
+        {
+          "type": "minecraft:environment_scan",
+          "allowed_search_condition": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          },
+          "direction_of_search": "up",
+          "max_steps": 20,
+          "target_condition": {
+            "type": "minecraft:solid"
+          }
+        },
+        {
+          "type": "minecraft:offset",
+          "x": 0,
+          "y": -1,
+          "z": 0
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:nether_wart_block",
+                  "minecraft:warped_wart_block",
+                  "minecraft:shroomlight",
+                  "minecraft:netherrack"
+                ],
+                "offset": [
+                  0,
+                  1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "climbing_lianas": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "direction": "up",
+        "layers": [
+          {
+            "height": {
+              "type": "minecraft:uniform",
+              "max_inclusive": 12,
+              "min_inclusive": 3
+            },
+            "provider": {
+              "id": "minecraft:twisting_vines_plant"
+            }
+          },
+          {
+            "height": 1,
+            "provider": {
+              "id": "minecraft:twisting_vines",
+              "properties": {
+                "age": "25"
+              }
+            }
+          }
+        ],
+        "prioritize_tip": true
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 2
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 6
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 6,
+            "min": -6,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 2,
+            "min": -2,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 6,
+            "min": -6,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:netherrack",
+                  "minecraft:crimson_nylium",
+                  "minecraft:warped_nylium"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

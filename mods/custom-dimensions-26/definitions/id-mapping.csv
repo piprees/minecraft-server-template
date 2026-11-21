@@ -1,0 +1,372 @@
+id,kind,namespace,decision,files,uses,replacement,reason,changed
+adventuredungeons:coldlair,structure,adventuredungeons,waiting,3,3,epic:small_ice_dungeon,Cold underground lair dungeon,new
+adventuredungeons:murkydungeon,structure,adventuredungeons,waiting,3,3,nova_structures:small_creeping_crypt,"Dank, murky underground dungeon",new
+adventuredungeons:ruins_desert,structure,adventuredungeons,waiting,1,1,nova_structures:desert_ruins,Desert ruins,new
+adventuredungeons:ruins_standard,structure,adventuredungeons,waiting,3,3,nova_structures:wild_ruin,Plain overworld ruin,new
+adventuredungeons:underground_camp,structure,adventuredungeons,waiting,1,2,nova_structures:deepslate_camp,Underground camp in a cave,no
+betterdungeons:skeleton_dungeon,structure,betterdungeons,waiting,1,1,nova_structures:small_undead_crypt,Small undead dungeon,no
+betterdungeons:small_nether_dungeon,structure,betterdungeons,waiting,2,3,mns:small_nether_brick,Small Nether-brick dungeon,new
+betterdungeons:spider_dungeon,structure,betterdungeons,waiting,2,2,ati_structures:spider_nest,Spider-infested dungeon,new
+betterdungeons:zombie_dungeon,structure,betterdungeons,waiting,1,1,epic:small_plains_dungeon,Small underground dungeon,no
+betterdungeons:zombie_dungeons,structure,betterdungeons,waiting,1,1,epic:small_plains_dungeon,"Small underground dungeon, kept common",no
+betterend:chorus_forest,biome,betterend,rebuilt by us,1,1,adventure:chorus_forest,Same look: End islands grown over with chorus forest,no
+betterend:dragon_graveyards,biome,betterend,rebuilt by us,1,1,minecraft:end_barrens,"Bleak, bone-strewn End ground; bones come from structures",no
+betterend:dust_wastelands,biome,betterend,rebuilt by us,1,1,adventure:dust_wastelands,Same look: sand dunes drifting across End islands,no
+betterend:neon_oasis,biome,betterend,rebuilt by us,1,1,adventure:neon_oasis,Same-name glowing cyan End pools,yes
+betterend:sulphur_springs,biome,betterend,rebuilt by us,1,1,adventure:sulphur_springs,Same look: steaming sulphur-ringed pools on End islands,no
+betterfortresses:fortress,structure,betterfortresses,waiting,3,3,mns:mega_fortress,Enlarged Nether fortress landmark,no
+betternether:bone_reef,biome,betternether,rebuilt by us,1,1,adventure:gravel_desert,Nether floor of standing bones; gravel desert carries bone ribs,no
+betternether:crimson_glowing_woods,biome,betternether,rebuilt by us,2,2,minecraft:crimson_forest,Crimson fungus wood lit by shroomlight,no
+betternether:crimson_pinewood,biome,betternether,rebuilt by us,1,1,adventure:crimson_pinewood,Same look: tiered crimson pines crowned in wart,no
+betternether:flooded_deltas,biome,betternether,rebuilt by us,1,1,minecraft:basalt_deltas,Basalt deltas cut by pools,no
+betternether:gravel_desert,biome,betternether,rebuilt by us,1,1,adventure:gravel_desert,Same look: Nether gravel dunes with half-buried bones,no
+betternether:magma_land,biome,betternether,rebuilt by us,1,1,adventure:magma_land,Same look: cracked magma fields between lava pools,no
+betternether:nether_grasslands,biome,betternether,rebuilt by us,1,1,adventure:nether_grasslands,Same look: open Nether plains overgrown with roots,no
+betternether:nether_mushroom_forest,biome,betternether,rebuilt by us,1,1,adventure:mycotoxic_undergrowth,Nether forest of giant fungi,yes
+betternether:old_swampland,biome,betternether,rebuilt by us,1,1,minecraft:soul_sand_valley,Murky low Nether mire; soul sand valley keeps the gloom,no
+betternether:poor_nether_grasslands,biome,betternether,rebuilt by us,2,2,minecraft:nether_wastes,Sparse grass over bare netherrack,no
+betternether:soul_plain,biome,betternether,rebuilt by us,1,1,minecraft:soul_sand_valley,Flat soul sand plain with blue soul fire,no
+betternether:sulfuric_bone_reef,biome,betternether,rebuilt by us,1,1,adventure:quartz_flats,Pale Nether reef of standing white pillars; no yellow Nether,no
+betternether:upside_down_forest,biome,betternether,rebuilt by us,1,1,adventure:upside_down_forest,Same look: fungus forest hanging from the Nether roof,no
+betternether:upside_down_forest_cleared,biome,betternether,rebuilt by us,1,1,minecraft:crimson_forest,Open crimson ground under a thinner hanging canopy,no
+betternether:wart_forest,biome,betternether,rebuilt by us,1,1,adventure:upside_down_forest,Nether-wart woodland; wart-roofed forest is the closest,no
+betternether:wart_forest_edge,biome,betternether,rebuilt by us,2,2,adventure:crimson_pinewood,Wart-crowned crimson fringe; pinewood tiers are nether wart,no
+chipped:runic_carved_obsidian,portal,chipped,cut,1,1,minecraft:chiseled_polished_blackstone,Dark carved stone; crying obsidian is the weeping vault frame,no
+dungeons_arise:abandoned_temple,structure,dungeons_arise,waiting,1,1,ati_structures:rotting_temple,"Abandoned, decaying temple",new
+dungeons_arise:bandit_towers,structure,dungeons_arise,waiting,1,1,ati_structures:illager_tower,Fortified raider tower,no
+dungeons_arise:bandit_village,structure,dungeons_arise,waiting,2,2,nova_structures:illager_barracks,Raider settlement,new
+dungeons_arise:coliseum,structure,dungeons_arise,waiting,24,24,mss:arena,Large arena landmark,new
+dungeons_arise:foundry,structure,dungeons_arise,waiting,2,2,mns:crimson_forge,Piglin forge dungeon,no
+dungeons_arise:illager_campsite,structure,dungeons_arise,waiting,1,1,nova_structures:illager_camp,Illager camp,no
+dungeons_arise:illager_fort,structure,dungeons_arise,waiting,1,1,ati_structures:old_fort,Fortified stronghold landmark,new
+dungeons_arise:infested_temple,structure,dungeons_arise,waiting,2,2,mtr:jungle_temple,Overgrown jungle temple dungeon,new
+dungeons_arise:jungle_tree_house,structure,dungeons_arise,waiting,1,1,nova_structures:illager_treehouse,Hostile treehouse in the canopy,no
+dungeons_arise:keep_kayra,structure,dungeons_arise,waiting,3,4,ati_structures:dark_keep,"Large hostile keep, a landmark dungeon",no
+dungeons_arise:mining_complex,structure,dungeons_arise,waiting,1,1,ati_structures:quarry,Large mining works,new
+dungeons_arise:mushroom_house,structure,dungeons_arise,waiting,1,1,mvs:large_mushroom,Whimsical giant-mushroom landmark,no
+dungeons_arise:scorched_mines,structure,dungeons_arise,waiting,1,1,nova_structures:badlands_miner_outpost,Mining dungeon in scorched country,no
+dungeons_arise:shiraz_palace,structure,dungeons_arise,waiting,1,2,nova_structures:piglin_donjon,Piglin great hall standing in for the palace,no
+dungeons_plus:cold_dungeon,structure,dungeons_plus,waiting,3,3,nova_structures:surface_dungeon_snowy,Small snowy dungeon,new
+dungeons_plus:deepwater_dungeon,structure,dungeons_plus,waiting,2,2,ati_structures:underwater_dungeon,Underwater dungeon,new
+dungeons_plus:dusty_tomb,structure,dungeons_plus,waiting,1,1,epic:small_sand_dungeon,Small sand-buried tomb dungeon,no
+dungeons_plus:frozen_dungeon,structure,dungeons_plus,waiting,4,4,epic:small_ice_dungeon,Small ice dungeon,new
+dungeons_plus:infested_dungeon,structure,dungeons_plus,waiting,2,2,ati_structures:silverfish_nest,Silverfish-infested dungeon,new
+dungeons_plus:lush_dungeon,structure,dungeons_plus,waiting,4,4,ati_structures:jungle_grotto,"Lush, overgrown grotto dungeon",new
+dungeons_plus:mouldy_dungeon,structure,dungeons_plus,waiting,2,2,ati_structures:rotting_temple_underground,Rotting underground dungeon,new
+dungeons_plus:muddy_dungeon,structure,dungeons_plus,waiting,2,2,nova_structures:surface_dungeon_swamp,Swamp mud dungeon,new
+dungeons_plus:scorched_tomb,structure,dungeons_plus,waiting,2,2,nova_structures:surface_dungeon_desert,Sun-scorched tomb dungeon,new
+dungeons_plus:webbed_dungeon,structure,dungeons_plus,waiting,2,2,ati_structures:arachnid_dwelling,Cobwebbed spider dungeon,new
+explorify:badlands_pyramid,structure,explorify,waiting,1,1,mtr:badlands_temple,Badlands pyramid temple,new
+explorify:black_spiral,structure,explorify,waiting,2,2,ati_structures:dark_tower,Dark spiralling tower,new
+explorify:campsite,structure,explorify,waiting,2,2,mvs:campsite,Campsite,no
+explorify:dark_forest_settlement,structure,explorify,waiting,2,2,nova_structures:hamlet,Small woodland hamlet,new
+explorify:dark_forest_settlements,structure,explorify,waiting,1,1,nova_structures:hamlet,Small woodland hamlet,no
+explorify:desert_shrine,structure,explorify,waiting,2,2,epic:sand_obelisk,Small desert shrine landmark,new
+explorify:farmstead,structure,explorify,waiting,1,1,nova_structures:remnant_ruin_farmer,Lone farmstead holdout,no
+explorify:guide_post_cold,structure,explorify,waiting,4,4,mvs:small_spruce_lantern,Small roadside marker in cold country,new
+explorify:guide_post_warm,structure,explorify,waiting,9,9,mvs:small_oak_lantern,Small roadside marker,new
+explorify:mangrove_hut,structure,explorify,waiting,2,2,nova_structures:mangrove_witch_hut,Mangrove stilt hut,new
+explorify:mausoleum,structure,explorify,waiting,4,4,nova_structures:remnant_shrine_sentinel_mass_grave,Aboveground tomb monument,new
+explorify:watchtower/plains,structure,explorify,waiting,6,6,nova_structures:firewatch_tower_forest,Wooden lookout tower,new
+friendsandfoes:citadel,structure,friendsandfoes,waiting,1,2,nova_structures:stray_fort,Frozen fortress landmark,no
+galosphere:crystal_canyons,biome,galosphere,rebuilt by us,2,2,adventure:crystal_hollows,Inspiration: caves where crystals broke out of geodes,no
+galosphere:lichen_caves,biome,galosphere,rebuilt by us,1,1,adventure:lichen_caves,Same look: damp dim caverns furred with lichen,no
+galosphere:pink_salt_caves,biome,galosphere,rebuilt by us,1,1,adventure:cinnabar_veins,Inspiration: pink-red mineral caverns,no
+incendium:abandoned_tower,structure,incendium,rebuilt by us,1,1,mns:nether_tower,Ruined Nether tower,no
+incendium:ash_barrens,biome,incendium,rebuilt by us,11,14,adventure:ash_barrens,Same look: flat grey ash plains over buried basalt,no
+incendium:forbidden_castle,structure,incendium,rebuilt by us,2,4,nova_structures:nether_keep,Fortified Nether castle dungeon,no
+incendium:infernal_altar,structure,incendium,rebuilt by us,4,4,mns:smoking_shrine,Burning Nether altar shrine,new
+incendium:infernal_dunes,biome,incendium,rebuilt by us,4,7,adventure:gravel_desert,Nether dune sea; gravel desert keeps the dunes,no
+incendium:inverted_forest,biome,incendium,rebuilt by us,6,7,adventure:upside_down_forest,Inverted fungus forest hanging from the roof,no
+incendium:nether_reactor,structure,incendium,rebuilt by us,3,4,mns:crimson_forge,Piglin industrial works,no
+incendium:piglin_village,structure,incendium,rebuilt by us,2,2,towns_and_towers:exclusives/village_piglin,Piglin village,no
+incendium:pipeline,structure,incendium,rebuilt by us,1,1,mns:bridge_1,Long span across the lava,no
+incendium:quartz_flats,biome,incendium,rebuilt by us,12,20,adventure:quartz_flats,Same look: white quartz plains in the Nether,no
+incendium:ruined_lab,structure,incendium,rebuilt by us,5,5,mns:copper_tower,Ruined Nether workshop,new
+incendium:sanctum,structure,incendium,rebuilt by us,1,1,nova_structures:sealing_halls,Sealed halls guarding something,no
+incendium:toxic_heap,biome,incendium,rebuilt by us,7,9,adventure:mycotoxic_undergrowth,Toxic green Nether ground,yes
+incendium:volcanic_deltas,biome,incendium,rebuilt by us,8,13,adventure:magma_land,Volcanic deltas of magma and lava pools,no
+incendium:weeping_valley,biome,incendium,rebuilt by us,6,8,adventure:nether_jungle,Crimson valley hung with weeping vines,yes
+incendium:withered_forest,biome,incendium,rebuilt by us,12,14,adventure:withered_forest,Same look: dead capless fungus stems under ash,no
+natures_spirit:aspen_forest,biome,natures_spirit,rebuilt by us,2,2,adventure:aspen_forest,Same look: close stand of white trunks under gold,no
+natures_spirit:bamboo_wetlands,biome,natures_spirit,rebuilt by us,1,1,minecraft:bamboo_jungle,Bamboo standing thick in wet ground,no
+natures_spirit:boreal_taiga,biome,natures_spirit,rebuilt by us,1,1,minecraft:taiga,Cold northern spruce forest,no
+natures_spirit:carnation_fields,biome,natures_spirit,rebuilt by us,2,2,adventure:carnation_fields,Inspiration: dense red and pink flower meadow,no
+natures_spirit:cedar_thicket,biome,natures_spirit,rebuilt by us,2,2,adventure:sugi_forest,Tall cedars over a mossy floor,yes
+natures_spirit:coniferous_covert,biome,natures_spirit,rebuilt by us,1,1,minecraft:windswept_forest,Close mixed conifers on rough ground,no
+natures_spirit:fir_forest,biome,natures_spirit,rebuilt by us,4,4,minecraft:old_growth_spruce_taiga,Tall dense firs; old-growth spruce stands closest,no
+natures_spirit:floral_ridges,biome,natures_spirit,rebuilt by us,1,1,minecraft:flower_forest,Flower-covered hills in every colour,no
+natures_spirit:golden_wilds,biome,natures_spirit,rebuilt by us,1,1,adventure:prairie,Golden tall grass to the horizon,no
+natures_spirit:heather_fields,biome,natures_spirit,rebuilt by us,2,3,adventure:highland_fells,Inspiration match: heather moorland,no
+natures_spirit:lavender_fields,biome,natures_spirit,rebuilt by us,3,4,adventure:lavender_fields,Same look: open meadow in one purple,no
+natures_spirit:maple_woodlands,biome,natures_spirit,rebuilt by us,1,1,adventure:maple_woodland,Same look: broadleaf wood at the height of autumn,no
+natures_spirit:marigold_meadows,biome,natures_spirit,rebuilt by us,1,1,minecraft:sunflower_plains,Yellow-orange flower meadow,no
+natures_spirit:marsh,biome,natures_spirit,rebuilt by us,2,4,adventure:orchid_marsh,Inspiration: open reed marsh with blue orchids,no
+natures_spirit:oak_savanna,biome,natures_spirit,rebuilt by us,2,3,adventure:parched_forest,Dry oaks over yellowed grass,yes
+natures_spirit:prairie,biome,natures_spirit,rebuilt by us,1,1,adventure:prairie,Same look: sea of tall golden grass,no
+natures_spirit:red_peaks,biome,natures_spirit,rebuilt by us,1,1,minecraft:eroded_badlands,Red rock peaks; badlands spires carry the colour,no
+natures_spirit:redwood_forest,biome,natures_spirit,rebuilt by us,2,3,adventure:redwood_grove,Same look: grove of giant redwoods,no
+natures_spirit:scorched_dunes,biome,natures_spirit,rebuilt by us,1,1,minecraft:desert,Hot open sand dunes,no
+natures_spirit:sleeted_slopes,biome,natures_spirit,rebuilt by us,1,1,minecraft:snowy_slopes,Icy snow-covered mountain slopes,no
+natures_spirit:snowcapped_red_peaks,biome,natures_spirit,rebuilt by us,1,1,minecraft:jagged_peaks,Sharp snow-capped peaks,no
+natures_spirit:snowy_fir_forest,biome,natures_spirit,rebuilt by us,3,3,minecraft:snowy_taiga,Snow-laden conifer forest,no
+natures_spirit:stratified_desert,biome,natures_spirit,rebuilt by us,2,2,minecraft:badlands,Layered banded rock desert,no
+natures_spirit:tropical_basin,biome,natures_spirit,rebuilt by us,1,1,minecraft:jungle,Lush low tropical forest,no
+natures_spirit:tropical_shores,biome,natures_spirit,rebuilt by us,1,1,adventure:tropical_shores,Same look: wide white beaches under leaning palms,no
+natures_spirit:tundra,biome,natures_spirit,rebuilt by us,2,3,adventure:highland_fells,Cold treeless brown-green upland,no
+natures_spirit:white_cliffs,biome,natures_spirit,rebuilt by us,1,1,adventure:chalk_cliffs,Same look: white sea cliffs,no
+natures_spirit:wisteria_forest,biome,natures_spirit,rebuilt by us,3,3,adventure:wisteria_grove,Inspiration: trees dripping purple wisteria curtains,no
+natures_spirit:wooded_drylands,biome,natures_spirit,rebuilt by us,1,1,adventure:parched_forest,Dry open woodland,no
+natures_spirit:xeric_plains,biome,natures_spirit,rebuilt by us,1,1,adventure:joshua_desert,Dry scrub plains of desert trees,yes
+nullscape:crystal_peaks,biome,nullscape,rebuilt by us,8,9,adventure:ice_starfield,Crystal spikes over End islands; packed and blue ice,yes
+nullscape:dragon_skeleton,structure,nullscape,rebuilt by us,2,2,mns:giant_skull,Giant skeletal remains landmark,no
+nullscape:shadowlands,biome,nullscape,rebuilt by us,10,11,adventure:umbral_wastes,Dark End land; umbral wastes is the dark End biome,no
+nullscape:void_barrens,biome,nullscape,rebuilt by us,9,10,minecraft:end_barrens,Bare End islands at the void,no
+palegardenbackport:pale_garden,biome,palegardenbackport,replaced,1,1,minecraft:pale_garden,The backported biome itself; vanilla now ships it,no
+paradise_lost:aurel_tower,structure,paradise_lost,rebuilt by us,2,4,mss:large_tower,Sky-island tower,no
+paradise_lost:autumnal_tundra,biome,paradise_lost,rebuilt by us,2,2,adventure:golden_skygrove,Sky islands in autumn gold,no
+paradise_lost:birdcage,structure,paradise_lost,rebuilt by us,1,1,mss:small_tower,Small sky-island structure,no
+paradise_lost:calcite_craglands,biome,paradise_lost,rebuilt by us,4,5,adventure:windswept_isles,Bare calcite crags on sky islands,no
+paradise_lost:continental_plateau,biome,paradise_lost,rebuilt by us,1,2,adventure:sky_highlands,Broad pale-grass sky plateau,no
+paradise_lost:highlands,biome,paradise_lost,rebuilt by us,3,4,adventure:sky_highlands,Inspiration match: pale bright grass on sky islands,no
+paradise_lost:highlands_forest,biome,paradise_lost,rebuilt by us,2,2,minecraft:forest,Green wooded sky islands,no
+paradise_lost:highlands_grand_glade,biome,paradise_lost,rebuilt by us,1,2,adventure:golden_skygrove,Open sky glade of large round trees,no
+paradise_lost:highlands_shield,biome,paradise_lost,rebuilt by us,1,1,adventure:windswept_isles,Bare wind-scoured rocky island crust,no
+paradise_lost:highlands_thicket,biome,paradise_lost,rebuilt by us,2,2,minecraft:dark_forest,Dense close-grown thicket,no
+paradise_lost:palace,structure,paradise_lost,rebuilt by us,1,2,mss:castle_ruin,Ruined sky castle landmark,no
+paradise_lost:paradise_lost,type,paradise_lost,rebuilt by us,4,4,adventure:the_aviary,Already rewritten by the converter,no
+paradise_lost:remains,structure,paradise_lost,rebuilt by us,5,5,mvs:statue_ruins,Scattered weathered ruins,new
+paradise_lost:tradewinds,biome,paradise_lost,rebuilt by us,2,2,minecraft:meadow,Breezy open grass and flowers on high islands,no
+paradise_lost:vault,structure,paradise_lost,rebuilt by us,3,4,nova_structures:trial_dungeon,Sealed treasure vault dungeon,no
+paradise_lost:wisteria_woods,biome,paradise_lost,rebuilt by us,2,2,adventure:wisteria_grove,Wood hung with purple wisteria,no
+philipsruins:ancient_crypt,structure,philipsruins,rebuilt by us,1,1,nova_structures:undead_crypt,Underground crypt,new
+philipsruins:ancient_ruins,structure,philipsruins,rebuilt by us,1,1,minecraft:trail_ruins,Buried ancient ruins,no
+philipsruins:antiquus_crypta,structure,philipsruins,rebuilt by us,1,1,nova_structures:undead_crypt,Underground crypt,no
+philipsruins:badlands_structures,structure,philipsruins,rebuilt by us,1,1,nova_structures:badlands_miner_outpost,Ruins in badlands country,new
+philipsruins:bone_dungeon,structure,philipsruins,rebuilt by us,1,1,nova_structures:catacomb,Bone-lined catacomb dungeon,no
+philipsruins:end_gate_fortress,structure,philipsruins,rebuilt by us,1,1,mes:enderkeep_courtyard,End fortress gateway,new
+philipsruins:end_ruins,structure,philipsruins,rebuilt by us,4,4,mes:endscraps,Scattered End ruins,new
+philipsruins:field_stone_ruins,structure,philipsruins,rebuilt by us,1,1,nova_structures:wild_ruin,Field-stone ruin,no
+philipsruins:lost_soul_dungeon,structure,philipsruins,rebuilt by us,1,1,nova_structures:nether_skeleton_tower_soul,Soul-valley Nether dungeon,new
+philipsruins:nether_lava_ruins,structure,philipsruins,rebuilt by us,1,1,mns:large_nether_brick,Nether-brick ruin by the lava,new
+philipsruins:ocean_fortress,structure,philipsruins,rebuilt by us,2,2,mtr:ocean_temple,Fortress in the sea,new
+philipsruins:ocean_ruins,structure,philipsruins,rebuilt by us,1,1,minecraft:ocean_ruin_warm,Ruins under clear warm shallows,no
+philipsruins:pumpkin_ruins,structure,philipsruins,rebuilt by us,2,2,nova_structures:remnant_ruin_farmer,Ruined pumpkin farm,new
+philipsruins:sculk_dungeon,structure,philipsruins,rebuilt by us,4,4,ati_structures:warden_monument,Sculk-choked dungeon,no
+philipsruins:start_nether_ruin,structure,philipsruins,rebuilt by us,1,1,mns:ruined_portal,Small Nether ruin round an old portal,new
+regions_unexplored:alpha_grove,biome,regions_unexplored,rebuilt by us,2,2,adventure:alpha_grove,Same-name throwback grove of plain blob oaks,yes
+regions_unexplored:ancient_delta,biome,regions_unexplored,rebuilt by us,3,3,adventure:ash_barrens,Inspiration: buried grey delta of ash and basalt stumps,no
+regions_unexplored:arid_mountains,biome,regions_unexplored,rebuilt by us,3,3,minecraft:windswept_savanna,Dry rugged mountains,no
+regions_unexplored:ashen_woodland,biome,regions_unexplored,rebuilt by us,1,2,adventure:ashen_woodland,Same look: birch wood after a wildfire,no
+regions_unexplored:autumnal_maple_forest,biome,regions_unexplored,rebuilt by us,1,1,minecraft:dappled_forest,Autumn-coloured wood; dappled forest is red and orange,no
+regions_unexplored:baobab_savanna,biome,regions_unexplored,rebuilt by us,1,1,adventure:baobab_savanna,Same-name dry savanna of lone baobabs,yes
+regions_unexplored:barley_fields,biome,regions_unexplored,rebuilt by us,1,1,adventure:barley_fields,Inspiration: rolling golden fields that look farmed,no
+regions_unexplored:bayou,biome,regions_unexplored,rebuilt by us,1,1,adventure:cypress_wetland,Open water with tall cypresses,no
+regions_unexplored:bioshroom_caves,biome,regions_unexplored,rebuilt by us,1,1,adventure:bioshroom_caves,Same look: caverns lit by giant glowing mushrooms,no
+regions_unexplored:blackstone_basin,biome,regions_unexplored,rebuilt by us,4,4,adventure:blackstone_basin,Same look: blackstone terraces round a lava lake,no
+regions_unexplored:blackwood_taiga,biome,regions_unexplored,rebuilt by us,1,1,minecraft:old_growth_pine_taiga,Dark-trunked tall conifer forest,no
+regions_unexplored:boreal_taiga,biome,regions_unexplored,rebuilt by us,1,1,minecraft:taiga,Cold northern spruce forest,no
+regions_unexplored:chalk_cliffs,biome,regions_unexplored,rebuilt by us,2,2,adventure:chalk_cliffs,Same look: white chalk sea cliffs,no
+regions_unexplored:clover_plains,biome,regions_unexplored,rebuilt by us,4,5,minecraft:plains,Green grass plains,no
+regions_unexplored:cold_boreal_taiga,biome,regions_unexplored,rebuilt by us,1,1,minecraft:taiga,Cold spruce forest,no
+regions_unexplored:cold_river,biome,regions_unexplored,rebuilt by us,1,1,minecraft:river,Cool temperate river,no
+regions_unexplored:deciduous_forest,biome,regions_unexplored,rebuilt by us,1,1,minecraft:forest,Mixed broadleaf forest,no
+regions_unexplored:dry_bushland,biome,regions_unexplored,rebuilt by us,2,2,minecraft:savanna,Dry scrub and bushes on warm grass,no
+regions_unexplored:fen,biome,regions_unexplored,rebuilt by us,2,3,minecraft:swamp,Open reedy wetland,no
+regions_unexplored:flower_fields,biome,regions_unexplored,rebuilt by us,2,2,minecraft:flower_forest,Fields of mixed flowers,no
+regions_unexplored:frozen_pine_taiga,biome,regions_unexplored,rebuilt by us,1,1,minecraft:grove,Snowy pines on cold slopes,no
+regions_unexplored:frozen_tundra,biome,regions_unexplored,rebuilt by us,1,2,minecraft:snowy_plains,Flat frozen treeless ground,no
+regions_unexplored:fungal_fen,biome,regions_unexplored,rebuilt by us,2,2,adventure:fungal_fen,Same-name swamp of giant mushrooms,yes
+regions_unexplored:glistering_meadow,biome,regions_unexplored,rebuilt by us,4,4,adventure:nether_grasslands,Inspiration match: open Nether meadow of roots and sprouts,no
+regions_unexplored:golden_boreal_taiga,biome,regions_unexplored,rebuilt by us,1,1,adventure:aspen_forest,Gold-leaved cold woodland,no
+regions_unexplored:grassland,biome,regions_unexplored,rebuilt by us,1,1,minecraft:plains,Open grassland,no
+regions_unexplored:grassy_beach,biome,regions_unexplored,rebuilt by us,1,1,minecraft:beach,Sandy shore meeting grass,no
+regions_unexplored:gravel_beach,biome,regions_unexplored,rebuilt by us,1,1,minecraft:stony_shore,Pebbly grey shore,no
+regions_unexplored:highland_fields,biome,regions_unexplored,rebuilt by us,1,1,adventure:highland_fells,Inspiration match: cold treeless upland moor,no
+regions_unexplored:hyacinth_deeps,biome,regions_unexplored,rebuilt by us,1,1,minecraft:deep_lukewarm_ocean,Deep flowered temperate sea,no
+regions_unexplored:icy_heights,biome,regions_unexplored,rebuilt by us,2,2,minecraft:frozen_peaks,Icy high peaks,no
+regions_unexplored:infernal_holt,biome,regions_unexplored,rebuilt by us,3,3,minecraft:crimson_forest,Fiery red Nether woodland,no
+regions_unexplored:inferno,biome,regions_unexplored,rebuilt by us,4,4,adventure:magma_land,Burning ground of magma and lava,no
+regions_unexplored:joshua_desert,biome,regions_unexplored,rebuilt by us,3,3,adventure:joshua_desert,Same-name desert of Joshua trees,yes
+regions_unexplored:lavender_wisteria_sapling,portal,regions_unexplored,rebuilt by us,1,1,minecraft:lilac,Purple-flowered plant like wisteria,no
+regions_unexplored:magnolia_woodland,biome,regions_unexplored,rebuilt by us,1,1,adventure:magnolia_woodland,Inspiration: lowland wood in white and pink blossom,no
+regions_unexplored:marsh,biome,regions_unexplored,rebuilt by us,2,4,adventure:orchid_marsh,Open treeless reed marsh,no
+regions_unexplored:mauve_hills,biome,regions_unexplored,rebuilt by us,3,3,adventure:lavender_fields,Purple-tinted grassy hills; lavender carries the mauve,no
+regions_unexplored:mountains,biome,regions_unexplored,rebuilt by us,2,2,adventure:alpine_scree,Inspiration: loose stone and gravel slopes under peaks,no
+regions_unexplored:muddy_river,biome,regions_unexplored,rebuilt by us,1,1,adventure:muddy_river,Same look: slow brown river between mud banks,no
+regions_unexplored:mycotoxic_undergrowth,biome,regions_unexplored,rebuilt by us,2,2,adventure:mycotoxic_undergrowth,Same-name lurid green toxic fungus Nether biome,yes
+regions_unexplored:old_growth_bayou,biome,regions_unexplored,rebuilt by us,1,1,minecraft:mangrove_swamp,Old flooded wood of big rooted trees,no
+regions_unexplored:old_growth_forest,biome,regions_unexplored,rebuilt by us,2,2,minecraft:dark_forest,Ancient dense broadleaf canopy,no
+regions_unexplored:orchard,biome,regions_unexplored,rebuilt by us,2,2,adventure:magnolia_woodland,Short spreading blossoming trees over grass,no
+regions_unexplored:outback,biome,regions_unexplored,rebuilt by us,3,3,adventure:saguaro_desert,Red-sand scrub desert,no
+regions_unexplored:pine_slopes,biome,regions_unexplored,rebuilt by us,3,3,minecraft:windswept_forest,Steep slopes of pines,no
+regions_unexplored:pine_taiga,biome,regions_unexplored,rebuilt by us,1,1,minecraft:old_growth_pine_taiga,Tall pine forest,no
+regions_unexplored:poppy_fields,biome,regions_unexplored,rebuilt by us,2,2,adventure:carnation_fields,Red poppy meadow; carnation fields are poppies and tulips,no
+regions_unexplored:prairie,biome,regions_unexplored,rebuilt by us,1,1,adventure:prairie,Inspiration match: sea of tall golden grass,no
+regions_unexplored:prismachasm,biome,regions_unexplored,rebuilt by us,2,2,adventure:crystal_hollows,Glittering crystal chasm,no
+regions_unexplored:pumpkin_fields,biome,regions_unexplored,rebuilt by us,1,1,adventure:pumpkin_fields,Same-name eerie pumpkin harvest fields,yes
+regions_unexplored:rainforest,biome,regions_unexplored,rebuilt by us,1,1,adventure:cloud_forest,Inspiration: misty mossy mountain jungle,no
+regions_unexplored:redstone_abyss,biome,regions_unexplored,rebuilt by us,3,3,adventure:redstone_abyss,Same-name Nether biome of redstone seams and crystals,yes
+regions_unexplored:redstone_caves,biome,regions_unexplored,rebuilt by us,1,1,adventure:cinnabar_veins,Inspiration match: red mineral caverns,no
+regions_unexplored:redwoods,biome,regions_unexplored,rebuilt by us,1,1,adventure:redwood_grove,Inspiration match: tallest-tree redwood grove,no
+regions_unexplored:rocky_meadow,biome,regions_unexplored,rebuilt by us,2,2,adventure:alpine_meadow,Inspiration: high flower meadow among rocks,no
+regions_unexplored:rocky_reef,biome,regions_unexplored,rebuilt by us,2,2,minecraft:warm_ocean,Shallow rocky coral reef,no
+regions_unexplored:saguaro_desert,biome,regions_unexplored,rebuilt by us,2,2,adventure:saguaro_desert,Same look: red sand desert of branching cacti,no
+regions_unexplored:scorching_caves,biome,regions_unexplored,rebuilt by us,1,2,adventure:magmatic_caves,Hot volcanic caverns of magma,no
+regions_unexplored:shrubland,biome,regions_unexplored,rebuilt by us,1,1,minecraft:savanna,Bushy dry grassland,no
+regions_unexplored:silver_birch_forest,biome,regions_unexplored,rebuilt by us,1,1,minecraft:old_growth_birch_forest,Tall pale birch forest,no
+regions_unexplored:sparse_rainforest,biome,regions_unexplored,rebuilt by us,1,1,minecraft:sparse_jungle,Open patchy rainforest,no
+regions_unexplored:sparse_redwoods,biome,regions_unexplored,rebuilt by us,1,1,minecraft:old_growth_spruce_taiga,Scattered giant conifers,no
+regions_unexplored:spires,biome,regions_unexplored,rebuilt by us,3,3,minecraft:jagged_peaks,Tall sharp stone spires,no
+regions_unexplored:steppe,biome,regions_unexplored,rebuilt by us,1,1,adventure:dry_steppe,Inspiration: wind-dried grassland with gravel scars,no
+regions_unexplored:temperate_grove,biome,regions_unexplored,rebuilt by us,2,2,minecraft:birch_forest,Light temperate grove of pale trees,no
+regions_unexplored:towering_cliffs,biome,regions_unexplored,rebuilt by us,3,3,minecraft:stony_peaks,Sheer tall stone cliffs,no
+regions_unexplored:tropical_river,biome,regions_unexplored,rebuilt by us,2,2,adventure:muddy_river,Warm jungle river running brown over mud,no
+regions_unexplored:tropics,biome,regions_unexplored,rebuilt by us,2,2,adventure:tropical_shores,Inspiration match: palms over white sand,no
+regions_unexplored:willow_forest,biome,regions_unexplored,rebuilt by us,1,1,minecraft:swamp,Drooping trees over wet ground,no
+regions_unexplored:wisteria_grove,biome,regions_unexplored,rebuilt by us,2,2,adventure:wisteria_grove,Inspiration: trees dripping purple wisteria curtains,no
+structory:abandoned_camp,structure,structory,cut,7,7,minecraft:abandoned_camp_forest,Abandoned camp,new
+structory:abandoned_chapel,structure,structory,cut,1,1,ati_structures:haunted_ruin,Ruined haunted place of worship,no
+structory:dense_forest_ruin,structure,structory,cut,1,1,mvs:log_ruin,Ruin overgrown in the forest,no
+structory:firetower,structure,structory,cut,1,1,nova_structures:firewatch_tower_taiga,Fire lookout tower in conifers,no
+structory:graveyard,structure,structory,cut,1,1,nova_structures:remnant_graveyard,Graveyard,no
+structory:jungle_ruin,structure,structory,cut,2,2,nova_structures:jungle_ruins,Jungle ruin,new
+structory:northern_ruin,structure,structory,cut,1,1,mvs:small_ruin,Small northern ruin,no
+structory:old_manor,structure,structory,cut,2,2,ati_structures:manor,Old manor house,no
+structory:ruin_grassy,structure,structory,cut,1,1,mvs:small_ruin,Small grassy ruin,no
+structory:swamp_ruin,structure,structory,cut,3,3,mvs:small_swamp_house,Ruined swamp house,new
+structory:taiga_ruin_surface,structure,structory,cut,1,1,nova_structures:remnant_taiga_castle,Ruined taiga stonework,no
+structory:taiga_ruin_underground,structure,structory,cut,1,1,nova_structures:underground_house,Buried ruin underground,new
+structory_towers:ancient_temple,structure,structory_towers,cut,3,3,ati_structures:ancient_temple,Ancient temple,new
+structory_towers:end/end_tower,structure,structory_towers,cut,2,2,mes:ender_spire,End tower,new
+structory_towers:engineer_tower,structure,structory_towers,cut,3,3,ati_structures:steam_house,Engineer's tall workshop,new
+structory_towers:foraging_outpost,structure,structory_towers,cut,3,3,ati_structures:overgrown_outpost,Forest outpost,new
+structory_towers:lighthouse,structure,structory_towers,cut,6,6,ati_structures:lighthouse,Lighthouse,new
+structory_towers:mirage_outpost,structure,structory_towers,cut,2,2,ati_structures:desert_outpost,Desert outpost,new
+structory_towers:nether/strange_outpost,structure,structory_towers,cut,4,4,mns:warped_dome,Strange warped-wood outpost,new
+structory_towers:nether/warped_outpost,structure,structory_towers,cut,2,2,mvs:large_warped_tower,Warped-wood tower outpost,no
+structory_towers:nomad_outpost,structure,structory_towers,cut,4,4,ati_structures:nomadic_camp,Nomad camp,new
+structory_towers:ocean_pillar,structure,structory_towers,cut,1,2,mvs:ocean_tower,Tower standing in the sea,no
+structory_towers:pillager_lookout,structure,structory_towers,cut,1,1,mvs:small_pillager_tower,Pillager lookout tower,new
+structory_towers:quarter_outpost,structure,structory_towers,cut,1,1,ati_structures:small_keep,Garrison outpost,new
+structory_towers:rare_towers,structure,structory_towers,cut,1,1,mes:enderwatch_tower,Rare tall tower; Ender style suits the spire,no
+structory_towers:sacred_relic_temple,structure,structory_towers,cut,2,2,ati_structures:fortified_temple,Temple guarding a relic,new
+structory_towers:taiga_outpost,structure,structory_towers,cut,3,3,towns_and_towers:pillager_outpost_taiga,Taiga outpost,new
+structory_towers:warped_greatsword,structure,structory_towers,cut,2,2,mns:sword,Giant sword monument,no
+structory_towers:wizard_tower,structure,structory_towers,cut,1,2,ddd:wizard_tower,Wizard tower,no
+terralith:alpha_islands,biome,terralith,rebuilt by us,1,2,adventure:alpha_grove,Alpha-style islands of plain oaks,yes
+terralith:alpha_islands_winter,biome,terralith,rebuilt by us,2,3,minecraft:snowy_plains,Snow-covered old-style islands,no
+terralith:alpine_grove,biome,terralith,rebuilt by us,2,2,minecraft:snowy_slopes,Sparse spruce near a snowy treeline,no
+terralith:amethyst_canyon,biome,terralith,rebuilt by us,3,5,adventure:crystal_hollows,Amethyst crusting white calcite; only library amethyst is underground,no
+terralith:amethyst_rainforest,biome,terralith,rebuilt by us,1,2,minecraft:jungle,Dense rainforest,no
+terralith:ancient_sands,biome,terralith,rebuilt by us,2,2,minecraft:desert,Old open sand desert,no
+terralith:arid_highlands,biome,terralith,rebuilt by us,2,2,minecraft:savanna_plateau,Dry grassy highland plateau,no
+terralith:ashen_savanna,biome,terralith,rebuilt by us,5,7,adventure:ashen_woodland,Grey ash-dusted dry woodland,no
+terralith:basalt_cliffs,biome,terralith,rebuilt by us,8,9,minecraft:basalt_deltas,Dark basalt cliffs and columns,no
+terralith:birch_taiga,biome,terralith,rebuilt by us,4,5,minecraft:birch_forest,Mixed birch woodland,no
+terralith:blooming_plateau,biome,terralith,rebuilt by us,5,5,adventure:alpine_meadow,High flowery upland among rocks,no
+terralith:blooming_valley,biome,terralith,rebuilt by us,3,4,minecraft:flower_forest,Valley of mixed flowers,no
+terralith:brushland,biome,terralith,rebuilt by us,3,3,minecraft:savanna,Dry brush over warm grass,no
+terralith:bryce_canyon,biome,terralith,rebuilt by us,1,1,minecraft:eroded_badlands,Red hoodoo canyon,no
+terralith:caldera,biome,terralith,rebuilt by us,3,4,minecraft:stony_peaks,Ring of bare peaks round a crater,no
+terralith:cave/andesite_caves,biome,terralith,rebuilt by us,4,4,adventure:mineral_strata,Stone caves; strata carry the andesite bands,no
+terralith:cave/deep_caves,biome,terralith,rebuilt by us,4,4,minecraft:dripstone_caves,Large deep stone caverns,no
+terralith:cave/diorite_caves,biome,terralith,rebuilt by us,3,3,adventure:mineral_strata,Pale stone caves; strata carry diorite and calcite bands,no
+terralith:cave/frostfire_caves,biome,terralith,rebuilt by us,3,3,adventure:magmatic_caves,Ice-and-magma caves; the volcanic half survives,no
+terralith:cave/fungal_caves,biome,terralith,rebuilt by us,6,6,adventure:bioshroom_caves,Mushroom-filled caverns,no
+terralith:cave/granite_caves,biome,terralith,rebuilt by us,2,3,adventure:mineral_strata,Granite-walled caves; strata carry the granite bands,no
+terralith:cave/infested_caves,biome,terralith,rebuilt by us,6,7,adventure:lichen_caves,"Dim, close, overgrown caves",no
+terralith:cave/mantle_caves,biome,terralith,rebuilt by us,3,3,adventure:magmatic_caves,Deep lava caves,no
+terralith:cave/thermal_caves,biome,terralith,rebuilt by us,5,7,minecraft:sulfur_caves,Hot vented caves; sulfur geysers fit,no
+terralith:cave/tuff_caves,biome,terralith,rebuilt by us,10,10,adventure:lichen_caves,Tuff-walled caves,no
+terralith:cave/underground_jungle,biome,terralith,rebuilt by us,3,3,minecraft:lush_caves,Overgrown green caverns,no
+terralith:cloud_forest,biome,terralith,rebuilt by us,3,4,adventure:cloud_forest,Same look: misty mountain jungle dripping with moss,no
+terralith:cold_shrubland,biome,terralith,rebuilt by us,1,1,minecraft:snowy_plains,Cold sparse scrubland,no
+terralith:deep_warm_ocean,biome,terralith,rebuilt by us,2,2,minecraft:deep_lukewarm_ocean,Deep warm sea; no deep warm ocean exists,no
+terralith:desert_canyon,biome,terralith,rebuilt by us,2,2,minecraft:badlands,Sandstone-walled canyon,no
+terralith:desert_oasis,biome,terralith,rebuilt by us,2,2,adventure:desert_oasis,Same look: palm-ringed pools in open desert,no
+terralith:desert_spires,biome,terralith,rebuilt by us,2,3,minecraft:eroded_badlands,Tall eroded sandstone spires,no
+terralith:emerald_peaks,biome,terralith,rebuilt by us,1,1,minecraft:windswept_hills,Green grassy peaks,no
+terralith:forested_highlands,biome,terralith,rebuilt by us,2,2,minecraft:windswept_forest,Wooded rugged highlands,no
+terralith:fractured_savanna,biome,terralith,rebuilt by us,2,3,minecraft:windswept_savanna,Broken shattered savanna terrain,no
+terralith:frozen_cliffs,biome,terralith,rebuilt by us,5,5,minecraft:jagged_peaks,Snow-capped sheer cliffs,no
+terralith:glacial_chasm,biome,terralith,rebuilt by us,2,3,minecraft:frozen_peaks,Packed-ice ravines,no
+terralith:granite_cliffs,biome,terralith,rebuilt by us,3,3,minecraft:windswept_gravelly_hills,Rugged grey-pink rock cliffs,no
+terralith:gravel_desert,biome,terralith,rebuilt by us,2,3,minecraft:windswept_gravelly_hills,Grey gravel wasteland,no
+terralith:haze_mountain,biome,terralith,rebuilt by us,3,3,minecraft:stony_peaks,Hazy high stone mountain,no
+terralith:highlands,biome,terralith,rebuilt by us,2,2,adventure:highland_fells,Rolling open upland,no
+terralith:hot_shrubland,biome,terralith,rebuilt by us,2,2,adventure:dry_steppe,Warm dry grassland with lone bushes,yes
+terralith:ice_marsh,biome,terralith,rebuilt by us,1,1,minecraft:frozen_river,Frozen shallow wetland,no
+terralith:jungle_mountains,biome,terralith,rebuilt by us,1,1,minecraft:jungle,Jungle on steep slopes,no
+terralith:lavender_forest,biome,terralith,rebuilt by us,2,2,adventure:lavender_fields,Purple-floored wood among birches,no
+terralith:lavender_valley,biome,terralith,rebuilt by us,3,3,adventure:lavender_fields,Valley carpeted in purple,no
+terralith:lush_desert,biome,terralith,rebuilt by us,1,1,adventure:saguaro_desert,Desert thick with cacti,no
+terralith:lush_valley,biome,terralith,rebuilt by us,5,7,minecraft:plains,Lush green valley,no
+terralith:mirage_isles,biome,terralith,rebuilt by us,5,6,adventure:desert_oasis,Sandy palm isles round turquoise shallows,no
+terralith:moonlight_grove,biome,terralith,rebuilt by us,11,14,minecraft:pale_garden,Eerie pale moonlit woodland,no
+terralith:moonlight_valley,biome,terralith,rebuilt by us,9,10,minecraft:old_growth_birch_forest,Pale tall-trunked moonlit valley,no
+terralith:orchid_swamp,biome,terralith,rebuilt by us,5,5,minecraft:mangrove_swamp,Lush flowering warm swamp,no
+terralith:painted_mountains,biome,terralith,rebuilt by us,1,1,minecraft:badlands,Banded painted rock mountains,no
+terralith:red_oasis,biome,terralith,rebuilt by us,2,2,adventure:saguaro_desert,Red-sand desert pool among cacti,no
+terralith:rocky_jungle,biome,terralith,rebuilt by us,2,2,minecraft:sparse_jungle,Patchy jungle among rock,no
+terralith:rocky_mountains,biome,terralith,rebuilt by us,4,6,adventure:alpine_scree,Grey rocky mountainsides of loose stone and gravel,no
+terralith:rocky_shrubland,biome,terralith,rebuilt by us,1,1,minecraft:windswept_hills,Stony scrub hills,no
+terralith:sakura_grove,biome,terralith,rebuilt by us,4,5,minecraft:cherry_grove,Cherry-blossom grove,no
+terralith:sakura_valley,biome,terralith,rebuilt by us,3,3,minecraft:cherry_grove,Cherry-blossom valley,no
+terralith:savanna_badlands,biome,terralith,rebuilt by us,4,4,minecraft:wooded_badlands,Dry trees over terracotta,no
+terralith:savanna_slopes,biome,terralith,rebuilt by us,2,2,minecraft:savanna_plateau,Savanna on raised slopes,no
+terralith:scarlet_mountains,biome,terralith,rebuilt by us,5,6,adventure:maple_woodland,Crimson-leaved trees on mountain slopes,no
+terralith:shield,biome,terralith,rebuilt by us,2,2,minecraft:taiga,Rocky spruce country with lakes,no
+terralith:shield_clearing,biome,terralith,rebuilt by us,2,2,minecraft:meadow,Open clearing in spruce country,no
+terralith:shrubland,biome,terralith,rebuilt by us,2,2,minecraft:plains,Bushy temperate grassland,no
+terralith:siberian_taiga,biome,terralith,rebuilt by us,2,2,minecraft:snowy_taiga,Cold larch-and-spruce taiga,no
+terralith:skylands_autumn,biome,terralith,rebuilt by us,1,1,adventure:golden_skygrove,Autumn-gold sky islands,no
+terralith:skylands_spring,biome,terralith,rebuilt by us,2,3,adventure:sky_highlands,Bright flowery sky islands,no
+terralith:skylands_summer,biome,terralith,rebuilt by us,2,2,adventure:hanging_gardens,"Lush, flowery summer sky islands",yes
+terralith:skylands_winter,biome,terralith,rebuilt by us,5,6,adventure:windswept_isles,Snow-drifted bare sky islands,no
+terralith:snowy_cherry_grove,biome,terralith,rebuilt by us,1,1,minecraft:cherry_grove,Cherry blossom in snow,no
+terralith:snowy_shield,biome,terralith,rebuilt by us,1,1,minecraft:snowy_taiga,Snowy rocky spruce country,no
+terralith:steppe,biome,terralith,rebuilt by us,4,5,adventure:prairie,Dry open grass steppe,no
+terralith:stony_spires,biome,terralith,rebuilt by us,1,1,minecraft:stony_peaks,Bare stone spires,no
+terralith:temperate_highlands,biome,terralith,rebuilt by us,3,3,minecraft:windswept_hills,Rolling grassy highlands,no
+terralith:tropical_jungle,biome,terralith,rebuilt by us,1,2,minecraft:jungle,Dense tropical jungle,no
+terralith:volcanic_crater,biome,terralith,rebuilt by us,5,7,adventure:blackstone_basin,Black-stone crater round a lava lake,no
+terralith:volcanic_peaks,biome,terralith,rebuilt by us,5,6,adventure:magma_land,Smouldering peaks of magma and lava,no
+terralith:warm_river,biome,terralith,rebuilt by us,2,3,adventure:muddy_river,Warm slow river; muddy banks set it apart,no
+terralith:warped_mesa,biome,terralith,rebuilt by us,3,5,minecraft:warped_forest,Teal warped growth over mesa,no
+terralith:white_cliffs,biome,terralith,rebuilt by us,6,6,adventure:chalk_cliffs,White chalk cliffs,no
+terralith:white_mesa,biome,terralith,rebuilt by us,1,1,adventure:chalk_cliffs,White layered cliffs; calcite gives the white,no
+terralith:windswept_spires,biome,terralith,rebuilt by us,3,3,minecraft:jagged_peaks,Wind-cut sharp spires,no
+terralith:wintry_forest,biome,terralith,rebuilt by us,1,1,minecraft:snowy_plains,Snow-buried sparse woodland,no
+terralith:wintry_lowlands,biome,terralith,rebuilt by us,1,1,minecraft:snowy_plains,Low snowy plains,no
+terralith:yellowstone,biome,terralith,rebuilt by us,2,2,minecraft:sulfur_caves,Geysers and yellow hot springs; sulfur caves carry both,no
+terralith:yosemite_cliffs,biome,terralith,rebuilt by us,1,1,minecraft:stony_peaks,Huge sheer granite cliffs,no
+undergroundworlds:spider_cave,biome,undergroundworlds,rebuilt by us,2,2,minecraft:dripstone_caves,Dark webbed caverns; webs come from spawns,no
+undergroundworlds:underground_desert,biome,undergroundworlds,rebuilt by us,2,2,adventure:buried_dunes,Same look: sand-drifted sandstone caverns,no
+undergroundworlds:underground_jungle,biome,undergroundworlds,rebuilt by us,1,1,adventure:root_hollows,Overgrown cave of roots and glow berries,yes
+undergroundworlds:underground_tundra,biome,undergroundworlds,rebuilt by us,1,1,minecraft:snowy_plains,Snow-floored cold caverns,no
+wilderwild:arid_savanna,biome,wilderwild,rebuilt by us,2,4,adventure:baobab_savanna,Dry savanna with baobabs,yes
+wilderwild:birch_jungle,biome,wilderwild,rebuilt by us,1,1,minecraft:old_growth_birch_forest,Dense tall birch woodland,no
+wilderwild:cypress_wetlands,biome,wilderwild,rebuilt by us,1,1,adventure:cypress_wetland,Inspiration match: open water with tall cypresses,no
+wilderwild:dark_birch_forest,biome,wilderwild,rebuilt by us,2,2,minecraft:dark_forest,Dark canopy mixed with birch,no
+wilderwild:dark_taiga,biome,wilderwild,rebuilt by us,1,2,minecraft:taiga,Dark mixed spruce wood,no
+wilderwild:dying_forest,biome,wilderwild,rebuilt by us,1,1,adventure:dying_forest,"Failing forest of browning, snapped trees",yes
+wilderwild:dying_mixed_forest,biome,wilderwild,rebuilt by us,2,2,adventure:ashen_woodland,Dying mixed wood with bare snags,no
+wilderwild:frozen_caves,biome,wilderwild,rebuilt by us,1,1,minecraft:ice_spikes,Ice-filled caverns; ice spikes carry packed ice,no
+wilderwild:magmatic_caves,biome,wilderwild,rebuilt by us,1,1,adventure:magmatic_caves,Inspiration match: volcanic basalt and magma caverns,no
+wilderwild:maple_forest,biome,wilderwild,rebuilt by us,1,1,adventure:maple_woodland,Inspiration match: autumn maple wood,no
+wilderwild:mesoglea_caves,biome,wilderwild,rebuilt by us,1,1,adventure:gelatinous_caves,"Jellyfish caves, the library biome's inspiration",yes
+wilderwild:oasis,biome,wilderwild,rebuilt by us,2,3,adventure:desert_oasis,Inspiration: palm-ringed clear pools in desert,no
+wilderwild:old_growth_dark_forest,biome,wilderwild,rebuilt by us,2,2,minecraft:dark_forest,Ancient dark canopy,no
+wilderwild:parched_forest,biome,wilderwild,rebuilt by us,1,1,adventure:parched_forest,Inspiration match: dry open oak wood,no
+wilderwild:rainforest,biome,wilderwild,rebuilt by us,2,2,minecraft:old_growth_birch_forest,Tall wet temperate broadleaf forest,no
+wilderwild:snowy_dying_forest,biome,wilderwild,rebuilt by us,1,1,adventure:dying_forest,"Snowy dying spruce forest, the library biome's inspiration",yes
+wilderwild:snowy_dying_mixed_forest,biome,wilderwild,rebuilt by us,1,1,minecraft:snowy_taiga,Snowy thinning mixed wood,no
+wilderwild:snowy_old_growth_pine_taiga,biome,wilderwild,rebuilt by us,1,1,minecraft:old_growth_pine_taiga,Tall pines; snow is the only difference,no
+wilderwild:sparse_birch_jungle,biome,wilderwild,rebuilt by us,1,1,minecraft:birch_forest,Open birch woodland,no
+wilderwild:temperate_rainforest,biome,wilderwild,rebuilt by us,1,1,adventure:redwood_grove,Mossy wet giant conifers,no
+wilderwild:tundra,biome,wilderwild,rebuilt by us,1,1,adventure:highland_fells,Cold treeless brown-green tundra,no
+wilderwild:warm_beach,biome,wilderwild,rebuilt by us,1,1,minecraft:beach,Warm sandy beach,no
+wilderwild:warm_river,biome,wilderwild,rebuilt by us,1,1,adventure:muddy_river,Warm slow river; muddy banks set it apart,no
+yungscavebiomes:frosted_caves,biome,yungscavebiomes,rebuilt by us,2,2,adventure:crystal_hollows,Glittering icy caverns; cold crystal look,no
+yungscavebiomes:lost_caves,biome,yungscavebiomes,rebuilt by us,1,1,adventure:buried_dunes,Sandstone caves with sand floors,no

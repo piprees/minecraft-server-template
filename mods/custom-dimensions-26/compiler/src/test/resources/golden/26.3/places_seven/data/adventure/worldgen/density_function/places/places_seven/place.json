@@ -1,0 +1,24 @@
+{
+  "left": {
+    "left": {
+      "left": "adventure:places/places_seven/least",
+      "right": {
+        "left": {
+          "input": {
+            "left": "adventure:places/places_seven/least",
+            "right": 0.0625,
+            "type": "minecraft:mul"
+          },
+          "type": "minecraft:floor"
+        },
+        "right": 16.0,
+        "type": "minecraft:mul"
+      },
+      "type": "minecraft:sub"
+    },
+    "right": 0.285714286,
+    "type": "minecraft:mul"
+  },
+  "right": -0.857142857,
+  "type": "minecraft:add"
+}

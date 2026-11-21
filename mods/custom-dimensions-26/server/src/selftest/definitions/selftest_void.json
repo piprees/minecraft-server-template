@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: a void where a fall is fatal, the death drops everything and the respawn is moved to selftest_wins.",
+  "seed": 1,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "void"
+  },
+  "borders": {
+    "player": 256
+  },
+  "exits": {
+    "void": {
+      "action": "kill"
+    },
+    "death": {
+      "action": "respawnAt",
+      "target": {
+        "dimension": "adventure:selftest_wins",
+        "arrival": [4, 0, 4]
+      }
+    }
+  },
+  "deaths": {
+    "inventory": "drop",
+    "experience": "drop"
+  }
+}

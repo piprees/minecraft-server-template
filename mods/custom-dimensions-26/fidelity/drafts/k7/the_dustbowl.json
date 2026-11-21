@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 2,
+  "description": "A tiny, exhausted dust plain. One farmstead stands in the north — the last holdout of someone who refused to leave. The wind owns everything else. Whatever was here dried up and blew away.",
+  "seed": -8457785760406717469,
+  "spawn": [
+    384,
+    -2,
+    192
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    {
+      "id": "adventure:mineral_strata",
+      "climate": {
+        "humidity": [
+          -2.0,
+          0.03
+        ],
+        "depth": [
+          0.2,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "humidity": [
+          0.03,
+          2.0
+        ],
+        "depth": [
+          0.2,
+          2.0
+        ]
+      }
+    },
+    "adventure:dry_steppe",
+    "minecraft:savanna_plateau",
+    "minecraft:savanna",
+    "adventure:prairie",
+    "minecraft:desert",
+    "minecraft:badlands",
+    "adventure:joshua_desert",
+    "adventure:saguaro_desert",
+    "adventure:parched_forest"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:dry_steppe": 52,
+      "minecraft:savanna_plateau": 5,
+      "minecraft:savanna": 8,
+      "adventure:prairie": 15,
+      "minecraft:desert": 6,
+      "minecraft:badlands": 2,
+      "adventure:joshua_desert": 4,
+      "adventure:saguaro_desert": 3,
+      "adventure:parched_forest": 5
+    },
+    "places": {
+      "groups": {
+        "xeric_plains": [
+          "adventure:prairie",
+          "minecraft:savanna",
+          "minecraft:savanna_plateau"
+        ],
+        "desert": [
+          "minecraft:desert",
+          "adventure:joshua_desert",
+          "adventure:saguaro_desert",
+          "minecraft:badlands"
+        ],
+        "wooded_drylands": [
+          "adventure:parched_forest"
+        ]
+      },
+      "arrangement": "core"
+    }
+  },
+  "liquids": {
+    "seaLevel": -55
+  },
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8,
+    "playerLuck": 2.0
+  },
+  "structures": {
+    "density": "none",
+    "force": [
+      {
+        "structure": "nova_structures:remnant_ruin_farmer",
+        "x": -87,
+        "z": -312
+      },
+      {
+        "structure": "epic:small_sand_dungeon",
+        "x": -87,
+        "z": -312
+      }
+    ],
+    "clearSpawnRadius": 128
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:packed_mud",
+      "igniterItem": "minecraft:netherite_scrap",
+      "color": "C8A870",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "adventure:prairie"
+    ],
+    "water": "none",
+    "shuns": [
+      "village",
+      "tavern",
+      "monument",
+      "mansion",
+      "mss:arena",
+      "ancient_city",
+      "trial_chambers"
+    ]
+  }
+}

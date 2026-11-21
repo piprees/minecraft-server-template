@@ -1,0 +1,19 @@
+{
+  "reason": "G14: end_barrens (1.21.1 void_barrens) cells carry no terrain, a quartz-and-void grid; a continents terrain at y 60 to 62 with no relief or roughness makes the cells flat ('geometric silence'), the sea at -64 lying under it.",
+  "generator": {
+    "type": "checkerboard",
+    "cellScale": 3,
+    "voidBiomes": [
+      "minecraft:end_barrens"
+    ]
+  },
+  "terrain": {
+    "base": "continents",
+    "params": {
+      "seaFloor": 60,
+      "landHeight": 62,
+      "relief": 0,
+      "roughness": 0
+    }
+  }
+}

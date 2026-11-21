@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 2,
+  "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else — the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead. The pillars are not finished. They rise through the frame, through whatever you built beside it.",
+  "seed": -520140618217938649,
+  "spawn": [204, 44, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "spires",
+    "floor": "islands",
+    "params": {
+      "coverage": 0.03,
+      "spireHeight": 150,
+      "landHeight": 30,
+      "thickness": 0.8,
+      "taper": 0.05
+    }
+  },
+  "biomes": [
+    "minecraft:end_barrens",
+    "minecraft:the_end",
+    "minecraft:small_end_islands",
+    "minecraft:end_highlands",
+    "adventure:sheared_highlands"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:end_barrens": 40,
+      "minecraft:the_end": 20,
+      "minecraft:small_end_islands": 12,
+      "minecraft:end_highlands": 14,
+      "adventure:sheared_highlands": 14
+    },
+    "over": "land"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:end_stone",
+    "top": "minecraft:end_stone",
+    "filler": "minecraft:end_stone"
+  },
+  "atmosphere": {
+    "skyColor": "#0B0B14",
+    "fogColor": "#0B0B14",
+    "ambientLight": 0.05
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 2.0,
+    "playerLuck": 1.8
+  },
+  "structures": {
+    "density": "sparse",
+    "clearSpawnRadius": 128,
+    "exclude": [
+      "minecraft:end_cities",
+      "mes:phantom_citadel",
+      "mes:enderkeep_courtyard"
+    ],
+    "terrainAdaptation": {
+      "minecraft:bastion_remnant": "pedestal"
+    },
+    "force": [
+      {
+        "structure": "mns:giant_skull",
+        "x": 2300,
+        "z": -3100
+      },
+      {
+        "structure": "minecraft:bastion_remnant",
+        "x": -1180,
+        "z": 2240
+      },
+      {
+        "structure": "minecraft:ruined_portal_nether",
+        "x": -1240,
+        "z": 2300
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:polished_basalt",
+      "igniterItem": "minecraft:ender_eye",
+      "color": "4B4B5B",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "particleType": "minecraft:end_rod",
+      "shape": "end_gateway",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything"
+      }
+    }
+  ],
+  "exits": {
+    "enderPearl": {
+      "action": "teleport",
+      "target": {
+        "dimension": "adventure:the_tiled_expanse",
+        "arrival": "spawn"
+      }
+    },
+    "void": {
+      "action": "kill"
+    }
+  },
+  "roll": {
+    "mood": "desolate",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:end_highlands"
+    ],
+    "wants": {
+      "ender_spire": "spread",
+      "ruined_pillar": "near_spawn",
+      "mystical_archway": "spread",
+      "endscraps": "spread",
+      "monolith": "near_border"
+    },
+    "shuns": [
+      "end_city",
+      "phantom_citadel",
+      "enderkeep"
+    ],
+    "terrain": "islands"
+  }
+}

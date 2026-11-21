@@ -1,0 +1,74 @@
+{
+ "slug": "the_greenreach",
+ "targets": [
+  {
+   "key": "surface.topBlocksPercent.minecraft:grass_block + surface.topBlocksPercent.minecraft:short_grass + surface.topBlocksPercent.minecraft:tall_grass + surface.topBlocksPercent.minecraft:short_dry_grass + surface.topBlocksPercent.minecraft:tall_dry_grass + surface.topBlocksPercent.minecraft:wheat + surface.topBlocksPercent.minecraft:hay_block + surface.topBlocksPercent.minecraft:farmland + surface.topBlocksPercent.minecraft:sunflower",
+   "op": ">=",
+   "value": 70,
+   "from": "\"rolling hills of long grass\", \"smooth rolling green and gold\""
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "<=",
+   "value": 2,
+   "from": "\"barely any trees\""
+  },
+  {
+   "key": "surface.canopyPercent",
+   "op": "<=",
+   "value": 3,
+   "from": "\"not ... woods\""
+  },
+  {
+   "key": "terrain.reliefMedian",
+   "op": "between",
+   "value": [
+    6,
+    25
+   ],
+   "from": "\"rolling hills\""
+  },
+  {
+   "key": "terrain.slopes.over45Percent",
+   "op": "<=",
+   "value": 5,
+   "from": "\"edge to horizon should be smooth rolling\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 8,
+   "from": "\"an infinite grassy world\""
+  },
+  {
+   "key": "surface.biomesPercent.adventure:pumpkin_fields",
+   "op": "<=",
+   "value": 5,
+   "from": "\"not pumpkins\""
+  },
+  {
+   "key": "surface.biomesPercent.adventure:barley_fields",
+   "op": ">=",
+   "value": 10,
+   "from": "\"it should have wheat and barley\""
+  },
+  {
+   "key": "surface.topBlocksPercent.minecraft:wheat",
+   "op": ">=",
+   "value": 1,
+   "from": "\"wheat and barley\" (ripe wheat stands on the surface)"
+  },
+  {
+   "key": "surface.groundPlantsPercent.grass",
+   "op": ">=",
+   "value": 30,
+   "from": "\"long grass\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:sunflower_plains + surface.biomesPercent.adventure:prairie",
+   "op": ">=",
+   "value": 15,
+   "from": "1.21.1: \"rolling prairie and sunflowers\""
+  }
+ ]
+}

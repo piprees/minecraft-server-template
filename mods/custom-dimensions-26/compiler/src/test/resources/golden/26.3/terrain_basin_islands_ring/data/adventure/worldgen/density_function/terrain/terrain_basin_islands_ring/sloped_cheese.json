@@ -1,0 +1,737 @@
+{
+  "input": {
+    "left": {
+      "left": {
+        "left": {
+          "input": {
+            "left": {
+              "left": "adventure:terrain/terrain_basin_islands_ring/depth",
+              "right": {
+                "left": "adventure:terrain/terrain_basin_islands_ring/jaggedness",
+                "right": {
+                  "input": {
+                    "noise": "minecraft:jagged",
+                    "type": "minecraft:noise",
+                    "xz_scale": 1500.0,
+                    "y_scale": 0.0
+                  },
+                  "type": "minecraft:half_negative"
+                },
+                "type": "minecraft:mul"
+              },
+              "type": "minecraft:add"
+            },
+            "right": "adventure:terrain/terrain_basin_islands_ring/factor",
+            "type": "minecraft:mul"
+          },
+          "type": "minecraft:quarter_negative"
+        },
+        "right": 4.0,
+        "type": "minecraft:mul"
+      },
+      "right": {
+        "left": "minecraft:overworld/base_3d_noise",
+        "right": 0.4,
+        "type": "minecraft:mul"
+      },
+      "type": "minecraft:add"
+    },
+    "right": {
+      "left": {
+        "left": {
+          "left": {
+            "left": {
+              "left": {
+                "left": {
+                  "left": {
+                    "alpha": {
+                      "input": {
+                        "left": {
+                          "left": "adventure:terrain/terrain_basin_islands_ring/lakes",
+                          "right": 0.103884048,
+                          "type": "minecraft:add"
+                        },
+                        "right": 34.0136054,
+                        "type": "minecraft:mul"
+                      },
+                      "max": 1.0,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "first": {
+                      "left": {
+                        "left": {
+                          "noise": "adventure:terrain/altitude",
+                          "shift_x": "minecraft:shift_x",
+                          "shift_z": "minecraft:shift_z",
+                          "type": "minecraft:noise",
+                          "xz_scale": 1.0,
+                          "y_scale": 0.0
+                        },
+                        "right": 218.978102,
+                        "type": "minecraft:mul"
+                      },
+                      "right": 150.0,
+                      "type": "minecraft:add"
+                    },
+                    "second": 150.0,
+                    "type": "minecraft:lerp"
+                  },
+                  "right": {
+                    "left": {
+                      "left": {
+                        "input": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "left": {
+                                    "left": {
+                                      "left": {
+                                        "noise": "adventure:terrain/islands",
+                                        "shift_x": "minecraft:shift_x",
+                                        "shift_z": "minecraft:shift_z",
+                                        "type": "minecraft:noise",
+                                        "xz_scale": 1.0,
+                                        "y_scale": 0.0
+                                      },
+                                      "right": {
+                                        "left": {
+                                          "spline": {
+                                            "coordinate": {
+                                              "input": {
+                                                "left": {
+                                                  "input": {
+                                                    "axis": "x",
+                                                    "from_coordinate": -1000000,
+                                                    "from_value": -1000000.0,
+                                                    "tiling": "clamp_to_edge",
+                                                    "to_coordinate": 1000000,
+                                                    "to_value": 1000000.0,
+                                                    "type": "minecraft:gradient"
+                                                  },
+                                                  "type": "minecraft:square"
+                                                },
+                                                "right": {
+                                                  "input": {
+                                                    "axis": "z",
+                                                    "from_coordinate": -1000000,
+                                                    "from_value": -1000000.0,
+                                                    "tiling": "clamp_to_edge",
+                                                    "to_coordinate": 1000000,
+                                                    "to_value": 1000000.0,
+                                                    "type": "minecraft:gradient"
+                                                  },
+                                                  "type": "minecraft:square"
+                                                },
+                                                "type": "minecraft:add"
+                                              },
+                                              "type": "minecraft:sqrt"
+                                            },
+                                            "points": [
+                                              {
+                                                "derivative": 0.0,
+                                                "location": 200.0,
+                                                "value": -1.0
+                                              },
+                                              {
+                                                "derivative": 0.0,
+                                                "location": 400.0,
+                                                "value": 1.0
+                                              },
+                                              {
+                                                "derivative": 0.0,
+                                                "location": 600.0,
+                                                "value": -1.0
+                                              }
+                                            ]
+                                          },
+                                          "type": "minecraft:spline"
+                                        },
+                                        "right": 0.7032,
+                                        "type": "minecraft:mul"
+                                      },
+                                      "type": "minecraft:add"
+                                    },
+                                    "right": -0.15364935,
+                                    "type": "minecraft:add"
+                                  },
+                                  "right": 3.41296928,
+                                  "type": "minecraft:mul"
+                                },
+                                "max": 1.0,
+                                "min": 0.0,
+                                "type": "minecraft:clamp"
+                              },
+                              "right": {
+                                "input": {
+                                  "left": {
+                                    "left": "adventure:terrain/terrain_basin_islands_ring/lakes",
+                                    "right": 0.0744840482,
+                                    "type": "minecraft:add"
+                                  },
+                                  "right": -34.0136054,
+                                  "type": "minecraft:mul"
+                                },
+                                "max": 1.0,
+                                "min": 0.0,
+                                "type": "minecraft:clamp"
+                              },
+                              "type": "minecraft:mul"
+                            },
+                            "right": {
+                              "left": {
+                                "input": {
+                                  "left": {
+                                    "left": {
+                                      "noise": "adventure:terrain/islands",
+                                      "shift_x": "minecraft:shift_x",
+                                      "shift_z": "minecraft:shift_z",
+                                      "type": "minecraft:noise",
+                                      "xz_scale": 1.5,
+                                      "y_scale": 0.0
+                                    },
+                                    "right": 0.0742307011,
+                                    "type": "minecraft:add"
+                                  },
+                                  "right": 3.41296928,
+                                  "type": "minecraft:mul"
+                                },
+                                "max": 1.0,
+                                "min": 0.0,
+                                "type": "minecraft:clamp"
+                              },
+                              "right": {
+                                "input": {
+                                  "input": {
+                                    "left": {
+                                      "left": "adventure:terrain/terrain_basin_islands_ring/lakes",
+                                      "right": -0.0195959518,
+                                      "type": "minecraft:add"
+                                    },
+                                    "right": 28.3446712,
+                                    "type": "minecraft:mul"
+                                  },
+                                  "max": 1.0,
+                                  "min": 0.0,
+                                  "type": "minecraft:clamp"
+                                },
+                                "type": "minecraft:cache"
+                              },
+                              "type": "minecraft:mul"
+                            },
+                            "type": "minecraft:add"
+                          },
+                          "type": "minecraft:cache"
+                        },
+                        "type": "minecraft:sqrt"
+                      },
+                      "right": {
+                        "left": {
+                          "left": 1.0,
+                          "right": {
+                            "left": {
+                              "input": {
+                                "input": {
+                                  "left": {
+                                    "left": "adventure:terrain/terrain_basin_islands_ring/lakes",
+                                    "right": -0.0195959518,
+                                    "type": "minecraft:add"
+                                  },
+                                  "right": 28.3446712,
+                                  "type": "minecraft:mul"
+                                },
+                                "max": 1.0,
+                                "min": 0.0,
+                                "type": "minecraft:clamp"
+                              },
+                              "type": "minecraft:cache"
+                            },
+                            "right": 0.7,
+                            "type": "minecraft:mul"
+                          },
+                          "type": "minecraft:sub"
+                        },
+                        "right": 30.0,
+                        "type": "minecraft:mul"
+                      },
+                      "type": "minecraft:mul"
+                    },
+                    "right": {
+                      "left": {
+                        "left": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "left": {
+                                    "left": {
+                                      "input": {
+                                        "left": {
+                                          "left": {
+                                            "left": {
+                                              "noise": "adventure:terrain/islands",
+                                              "shift_x": "minecraft:shift_x",
+                                              "shift_z": "minecraft:shift_z",
+                                              "type": "minecraft:noise",
+                                              "xz_scale": 1.0,
+                                              "y_scale": 0.0
+                                            },
+                                            "right": {
+                                              "left": {
+                                                "spline": {
+                                                  "coordinate": {
+                                                    "input": {
+                                                      "left": {
+                                                        "input": {
+                                                          "axis": "x",
+                                                          "from_coordinate": -1000000,
+                                                          "from_value": -1000000.0,
+                                                          "tiling": "clamp_to_edge",
+                                                          "to_coordinate": 1000000,
+                                                          "to_value": 1000000.0,
+                                                          "type": "minecraft:gradient"
+                                                        },
+                                                        "type": "minecraft:square"
+                                                      },
+                                                      "right": {
+                                                        "input": {
+                                                          "axis": "z",
+                                                          "from_coordinate": -1000000,
+                                                          "from_value": -1000000.0,
+                                                          "tiling": "clamp_to_edge",
+                                                          "to_coordinate": 1000000,
+                                                          "to_value": 1000000.0,
+                                                          "type": "minecraft:gradient"
+                                                        },
+                                                        "type": "minecraft:square"
+                                                      },
+                                                      "type": "minecraft:add"
+                                                    },
+                                                    "type": "minecraft:sqrt"
+                                                  },
+                                                  "points": [
+                                                    {
+                                                      "derivative": 0.0,
+                                                      "location": 200.0,
+                                                      "value": -1.0
+                                                    },
+                                                    {
+                                                      "derivative": 0.0,
+                                                      "location": 400.0,
+                                                      "value": 1.0
+                                                    },
+                                                    {
+                                                      "derivative": 0.0,
+                                                      "location": 600.0,
+                                                      "value": -1.0
+                                                    }
+                                                  ]
+                                                },
+                                                "type": "minecraft:spline"
+                                              },
+                                              "right": 0.7032,
+                                              "type": "minecraft:mul"
+                                            },
+                                            "type": "minecraft:add"
+                                          },
+                                          "right": -0.15364935,
+                                          "type": "minecraft:add"
+                                        },
+                                        "right": 3.41296928,
+                                        "type": "minecraft:mul"
+                                      },
+                                      "max": 1.0,
+                                      "min": 0.0,
+                                      "type": "minecraft:clamp"
+                                    },
+                                    "right": {
+                                      "input": {
+                                        "left": {
+                                          "left": "adventure:terrain/terrain_basin_islands_ring/lakes",
+                                          "right": 0.0744840482,
+                                          "type": "minecraft:add"
+                                        },
+                                        "right": -34.0136054,
+                                        "type": "minecraft:mul"
+                                      },
+                                      "max": 1.0,
+                                      "min": 0.0,
+                                      "type": "minecraft:clamp"
+                                    },
+                                    "type": "minecraft:mul"
+                                  },
+                                  "right": {
+                                    "left": {
+                                      "input": {
+                                        "left": {
+                                          "left": {
+                                            "noise": "adventure:terrain/islands",
+                                            "shift_x": "minecraft:shift_x",
+                                            "shift_z": "minecraft:shift_z",
+                                            "type": "minecraft:noise",
+                                            "xz_scale": 1.5,
+                                            "y_scale": 0.0
+                                          },
+                                          "right": 0.0742307011,
+                                          "type": "minecraft:add"
+                                        },
+                                        "right": 3.41296928,
+                                        "type": "minecraft:mul"
+                                      },
+                                      "max": 1.0,
+                                      "min": 0.0,
+                                      "type": "minecraft:clamp"
+                                    },
+                                    "right": {
+                                      "input": {
+                                        "input": {
+                                          "left": {
+                                            "left": "adventure:terrain/terrain_basin_islands_ring/lakes",
+                                            "right": -0.0195959518,
+                                            "type": "minecraft:add"
+                                          },
+                                          "right": 28.3446712,
+                                          "type": "minecraft:mul"
+                                        },
+                                        "max": 1.0,
+                                        "min": 0.0,
+                                        "type": "minecraft:clamp"
+                                      },
+                                      "type": "minecraft:cache"
+                                    },
+                                    "type": "minecraft:mul"
+                                  },
+                                  "type": "minecraft:add"
+                                },
+                                "type": "minecraft:cache"
+                              },
+                              "right": -0.02,
+                              "type": "minecraft:add"
+                            },
+                            "right": 12.5,
+                            "type": "minecraft:mul"
+                          },
+                          "max": 1.0,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "right": {
+                          "input": {
+                            "left": {
+                              "left": "adventure:terrain/terrain_basin_islands_ring/lakes",
+                              "right": 0.103884048,
+                              "type": "minecraft:add"
+                            },
+                            "right": 34.0136054,
+                            "type": "minecraft:mul"
+                          },
+                          "max": 1.0,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "type": "minecraft:mul"
+                      },
+                      "right": 40.0,
+                      "type": "minecraft:mul"
+                    },
+                    "type": "minecraft:add"
+                  },
+                  "type": "minecraft:add"
+                },
+                "right": -2.0,
+                "type": "minecraft:add"
+              },
+              "right": {
+                "left": {
+                  "left": {
+                    "left": 1.0,
+                    "right": "adventure:terrain/terrain_basin_islands_ring/gap",
+                    "type": "minecraft:sub"
+                  },
+                  "right": 512.0,
+                  "type": "minecraft:mul"
+                },
+                "right": 145.0,
+                "type": "minecraft:add"
+              },
+              "type": "minecraft:min"
+            },
+            "right": {
+              "axis": "y",
+              "from_coordinate": 0,
+              "from_value": 0.0,
+              "to_coordinate": 256,
+              "to_value": -256.0,
+              "type": "minecraft:gradient"
+            },
+            "type": "minecraft:add"
+          },
+          "right": {
+            "left": 0.0,
+            "right": {
+              "left": {
+                "left": {
+                  "left": {
+                    "alpha": {
+                      "input": {
+                        "left": {
+                          "left": "adventure:terrain/terrain_basin_islands_ring/lakes",
+                          "right": 0.103884048,
+                          "type": "minecraft:add"
+                        },
+                        "right": 34.0136054,
+                        "type": "minecraft:mul"
+                      },
+                      "max": 1.0,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "first": {
+                      "left": {
+                        "left": {
+                          "noise": "adventure:terrain/altitude",
+                          "shift_x": "minecraft:shift_x",
+                          "shift_z": "minecraft:shift_z",
+                          "type": "minecraft:noise",
+                          "xz_scale": 1.0,
+                          "y_scale": 0.0
+                        },
+                        "right": 218.978102,
+                        "type": "minecraft:mul"
+                      },
+                      "right": 150.0,
+                      "type": "minecraft:add"
+                    },
+                    "second": 150.0,
+                    "type": "minecraft:lerp"
+                  },
+                  "right": {
+                    "left": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "left": {
+                                "left": {
+                                  "left": {
+                                    "noise": "adventure:terrain/islands",
+                                    "shift_x": "minecraft:shift_x",
+                                    "shift_z": "minecraft:shift_z",
+                                    "type": "minecraft:noise",
+                                    "xz_scale": 1.0,
+                                    "y_scale": 0.0
+                                  },
+                                  "right": {
+                                    "left": {
+                                      "spline": {
+                                        "coordinate": {
+                                          "input": {
+                                            "left": {
+                                              "input": {
+                                                "axis": "x",
+                                                "from_coordinate": -1000000,
+                                                "from_value": -1000000.0,
+                                                "tiling": "clamp_to_edge",
+                                                "to_coordinate": 1000000,
+                                                "to_value": 1000000.0,
+                                                "type": "minecraft:gradient"
+                                              },
+                                              "type": "minecraft:square"
+                                            },
+                                            "right": {
+                                              "input": {
+                                                "axis": "z",
+                                                "from_coordinate": -1000000,
+                                                "from_value": -1000000.0,
+                                                "tiling": "clamp_to_edge",
+                                                "to_coordinate": 1000000,
+                                                "to_value": 1000000.0,
+                                                "type": "minecraft:gradient"
+                                              },
+                                              "type": "minecraft:square"
+                                            },
+                                            "type": "minecraft:add"
+                                          },
+                                          "type": "minecraft:sqrt"
+                                        },
+                                        "points": [
+                                          {
+                                            "derivative": 0.0,
+                                            "location": 200.0,
+                                            "value": -1.0
+                                          },
+                                          {
+                                            "derivative": 0.0,
+                                            "location": 400.0,
+                                            "value": 1.0
+                                          },
+                                          {
+                                            "derivative": 0.0,
+                                            "location": 600.0,
+                                            "value": -1.0
+                                          }
+                                        ]
+                                      },
+                                      "type": "minecraft:spline"
+                                    },
+                                    "right": 0.7032,
+                                    "type": "minecraft:mul"
+                                  },
+                                  "type": "minecraft:add"
+                                },
+                                "right": -0.15364935,
+                                "type": "minecraft:add"
+                              },
+                              "right": 3.41296928,
+                              "type": "minecraft:mul"
+                            },
+                            "max": 1.0,
+                            "min": 0.0,
+                            "type": "minecraft:clamp"
+                          },
+                          "right": {
+                            "input": {
+                              "left": {
+                                "left": "adventure:terrain/terrain_basin_islands_ring/lakes",
+                                "right": 0.0744840482,
+                                "type": "minecraft:add"
+                              },
+                              "right": -34.0136054,
+                              "type": "minecraft:mul"
+                            },
+                            "max": 1.0,
+                            "min": 0.0,
+                            "type": "minecraft:clamp"
+                          },
+                          "type": "minecraft:mul"
+                        },
+                        "right": {
+                          "left": {
+                            "input": {
+                              "left": {
+                                "left": {
+                                  "noise": "adventure:terrain/islands",
+                                  "shift_x": "minecraft:shift_x",
+                                  "shift_z": "minecraft:shift_z",
+                                  "type": "minecraft:noise",
+                                  "xz_scale": 1.5,
+                                  "y_scale": 0.0
+                                },
+                                "right": 0.0742307011,
+                                "type": "minecraft:add"
+                              },
+                              "right": 3.41296928,
+                              "type": "minecraft:mul"
+                            },
+                            "max": 1.0,
+                            "min": 0.0,
+                            "type": "minecraft:clamp"
+                          },
+                          "right": {
+                            "input": {
+                              "input": {
+                                "left": {
+                                  "left": "adventure:terrain/terrain_basin_islands_ring/lakes",
+                                  "right": -0.0195959518,
+                                  "type": "minecraft:add"
+                                },
+                                "right": 28.3446712,
+                                "type": "minecraft:mul"
+                              },
+                              "max": 1.0,
+                              "min": 0.0,
+                              "type": "minecraft:clamp"
+                            },
+                            "type": "minecraft:cache"
+                          },
+                          "type": "minecraft:mul"
+                        },
+                        "type": "minecraft:add"
+                      },
+                      "type": "minecraft:cache"
+                    },
+                    "right": 80.0,
+                    "type": "minecraft:mul"
+                  },
+                  "type": "minecraft:sub"
+                },
+                "right": 2.0,
+                "type": "minecraft:add"
+              },
+              "right": {
+                "axis": "y",
+                "from_coordinate": 0,
+                "from_value": 0.0,
+                "to_coordinate": 256,
+                "to_value": -256.0,
+                "type": "minecraft:gradient"
+              },
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:sub"
+          },
+          "type": "minecraft:min"
+        },
+        "right": {
+          "left": {
+            "left": "adventure:terrain/terrain_basin_islands_ring/basin_floor",
+            "right": {
+              "axis": "y",
+              "from_coordinate": 0,
+              "from_value": 0.0,
+              "to_coordinate": 256,
+              "to_value": -256.0,
+              "type": "minecraft:gradient"
+            },
+            "type": "minecraft:add"
+          },
+          "right": {
+            "left": 0.0,
+            "right": {
+              "left": {
+                "spline": {
+                  "coordinate": "adventure:terrain/terrain_basin_islands_ring/lakes",
+                  "points": [
+                    {
+                      "derivative": 0.0,
+                      "location": -0.07448405,
+                      "value": 148.0
+                    },
+                    {
+                      "derivative": 0.0,
+                      "location": -0.015684048,
+                      "value": 122.0
+                    },
+                    {
+                      "derivative": 0.0,
+                      "location": 0.16071595,
+                      "value": 82.0
+                    }
+                  ]
+                },
+                "type": "minecraft:spline"
+              },
+              "right": {
+                "axis": "y",
+                "from_coordinate": 0,
+                "from_value": 0.0,
+                "to_coordinate": 256,
+                "to_value": -256.0,
+                "type": "minecraft:gradient"
+              },
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:sub"
+          },
+          "type": "minecraft:min"
+        },
+        "type": "minecraft:max"
+      },
+      "right": 0.125,
+      "type": "minecraft:mul"
+    },
+    "type": "minecraft:max"
+  },
+  "type": "minecraft:cache"
+}

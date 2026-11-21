@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: flat floating islands at y 110 carrying spires 60 high, for the terrain section's island spires line.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "altitude": 110,
+      "thickness": 10,
+      "spread": 4,
+      "coverage": 0.4,
+      "size": 2,
+      "flatness": 1,
+      "spires": 0.12,
+      "spireHeight": 60,
+      "spireThickness": 1,
+      "spireTaper": 0.2
+    }
+  },
+  "borders": {
+    "player": 2048
+  }
+}

@@ -1,0 +1,119 @@
+{
+ "slug": "the_crimson_nexus",
+ "targets": [
+  {
+   "key": "placeness.biomeRegions.specksPercent",
+   "op": "<=",
+   "value": 44.9,
+   "from": "meeting: \"a nexus where the crimson bleeds through: many biomes meeting\" (measured 40.8)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:blackstone_basin",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:crimson_pinewood",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.adventure:magmatic_caves.columns? + biomeExpression.biomes.adventure:magmatic_caves.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:nether_grasslands",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:nether_jungle",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:quartz_flats",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:redstone_abyss",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:withered_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:badlands",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:crimson_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:eroded_badlands",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:nether_wastes",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:sulfur_caves.columns? + biomeExpression.biomes.minecraft:sulfur_caves.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:warped_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomeRegions.largestPercent",
+   "op": ">=",
+   "value": 13.1,
+   "from": "meeting: biome regions (W9f, measured 14.6)"
+  },
+  {
+   "key": "placeness.biomeRegions.specksPercent",
+   "op": "<=",
+   "value": 1.4,
+   "from": "meeting: biome regions (W9f, measured 0.7)"
+  },
+  {
+   "key": "placeness.biomeRegions.perKm2",
+   "op": "<=",
+   "value": 0.9,
+   "from": "meeting: biome regions (W9f, measured 0.7)"
+  },
+  {
+   "key": "placeness.biomeRegions.top3Percent",
+   "op": ">=",
+   "value": 30.6,
+   "from": "meeting: biome regions (W9f, measured 34.0)"
+  }
+ ]
+}

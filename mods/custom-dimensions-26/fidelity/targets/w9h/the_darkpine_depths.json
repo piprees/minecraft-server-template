@@ -1,0 +1,95 @@
+{
+ "slug": "the_darkpine_depths",
+ "targets": [
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 33.0,
+   "from": "meeting: \"the woods keep their own counsel: one dark forest\" (measured 40.4); re-cut over land outside sea biomes (W9h, measured 36.7), was >= 36.3 over all columns"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 64.4,
+   "from": "meeting: \"the woods keep their own counsel: one dark forest\" (measured 55.8); re-cut over land outside sea biomes (W9h, measured 71.5), was >= 50.2 over all columns"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:birch_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:dark_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:deep_dark.columns? + biomeExpression.biomes.minecraft:deep_dark.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:dripstone_caves.columns? + biomeExpression.biomes.minecraft:dripstone_caves.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:old_growth_pine_taiga",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:old_growth_spruce_taiga",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:pale_garden",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:snowy_taiga",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:taiga",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 33.0,
+   "from": "place: biome regions (W9f, measured 43.0); re-cut over land outside sea biomes (W9h, measured 36.7), was >= 38.7 over all columns"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 2.4,
+   "from": "place: biome regions (W9f, measured 3.5); re-cut over land outside sea biomes (W9h, measured 1.5), was <= 4.9 over all columns"
+  },
+  {
+   "key": "placeness.landBiomeRegions.perKm2",
+   "op": "<=",
+   "value": 6.7,
+   "from": "place: biome regions (W9f, measured 3.8); re-cut over land outside sea biomes (W9h, measured 5.7), was <= 4.5 over all columns"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 64.4,
+   "from": "place: biome regions (W9f, measured 72.3); re-cut over land outside sea biomes (W9h, measured 71.5), was >= 65.1 over all columns"
+  }
+ ]
+}

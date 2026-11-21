@@ -1,0 +1,53 @@
+{
+ "slug": "the_forged_depths",
+ "targets": [
+  {
+   "key": "terrain.surfaceHeight.p25",
+   "op": "<=",
+   "value": 52,
+   "from": "\"a small brutal deep\". Restated from landforms basins >= 20: the landform classifier marks basins by their height against a 256-block window, so the floor of a cut wider than about 128 blocks reads as plains; a quarter of the floor or more lies in the deep, 20 blocks or more under the rim at 72"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:magma_block + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:obsidian + surface.groundBlocksPercent.minecraft:quartz_block",
+   "op": ">=",
+   "value": 30,
+   "from": "\"the fires here never went out\"; 1.21.1 magma_land, volcanic_deltas, inferno, quartz_flats"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:blackstone_basin + surface.biomesPercent.adventure:magma_land",
+   "op": ">=",
+   "value": 35,
+   "from": "\"crimson forges and reactors\", \"the fires here never went out\": the forge country of blackstone, lava lakes and magma. Restated from magma_land + crimson_pinewood >= 35: the owner asked for no trees, so the pinewood is gone and the blackstone forge country takes its place"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "<=",
+   "value": 2,
+   "from": "\"nobody survived to bank them\"; the owner: \"deader, no trees\". Restated from crimson_forest placed on land >= 60: the owner removed the crimson forest"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.12,
+   "from": "1.21.1 ambientLight 0.08"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 85,
+   "from": "1.21.1 type nether: a roof over the world"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (\"a small brutal deep\"): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

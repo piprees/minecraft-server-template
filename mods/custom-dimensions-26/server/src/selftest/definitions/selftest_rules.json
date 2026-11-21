@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: a flat level holding game rules of its own, where a death keeps the inventory, a broken block drops nothing, random ticks run fast, the weather holds, and its clients respawn at once with reduced debug info.",
+  "seed": 3,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "flat",
+    "layers": [
+      {"block": "minecraft:bedrock", "height": 1},
+      {"block": "minecraft:stone", "height": 3}
+    ]
+  },
+  "gameRules": {
+    "keep_inventory": true,
+    "block_drops": false,
+    "random_tick_speed": 1000,
+    "advance_weather": false,
+    "immediate_respawn": true,
+    "reduced_debug_info": true
+  },
+  "borders": {
+    "player": 256
+  }
+}

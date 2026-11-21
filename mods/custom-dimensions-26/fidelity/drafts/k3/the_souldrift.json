@@ -1,0 +1,9 @@
+{
+  "reason": "G8: landShare 0.97 so the scar is land (warm_ocean 28.1%, water 38.9%); scales.climate 3 kept.",
+  "terrain": {
+    "scales": {
+      "climate": 3.0
+    },
+    "landShare": 0.97
+  }
+}

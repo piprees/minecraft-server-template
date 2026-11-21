@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 2,
+  "description": "The sculk that fed on the boneyard war escaped here — corrupted end terrain bleeding into dark overworld, oppressive and chaotic. The catalyst is still feeding, still growing. The reactors and bastions it consumed are unrecognisable, and what it reaches near the portal it takes.",
+  "seed": -8220001285587080739,
+  "spawn": [-128, 174, 128],
+  "generator": {
+    "type": "noise",
+    "preset": "end"
+  },
+  "terrain": {
+    "base": "end",
+    "params": {
+      "coverage": 0.05
+    },
+    "scales": {
+      "climate": 2
+    }
+  },
+  "biomes": [
+    "minecraft:deep_dark",
+    "adventure:umbral_wastes",
+    "minecraft:dark_forest",
+    "minecraft:mangrove_swamp",
+    "minecraft:soul_sand_valley",
+    "adventure:ash_barrens",
+    "minecraft:end_highlands",
+    "minecraft:end_midlands",
+    "minecraft:pale_garden",
+    "minecraft:old_growth_birch_forest",
+    "adventure:blackstone_basin",
+    "adventure:withered_forest",
+    "adventure:mycotoxic_undergrowth",
+    "minecraft:nether_wastes",
+    "minecraft:basalt_deltas",
+    "minecraft:stony_peaks"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:deep_dark": 14,
+      "adventure:umbral_wastes": 10,
+      "minecraft:dark_forest": 10,
+      "minecraft:mangrove_swamp": 7,
+      "minecraft:soul_sand_valley": 7,
+      "adventure:ash_barrens": 6,
+      "minecraft:end_highlands": 6,
+      "minecraft:end_midlands": 4,
+      "minecraft:pale_garden": 5,
+      "minecraft:old_growth_birch_forest": 4,
+      "adventure:blackstone_basin": 4,
+      "adventure:withered_forest": 4,
+      "adventure:mycotoxic_undergrowth": 4,
+      "minecraft:nether_wastes": 3,
+      "minecraft:basalt_deltas": 4,
+      "minecraft:stony_peaks": 3
+    },
+    "over": "land"
+  },
+  "materials": {
+    "biomes": {
+      "minecraft:dark_forest": {
+        "top": "minecraft:grass_block",
+        "filler": "minecraft:dirt"
+      },
+      "minecraft:mangrove_swamp": {
+        "top": "minecraft:mud",
+        "filler": "minecraft:mud"
+      },
+      "minecraft:pale_garden": {
+        "top": "minecraft:grass_block",
+        "filler": "minecraft:dirt"
+      },
+      "minecraft:old_growth_birch_forest": {
+        "top": "minecraft:grass_block",
+        "filler": "minecraft:dirt"
+      }
+    }
+  },
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [1180, -860],
+      "radius": 200,
+      "blend": 40,
+      "edgeJitter": 48,
+      "biomes": [
+        "minecraft:deep_dark"
+      ]
+    }
+  ],
+  "dimensionType": {
+    "hasCeiling": false,
+    "monsterSpawnLightLevel": 15
+  },
+  "atmosphere": {
+    "fogColor": "#0B2B3B",
+    "ambientLight": 0.06,
+    "effects": "minecraft:the_end"
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 1.8
+  },
+  "structures": {
+    "density": "dense",
+    "force": [
+      {
+        "structure": "ati_structures:warden_monument",
+        "x": 140,
+        "z": 96,
+        "exclusive": false
+      },
+      {
+        "structure": "mns:crimson_forge",
+        "x": 1180,
+        "z": -860,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:sculk_catalyst",
+      "igniterItem": "minecraft:ender_eye",
+      "color": "1B5B6B",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "particleType": "minecraft:end_rod",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:sculk",
+          "minecraft:sculk_catalyst",
+          "minecraft:blackstone"
+        ],
+        "flora": [
+          "minecraft:sculk_vein"
+        ]
+      }
+    }
+  ],
+  "exits": {
+    "death": {
+      "action": "respawnAt",
+      "target": {
+        "dimension": "adventure:the_sculked_beyond",
+        "arrival": "spawn"
+      }
+    }
+  },
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:basalt_deltas",
+      "minecraft:soul_sand_valley",
+      "adventure:mycotoxic_undergrowth",
+      "adventure:withered_forest",
+      "adventure:umbral_wastes",
+      "minecraft:deep_dark"
+    ],
+    "wants": {
+      "ati_structures:warden_monument": "near_spawn",
+      "mns:crimson_forge": "spread",
+      "bastion": "spread",
+      "mns:mega_fortress": "near_border",
+      "mns:copper_tower": "spread"
+    },
+    "shuns": [
+      "towns_and_towers:exclusives/village_piglin",
+      "crimson_fungus",
+      "mvs:large_warped_tower"
+    ]
+  }
+}

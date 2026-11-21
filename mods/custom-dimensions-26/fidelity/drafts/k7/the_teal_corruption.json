@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 2,
+  "description": "Warped corruption spreading over a mesa world — teal fungus over red rock. The nether bleeding through, but slowly, almost beautifully. It came through at the centre and it is still spreading. The piglins who lived here didn't flee; they adapted. Their outposts stand in the fungus like houses in a rising tide. The tide comes through the portal as well, and it does not ask what you built there.",
+  "seed": -6424833192028303217,
+  "spawn": [
+    -384,
+    183,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    "minecraft:warped_forest",
+    "minecraft:badlands",
+    "minecraft:crimson_forest",
+    "adventure:upside_down_forest",
+    "adventure:maple_woodland",
+    "adventure:ashen_woodland",
+    "minecraft:eroded_badlands",
+    "adventure:blackstone_basin",
+    {
+      "id": "minecraft:dripstone_caves",
+      "climate": {
+        "weirdness": [
+          -2.0,
+          -0.255
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "minecraft:sulfur_caves",
+      "climate": {
+        "weirdness": [
+          -0.255,
+          0.193
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "weirdness": [
+          0.193,
+          2.0
+        ],
+        "depth": [
+          0.1,
+          2.0
+        ]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:warped_forest": 20,
+      "minecraft:badlands": 50,
+      "minecraft:crimson_forest": 7,
+      "adventure:upside_down_forest": 5,
+      "adventure:maple_woodland": 7,
+      "adventure:ashen_woodland": 4,
+      "minecraft:eroded_badlands": 4,
+      "adventure:blackstone_basin": 3
+    },
+    "places": {
+      "groups": {
+        "fungus": [
+          "minecraft:crimson_forest",
+          "adventure:upside_down_forest"
+        ],
+        "woods": [
+          "adventure:maple_woodland",
+          "adventure:ashen_woodland"
+        ],
+        "mesa_edge": [
+          "minecraft:eroded_badlands",
+          "adventure:blackstone_basin"
+        ]
+      },
+      "arrangement": "core"
+    }
+  },
+  "liquids": {
+    "seaLevel": -55
+  },
+  "atmosphere": {
+    "fogColor": "#1B4B4B",
+    "ambientLight": 0.2
+  },
+  "rules": {
+    "respawnAnchorsWork": true
+  },
+  "borders": {
+    "player": 2048,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.6,
+    "playerLuck": 1.4
+  },
+  "structures": {
+    "density": "normal",
+    "force": [
+      {
+        "structure": "towns_and_towers:exclusives/village_piglin",
+        "x": 40,
+        "z": -70
+      },
+      {
+        "structure": "mvs:large_warped_tower",
+        "x": -395,
+        "z": 245
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:warped_wart_block",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "1BAFAF",
+      "lightLevel": 11,
+      "scale": 4.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:badlands",
+      "minecraft:eroded_badlands",
+      "minecraft:warped_forest"
+    ],
+    "wants": {
+      "mns:sword": "spread",
+      "bastion": "spread",
+      "crimson_forge": "spread",
+      "nether_bridge": "spread",
+      "mns:warped_dome": "spread"
+    },
+    "shuns": [
+      "towns_and_towers:exclusives/village_piglin"
+    ],
+    "water": "none"
+  },
+  "terrain": {
+    "scales": {
+      "climate": 2.0
+    }
+  }
+}

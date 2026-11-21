@@ -2,10 +2,14 @@
 # RETEST item 5 — the crucible via the test frame.
 #
 # Purpose: build the frame, ignite it, walk in on the real client, and prove
-#          BOTH companion-suppress lines appear for the one crossing.
+#          BOTH companion-suppress lines appear for the one crossing (1.21.1),
+#          or the companion's own `companion-feed: preloaded` line (26.x, whose
+#          companion is told the transfer is pre-loaded and does not suppress
+#          the arrival screen).
 # Context: a Carpet bot cannot run this — the pass condition is in the CLIENT
 #          log and a bot has no client. Zero markers from a bot is the bot.
 # Usage:   ./dev launch --dev-bridge   then   ./e2e-item5-crucible.sh
+#          26.x: inside vanilla-join.sh --during, with CLIENT_LOG set (README)
 # Gotchas: one suppress line is a FAIL, not a pass. Only startWorldLoading
 #          builds the screen the player sees; a lone joinWorld is the old
 #          half-hooked behaviour reporting success.
@@ -118,7 +122,7 @@ assert_state "back at the approach point, 40 blocks out" \
 
 say "Baseline the client log"
 BEFORE="$RUN_DIR/client-before.log"
-dev client-log --tail 4000 > "$BEFORE" 2>/dev/null || true
+client_log_snapshot "$BEFORE" 4000 || true
 BEFORE_LINES="$(wc -l < "$BEFORE" | tr -d ' ')"
 note "client log baseline: $BEFORE_LINES lines"
 
@@ -144,15 +148,20 @@ shot "02-after-walk"
 
 say "Client-side markers"
 AFTER="$RUN_DIR/client-after.log"
-dev client-log --tail 8000 > "$AFTER" 2>/dev/null || true
+client_log_snapshot "$AFTER" 8000 || true
 NEW="$RUN_DIR/client-new.log"
 tail -n "+$((BEFORE_LINES + 1))" "$AFTER" > "$NEW" 2>/dev/null || cp "$AFTER" "$NEW"
 note "new client lines this crossing: $(wc -l < "$NEW" | tr -d ' ')"
 
-assert_count_at_least "companion-suppress at site=joinWorld" \
-  "$NEW" "companion-suppress:arrival-screen site=joinWorld" 1
-assert_count_at_least "NEGATIVE (one line is a FAIL): companion-suppress at site=startWorldLoading" \
-  "$NEW" "companion-suppress:arrival-screen site=startWorldLoading" 1
+if [ "$E2E_26" -eq 1 ]; then
+  assert_count_at_least "the companion was told the crossing is pre-loaded" \
+    "$NEW" "companion-feed: preloaded $DESTINATION" 1
+else
+  assert_count_at_least "companion-suppress at site=joinWorld" \
+    "$NEW" "companion-suppress:arrival-screen site=joinWorld" 1
+  assert_count_at_least "NEGATIVE (one line is a FAIL): companion-suppress at site=startWorldLoading" \
+    "$NEW" "companion-suppress:arrival-screen site=startWorldLoading" 1
+fi
 
 say "Server-side marker"
 SRV="$RUN_DIR/mc-since.log"

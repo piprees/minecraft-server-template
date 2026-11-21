@@ -1,0 +1,8 @@
+the_aviary=/tmp/claude-0/w10c1p/runs/sel/the_aviary/dossier.json
+overworld=/tmp/claude-0/w10c1p/runs/fin/full/overworld/dossier.json
+the_nether=/tmp/claude-0/w10c1p/runs/fin/full/the_nether/dossier.json
+the_end=/tmp/claude-0/w10c1p/runs/fin/full/the_end/dossier.json
+the_snowbound_isle=/tmp/claude-0/w10c1p/runs/fin/full/the_snowbound_isle/dossier.json
+the_abyssal_shrine=/tmp/claude-0/w10c1p/runs/fin/full/the_abyssal_shrine/dossier.json
+the_violet_spire=/tmp/claude-0/w10c1p/runs/sel/the_violet_spire/dossier.json
+the_sunken_temple=/tmp/claude-0/w10c1p/runs/sel/the_sunken_temple/dossier.json

@@ -1,0 +1,115 @@
+{
+  "input": {
+    "left": {
+      "spline": {
+        "coordinate": "adventure:terrain/the_greenreach/continents",
+        "points": [
+          {
+            "derivative": 0.0,
+            "location": -1.5,
+            "value": 16.0
+          },
+          {
+            "derivative": 0.0,
+            "location": -0.85,
+            "value": 36.0
+          },
+          {
+            "derivative": 0.0,
+            "location": -0.64,
+            "value": 29.0
+          },
+          {
+            "derivative": 0.0,
+            "location": -0.6,
+            "value": 34.0
+          },
+          {
+            "derivative": 0.0,
+            "location": -0.54,
+            "value": 38.0
+          },
+          {
+            "derivative": 0.0,
+            "location": -0.3,
+            "value": 55.0
+          },
+          {
+            "derivative": 0.0,
+            "location": 1.5,
+            "value": 72.0
+          }
+        ]
+      },
+      "type": "minecraft:spline"
+    },
+    "right": {
+      "left": {
+        "left": {
+          "input": {
+            "left": {
+              "left": "adventure:terrain/the_greenreach/continents",
+              "right": 0.6,
+              "type": "minecraft:add"
+            },
+            "right": 8.0,
+            "type": "minecraft:mul"
+          },
+          "max": 1.0,
+          "min": 0.0,
+          "type": "minecraft:clamp"
+        },
+        "right": {
+          "left": {
+            "spline": {
+              "coordinate": "adventure:terrain/the_greenreach/erosion",
+              "points": [
+                {
+                  "derivative": 0.0,
+                  "location": -1.0,
+                  "value": 1.0
+                },
+                {
+                  "derivative": 0.0,
+                  "location": -0.4,
+                  "value": 0.7
+                },
+                {
+                  "derivative": 0.0,
+                  "location": 0.0,
+                  "value": 0.35
+                },
+                {
+                  "derivative": 0.0,
+                  "location": 0.5,
+                  "value": 0.1
+                },
+                {
+                  "derivative": 0.0,
+                  "location": 1.0,
+                  "value": 0.0
+                }
+              ]
+            },
+            "type": "minecraft:spline"
+          },
+          "right": {
+            "left": {
+              "left": "adventure:terrain/the_greenreach/ridges_folded",
+              "right": 0.4,
+              "type": "minecraft:mul"
+            },
+            "right": 0.6,
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:mul"
+        },
+        "type": "minecraft:mul"
+      },
+      "right": 5.0,
+      "type": "minecraft:mul"
+    },
+    "type": "minecraft:add"
+  },
+  "type": "minecraft:cache"
+}

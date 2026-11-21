@@ -1,0 +1,133 @@
+{
+  "input": "adventure:zones/the_end/11/mask",
+  "max_exclusive": 2.0,
+  "min_inclusive": 0.5,
+  "type": "minecraft:range_choice",
+  "when_in_range": {
+    "left": 0.0,
+    "right": 192.0,
+    "type": "minecraft:add"
+  },
+  "when_out_of_range": {
+    "input": "adventure:zones/the_end/10/mask",
+    "max_exclusive": 2.0,
+    "min_inclusive": 0.5,
+    "type": "minecraft:range_choice",
+    "when_in_range": {
+      "left": 0.0,
+      "right": 176.0,
+      "type": "minecraft:add"
+    },
+    "when_out_of_range": {
+      "input": "adventure:zones/the_end/9/mask",
+      "max_exclusive": 2.0,
+      "min_inclusive": 0.5,
+      "type": "minecraft:range_choice",
+      "when_in_range": {
+        "left": 0.0,
+        "right": 160.0,
+        "type": "minecraft:add"
+      },
+      "when_out_of_range": {
+        "input": "adventure:zones/the_end/8/mask",
+        "max_exclusive": 2.0,
+        "min_inclusive": 0.5,
+        "type": "minecraft:range_choice",
+        "when_in_range": {
+          "left": 0.0,
+          "right": 144.0,
+          "type": "minecraft:add"
+        },
+        "when_out_of_range": {
+          "input": "adventure:zones/the_end/7/mask",
+          "max_exclusive": 2.0,
+          "min_inclusive": 0.5,
+          "type": "minecraft:range_choice",
+          "when_in_range": {
+            "left": 0.0,
+            "right": 128.0,
+            "type": "minecraft:add"
+          },
+          "when_out_of_range": {
+            "input": "adventure:zones/the_end/6/mask",
+            "max_exclusive": 2.0,
+            "min_inclusive": 0.5,
+            "type": "minecraft:range_choice",
+            "when_in_range": {
+              "left": 0.0,
+              "right": 112.0,
+              "type": "minecraft:add"
+            },
+            "when_out_of_range": {
+              "input": "adventure:zones/the_end/5/mask",
+              "max_exclusive": 2.0,
+              "min_inclusive": 0.5,
+              "type": "minecraft:range_choice",
+              "when_in_range": {
+                "left": 0.0,
+                "right": 96.0,
+                "type": "minecraft:add"
+              },
+              "when_out_of_range": {
+                "input": "adventure:zones/the_end/4/mask",
+                "max_exclusive": 2.0,
+                "min_inclusive": 0.5,
+                "type": "minecraft:range_choice",
+                "when_in_range": {
+                  "left": 0.0,
+                  "right": 80.0,
+                  "type": "minecraft:add"
+                },
+                "when_out_of_range": {
+                  "input": "adventure:zones/the_end/3/mask",
+                  "max_exclusive": 2.0,
+                  "min_inclusive": 0.5,
+                  "type": "minecraft:range_choice",
+                  "when_in_range": {
+                    "left": 0.0,
+                    "right": 64.0,
+                    "type": "minecraft:add"
+                  },
+                  "when_out_of_range": {
+                    "input": "adventure:zones/the_end/2/mask",
+                    "max_exclusive": 2.0,
+                    "min_inclusive": 0.5,
+                    "type": "minecraft:range_choice",
+                    "when_in_range": {
+                      "left": 0.0,
+                      "right": 48.0,
+                      "type": "minecraft:add"
+                    },
+                    "when_out_of_range": {
+                      "input": "adventure:zones/the_end/1/mask",
+                      "max_exclusive": 2.0,
+                      "min_inclusive": 0.5,
+                      "type": "minecraft:range_choice",
+                      "when_in_range": {
+                        "left": 0.0,
+                        "right": 32.0,
+                        "type": "minecraft:add"
+                      },
+                      "when_out_of_range": {
+                        "input": "adventure:zones/the_end/0/mask",
+                        "max_exclusive": 2.0,
+                        "min_inclusive": 0.5,
+                        "type": "minecraft:range_choice",
+                        "when_in_range": {
+                          "left": 0.0,
+                          "right": 16.0,
+                          "type": "minecraft:add"
+                        },
+                        "when_out_of_range": 0.0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

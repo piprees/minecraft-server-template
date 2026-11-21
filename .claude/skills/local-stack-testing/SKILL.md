@@ -113,11 +113,14 @@ readlink .stack/current          # answers: dev
 containing `dev` (`dev`, the `link)` case), and points `.stack/current` at `dev`
 (`dev`, the `link)` case).
 
-`local-mods/` is deleted and recreated (`dev`, the `link)` case), then every jar under
-`<checkout>/mods/*/build/libs/` gets a symlink named after that jar
-(`dev`, the `link)` case's `ln -sfn`). Skipped: `*-dev.jar` and `*-sources.jar` (`dev`, the `link)` case's jar loop), and any jar
-whose `unzip -l` listing has no `refmap` line, which prints
-`WARNING: <name> has no refmap — dev/unremapped jar skipped` (`dev`, the `link)` case's refmap check).
+`local-mods/` and `client-mods/` are deleted and recreated (`dev`, the `link)` case), then
+`scripts/local-mods.sh locate server|client` in the checkout names the built jar of each row
+of the manifests its selected Minecraft version picks (`mods/local-mods[-<version>].manifest`,
+`mods/client-mods[-<version>].manifest`). Each server jar gets a symlink under its bundle name
+(`local-mods/customdimensions.jar`), each client jar a copy in `client-mods/`. A row with no
+built jar prints `WARNING: <bundle name>: expected one built jar in mods/<project>, found 0; build it first`;
+a jar missing the refmap its row names prints `WARNING: <name> has no <refmap> — unremapped jar skipped`.
+A row whose refmap is `-` (a non-remapping Loom build, every 26.x mod) needs none.
 
 Because those entries are symlinks, a rebuild changes what they point at and
 needs no re-link. **Re-run `./dev link` after `gradlew clean` or a
@@ -136,7 +139,7 @@ calls are logical (`dev-up.sh`, `SCRIPT_DIR`/`STACK_DIR`). Everything below foll
 | --- | --- | --- |
 | `docker-compose.yml`, `docker-compose.local.yml` | passed to every `docker compose` call as `$STACK_DIR/…` (`dev-up.sh`, `compose_up`) | `./dev up` |
 | `scripts/**` | `./dev` dispatches into `.stack/current/stack/scripts/` (`dev`, `STACK_SCRIPTS`), and `dev-up.sh` calls its siblings through `$SCRIPT_DIR` (`dev-up.sh`, the `sync-mods.sh` call) | the next `./dev` command |
-| `mods/*/build/libs/*.jar` | `cp "$LOCAL_MODS"/*.jar` into `data/mods/` (`dev-up.sh`, "Install in-house mod JARs"); `cp` follows the symlink and writes the target's bytes | `./dev up` |
+| each manifest row's built jar (`scripts/local-mods.sh locate`) | `cp "$LOCAL_MODS"/*.jar` into `data/mods/` (`dev-up.sh`, "Install in-house mod JARs"); `cp` follows the symlink and writes the target's bytes | `./dev up` |
 | `config/datapacks/**` | `rm -rf` then `cp -r` per pack, unconditional (`dev-up.sh`, the datapack sync) | `./dev up` |
 | `config/**` — mod configs, `custom-dimensions/dimensions/*.json` | copied only `if [[ ! -f "$dest" ]]` (`dev-up.sh`, the config-seed `if [[ ! -f "$dest" ]]`), so a file `data/config/` already holds is never replaced | `./dev refresh-config` |
 | `config/nginx/**`, `config/modrinth-mods.txt`, anything baked into the `defaults-seed` image | **no route.** The `seed` container runs the published image (`docker-compose.yml`, the `seed` service) and fills the `stack-config`/`stack-mods` volumes that nav-proxy and mc read (`docker-compose.yml`, `nav-proxy`’s `stack-config` mount); `./dev up` runs it every time (`dev-up.sh`, `compose_up seed`) | a rebuilt image, or the volume patch in `references/testing-recipes.md` § 2 |

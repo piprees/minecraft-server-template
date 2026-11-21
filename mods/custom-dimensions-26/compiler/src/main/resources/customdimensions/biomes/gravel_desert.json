@@ -1,0 +1,307 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "nether",
+  "inspiredBy": "BetterNether's gravel desert: Nether dunes of gravel with bones half-buried.",
+  "differs": "Soul sand valley is blue soul fire over soul sand; here the floors are bleached gravel over netherrack, bone blocks lie half-buried in the dunes and stand up as ribs, dead bushes grow in dry coarse dirt hollows, skeletons roam, and pale dust hangs in the air.",
+  "climate": {
+    "temperature": [
+      -1.0,
+      -0.6
+    ],
+    "humidity": [
+      -1.0,
+      -0.3
+    ]
+  },
+  "palette": {
+    "top": "minecraft:gravel",
+    "filler": "minecraft:gravel"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:ambient.soul_sand_valley.additions",
+          "tick_chance": 0.0111
+        },
+        "loop": "minecraft:ambient.soul_sand_valley.loop",
+        "mood": {
+          "block_search_extent": 8,
+          "offset": 2.0,
+          "sound": "minecraft:ambient.soul_sand_valley.mood",
+          "tick_delay": 6000
+        }
+      },
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.nether.soul_sand_valley"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "creature": [
+              {
+                "type": "minecraft:strider",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 2,
+                  "min_inclusive": 1
+                },
+                "weight": 60
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:skeleton",
+                "count": 5,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:ghast",
+                "count": 4,
+                "weight": 30
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": 4,
+                "weight": 1
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:white_ash"
+            },
+            "probability": 0.015
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#7d7266"
+    },
+    "carvers": "minecraft:nether_cave",
+    "downfall": 0.0,
+    "effects": {
+      "water_color": "#3f76e4"
+    },
+    "features": [
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      [
+        "minecraft:spring_open",
+        "minecraft:glowstone_extra",
+        "minecraft:glowstone",
+        "minecraft:ore_magma",
+        "minecraft:spring_closed",
+        "minecraft:ore_blackstone",
+        "minecraft:ore_gold_nether",
+        "minecraft:ore_quartz_nether",
+        "minecraft:ore_ancient_debris_large",
+        "minecraft:ore_debris_small",
+        "~buried_bones"
+      ],
+      [],
+      [
+        "minecraft:spring_lava",
+        "~bone_ribs",
+        "~dry_hollows"
+      ]
+    ],
+    "has_precipitation": false,
+    "temperature": 2.0
+  },
+  "features": {
+    "buried_bones": {
+      "feature": {
+        "type": "minecraft:ore",
+        "discard_chance_on_air_exposure": 0.0,
+        "size": 10,
+        "targets": [
+          {
+            "state": {
+              "id": "minecraft:bone_block",
+              "properties": {
+                "axis": "x"
+              }
+            },
+            "target": {
+              "predicate_type": "minecraft:block_match",
+              "block": "minecraft:gravel"
+            }
+          },
+          {
+            "state": {
+              "id": "minecraft:bone_block",
+              "properties": {
+                "axis": "y"
+              }
+            },
+            "target": {
+              "predicate_type": "minecraft:block_match",
+              "block": "minecraft:netherrack"
+            }
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 30
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:height_range",
+          "height": {
+            "type": "minecraft:uniform",
+            "max_inclusive": {
+              "below_top": 0
+            },
+            "min_inclusive": {
+              "above_bottom": 0
+            }
+          }
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "bone_ribs": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "allowed_placement": {
+          "type": "minecraft:matching_block_tag",
+          "tag": "minecraft:air"
+        },
+        "direction": "up",
+        "layers": [
+          {
+            "height": {
+              "type": "minecraft:uniform",
+              "max_inclusive": 5,
+              "min_inclusive": 2
+            },
+            "provider": {
+              "id": "minecraft:bone_block",
+              "properties": {
+                "axis": "y"
+              }
+            }
+          }
+        ],
+        "prioritize_tip": false
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 2
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 6
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 5,
+            "min": -5,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 2,
+            "min": -2,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 5,
+            "min": -5,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:gravel"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "dry_hollows": {
+      "feature": {
+        "type": "minecraft:vegetation_patch",
+        "depth": 1,
+        "extra_bottom_block_chance": 0.0,
+        "extra_edge_column_chance": 0.3,
+        "ground_state": {
+          "id": "minecraft:coarse_dirt"
+        },
+        "replaceable": "#minecraft:base_stone_nether",
+        "surface": "floor",
+        "vegetation_chance": 0.35,
+        "vegetation_feature": {
+          "feature": {
+            "type": "minecraft:simple_block",
+            "to_place": {
+              "id": "minecraft:dead_bush"
+            }
+          },
+          "placement": []
+        },
+        "vertical_range": 5,
+        "xz_radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 3,
+          "min_inclusive": 1
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count_on_every_layer",
+          "count": 3
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    }
+  }
+}

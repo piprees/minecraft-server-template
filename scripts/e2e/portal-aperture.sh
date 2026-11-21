@@ -15,6 +15,7 @@
 #           is driven through it. No Carpet bots: a bot has no client.
 #
 # Usage:    ./dev launch --dev-bridge   then
+# Usage:    # 26.x: inside vanilla-join.sh --during with the dev bridge (README § On 26.x)
 #           ./scripts/e2e/portal-aperture.sh [--keep]
 #             --keep   leave the scratch portal standing for a look
 #

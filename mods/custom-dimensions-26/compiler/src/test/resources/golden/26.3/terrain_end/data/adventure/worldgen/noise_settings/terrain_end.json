@@ -1,0 +1,9 @@
+{
+  "base": "minecraft:end",
+  "changed": {
+    "noise_router": "sha1:46074b7d49c52cf7274863926f21c8a2a928464f"
+  },
+  "removed": [
+    "debug_functions"
+  ]
+}

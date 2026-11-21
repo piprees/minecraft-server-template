@@ -1,0 +1,24 @@
+{
+  "left": {
+    "axis": "y",
+    "from_coordinate": -64,
+    "from_value": 1.5,
+    "to_coordinate": 320,
+    "to_value": -1.5,
+    "type": "minecraft:gradient"
+  },
+  "right": {
+    "left": "adventure:terrain/terrain_continents_climate/offset",
+    "right": {
+      "left": {
+        "left": "adventure:terrain/terrain_continents_climate/surface_top",
+        "right": 0.0078125,
+        "type": "minecraft:mul"
+      },
+      "right": -1.0,
+      "type": "minecraft:add"
+    },
+    "type": "minecraft:min"
+  },
+  "type": "minecraft:add"
+}

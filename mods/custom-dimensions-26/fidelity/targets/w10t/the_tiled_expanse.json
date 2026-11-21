@@ -1,0 +1,62 @@
+{
+ "slug": "the_tiled_expanse",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:quartz_block + surface.groundBlocksPercent.minecraft:smooth_quartz + surface.groundBlocksPercent.minecraft:quartz_bricks",
+   "op": ">=",
+   "value": 25,
+   "from": "\"a quartz-and-void expanse\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:smooth_basalt + surface.groundBlocksPercent.minecraft:polished_basalt",
+   "op": ">=",
+   "value": 15,
+   "from": "\"around a vast basalt square\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 3,
+   "from": "\"Pure mathematical architecture\", \"No ... habitation\""
+  },
+  {
+   "key": "terrain.slopes.flatUnder15Percent",
+   "op": ">=",
+   "value": 70,
+   "from": "\"laid out on a grid\", \"in geometric silence\""
+  },
+  {
+   "key": "terrain.reliefMedian",
+   "op": "<=",
+   "value": 8,
+   "from": "\"geometric silence\""
+  },
+  {
+   "key": "surface.voidPercent",
+   "op": "between",
+   "value": [
+    15,
+    60
+   ],
+   "from": "\"a quartz-and-void expanse\"; 1.21.1 void_barrens"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava + surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 2,
+   "from": "\"geometric silence\": no lava or water in the grid"
+  },
+  {
+   "key": "placeness.at.centre.biomeRegionPercent",
+   "op": ">=",
+   "value": 20,
+   "from": "\"around a vast basalt square\": the centre region is large"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface",
+   "op": "<=",
+   "value": 1,
+   "from": "\"No cities, no habitation\""
+  }
+ ]
+}

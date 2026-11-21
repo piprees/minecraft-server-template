@@ -16,6 +16,9 @@
 # Gotchas: /state is the sampler AND the clock, so the sample rate is itself a
 #          symptom — a run that yields few rows over many seconds is evidence,
 #          not a broken script. Every wait is capped; nothing streams.
+# shellcheck source=mc-version.sh
+. "$(cd "$(dirname "$0")" && pwd)/mc-version.sh"
+e2e_refuse_on_26 "it drives the 1.21.1 bridge's /fps-motion and /step; on 26.3 e2e-companion-portal.sh samples /state's fps at the portal against a stated floor"
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"

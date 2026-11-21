@@ -1,0 +1,29 @@
+{
+ "slug": "the_forged_depths",
+ "targets": [
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind one small place (\"a small brutal deep\"): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind one place: no scatter of biome specks"
+  },
+  {
+   "key": "placeness.places.byPlace.forge.landPercent",
+   "op": ">=",
+   "value": 45,
+   "from": "\"crimson forges and reactors\": the blackstone forge place holds about half the land. Restated from the pinewood place: the owner asked for no trees"
+  },
+  {
+   "key": "placeness.places.landRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "places, not perlin: no scatter of place specks"
+  }
+ ]
+}

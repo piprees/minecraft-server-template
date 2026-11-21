@@ -1,0 +1,1453 @@
+[
+ {
+  "slug": "the_aviary",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_aviary-far.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_aviary-far.jpg",
+    "shows": "Snow leads the frame, with cherry trees, vines and stone, in snowy slopes and cherry grove. Snowy slopes is 5.0% of this world's surface, 6th of its 10 surface biomes.",
+    "censusCaption": "sky 21.3%; void 33.8%; far: snow_block 23.8%, cherry_leaves 4.1%; biomes: snowy_slopes 61.5%, cherry_grove 20.6%, adventure:hanging_gardens 17.9%",
+    "layer": "vista",
+    "place": "far: the border ring at bearing 92, facing the centre; 0.0% of rays could reach the border",
+    "camera": {
+     "x": 4080.0,
+     "y": 296.6200000047684,
+     "z": 168.6,
+     "yaw": 92.4,
+     "pitch": 25.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 191.1,
+     "fogPercent": 41.0
+    },
+    "voidFeature": true
+   },
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_aviary-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_aviary-surface-t1.jpg",
+    "shows": "Grass and grass tufts fill most of the frame, with flowers and vines, in meadow. Meadow is 12.8% of this world's surface, 3rd of its 10 surface biomes, flagged features name trees, none on 0.9 ha of land.",
+    "censusCaption": "sky 18.9%; unloaded 9%; near: grass_block 33.1%, short_grass 15.5%; mid: grass_block 1.6%, oak_leaves 1.6%; far: cave_vines_plant 3.3%, stone 1.8%; biomes: meadow 89.2%, adventure:hanging_gardens 10.8%",
+    "layer": "surface",
+    "place": "surface type 1: 38.0% of cells; biome meadow; ground grass_block; top grass_block; height 186; open to the sky 95% (layer 69%)",
+    "camera": {
+     "x": -744.5,
+     "y": 176.62000000476837,
+     "z": 3560.5,
+     "yaw": 135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 112.8,
+     "fogPercent": 0.7
+    }
+   },
+   {
+    "kind": "sky-t1",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_aviary-sky-t1.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_aviary-sky-t1.jpg",
+    "shows": "Grass and grass tufts fill most of the frame, in plains; open sky over a quarter of the view. Plains is 14.5% of this world's surface, 2nd of its 10 surface biomes.",
+    "censusCaption": "sky 31.9%; unloaded 7.8%; near: grass_block 38.2%, short_grass 14.9%; mid: short_grass 2.4%, grass_block 1%; biomes: plains 99.6%",
+    "layer": "sky",
+    "place": "sky type 1: 40.0% of cells; biome plains; ground grass_block; height 215",
+    "camera": {
+     "x": -3607.5,
+     "y": 213.62000000476837,
+     "z": 2584.5,
+     "yaw": -180.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 129.4,
+     "fogPercent": 3.1
+    }
+   },
+   {
+    "kind": "underground-t2",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_aviary-underground-t2.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_aviary-underground-t2.jpg",
+    "shows": "Stone and grass fill most of the frame, in hanging gardens. Hanging gardens is 0.4% of this world's surface, 10th of its 10 surface biomes.",
+    "censusCaption": "sky 0%; near: stone 62.8%, grass_block 36.2%; biomes: adventure:hanging_gardens 100%",
+    "layer": "underground",
+    "place": "underground type 2: 43.7% of cells; notableId cave_vines_plant; biome adventure:hanging_gardens; height 181",
+    "camera": {
+     "x": -315.5,
+     "y": 170.50000000476837,
+     "z": -1379.5,
+     "yaw": 157.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 57.4,
+     "fogPercent": 0.0
+    }
+   },
+   {
+    "kind": "surface-t2",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_aviary-surface-t2.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_aviary-surface-t2.jpg",
+    "shows": "Grass and grass tufts fill most of the frame, with cherry trees and flowers, in cherry grove. Cherry grove is 16.3% of this world's surface, 1st of its 10 surface biomes.",
+    "censusCaption": "sky 23.1%; unloaded 2.1%; near: grass_block 26.9%, short_grass 26%; mid: cherry_leaves 4%; biomes: cherry_grove 99.8%",
+    "layer": "surface",
+    "place": "surface type 2: 20.5% of cells; biome cherry_grove; ground grass_block; top pink_petals; height 182; ground plants 62% (layer 26%); cave pockets 29% (layer 15%)",
+    "camera": {
+     "x": 2760.5,
+     "y": 233.62000000476837,
+     "z": 2584.5,
+     "yaw": -135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 120.5,
+     "fogPercent": 0.7
+    }
+   },
+   {
+    "kind": "surface-t3",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_aviary-surface-t3.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_aviary-surface-t3.jpg",
+    "shows": "Grass fills most of the frame, with vines and grass tufts, in plains. Plains is 14.5% of this world's surface, 2nd of its 10 surface biomes.",
+    "censusCaption": "sky 0.1%; unloaded 6.3%; near: grass_block 70.1%, short_grass 1.3%; mid: grass_block 5.2%, cave_vines_plant 2.8%; far: cave_vines_plant 3%, stone 1.4%; biomes: plains 89.7%, adventure:hanging_gardens 8.6%",
+    "layer": "surface",
+    "place": "surface type 3: 16.6% of cells; biome plains; ground grass_block; top grass_block; height 158; trees per cell 0.0 (layer 0.8); canopy 1% (layer 14%); ground plants 2% (layer 26%); open to the sky 6% (layer 69%); stacked layers 93% (layer 17%)",
+    "camera": {
+     "x": -1623.5,
+     "y": 147.62000000476837,
+     "z": 1111.5,
+     "yaw": 45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 48.2,
+     "fogPercent": 2.2
+    }
+   },
+   {
+    "kind": "surface-t4",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_aviary-surface-t4.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_aviary-surface-t4.jpg",
+    "shows": "Oak trees, grass and podzol fill most of the frame, in golden skygrove. Golden skygrove is 6.5% of this world's surface, 4th of its 10 surface biomes.",
+    "censusCaption": "sky 3.3%; unloaded 14.5%; near: oak_leaves 28.3%, grass_block 24.6%; biomes: adventure:golden_skygrove 100%",
+    "layer": "surface",
+    "place": "surface type 4: 11.7% of cells; biome adventure:golden_skygrove; ground grass_block; top oak_leaves; height 173; trees per cell 4.3 (layer 0.8); canopy 72% (layer 14%); open to the sky 26% (layer 69%)",
+    "camera": {
+     "x": -730.5,
+     "y": 181.62000000476837,
+     "z": -3960.5,
+     "yaw": 45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 91.5,
+     "fogPercent": 20.2
+    }
+   },
+   {
+    "kind": "surface-lm1",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_aviary-surface-lm1.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_aviary-surface-lm1.jpg",
+    "shows": "Vines and grass tufts lead the frame, with grass and flowers, in wisteria grove. Wisteria grove is 3.5% of this world's surface, 8th of its 10 surface biomes.",
+    "censusCaption": "sky 15.8%; unloaded 1.2%; near: vine 24.8%, short_grass 15%; biomes: adventure:wisteria_grove 100%",
+    "layer": "surface",
+    "place": "surface landmark: biome adventure:wisteria_grove (type meadow); neighbour step 5.3 (type 0.2); relief over 16 blocks 76.0 (type 5.0); relief over the patch 77.0 (type 16.0)",
+    "camera": {
+     "x": 1672.5,
+     "y": 219.62000000476837,
+     "z": 536.5,
+     "yaw": -90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 101.8,
+     "fogPercent": 0.9
+    }
+   }
+  ]
+ },
+ {
+  "slug": "overworld",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10c1r/runs/rig-rig1/screenshots/overworld-far.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/overworld-far.jpg",
+    "shows": "Grass and water fill most of the frame, with grass tufts and stone, in plains and windswept hills. Plains is 18.5% of this world's surface, 1st of its 19 surface biomes.",
+    "censusCaption": "sky 19%; mid: grass_block 3%, snow 1.8%; far: water 28.7%, grass_block 27.2%; biomes: plains 60.2%, windswept_hills 16.9%, river 14.5%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": 3264.5,
+     "y": 237.62000000476837,
+     "z": -479.5,
+     "yaw": -45.0,
+     "pitch": 45.5
+    },
+    "lookingAt": [
+     3392,
+     53,
+     -352
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 144.0,
+     "fogPercent": 22.4
+    }
+   },
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10c1r/runs/rig-rig1/screenshots/overworld-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/overworld-surface-t1.jpg",
+    "shows": "Water fills most of the frame, in ocean; open sky over a quarter of the view. Ocean is 17.5% of this world's surface, 2nd of its 19 surface biomes.",
+    "censusCaption": "sky 30.3%; unloaded 13.7%; near: water 51.6%; mid: water 3.9%; biomes: ocean 99.1%",
+    "layer": "surface",
+    "place": "surface type 1: 35.5% of cells; biome ocean; ground gravel; top water; height 47; trees per cell 0.0 (layer 2.1); canopy 0% (layer 20%); ground plants 0% (layer 13%); liquid cover 99% (layer 36%); open to the sky 100% (layer 80%)",
+    "camera": {
+     "x": -359.5,
+     "y": 64.62000000476837,
+     "z": -4007.5,
+     "yaw": 90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 117.0,
+     "fogPercent": 4.4
+    }
+   },
+   {
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10c1r/runs/rig-rig1/screenshots/overworld-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/overworld-underground-t1.jpg",
+    "shows": "Deepslate fills most of the frame, with tuff, in plains. Plains is 18.5% of this world's surface, 1st of its 19 surface biomes.",
+    "censusCaption": "sky 0%; near: deepslate 93.4%, tuff 3.3%; biomes: plains 100%",
+    "layer": "underground",
+    "place": "underground type 1: 100.0% of cells; notableId coal_ore; biome ocean; height 70",
+    "camera": {
+     "x": -817.5,
+     "y": -40.499999995231626,
+     "z": 3477.5,
+     "yaw": 135.0,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 44.5,
+     "fogPercent": 0.0
+    }
+   },
+   {
+    "kind": "surface-t2",
+    "file": "/tmp/claude-0/w10c1r/runs/rig-rig1/screenshots/overworld-surface-t2.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/overworld-surface-t2.jpg",
+    "shows": "Grass and grass tufts fill most of the frame, in plains; open sky over a quarter of the view. Plains is 18.5% of this world's surface, 1st of its 19 surface biomes.",
+    "censusCaption": "sky 27.7%; unloaded 6.5%; near: grass_block 37.3%, short_grass 13.2%; mid: short_grass 2.6%, water 1.7%; far: short_grass 1.2%, grass_block 1.1%; biomes: plains 96.8%",
+    "layer": "surface",
+    "place": "surface type 2: 24.7% of cells; biome plains; ground grass_block; top grass_block; height 77; trees per cell 0.5 (layer 2.1); canopy 5% (layer 20%); liquid cover 4% (layer 36%); open to the sky 95% (layer 80%)",
+    "camera": {
+     "x": 2504.5,
+     "y": 75.62000000476837,
+     "z": -3112.5,
+     "yaw": -45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 118.4,
+     "fogPercent": 3.7
+    }
+   },
+   {
+    "kind": "surface-t7",
+    "file": "/tmp/claude-0/w10c1r/runs/rig-rig1/screenshots/overworld-surface-t7.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/overworld-surface-t7.jpg",
+    "shows": "Spruce trees and snow fill most of the frame, in grove and taiga. Grove is 2.8% of this world's surface, 11th of its 19 surface biomes.",
+    "censusCaption": "sky 3.3%; unloaded 13.3%; near: spruce_leaves 36.9%, snow_block 22.5%; mid: snow_block 1.7%; far: spruce_leaves 1%; biomes: grove 82%, taiga 16.8%",
+    "layer": "surface",
+    "place": "surface type 7: 3.2% of cells; biome grove; ground snow_block; top snow; height 143; neighbour step 0.7 (layer 0.3); relief over 16 blocks 24.3 (layer 6.9); relief over the patch 106.0 (layer 20.1); trees per cell 3.8 (layer 2.1); notable-block density (log) 0.8 (layer 0.4); canopy 34% (layer 20%); ground plants 0% (layer 13%); liquid cover 0% (layer 36%); snow or ice 86% (layer 6%); open to the sky 66% (layer 80%); overhangs 23% (layer 11%); cave pockets 100% (layer 68%)",
+    "camera": {
+     "x": 24.5,
+     "y": 146.62000000476837,
+     "z": 648.5,
+     "yaw": 45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 115.6,
+     "fogPercent": 4.2
+    }
+   },
+   {
+    "kind": "surface-t3",
+    "file": "/tmp/claude-0/w10c1r/runs/rig-rig1/screenshots/overworld-surface-t3.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/overworld-surface-t3.jpg",
+    "shows": "Grass and spruce trees fill most of the frame, in taiga. Taiga is 12.5% of this world's surface, 3rd of its 19 surface biomes.",
+    "censusCaption": "sky 0.7%; near: grass_block 56.1%, spruce_leaves 37.3%; biomes: taiga 100%",
+    "layer": "surface",
+    "place": "surface type 3: 14.7% of cells; biome taiga; ground grass_block; top spruce_leaves; height 90; trees per cell 6.5 (layer 2.1); canopy 55% (layer 20%); liquid cover 0% (layer 36%); open to the sky 45% (layer 80%)",
+    "camera": {
+     "x": -533.5,
+     "y": 73.62000000476837,
+     "z": -568.5,
+     "yaw": 135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 61.5,
+     "fogPercent": 0.0
+    }
+   },
+   {
+    "kind": "surface-t4",
+    "file": "/tmp/claude-0/w10c1r/runs/rig-rig1/screenshots/overworld-surface-t4.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/overworld-surface-t4.jpg",
+    "shows": "Oak trees and grass fill most of the frame, with grass tufts and leaf litter, in forest. Forest is 12.3% of this world's surface, 4th of its 19 surface biomes.",
+    "censusCaption": "sky 10.5%; unloaded 0.3%; near: oak_leaves 34.5%, grass_block 32.7%; mid: oak_leaves 1.7%; biomes: forest 100%",
+    "layer": "surface",
+    "place": "surface type 4: 12.2% of cells; biome forest; ground grass_block; top oak_leaves; height 75; relief over the patch 31.2 (layer 20.1); trees per cell 5.4 (layer 2.1); canopy 50% (layer 20%); ground plants 47% (layer 13%); liquid cover 1% (layer 36%); open to the sky 50% (layer 80%); cave pockets 90% (layer 68%)",
+    "camera": {
+     "x": 1483.5,
+     "y": 71.62000000476837,
+     "z": -872.5,
+     "yaw": -90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 78.4,
+     "fogPercent": 0.0
+    }
+   },
+   {
+    "kind": "surface-lm1",
+    "file": "/tmp/claude-0/w10c1r/runs/rig-rig1/screenshots/overworld-surface-lm1.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/overworld-surface-lm1.jpg",
+    "shows": "Stone fills most of the frame, with grass and dirt, in windswept hills and plains. Windswept hills is 1.1% of this world's surface, 14th of its 19 surface biomes, flagged mostly bare rock.",
+    "censusCaption": "sky 16.2%; near: stone 64.8%; mid: grass_block 10%, dirt 2.8%; biomes: windswept_hills 79.3%, plains 20.7%",
+    "layer": "surface",
+    "place": "surface landmark: biome windswept_hills (type plains); ground stone (type grass_block); top stone (type grass_block); bare rock 94% (type 0%); neighbour step 1.9 (type 0.3); relief over 16 blocks 32.0 (type 8.0)",
+    "camera": {
+     "x": 3256.5,
+     "y": 99.62000000476837,
+     "z": -439.5,
+     "yaw": -135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 92.7,
+     "fogPercent": 0.9
+    }
+   }
+  ]
+ },
+ {
+  "slug": "the_nether",
+  "shots": [
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_nether-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_nether-surface-t1.jpg",
+    "shows": "Netherrack fills most of the frame, in nether wastes. Nether wastes is 23.8% of this world's surface, 2nd of its 6 surface biomes, flagged mostly bare rock.",
+    "censusCaption": "sky 0%; unloaded 1%; near: netherrack 80.8%; mid: netherrack 12.5%; far: netherrack 3.9%; biomes: nether_wastes 100%",
+    "layer": "surface",
+    "place": "surface type 1: 33.3% of cells; biome nether_wastes; ground netherrack; top netherrack; height 80; canopy 2% (layer 12%); bare rock 78% (layer 39%); cave pockets 58% (layer 40%)",
+    "camera": {
+     "x": 984.5,
+     "y": 79.62000000476837,
+     "z": -392.5,
+     "yaw": 135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": false,
+     "reasons": [
+      "dark: mean luma 13.0 < 30"
+     ],
+     "luma": 13.0,
+     "fogPercent": 52.1
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_nether-surface-t1"
+   },
+   {
+    "kind": "surface-t1-nv",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_nether-surface-t1-nv.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_nether-surface-t1-nv.jpg",
+    "shows": "Netherrack fills most of the frame, in nether wastes. Nether wastes is 23.8% of this world's surface, 2nd of its 6 surface biomes, flagged mostly bare rock.",
+    "censusCaption": "sky 0%; unloaded 0.7%; near: netherrack 80.8%; mid: netherrack 12.5%; far: netherrack 4.2%; biomes: nether_wastes 100%",
+    "layer": "surface",
+    "place": "surface type 1: 33.3% of cells; biome nether_wastes; ground netherrack; top netherrack; height 80; canopy 2% (layer 12%); bare rock 78% (layer 39%); cave pockets 58% (layer 40%)",
+    "camera": {
+     "x": 984.5,
+     "y": 79.62000000476837,
+     "z": -392.5,
+     "yaw": 135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 36.6,
+     "fogPercent": 43.3
+    },
+    "frame": "with night vision",
+    "pairOf": "the_nether-surface-t1"
+   },
+   {
+    "kind": "surface-t3",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_nether-surface-t3.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_nether-surface-t3.jpg",
+    "shows": "Lava, warped fungus and netherrack fill most of the frame, with crimson fungus, in warped forest. Warped forest is 19.9% of this world's surface, 3rd of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: lava 51.3%, warped_wart_block 4.3%; mid: warped_wart_block 12.2%, netherrack 11.7%; far: netherrack 4.5%; biomes: warped_forest 88.4%, crimson_forest 11.6%",
+    "layer": "surface",
+    "place": "surface type 3: 14.4% of cells; biome warped_forest; ground netherrack; top lava; height 43; relief over 16 blocks 101.9 (layer 81.0); notable-block density (log) 0.7 (layer 0.4); liquid cover 68% (layer 18%); bare rock 12% (layer 39%); cave pockets 9% (layer 40%)",
+    "camera": {
+     "x": -183.5,
+     "y": 33.62000000476837,
+     "z": 120.5,
+     "yaw": -135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 55.0,
+     "fogPercent": 40.2
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_nether-surface-t3"
+   },
+   {
+    "kind": "surface-t3-nv",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_nether-surface-t3-nv.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_nether-surface-t3-nv.jpg",
+    "shows": "Lava, warped fungus and netherrack fill most of the frame, with crimson fungus, in warped forest. Warped forest is 19.9% of this world's surface, 3rd of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: lava 51.3%, warped_wart_block 4.3%; mid: warped_wart_block 12.2%, netherrack 11.7%; far: netherrack 4.5%; biomes: warped_forest 88.5%, crimson_forest 11.5%",
+    "layer": "surface",
+    "place": "surface type 3: 14.4% of cells; biome warped_forest; ground netherrack; top lava; height 43; relief over 16 blocks 101.9 (layer 81.0); notable-block density (log) 0.7 (layer 0.4); liquid cover 68% (layer 18%); bare rock 12% (layer 39%); cave pockets 9% (layer 40%)",
+    "camera": {
+     "x": -183.5,
+     "y": 33.62000000476837,
+     "z": 120.5,
+     "yaw": -135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 95.4,
+     "fogPercent": 0.0
+    },
+    "frame": "with night vision",
+    "pairOf": "the_nether-surface-t3"
+   },
+   {
+    "kind": "surface-lm1",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_nether-surface-lm1.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_nether-surface-lm1.jpg",
+    "shows": "Netherrack and lava fill most of the frame, with magma and soul sand, in soul sand valley. Soul sand valley is 14.8% of this world's surface, 4th of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: netherrack 48.7%, lava 38.5%; biomes: soul_sand_valley 100%",
+    "layer": "surface",
+    "place": "surface landmark: biome soul_sand_valley (type basalt_deltas); ground soul_soil (type basalt); top soul_soil (type basalt); stacked layers 14% (type 0%); neighbour step 14.4 (type 6.2); bare rock 25% (type 68%)",
+    "camera": {
+     "x": 41.5,
+     "y": 33.62000000476837,
+     "z": 312.5,
+     "yaw": 90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 56.1,
+     "fogPercent": 0.0
+    },
+    "frame": "as a player sees it",
+    "pairOf": "the_nether-surface-lm1"
+   },
+   {
+    "kind": "surface-lm1-nv",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_nether-surface-lm1-nv.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_nether-surface-lm1-nv.jpg",
+    "shows": "Netherrack and lava fill most of the frame, with magma and soul sand, in soul sand valley. Soul sand valley is 14.8% of this world's surface, 4th of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: netherrack 48.7%, lava 38.5%; biomes: soul_sand_valley 100%",
+    "layer": "surface",
+    "place": "surface landmark: biome soul_sand_valley (type basalt_deltas); ground soul_soil (type basalt); top soul_soil (type basalt); stacked layers 14% (type 0%); neighbour step 14.4 (type 6.2); bare rock 25% (type 68%)",
+    "camera": {
+     "x": 41.5,
+     "y": 33.62000000476837,
+     "z": 312.5,
+     "yaw": 90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 58.7,
+     "fogPercent": 0.0
+    },
+    "frame": "with night vision",
+    "pairOf": "the_nether-surface-lm1"
+   }
+  ]
+ },
+ {
+  "slug": "the_end",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_end-far.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_end-far.jpg",
+    "shows": "End stone fills most of the frame, with chorus, in end highlands and end midlands. End highlands is 17.1% of this world's surface, 2nd of its 4 surface biomes.",
+    "censusCaption": "sky 7.2%; void 8.9%; mid: end_stone 45.8%, chorus_plant 4.2%; far: end_stone 24.8%, chorus_plant 4.9%; biomes: end_highlands 47.6%, end_midlands 39.8%, end_barrens 8.6%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": -1279.5,
+     "y": 109.62000000476837,
+     "z": 3872.5,
+     "yaw": -161.8,
+     "pitch": 34.3
+    },
+    "lookingAt": [
+     -1120,
+     0,
+     3872
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 62.1,
+     "fogPercent": 33.7
+    },
+    "voidFeature": true
+   },
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_end-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_end-surface-t1.jpg",
+    "shows": "End stone fills most of the frame, with chorus, in end midlands and end highlands; open sky over a quarter of the view. End midlands is 24.7% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 33.8%; near: end_stone 52.6%; mid: end_stone 9.5%, chorus_plant 3%; biomes: end_midlands 75.6%, end_highlands 22.5%",
+    "layer": "surface",
+    "place": "surface type 1: 56.0% of cells; biome end_midlands; ground end_stone; top end_stone; height 57; neighbour step 0.2 (layer 0.5)",
+    "camera": {
+     "x": 2904.5,
+     "y": 59.62000000476837,
+     "z": 1800.5,
+     "yaw": -45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 60.2,
+     "fogPercent": 39.6
+    }
+   },
+   {
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_end-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_end-underground-t1.jpg",
+    "shows": "End stone fills most of the frame, in end midlands. End midlands is 24.7% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 0%; near: end_stone 100%; biomes: end_midlands 94.8%, end_highlands 5.2%",
+    "layer": "underground",
+    "place": "underground type 1: 51.0% of cells; height 59; neighbour step 0.2 (layer 0.5)",
+    "camera": {
+     "x": -1201.5,
+     "y": 46.500000004768374,
+     "z": 3085.5,
+     "yaw": -180.0,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 116.2,
+     "fogPercent": 0.0
+    }
+   },
+   {
+    "kind": "surface-t3",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_end-surface-t3.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_end-surface-t3.jpg",
+    "shows": "End stone fills most of the frame, in end barrens and end midlands. End barrens is 6.7% of this world's surface, 3rd of its 4 surface biomes.",
+    "censusCaption": "sky 14.7%; void 12.6%; near: end_stone 67.6%; mid: end_stone 1%; far: end_stone 3.9%; biomes: end_barrens 60.5%, end_midlands 28.8%, small_end_islands 10.3%",
+    "layer": "surface",
+    "place": "surface type 3: 22.0% of cells; biome end_barrens; ground end_stone; top end_stone; height 50; layer present in 59% (layer 88%); neighbour step 1.0 (layer 0.5); overhangs 25% (layer 12%)",
+    "camera": {
+     "x": 2888.5,
+     "y": 50.62000000476837,
+     "z": 1784.5,
+     "yaw": -135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 49.7,
+     "fogPercent": 33.7
+    }
+   },
+   {
+    "kind": "surface-t2",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_end-surface-t2.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_end-surface-t2.jpg",
+    "shows": "End stone and chorus fill most of the frame, in end highlands. End highlands is 17.1% of this world's surface, 2nd of its 4 surface biomes.",
+    "censusCaption": "sky 21.4%; unloaded 0.3%; near: end_stone 53.3%, chorus_plant 10.4%; mid: chorus_plant 8.2%, chorus_flower 2%; far: chorus_plant 1%; biomes: end_highlands 98.7%",
+    "layer": "surface",
+    "place": "surface type 2: 22.0% of cells; biome end_highlands; ground end_stone; top end_stone; height 61; layer present in 100% (layer 88%); neighbour step 0.8 (layer 0.5); relief over 16 blocks 21.0 (layer 13.8); notable-block density (log) 0.2 (layer 0.0); bare rock 95% (layer 99%)",
+    "camera": {
+     "x": 2312.5,
+     "y": 64.62000000476837,
+     "z": 1272.5,
+     "yaw": -135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 62.6,
+     "fogPercent": 44.5
+    }
+   },
+   {
+    "kind": "underground-t2",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_end-underground-t2.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_end-underground-t2.jpg",
+    "shows": "End stone fills most of the frame, in end midlands and small end islands. End midlands is 24.7% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 2%; void 18.5%; near: end_stone 45.7%; mid: end_stone 33.8%; biomes: end_midlands 58.7%, small_end_islands 31.1%, end_barrens 10.1%",
+    "layer": "underground",
+    "place": "underground type 2: 22.4% of cells; biome end_midlands; height 56; cave air 8% (layer 3%); cave pockets 2% (layer 0%)",
+    "camera": {
+     "x": 2899.5,
+     "y": 43.500000004768374,
+     "z": 1761.5,
+     "yaw": 45.0,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 86.3,
+     "fogPercent": 22.7
+    }
+   },
+   {
+    "kind": "underground-t4",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_end-underground-t4.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_end-underground-t4.jpg",
+    "shows": "End stone fills most of the frame, in end barrens. End barrens is 6.7% of this world's surface, 3rd of its 4 surface biomes.",
+    "censusCaption": "sky 12.3%; void 22%; near: end_stone 47.4%; mid: end_stone 16%; far: end_stone 1.9%; biomes: end_barrens 86.9%, small_end_islands 10.6%",
+    "layer": "underground",
+    "place": "underground type 4: 12.6% of cells; biome end_midlands; height 50; layer present in 52% (layer 89%); neighbour step 1.3 (layer 0.5); relief over 16 blocks 15.6 (layer 11.3); cave air 7% (layer 3%)",
+    "camera": {
+     "x": -1994.5,
+     "y": 47.500000004768374,
+     "z": -757.5,
+     "yaw": -45.0,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 76.0,
+     "fogPercent": 36.1
+    }
+   },
+   {
+    "kind": "surface-lm1",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_end-surface-lm1.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_end-surface-lm1.jpg",
+    "shows": "End stone fills most of the frame, in end midlands and end highlands. End midlands is 24.7% of this world's surface, 1st of its 4 surface biomes.",
+    "censusCaption": "sky 0%; near: end_stone 99.8%; biomes: end_midlands 59.2%, end_highlands 40.8%",
+    "layer": "surface",
+    "place": "surface landmark: biome end_midlands (type end_barrens); overhangs 64% (type 16%); relief over the patch 51.0 (type 27.0); neighbour step 1.9 (type 1.1)",
+    "camera": {
+     "x": -2933.5,
+     "y": 38.62000000476837,
+     "z": 3449.5,
+     "yaw": -45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 65.8,
+     "fogPercent": 4.2
+    }
+   }
+  ]
+ },
+ {
+  "slug": "the_snowbound_isle",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_snowbound_isle-far.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_snowbound_isle-far.jpg",
+    "shows": "Snow and spruce trees fill most of the frame, with grass, in snowy taiga. Snowy taiga is 12.5% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 0.8%; void 21.5%; mid: snow 44.5%, spruce_leaves 24.5%; far: spruce_leaves 1.6%, snow 1.3%; biomes: snowy_taiga 100%",
+    "layer": "vista",
+    "place": "vista: summit of the coarse map, facing its largest drop",
+    "camera": {
+     "x": 240.5,
+     "y": 231.62000000476837,
+     "z": -255.5,
+     "yaw": -90.0,
+     "pitch": 61.5
+    },
+    "lookingAt": [
+     400,
+     -64,
+     -256
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 174.5,
+     "fogPercent": 27.5
+    },
+    "voidFeature": true
+   },
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_snowbound_isle-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_snowbound_isle-surface-t1.jpg",
+    "shows": "Spruce trees, snow and grass fill most of the frame, with grass tufts, in snowy taiga. Snowy taiga is 12.5% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 9.3%; near: spruce_leaves 28.3%, snow 20%; mid: spruce_leaves 1.4%; biomes: snowy_taiga 100%",
+    "layer": "surface",
+    "place": "surface type 1: 28.4% of cells; biome snowy_taiga; ground grass_block; top snow; height 149; trees per cell 6.2 (layer 3.6); canopy 55% (layer 24%); snow or ice 98% (layer 79%); open to the sky 45% (layer 76%)",
+    "camera": {
+     "x": 280.5,
+     "y": 164.62000000476837,
+     "z": -116.5,
+     "yaw": 90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 96.8,
+     "fogPercent": 0.1
+    }
+   },
+   {
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_snowbound_isle-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_snowbound_isle-underground-t1.jpg",
+    "shows": "Stone leads the frame, with oak planks, in snowy slopes and dying forest. Snowy slopes is 4.4% of this world's surface, 4th of its 6 surface biomes.",
+    "censusCaption": "sky 16.3%; void 42.5%; unloaded 5.8%; near: oak_planks 8.2%; mid: stone 8.7%; far: stone 13.4%; biomes: snowy_slopes 23%, adventure:dying_forest 22.8%, adventure:windswept_isles 21.9%",
+    "layer": "underground",
+    "place": "underground type 1: 43.2% of cells; notableId coal_ore; biome snowy_taiga; height 146; relief over 16 blocks 4.0 (layer 7.1); cave air 3% (layer 11%); cave pockets 3% (layer 20%)",
+    "camera": {
+     "x": -302.5,
+     "y": 18.50000000476837,
+     "z": 113.5,
+     "yaw": -135.0,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 69.1,
+     "fogPercent": 5.6
+    }
+   },
+   {
+    "kind": "surface-t3",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_snowbound_isle-surface-t3.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_snowbound_isle-surface-t3.jpg",
+    "shows": "Stone leads the frame, with spruce trees and snow, in windswept isles; open sky over a quarter of the view. Windswept isles is 6.5% of this world's surface, 3rd of its 6 surface biomes.",
+    "censusCaption": "sky 34.3%; void 2.6%; near: stone 35.5%, spruce_leaves 12.6%; mid: snow 1.3%; biomes: adventure:windswept_isles 94.9%, snowy_slopes 5.1%",
+    "layer": "surface",
+    "place": "surface type 3: 16.8% of cells; biome adventure:windswept_isles; ground stone; top stone; height 151; trees per cell 0.8 (layer 3.6); canopy 6% (layer 24%); snow or ice 12% (layer 79%); bare rock 78% (layer 14%); open to the sky 94% (layer 76%)",
+    "camera": {
+     "x": -71.5,
+     "y": 170.62000000476837,
+     "z": 232.5,
+     "yaw": 90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 144.2,
+     "fogPercent": 8.5
+    }
+   },
+   {
+    "kind": "surface-t2",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_snowbound_isle-surface-t2.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_snowbound_isle-surface-t2.jpg",
+    "shows": "Snow, spruce trees and dark oak trees fill most of the frame, with podzol, in dying forest. Dying forest is 6.6% of this world's surface, 2nd of its 6 surface biomes.",
+    "censusCaption": "sky 12.9%; near: snow 28.6%, spruce_log 16.8%; mid: cherry_leaves 1.7%, spruce_log 1%; biomes: adventure:dying_forest 97.8%",
+    "layer": "surface",
+    "place": "surface type 2: 21.1% of cells; biome adventure:dying_forest; ground podzol; top snow; height 110; trees per cell 6.1 (layer 3.6)",
+    "camera": {
+     "x": 56.5,
+     "y": 117.62000000476837,
+     "z": 376.5,
+     "yaw": 0.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 130.4,
+     "fogPercent": 1.8
+    }
+   },
+   {
+    "kind": "surface-t5",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_snowbound_isle-surface-t5.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_snowbound_isle-surface-t5.jpg",
+    "shows": "Spruce trees and grass fill most of the frame, with snow, in snowy taiga. Snowy taiga is 12.5% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 18.7%; void 0.3%; near: spruce_log 29.6%, spruce_leaves 20.2%; mid: spruce_leaves 1.5%; far: spruce_leaves 1.4%; biomes: snowy_taiga 98.6%",
+    "layer": "surface",
+    "place": "surface type 5: 11.6% of cells; biome snowy_taiga; ground grass_block; top snow; height 131; neighbour step 0.5 (layer 0.2); relief over 16 blocks 15.0 (layer 7.3); relief over the patch 46.0 (layer 21.1); canopy 38% (layer 24%); ground plants 7% (layer 3%); open to the sky 62% (layer 76%); overhangs 22% (layer 7%); cave pockets 57% (layer 20%)",
+    "camera": {
+     "x": 324.5,
+     "y": 143.62000000476837,
+     "z": -88.5,
+     "yaw": 45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 82.2,
+     "fogPercent": 2.3
+    }
+   },
+   {
+    "kind": "surface-t4",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_snowbound_isle-surface-t4.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_snowbound_isle-surface-t4.jpg",
+    "shows": "Snow fills most of the frame, in snowy slopes; open sky over a quarter of the view. Snowy slopes is 4.4% of this world's surface, 4th of its 6 surface biomes.",
+    "censusCaption": "sky 38.1%; void 3.4%; near: snow 38.1%, snow_block 15.1%; mid: snow_block 1.6%; far: snow 1.3%; biomes: snowy_slopes 99.9%",
+    "layer": "surface",
+    "place": "surface type 4: 15.8% of cells; biome snowy_slopes; ground snow_block; top snow; height 158; trees per cell 0.1 (layer 3.6); canopy 1% (layer 24%); snow or ice 98% (layer 79%); open to the sky 99% (layer 76%)",
+    "camera": {
+     "x": -167.5,
+     "y": 165.62000000476837,
+     "z": 264.5,
+     "yaw": 90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 193.2,
+     "fogPercent": 5.1
+    }
+   },
+   {
+    "kind": "surface-lm1",
+    "file": "/tmp/claude-0/w10c1/runs/rig-all/screenshots/the_snowbound_isle-surface-lm1.png",
+    "jpg": "/tmp/claude-0/w10c1r/shots/the_snowbound_isle-surface-lm1.jpg",
+    "shows": "Spruce trees and podzol fill most of the frame, with snow and dirt, in dying forest. Dying forest is 6.6% of this world's surface, 2nd of its 6 surface biomes.",
+    "censusCaption": "sky 1.9%; near: spruce_log 37.6%, podzol 33%; biomes: adventure:dying_forest 99.3%",
+    "layer": "surface",
+    "place": "surface landmark: biome adventure:windswept_isles (type adventure:dying_forest); top podzol (type snow); neighbour step 1.3 (type 0.2); relief over 16 blocks 29.0 (type 3.0); snow or ice 2% (type 100%)",
+    "camera": {
+     "x": -277.5,
+     "y": 90.62000000476837,
+     "z": -36.5,
+     "yaw": -90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 62.7,
+     "fogPercent": 2.0
+    }
+   }
+  ]
+ },
+ {
+  "slug": "the_abyssal_shrine",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_abyssal_shrine-far.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_abyssal_shrine-far.jpg",
+    "shows": "Grass leads the frame, with water, stone and grass tufts, in sky highlands; open sky over a quarter of the view. Sky highlands is 22.6% of this world's surface, 1st of its 5 surface biomes.",
+    "censusCaption": "sky 42.2%; void 11.5%; far: grass_block 22.7%, water 7.2%; biomes: adventure:sky_highlands 73.9%, deep_cold_ocean 12.3%, deep_ocean 7.2%",
+    "layer": "vista",
+    "place": "far: the border ring at bearing 184, facing the centre; 0.0% of rays could reach the border",
+    "camera": {
+     "x": -496.0,
+     "y": 296.6200000047684,
+     "z": -34.0,
+     "yaw": -86.100006,
+     "pitch": 25.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 188.1,
+     "fogPercent": 58.3
+    },
+    "voidFeature": true
+   },
+   {
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_abyssal_shrine-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_abyssal_shrine-underground-t1.jpg",
+    "shows": "Oak planks and stone lead the frame, with rail, in deep cold ocean. Deep cold ocean is 14.0% of this world's surface, 2nd of its 5 surface biomes.",
+    "censusCaption": "sky 18.5%; void 32.6%; unloaded 0.5%; near: oak_planks 18.3%, rail 6.6%; mid: oak_planks 1.4%; far: stone 15.1%, oak_planks 1.9%; biomes: deep_cold_ocean 84.7%, adventure:sky_highlands 6.6%, adventure:chalk_cliffs 6.4%",
+    "layer": "underground",
+    "place": "underground type 1: 24.9% of cells; notableId coal_ore; height 130; cave pockets 1% (layer 16%)",
+    "camera": {
+     "x": -3.5,
+     "y": 11.500000004768372,
+     "z": -233.5,
+     "yaw": 67.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 74.8,
+     "fogPercent": 1.5
+    }
+   },
+   {
+    "kind": "surface-t2",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_abyssal_shrine-surface-t2.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_abyssal_shrine-surface-t2.jpg",
+    "shows": "Water fills most of the frame, with grass, in deep cold ocean; open sky over a quarter of the view. Deep cold ocean is 14.0% of this world's surface, 2nd of its 5 surface biomes.",
+    "censusCaption": "sky 31.7%; near: water 51.6%; mid: water 3.9%; far: grass_block 6.5%, calcite 2.5%; biomes: deep_cold_ocean 82.7%, adventure:chalk_cliffs 12.8%",
+    "layer": "surface",
+    "place": "surface type 2: 37.7% of cells; biome deep_cold_ocean; ground gravel; top water; height 115; ground plants 0% (layer 9%); liquid cover 96% (layer 36%)",
+    "camera": {
+     "x": -39.5,
+     "y": 151.62000000476837,
+     "z": -215.5,
+     "yaw": 45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 80.5,
+     "fogPercent": 0.7
+    }
+   },
+   {
+    "kind": "surface-t3",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_abyssal_shrine-surface-t3.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_abyssal_shrine-surface-t3.jpg",
+    "shows": "Blackstone and soul sand fill most of the frame, with obsidian, in umbral wastes; open sky over a quarter of the view. Umbral wastes is 7.0% of this world's surface, 4th of its 5 surface biomes.",
+    "censusCaption": "sky 34.7%; near: blackstone 30.2%, soul_fire 12.1%; mid: obsidian 2.9%, blackstone 2%; biomes: adventure:umbral_wastes 100%",
+    "layer": "surface",
+    "place": "surface type 3: 13.1% of cells; biome adventure:umbral_wastes; ground blackstone; top blackstone; height 209; layer present in 89% (layer 97%); notable-block density (log) 0.9 (layer 0.4); liquid cover 0% (layer 36%); bare rock 72% (layer 10%)",
+    "camera": {
+     "x": 280.5,
+     "y": 254.62000000476837,
+     "z": -231.5,
+     "yaw": 45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 44.0,
+     "fogPercent": 50.1
+    }
+   },
+   {
+    "kind": "sky-t2",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_abyssal_shrine-sky-t2.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_abyssal_shrine-sky-t2.jpg",
+    "shows": "Water leads the frame, with grass, calcite and stone, in deep cold ocean and sky highlands; open sky over a quarter of the view. Deep cold ocean is 14.0% of this world's surface, 2nd of its 5 surface biomes.",
+    "censusCaption": "sky 38.3%; void 0.1%; near: grass_block 9.3%, calcite 3.9%; mid: water 13.4%; far: water 18.7%, grass_block 5%; biomes: deep_cold_ocean 47.9%, adventure:sky_highlands 20.8%, adventure:umbral_wastes 12.5%",
+    "layer": "sky",
+    "place": "sky type 2: 33.3% of cells; biome adventure:sky_highlands; ground grass_block; height 177; neighbour step 5.9 (layer 2.3); relief over 16 blocks 43.0 (layer 23.4); notable-block density (log) 1.2 (layer 0.8)",
+    "camera": {
+     "x": 24.5,
+     "y": 194.62000000476837,
+     "z": 136.5,
+     "yaw": -180.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 126.6,
+     "fogPercent": 2.7
+    }
+   }
+  ]
+ },
+ {
+  "slug": "the_violet_spire",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_violet_spire-far.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_violet_spire-far.jpg",
+    "shows": "A mix of stone, grass and dirt, in cherry grove. Cherry grove is 10.0% of this world's surface, 3rd of its 6 surface biomes.",
+    "censusCaption": "sky 19.2%; void 57.3%; far: stone 8.6%, grass_block 5.4%; biomes: cherry_grove 99.6%",
+    "layer": "vista",
+    "place": "far: the border ring at bearing 85, facing the centre; 0.0% of rays could reach the border",
+    "camera": {
+     "x": 52.9,
+     "y": 286.6200000047684,
+     "z": 667.0,
+     "yaw": 175.5,
+     "pitch": 25.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 185.4,
+     "fogPercent": 60.2
+    },
+    "voidFeature": true
+   },
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_violet_spire-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_violet_spire-surface-t1.jpg",
+    "shows": "Stone, grass tufts and grass fill most of the frame, with oak trees, in sky highlands. Sky highlands is 13.0% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 3%; unloaded 0.1%; near: short_grass 25.3%, grass_block 19.1%; mid: stone 6.3%; far: stone 5.5%, amethyst_block 2.4%; biomes: adventure:sky_highlands 85.9%, adventure:wisteria_grove 12.6%",
+    "layer": "surface",
+    "place": "surface type 1: 77.5% of cells; biome adventure:sky_highlands; ground grass_block; top grass_block; height 149",
+    "camera": {
+     "x": 232.5,
+     "y": 124.62000000476837,
+     "z": -232.5,
+     "yaw": 90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 105.0,
+     "fogPercent": 4.1
+    }
+   },
+   {
+    "kind": "underground-t1",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_violet_spire-underground-t1.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_violet_spire-underground-t1.jpg",
+    "shows": "Stone leads the frame, with grass and dirt, in cherry grove. Cherry grove is 10.0% of this world's surface, 3rd of its 6 surface biomes.",
+    "censusCaption": "sky 7.3%; void 35.7%; near: stone 32.9%, dirt 9.3%; far: stone 3.3%; biomes: cherry_grove 92.7%, adventure:sky_highlands 6.9%",
+    "layer": "underground",
+    "place": "underground type 1: 71.1% of cells; notableId coal_ore; biome adventure:lavender_fields; height 136; neighbour step 0.4 (layer 1.5)",
+    "camera": {
+     "x": 350.5,
+     "y": 111.50000000476837,
+     "z": 349.5,
+     "yaw": 112.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 88.5,
+     "fogPercent": 0.0
+    }
+   },
+   {
+    "kind": "surface-t2",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_violet_spire-surface-t2.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_violet_spire-surface-t2.jpg",
+    "shows": "Cherry trees and grass fill most of the frame, with grass tufts and flowers, in cherry grove. Cherry grove is 10.0% of this world's surface, 3rd of its 6 surface biomes.",
+    "censusCaption": "sky 12.7%; void 1.8%; near: cherry_leaves 42.3%, grass_block 19.3%; mid: grass_block 1.3%, short_grass 1%; biomes: cherry_grove 100%",
+    "layer": "surface",
+    "place": "surface type 2: 22.5% of cells; biome cherry_grove; ground grass_block; top cherry_leaves; height 146; trees per cell 1.8 (layer 0.7); canopy 38% (layer 11%); ground plants 56% (layer 33%); open to the sky 62% (layer 89%)",
+    "camera": {
+     "x": 344.5,
+     "y": 136.62000000476837,
+     "z": 344.5,
+     "yaw": 90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 98.2,
+     "fogPercent": 1.8
+    }
+   },
+   {
+    "kind": "underground-t2",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_violet_spire-underground-t2.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_violet_spire-underground-t2.jpg",
+    "shows": "Stone and grass fill most of the frame, with dirt, in cherry grove. Cherry grove is 10.0% of this world's surface, 3rd of its 6 surface biomes.",
+    "censusCaption": "sky 0%; void 5.1%; near: stone 49.6%, grass_block 38.2%; mid: water 1.4%; biomes: cherry_grove 99.8%",
+    "layer": "underground",
+    "place": "underground type 2: 28.9% of cells; notableId coal_ore; biome adventure:sky_highlands; height 191; neighbour step 4.2 (layer 1.5); relief over 16 blocks 90.7 (layer 39.8); notable-block density (log) 1.0 (layer 0.6); cave pockets 29% (layer 13%)",
+    "camera": {
+     "x": 475.5,
+     "y": 78.50000000476837,
+     "z": 577.5,
+     "yaw": 67.5,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 67.6,
+     "fogPercent": 0.0
+    }
+   },
+   {
+    "kind": "surface-lm1",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_violet_spire-surface-lm1.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_violet_spire-surface-lm1.jpg",
+    "shows": "Flowers lead the frame, with stone, dirt and grass, in lavender fields; open sky over a quarter of the view. Lavender fields is 12.9% of this world's surface, 2nd of its 6 surface biomes.",
+    "censusCaption": "sky 32.8%; near: lilac 39.7%; mid: stone 4.3%, dirt 4.1%; far: stone 5.7%, grass_block 2.3%; biomes: adventure:lavender_fields 94.6%",
+    "layer": "surface",
+    "place": "surface landmark: biome adventure:lavender_fields (type adventure:sky_highlands); ground amethyst_block (type grass_block); top amethyst_block (type grass_block); neighbour step 6.4 (type 0.7); height 215.1 (type 120.8); cave pockets 46% (type 0%)",
+    "camera": {
+     "x": -136.5,
+     "y": 243.62000000476837,
+     "z": -583.5,
+     "yaw": -45.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 135.6,
+     "fogPercent": 4.1
+    }
+   },
+   {
+    "kind": "feature-moss_block",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_violet_spire-feature-moss_block.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_violet_spire-feature-moss_block.jpg",
+    "shows": "Vines, grass, moss and flowers fill most of the frame, in wisteria grove. Wisteria grove is 5.5% of this world's surface, 4th of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: vine 30.3%, grass_block 23%; biomes: adventure:wisteria_grove 100%",
+    "layer": "feature",
+    "place": "moss_block: 19 clusters in 3 patches, median 30.0 blocks, surface layer",
+    "camera": {
+     "x": -531.5,
+     "y": 135.50000000476837,
+     "z": -379.5,
+     "yaw": -90.0,
+     "pitch": 45.0
+    },
+    "lookingAt": [
+     -526,
+     130,
+     -355
+    ],
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 87.7,
+     "fogPercent": 0.1
+    }
+   }
+  ]
+ },
+ {
+  "slug": "the_sunken_temple",
+  "shots": [
+   {
+    "kind": "far",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_sunken_temple-far.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_sunken_temple-far.jpg",
+    "shows": "Water leads the frame, with vines, jungle trees and oak trees, in warm ocean and jungle; open sky over a quarter of the view. Warm ocean is 40.1% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 33.1%; far: water 33.8%, jungle_leaves 7.6%; biomes: warm_ocean 51.8%, jungle 37.9%, adventure:hanging_gardens 10.4%",
+    "layer": "vista",
+    "place": "far: the border ring at bearing 96, facing the centre; 0.0% of rays could reach the border",
+    "camera": {
+     "x": -461.2,
+     "y": 296.6200000047684,
+     "z": 4080.0,
+     "yaw": -173.6,
+     "pitch": 25.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 141.1,
+     "fogPercent": 18.5
+    },
+    "voidFeature": true
+   },
+   {
+    "kind": "surface-t1",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_sunken_temple-surface-t1.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_sunken_temple-surface-t1.jpg",
+    "shows": "Water fills most of the frame, with vines, stone and dirt, in warm ocean. Warm ocean is 40.1% of this world's surface, 1st of its 6 surface biomes.",
+    "censusCaption": "sky 3%; unloaded 11.3%; near: water 51.5%; mid: cave_vines_plant 8.4%, water 3.9%; far: vine 1.9%, jungle_leaves 1.8%; biomes: warm_ocean 71.3%, adventure:hanging_gardens 14.8%, jungle 13.9%",
+    "layer": "surface",
+    "place": "surface type 1: 60.0% of cells; biome warm_ocean; ground sand; top water; height 136; trees per cell 0.1 (layer 3.5); canopy 2% (layer 28%); ground plants 0% (layer 10%); liquid cover 82% (layer 50%)",
+    "camera": {
+     "x": 3256.5,
+     "y": 151.62000000476837,
+     "z": 1256.5,
+     "yaw": 90.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 105.9,
+     "fogPercent": 2.7
+    }
+   },
+   {
+    "kind": "sky-t2",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_sunken_temple-sky-t2.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_sunken_temple-sky-t2.jpg",
+    "shows": "Grass and grass tufts fill most of the frame, with oak trees, in sky highlands; open sky over a quarter of the view. Sky highlands is 0.6% of this world's surface, 6th of its 6 surface biomes.",
+    "censusCaption": "sky 27.8%; unloaded 4.3%; near: grass_block 34.2%, short_grass 14.3%; mid: grass_block 5.2%, short_grass 3%; far: grass_block 1.6%; biomes: adventure:sky_highlands 92.1%, meadow 5.7%",
+    "layer": "sky",
+    "place": "sky type 2: 27.6% of cells; biome adventure:sky_highlands; ground grass_block; height 213; trees per cell 0.3 (layer 7.2); notable-block density (log) 0.5 (layer 0.8)",
+    "camera": {
+     "x": -1126.5,
+     "y": 234.62000000476837,
+     "z": 552.5,
+     "yaw": -135.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 143.7,
+     "fogPercent": 30.6
+    }
+   },
+   {
+    "kind": "underground-t2",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_sunken_temple-underground-t2.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_sunken_temple-underground-t2.jpg",
+    "shows": "Grass, stone and dirt fill most of the frame, in hanging gardens. Hanging gardens is 3.1% of this world's surface, 5th of its 6 surface biomes.",
+    "censusCaption": "sky 0%; near: grass_block 59.6%, stone 24.1%; biomes: adventure:hanging_gardens 100%",
+    "layer": "underground",
+    "place": "underground type 2: 20.7% of cells; notableId cave_vines_plant; biome jungle; height 214; relief over 16 blocks 15.4 (layer 6.6); notable-block density (log) 0.8 (layer 1.0); cave air 6% (layer 1%); cave pockets 19% (layer 5%)",
+    "camera": {
+     "x": 1721.5,
+     "y": 205.50000000476837,
+     "z": 2741.5,
+     "yaw": -135.0,
+     "pitch": 10.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": true,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 60.9,
+     "fogPercent": 0.0
+    }
+   },
+   {
+    "kind": "surface-lm1",
+    "file": "/tmp/claude-0/w10c1p/runs/rig-q1/screenshots/the_sunken_temple-surface-lm1.png",
+    "jpg": "/tmp/claude-0/w10c1q/shots/the_sunken_temple-surface-lm1.jpg",
+    "shows": "Grass leads the frame, with oak trees, vines and jungle trees, in jungle. Jungle is 36.2% of this world's surface, 2nd of its 6 surface biomes.",
+    "censusCaption": "sky 6.7%; unloaded 8.1%; near: grass_block 41.5%, vine 5.4%; mid: water 6.6%, vine 4%; far: vine 1.3%, jungle_leaves 1.3%; biomes: jungle 85.6%, warm_ocean 11%",
+    "layer": "surface",
+    "place": "surface landmark: top grass_block (type oak_leaves); neighbour step 1.5 (type 0.0); trees per cell 0.0 (type 12.0); canopy 4% (type 89%)",
+    "camera": {
+     "x": -3543.5,
+     "y": 159.62000000476837,
+     "z": 936.5,
+     "yaw": -180.0,
+     "pitch": 5.0
+    },
+    "lookingAt": null,
+    "renderer": "render distance 32, noon, clear, clouds off",
+    "nightVision": false,
+    "gate": {
+     "passed": true,
+     "reasons": [],
+     "luma": 58.9,
+     "fogPercent": 0.2
+    }
+   }
+  ]
+ }
+]

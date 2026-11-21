@@ -1,0 +1,20 @@
+{
+  "type": "adventure:void_biomes",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "minecraft:snowy_plains",
+          "parameters": "sha1:0d8e17104b45cf2c96064cc81eb32667d0bceb45"
+        },
+        {
+          "biome": "minecraft:ice_spikes",
+          "parameters": "sha1:9773b924aaa0cb74eaec96234e098ada8f1caf3a"
+        }
+      ]
+    },
+    "settings": "adventure:void_biomes"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: a checkerboard of three biomes in 64-block cells whose the_end cells carry no terrain.",
+  "seed": 1,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "checkerboard",
+    "cellScale": 2,
+    "voidBiomes": [
+      "minecraft:the_end"
+    ]
+  },
+  "biomes": [
+    "minecraft:plains",
+    "minecraft:the_end",
+    "minecraft:desert"
+  ],
+  "borders": {
+    "player": 256
+  }
+}

@@ -1,0 +1,47 @@
+{
+ "slug": "the_red_monument",
+ "targets": [
+  {
+   "key": "surface.voidPercent",
+   "op": ">=",
+   "value": 99,
+   "from": "\"there is no other ground in the world\""
+  },
+  {
+   "key": "vertical.layerColumnsPercent.underground",
+   "op": "<=",
+   "value": 1,
+   "from": "\"there is no other ground in the world\""
+  },
+  {
+   "key": "vegetation.trees",
+   "op": "<=",
+   "value": 0,
+   "from": "\"there is no other ground in the world\""
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.fixedTime?",
+   "op": "between",
+   "value": [
+    13000,
+    23000
+   ],
+   "from": "1.21.1 fixedTime 18000: held at night"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "between",
+   "value": [
+    0.1,
+    0.3
+   ],
+   "from": "\"bleeding scarlet into the void\"; 1.21.1 ambientLight 0.2"
+  },
+  {
+   "key": "surface.fluidCoverPercent.water + surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 0,
+   "from": "\"a single monolith hanging in nothing\""
+  }
+ ]
+}

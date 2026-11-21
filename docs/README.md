@@ -9,7 +9,8 @@ Reference material split out of [AGENTS.md](../AGENTS.md) and [README.md](../REA
 | Task → file → command lookup | [common-tasks.md](common-tasks.md) |
 | Which network calls exist and how each is mitigated | [network-dependencies.md](network-dependencies.md) |
 | Web page markup, styles, nav injection | [web-surfaces.md](web-surfaces.md) |
-| Update the Minecraft version (~150 server + ~110 client mods) | [minecraft-version-upgrade.md](minecraft-version-upgrade.md) |
+| Dependencies: adding, updating, holding, versioning | [DEPENDENCIES.md](../DEPENDENCIES.md) |
+| dep-review pipeline: setup, jobs, security, cost | [dependency-review.md](dependency-review.md) |
 
 In-house mod internals, split out of [mods/AGENTS.md](../mods/AGENTS.md):
 

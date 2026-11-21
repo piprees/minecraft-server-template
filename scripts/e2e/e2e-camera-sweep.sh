@@ -17,6 +17,9 @@
 # Gotchas: a server tp's rotation does not stick, so the bridge sets the look.
 #          /screenshot starves /state, so each frame reads state THEN shoots.
 #          Every wait is capped; nothing here streams.
+# shellcheck source=mc-version.sh
+. "$(cd "$(dirname "$0")" && pwd)/mc-version.sh"
+e2e_refuse_on_26 "it drives the 1.21.1 bridge's projection-camera endpoints, which the 26.3 renderer has no counterpart for"
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"

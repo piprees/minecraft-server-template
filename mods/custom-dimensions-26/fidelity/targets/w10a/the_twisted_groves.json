@@ -1,0 +1,89 @@
+{
+ "slug": "the_twisted_groves",
+ "targets": [
+  {
+   "key": "surface.biomesPercent.minecraft:warped_forest",
+   "op": ">=",
+   "value": 20,
+   "from": "1.21.1: \"Warped groves stacked into ridges and gorges under a nether sky with no sun, dry to the bedrock\": the warped grove is the commonest wooded biome"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:warped_forest.carries.treesPerHectare",
+   "op": ">=",
+   "value": 20,
+   "from": "1.21.1: \"Warped groves stacked into ridges and gorges under a nether sky with no sun, dry to the bedrock\": warped fungi stand in the groves"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:warped_forest.carries.canopyPercent",
+   "op": ">=",
+   "value": 15,
+   "from": "1.21.1: \"Warped groves stacked into ridges and gorges under a nether sky with no sun, dry to the bedrock\": a grove has a canopy of wart"
+  },
+  {
+   "key": "surface.canopyPercent",
+   "op": ">=",
+   "value": 8,
+   "from": "1.21.1: \"Warped groves stacked into ridges and gorges under a nether sky with no sun, dry to the bedrock\"; W9b measured canopy 0.8%"
+  },
+  {
+   "key": "vegetation.species.minecraft:warped_stem.perHectare",
+   "op": ">=",
+   "value": 20,
+   "from": "1.21.1: \"Warped groves stacked into ridges and gorges under a nether sky with no sun, dry to the bedrock\": warped stems, not only the withered trunks"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:ash_barrens",
+   "op": "<=",
+   "value": 25,
+   "from": "1.21.1: \"Warped groves stacked into ridges and gorges under a nether sky with no sun, dry to the bedrock\": groves, not an ash plain (W9b: 39%)"
+  },
+  {
+   "key": "terrain.slopes.over45Percent",
+   "op": ">=",
+   "value": 15,
+   "from": "1.21.1: \"Warped groves stacked into ridges and gorges under a nether sky with no sun, dry to the bedrock\": ridges and gorges"
+  },
+  {
+   "key": "terrain.reliefMedian",
+   "op": ">=",
+   "value": 30,
+   "from": "1.21.1: \"Warped groves stacked into ridges and gorges under a nether sky with no sun, dry to the bedrock\": ridges and gorges"
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 6,
+   "from": "1.21.1: \"Warped groves stacked into ridges and gorges under a nether sky with no sun, dry to the bedrock\": dry to the bedrock; only the marsh holds water"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:warped_forest.carries.topBlocksPercent.minecraft:grass_block?",
+   "op": "<=",
+   "value": 5,
+   "from": "nether sky, no sun: no overworld grass under the groves and barrens (the marsh at the heart keeps its own; restated per biome in round 2, the dimension-wide 5% counted the marsh)"
+  },
+  {
+   "key": "biomeExpression.biomes.adventure:upside_down_forest.carries.topBlocksPercent.minecraft:grass_block?",
+   "op": "<=",
+   "value": 5,
+   "from": "nether sky, no sun: no overworld grass under the groves and barrens (the marsh at the heart keeps its own; restated per biome in round 2, the dimension-wide 5% counted the marsh)"
+  },
+  {
+   "key": "biomeExpression.biomes.adventure:withered_forest.carries.topBlocksPercent.minecraft:grass_block?",
+   "op": "<=",
+   "value": 5,
+   "from": "nether sky, no sun: no overworld grass under the groves and barrens (the marsh at the heart keeps its own; restated per biome in round 2, the dimension-wide 5% counted the marsh)"
+  },
+  {
+   "key": "biomeExpression.biomes.adventure:ash_barrens.carries.topBlocksPercent.minecraft:grass_block?",
+   "op": "<=",
+   "value": 5,
+   "from": "nether sky, no sun: no overworld grass under the groves and barrens (the marsh at the heart keeps its own; restated per biome in round 2, the dimension-wide 5% counted the marsh)"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:soul_sand_valley.carries.topBlocksPercent.minecraft:grass_block?",
+   "op": "<=",
+   "value": 5,
+   "from": "nether sky, no sun: no overworld grass under the groves and barrens (the marsh at the heart keeps its own; restated per biome in round 2, the dimension-wide 5% counted the marsh)"
+  }
+ ]
+}

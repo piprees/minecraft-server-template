@@ -1,0 +1,3393 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "overworld",
+  "inspiredBy": "Regions Unexplored, Baobab Savanna.",
+  "differs": "Acacias are thin; these are absurdly thick: lone baobabs stand far apart over dry yellow grass, each a 3x3 bark trunk swelling to five wide in its lower middle and topped by four short boughs and a small flat crown, with termite-red earth and coarse dirt patches and dry grass round them, in hot gold light.",
+  "climate": {
+    "temperature": [
+      0.55,
+      1.0
+    ],
+    "humidity": [
+      -0.35,
+      0.1
+    ],
+    "continentalness": [
+      -0.11,
+      1.0
+    ],
+    "weirdness": [
+      0.4,
+      1.0
+    ],
+    "depth": [
+      -2.0,
+      0.2
+    ]
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.overworld.badlands"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "ambient": [
+              {
+                "type": "minecraft:bat",
+                "count": 8,
+                "weight": 10
+              }
+            ],
+            "creature": [
+              {
+                "type": "minecraft:sheep",
+                "count": 4,
+                "weight": 12
+              },
+              {
+                "type": "minecraft:pig",
+                "count": 4,
+                "weight": 10
+              },
+              {
+                "type": "minecraft:chicken",
+                "count": 4,
+                "weight": 10
+              },
+              {
+                "type": "minecraft:cow",
+                "count": 4,
+                "weight": 8
+              },
+              {
+                "type": "minecraft:horse",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 2
+                },
+                "weight": 1
+              },
+              {
+                "type": "minecraft:donkey",
+                "count": 1,
+                "weight": 1
+              },
+              {
+                "type": "minecraft:armadillo",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 3,
+                  "min_inclusive": 2
+                },
+                "weight": 10
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:spider",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:zombie",
+                "count": 4,
+                "weight": 90
+              },
+              {
+                "type": "minecraft:zombie_villager",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:zombie_horse",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:skeleton",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:creeper",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:slime",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 1
+                },
+                "weight": 10
+              },
+              {
+                "type": "minecraft:witch",
+                "count": 1,
+                "weight": 5
+              }
+            ],
+            "underground_water_creature": [
+              {
+                "type": "minecraft:glow_squid",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 4
+                },
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:audio/ambient_sounds": {
+        "additions": {
+          "sound": "minecraft:block.dry_grass.ambient",
+          "tick_chance": 0.004
+        }
+      },
+      "minecraft:gameplay/snow_golem_melts": true,
+      "minecraft:visual/fog_color": "#f0d79a",
+      "minecraft:visual/sky_color": "#b4c8e6"
+    },
+    "carvers": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ],
+    "downfall": 0.0,
+    "effects": {
+      "grass_color": "#c9b45a",
+      "foliage_color": "#a9a44a",
+      "dry_foliage_color": "#a88a4a",
+      "water_color": "#3f8a8a"
+    },
+    "features": [
+      [],
+      [
+        "minecraft:lake_lava_underground",
+        "minecraft:lake_lava_surface"
+      ],
+      [
+        "minecraft:amethyst_geode"
+      ],
+      [
+        "minecraft:monster_room",
+        "minecraft:monster_room_deep"
+      ],
+      [],
+      [],
+      [
+        "minecraft:ore_dirt",
+        "minecraft:ore_gravel",
+        "minecraft:ore_granite_upper",
+        "minecraft:ore_granite_lower",
+        "minecraft:ore_diorite_upper",
+        "minecraft:ore_diorite_lower",
+        "minecraft:ore_andesite_upper",
+        "minecraft:ore_andesite_lower",
+        "minecraft:ore_tuff",
+        "minecraft:ore_coal_upper",
+        "minecraft:ore_coal_lower",
+        "minecraft:ore_iron_upper",
+        "minecraft:ore_iron_middle",
+        "minecraft:ore_iron_small",
+        "minecraft:ore_gold",
+        "minecraft:ore_gold_lower",
+        "minecraft:ore_redstone",
+        "minecraft:ore_redstone_lower",
+        "minecraft:ore_diamond",
+        "minecraft:ore_diamond_medium",
+        "minecraft:ore_diamond_large",
+        "minecraft:ore_diamond_buried",
+        "minecraft:ore_lapis",
+        "minecraft:ore_lapis_buried",
+        "minecraft:ore_copper",
+        "minecraft:underwater_magma",
+        "minecraft:disk_sand",
+        "minecraft:disk_clay",
+        "minecraft:disk_gravel",
+        "~red_earth",
+        "~coarse_earth"
+      ],
+      [],
+      [
+        "minecraft:spring_water",
+        "minecraft:spring_lava"
+      ],
+      [
+        "~baobabs",
+        "~dry_grass",
+        "~bushes"
+      ],
+      [
+        "minecraft:freeze_top_layer"
+      ]
+    ],
+    "has_precipitation": false,
+    "temperature": 2.0
+  },
+  "features": {
+    "baobabs": {
+      "feature": {
+        "type": "minecraft:weighted_random_selector",
+        "features": [
+          {
+            "data": {
+              "feature": {
+                "type": "minecraft:overlay",
+                "features": [
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 14,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 0,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 14,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 14,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 14,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 0,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 14,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": []
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 14,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 14,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 0,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 14,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 14,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 5,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -2,
+                        "y": 3,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 7,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -2,
+                        "y": 2,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 5,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -2,
+                        "y": 3,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 5,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 3,
+                        "z": -2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 5,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 3,
+                        "z": 2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 7,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 2,
+                        "z": -2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 7,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 2,
+                        "z": 2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 5,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 3,
+                        "z": -2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 5,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 3,
+                        "z": 2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 5,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 2,
+                        "y": 3,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 7,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 2,
+                        "y": 2,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 5,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 2,
+                        "y": 3,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "east",
+                      "layers": [
+                        {
+                          "height": {
+                            "type": "minecraft:uniform",
+                            "max_inclusive": 3,
+                            "min_inclusive": 2
+                          },
+                          "provider": {
+                            "id": "minecraft:acacia_log",
+                            "properties": {
+                              "axis": "x"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 2,
+                        "y": 13,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 4,
+                        "y": 14,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "west",
+                      "layers": [
+                        {
+                          "height": {
+                            "type": "minecraft:uniform",
+                            "max_inclusive": 3,
+                            "min_inclusive": 2
+                          },
+                          "provider": {
+                            "id": "minecraft:acacia_log",
+                            "properties": {
+                              "axis": "x"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -2,
+                        "y": 13,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -4,
+                        "y": 14,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "south",
+                      "layers": [
+                        {
+                          "height": {
+                            "type": "minecraft:uniform",
+                            "max_inclusive": 3,
+                            "min_inclusive": 2
+                          },
+                          "provider": {
+                            "id": "minecraft:acacia_log",
+                            "properties": {
+                              "axis": "z"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 13,
+                        "z": 2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 14,
+                        "z": 4
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "north",
+                      "layers": [
+                        {
+                          "height": {
+                            "type": "minecraft:uniform",
+                            "max_inclusive": 3,
+                            "min_inclusive": 2
+                          },
+                          "provider": {
+                            "id": "minecraft:acacia_log",
+                            "properties": {
+                              "axis": "z"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 13,
+                        "z": -2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 14,
+                        "z": -4
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 3,
+                        "min_inclusive": 2
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 14,
+                        "z": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "placement": []
+            },
+            "weight": 2
+          },
+          {
+            "data": {
+              "feature": {
+                "type": "minecraft:overlay",
+                "features": [
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 16,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 0,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 16,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 16,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 16,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 0,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 16,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": []
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 16,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 16,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 0,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 16,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 16,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 6,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -2,
+                        "y": 3,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 8,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -2,
+                        "y": 2,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 6,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -2,
+                        "y": 3,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 6,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 3,
+                        "z": -2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 6,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 3,
+                        "z": 2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 8,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 2,
+                        "z": -2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 8,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 2,
+                        "z": 2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 6,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 3,
+                        "z": -2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 6,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 3,
+                        "z": 2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 6,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 2,
+                        "y": 3,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 8,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 2,
+                        "y": 2,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 6,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 2,
+                        "y": 3,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "east",
+                      "layers": [
+                        {
+                          "height": {
+                            "type": "minecraft:uniform",
+                            "max_inclusive": 3,
+                            "min_inclusive": 2
+                          },
+                          "provider": {
+                            "id": "minecraft:acacia_log",
+                            "properties": {
+                              "axis": "x"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 2,
+                        "y": 15,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 4,
+                        "y": 16,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "west",
+                      "layers": [
+                        {
+                          "height": {
+                            "type": "minecraft:uniform",
+                            "max_inclusive": 3,
+                            "min_inclusive": 2
+                          },
+                          "provider": {
+                            "id": "minecraft:acacia_log",
+                            "properties": {
+                              "axis": "x"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -2,
+                        "y": 15,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -4,
+                        "y": 16,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "south",
+                      "layers": [
+                        {
+                          "height": {
+                            "type": "minecraft:uniform",
+                            "max_inclusive": 3,
+                            "min_inclusive": 2
+                          },
+                          "provider": {
+                            "id": "minecraft:acacia_log",
+                            "properties": {
+                              "axis": "z"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 15,
+                        "z": 2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 4
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "north",
+                      "layers": [
+                        {
+                          "height": {
+                            "type": "minecraft:uniform",
+                            "max_inclusive": 3,
+                            "min_inclusive": 2
+                          },
+                          "provider": {
+                            "id": "minecraft:acacia_log",
+                            "properties": {
+                              "axis": "z"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 15,
+                        "z": -2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": -4
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 3,
+                        "min_inclusive": 2
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "placement": []
+            },
+            "weight": 2
+          },
+          {
+            "data": {
+              "feature": {
+                "type": "minecraft:overlay",
+                "features": [
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 19,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 0,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 19,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 19,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 19,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 0,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 19,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": []
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 19,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 19,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 0,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 19,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 0,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 19,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 0,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 7,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -2,
+                        "y": 3,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 9,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -2,
+                        "y": 2,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 7,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -2,
+                        "y": 3,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 7,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 3,
+                        "z": -2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 7,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": -1,
+                        "y": 3,
+                        "z": 2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 9,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 2,
+                        "z": -2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 9,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 2,
+                        "z": 2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 7,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 3,
+                        "z": -2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 7,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 1,
+                        "y": 3,
+                        "z": 2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 7,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 2,
+                        "y": 3,
+                        "z": -1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 9,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 2,
+                        "y": 2,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "up",
+                      "layers": [
+                        {
+                          "height": 7,
+                          "provider": {
+                            "id": "minecraft:acacia_wood",
+                            "properties": {
+                              "axis": "y"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 2,
+                        "y": 3,
+                        "z": 1
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "east",
+                      "layers": [
+                        {
+                          "height": {
+                            "type": "minecraft:uniform",
+                            "max_inclusive": 3,
+                            "min_inclusive": 2
+                          },
+                          "provider": {
+                            "id": "minecraft:acacia_log",
+                            "properties": {
+                              "axis": "x"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 2,
+                        "y": 2,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 4,
+                        "y": 3,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "west",
+                      "layers": [
+                        {
+                          "height": {
+                            "type": "minecraft:uniform",
+                            "max_inclusive": 3,
+                            "min_inclusive": 2
+                          },
+                          "provider": {
+                            "id": "minecraft:acacia_log",
+                            "properties": {
+                              "axis": "x"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": -2,
+                        "y": 2,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": -4,
+                        "y": 3,
+                        "z": 0
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "south",
+                      "layers": [
+                        {
+                          "height": {
+                            "type": "minecraft:uniform",
+                            "max_inclusive": 3,
+                            "min_inclusive": 2
+                          },
+                          "provider": {
+                            "id": "minecraft:acacia_log",
+                            "properties": {
+                              "axis": "z"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 2,
+                        "z": 2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 3,
+                        "z": 4
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:block_column",
+                      "allowed_placement": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      },
+                      "direction": "north",
+                      "layers": [
+                        {
+                          "height": {
+                            "type": "minecraft:uniform",
+                            "max_inclusive": 3,
+                            "min_inclusive": 2
+                          },
+                          "provider": {
+                            "id": "minecraft:acacia_log",
+                            "properties": {
+                              "axis": "z"
+                            }
+                          }
+                        }
+                      ],
+                      "prioritize_tip": false
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 2,
+                        "z": -2
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 2,
+                        "min_inclusive": 1
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 3,
+                        "z": -4
+                      }
+                    ]
+                  },
+                  {
+                    "feature": {
+                      "type": "minecraft:disk",
+                      "half_height": 0,
+                      "radius": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 3,
+                        "min_inclusive": 2
+                      },
+                      "state_provider": {
+                        "id": "minecraft:acacia_leaves",
+                        "properties": {
+                          "distance": "7",
+                          "persistent": "true",
+                          "waterlogged": "false"
+                        }
+                      },
+                      "target": {
+                        "type": "minecraft:matching_block_tag",
+                        "tag": "minecraft:air"
+                      }
+                    },
+                    "placement": [
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 16,
+                        "z": 0
+                      },
+                      {
+                        "type": "minecraft:offset",
+                        "x": 0,
+                        "y": 3,
+                        "z": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "placement": []
+            },
+            "weight": 1
+          }
+        ]
+      },
+      "placement": [
+        {
+          "type": "minecraft:rarity_filter",
+          "chance": 5
+        },
+        {
+          "type": "minecraft:count",
+          "count": 1
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:grass_block",
+                  "minecraft:dirt",
+                  "minecraft:coarse_dirt",
+                  "minecraft:podzol"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  1,
+                  -1,
+                  1
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  -1,
+                  -1,
+                  1
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  1,
+                  -1,
+                  -1
+                ]
+              },
+              {
+                "type": "minecraft:solid",
+                "offset": [
+                  -1,
+                  -1,
+                  -1
+                ]
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  2,
+                  0,
+                  0
+                ],
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  -2,
+                  0,
+                  0
+                ],
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  0,
+                  0,
+                  2
+                ],
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  0,
+                  0,
+                  -2
+                ],
+                "tag": "minecraft:air"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "dry_grass": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": "minecraft:short_dry_grass",
+              "weight": 3
+            },
+            {
+              "data": "minecraft:tall_dry_grass",
+              "weight": 2
+            }
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 4
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 32
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 3,
+            "min": -3,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          }
+        }
+      ]
+    },
+    "bushes": {
+      "feature": "minecraft:bush",
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 1
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 12
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 3,
+            "min": -3,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_block_tag",
+            "tag": "minecraft:air"
+          }
+        }
+      ]
+    },
+    "red_earth": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 3,
+          "min_inclusive": 1
+        },
+        "state_provider": {
+          "id": "minecraft:red_sand"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:grass_block",
+            "minecraft:dirt"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 1
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "coarse_earth": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "max_inclusive": 3,
+          "min_inclusive": 2
+        },
+        "state_provider": {
+          "id": "minecraft:coarse_dirt"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:grass_block",
+            "minecraft:dirt"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    }
+  }
+}

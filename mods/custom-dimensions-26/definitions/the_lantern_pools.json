@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 2,
+  "description": "Serene oasis pools glowing at dusk. A hermit's paradise — desert shrines mark where travellers stopped to rest, but nobody built a town. The pools are older than the shrines.",
+  "seed": -1377572764665618126,
+  "spawn": [320, 66, 64],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    "adventure:muddy_river",
+    "adventure:tropical_shores",
+    {
+      "id": "minecraft:warm_ocean",
+      "climate": {
+        "temperature": [-2.0, 2.0],
+        "continentalness": [-2.0, -0.19]
+      }
+    },
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "humidity": [-2.0, -0.016],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "humidity": [-0.016, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    },
+    "minecraft:plains",
+    "minecraft:sparse_jungle",
+    "minecraft:mangrove_swamp",
+    "adventure:desert_oasis",
+    "minecraft:jungle"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:plains": 19.2,
+      "minecraft:sparse_jungle": 24.7,
+      "minecraft:mangrove_swamp": 14.8,
+      "adventure:desert_oasis": 2.3,
+      "minecraft:jungle": 2.9,
+      "adventure:muddy_river": 2.6,
+      "adventure:tropical_shores": 8.3
+    }
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.6,
+    "playerLuck": 1.8
+  },
+  "structures": {
+    "density": "sparse",
+    "force": [
+      {
+        "structure": "mvs:campsite",
+        "x": -176,
+        "z": -240
+      },
+      {
+        "structure": "minecraft:trail_ruins",
+        "x": -224,
+        "z": -272
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:sea_lantern",
+      "igniterItem": "minecraft:nautilus_shell",
+      "color": "4BCFCF",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "shape": "door",
+      "anchor": {
+        "pos": [-286, 64, 143],
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "adventure:desert_oasis",
+      "adventure:muddy_river"
+    ],
+    "water": "high",
+    "wants": {
+      "epic:sand_obelisk": "spread",
+      "ati_structures:desert_outpost": "spread",
+      "mvs:small_oak_lantern": "near_spawn",
+      "ati_structures:haunted_ruin": "spread"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "mansion",
+      "monument",
+      "mss:arena",
+      "ancient_city",
+      "trial_chambers"
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+{
+ "slug": "the_ember_fields",
+ "targets": [
+  {
+   "key": "terrain.reliefMedian",
+   "op": "<=",
+   "value": 60,
+   "from": "\"Rolling ember meadows\""
+  },
+  {
+   "key": "terrain.slopes.cliffPercent",
+   "op": "<=",
+   "value": 15,
+   "from": "\"Rolling\", \"gentlest face\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:crimson_nylium + surface.groundBlocksPercent.minecraft:warped_nylium + surface.groundBlocksPercent.minecraft:moss_block + surface.topBlocksPercent.minecraft:nether_sprouts + surface.topBlocksPercent.minecraft:crimson_roots + surface.topBlocksPercent.minecraft:warped_roots",
+   "op": ">=",
+   "value": 35,
+   "from": "\"ember meadows\"; 1.21.1 nether_grasslands, glistering_meadow"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:nether_grasslands + surface.biomesPercent.adventure:sulphur_springs",
+   "op": ">=",
+   "value": 40,
+   "from": "\"meadows ... geyser fields\"; 1.21.1 lists nether_grasslands first, sulphur_springs, yellowstone"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 12,
+   "from": "\"The gentlest face\": meadows, not lava"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:magma_land + surface.biomesPercent.adventure:gravel_desert",
+   "op": "<=",
+   "value": 10,
+   "from": "1.21.1 list has neither magma land nor gravel desert"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": ">=",
+   "value": 0.2,
+   "from": "1.21.1 ambientLight 0.25: the warm-lit Nether"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 85,
+   "from": "1.21.1 type nether: a roof over the world"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one meadow country): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

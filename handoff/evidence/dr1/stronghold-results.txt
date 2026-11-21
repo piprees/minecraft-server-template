@@ -1,0 +1,14 @@
+locate minecraft:village_plains in minecraft:overworld from 0,0: [12:03:39] [Server thread/INFO]: System chat: The nearest minecraft:village_plains is at [1920, ~, -3296] (3814 blocks away)
+locate #minecraft:eye_of_ender_located in minecraft:overworld from 0,0: [12:03:44] [Server thread/INFO]: System chat: The nearest #minecraft:eye_of_ender_located (bistro:forest_stronghold/spruce) is at [-1488, ~, -848] (1712 blocks away)
+locate minecraft:ancient_city in minecraft:overworld from 0,0: [12:03:45] [Server thread/INFO]: System chat: Could not find a structure of type "minecraft:ancient_city" nearby
+village surface: [12:04:49] [Server thread/INFO]: System chat: Marker has the following entity data: [1920.5d, 65.0d, -3295.5d]
+eyes count (store): [12:09:02] [Server thread/INFO]: System chat: Test passed. Count: 12
+bistro.ender_eye markers loaded: [12:09:04] [Server thread/INFO]: System chat: #eyes has 12 [dr1]
+first eye marker: [12:09:06] [Server thread/INFO]: System chat: Marker has the following entity data: [-1449.5d, -23.5d, -806.5d]
+filled before: 
+frames with an eye before: [12:09:12] [Server thread/INFO]: System chat: #frames has 1 [dr1]
+portal controller: [12:09:19] [Server thread/INFO]: System chat: Marker has the following entity data: [-1442.5d, -25.5d, -799.5d]
+a player beside the portal (Biome Strongholds counts down only with one within 8 blocks): [12:09:21] [Server thread/INFO]: System chat: dr1bot joined the game
+eyes after (store): 
+eye markers left after 12 eyes (the portal function kills them): [12:09:47] [Server thread/INFO]: System chat: #after has 0 [dr1]
+end_portal blocks round the first eye: [12:09:49] [Server thread/INFO]: System chat: Successfully filled 9 block(s)

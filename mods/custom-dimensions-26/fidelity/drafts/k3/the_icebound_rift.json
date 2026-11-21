@@ -1,0 +1,3 @@
+{
+  "reason": "G13: a void listing ten biomes now places them on their weirdness boxes over no blocks, so the cold biomes' fog, snow and sounds reach the void (nine were not found); no field changes."
+}

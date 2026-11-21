@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: structure density normal on noise placement, for the density comparison.",
+  "seed": 72,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "borders": {
+    "player": 1024
+  },
+  "structures": {"density": "normal"}
+}

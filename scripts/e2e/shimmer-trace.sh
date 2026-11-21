@@ -23,6 +23,9 @@
 #          and the stamp counts are live. There is no monotonic client frame
 #          counter on /state, so client.fps is a one-second mean here and
 #          cannot resolve a freeze shorter than that -- the stamp rate can.
+# shellcheck source=mc-version.sh
+. "$(cd "$(dirname "$0")" && pwd)/mc-version.sh"
+e2e_refuse_on_26 "it drives the 1.21.1 bridge's /corners, /shimmer and /step, which measure the 1.21.1 projection's corner vertices"
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"

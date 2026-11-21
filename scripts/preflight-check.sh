@@ -14,6 +14,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
 ENV_FILE="$PROJECT_DIR/.env"
 
 # --- colours -----------------------------------------------------------------
@@ -190,7 +192,7 @@ echo -e "\n${BOLD}Target: ${TARGET}${RESET}"
 # --- Minecraft settings ------------------------------------------------------
 echo -e "\n${BOLD}2. Minecraft server settings${RESET}"
 
-check_env_default MC_VERSION "Minecraft version" "1.21.1"
+check_env_default MC_VERSION "Minecraft version" "$(mc_version)"
 check_env_default MEMORY "JVM memory allocation" "5G"
 check_env_default SERVER_PORT "Game port" "25577"
 

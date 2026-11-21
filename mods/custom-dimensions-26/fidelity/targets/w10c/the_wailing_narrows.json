@@ -1,0 +1,29 @@
+{
+ "slug": "the_wailing_narrows",
+ "targets": [
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind one place with a fringe: the soul sand chasm country is one region holding half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind one place: no scatter of biome specks"
+  },
+  {
+   "key": "placeness.places.byPlace.minecraft:soul_sand_valley.landPercent",
+   "op": ">=",
+   "value": 45,
+   "from": "\"soul sand takes whatever stands beside the portal\": the soul sand valley place holds about half the land round the frame"
+  },
+  {
+   "key": "placeness.places.landRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "places, not perlin: no scatter of place specks"
+  }
+ ]
+}

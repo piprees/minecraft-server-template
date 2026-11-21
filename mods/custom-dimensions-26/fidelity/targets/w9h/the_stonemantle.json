@@ -1,0 +1,113 @@
+{
+ "slug": "the_stonemantle",
+ "targets": [
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 27.6,
+   "from": "meeting: \"craggy quarry country\" (measured 23.3); re-cut over land outside sea biomes (W9h, measured 30.7), was >= 20.9 over all columns"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:alpine_scree",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:lavender_fields",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:magma_land",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:maple_woodland",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.adventure:mineral_strata.columns? + biomeExpression.biomes.adventure:mineral_strata.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:basalt_deltas",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:dripstone_caves.columns? + biomeExpression.biomes.minecraft:dripstone_caves.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:jagged_peaks",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:stony_peaks",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:stony_shore",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:windswept_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:windswept_gravelly_hills",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:windswept_hills",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 27.6,
+   "from": "place: biome regions (W9f, measured 37.6); re-cut over land outside sea biomes (W9h, measured 30.7), was >= 33.8 over all columns"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 7.5,
+   "from": "place: biome regions (W9f, measured 2.4); re-cut over land outside sea biomes (W9h, measured 5.6), was <= 3.5 over all columns"
+  },
+  {
+   "key": "placeness.landBiomeRegions.perKm2",
+   "op": "<=",
+   "value": 13.7,
+   "from": "place: biome regions (W9f, measured 6.7); re-cut over land outside sea biomes (W9h, measured 11.8), was <= 7.8 over all columns"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 62.4,
+   "from": "place: biome regions (W9f, measured 72.3); re-cut over land outside sea biomes (W9h, measured 69.3), was >= 65.1 over all columns"
+  }
+ ]
+}

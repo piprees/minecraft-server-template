@@ -1,0 +1,15 @@
+W10c2b — finish Batch 2 (server lane, main checkout), continuing W10c2, which a container restart stopped mid-self-test
+
+Read, in order, and treat as binding: /tmp/claude-0/-home-user/5eb91d81-f3fb-5a91-9f20-35496482f7d0/scratchpad/common-rules.md; W10c2's brief /tmp/claude-0/-home-user/5eb91d81-f3fb-5a91-9f20-35496482f7d0/scratchpad/w10c2-brief.md and the w10c-brief.md it names (method, standard, done bar, outputs, final report are yours); then W10c2's exact state: /tmp/claude-0/w10c2/progress.log (all of it) and done.txt (copies in /home/user/minecraft-server-template/handoff/evidence/w10c2/). Package name: w10c2 still (same folder /tmp/claude-0/w10c2/, log lines appended there). You own the server lane and the main checkout (branch at a0442313 or later; no worktree). No server is running; check `ps` first; the self-test world may be half-written: start the self-test on a fresh world as the brief says.
+
+## Already done — do not redo
+The low five (blackstone keep, bloodroot wastes, obsidian sanctum, furnace halls, buried age), the boneyard and the ember fields: applied, surveyed, shot, reviewed, committed (a9b8f3f3, f55dee91, dab793ec). Batch 1 revisit applied (f05a16dc; abyssal ring warp goldens a0442313; batch1-revisit/page.json). Build green at a0442313 (1,438 tests).
+
+## Do
+1. The full fresh-world self-test with CI's server.properties (the step that was running). 0 FAIL, or fix generically.
+2. The four untouched: the_wailing_narrows first (r4 baseline and k7 already measured: reuse), then the_molten_flats, the_gilded_pit, the_forged_depths. Your kit gap #1 (lava-sea roles) holds the last three: a kit agent, K10, builds gaps 1–4 in a worktree now. Measure and iterate them with the kit you have; when the lead merges K10 (only between your commits, after asking you), run K10's one-boot script first, then re-measure the gap users (buried age gap 1; obsidian sanctum, boneyard, ember fields, blackstone keep gap 3; boneyard and ember fields gap 4; far views and landmarks of every roofed dimension in the batch gap 2) and retake the shots it affects.
+3. Below the bar now: the_obsidian_sanctum (review 3, gap 3) and the_boneyard (review 3, gaps 3 and 4), the_buried_age (expression 3/7, gap 1). After K10, bring each to 4/5 with every listed biome placed and expressed, or write the named exception in page.json.
+4. Batch 2's final folder for all eleven (page.json with targets and misses, terrain-shots.json, targets-all.md, renders/, every jpg path existing), reviews copied to `fidelity/reviews/`, goldens, build green, one final full fresh-world self-test at 0 FAIL, `server/run/world` deleted, no server running.
+
+## Rules
+Trap drafts in your report numbered from T275 (K10 takes T269–T274). Explicit-path commits with `[skip ci]`; do not push; never stage HANDOFF.md, TROUBLESHOOTING.md or AGENTS.md. 5 GB free memory and 3 GB disk before every boot; never your own Gradle build and a server at once. Copy page.json, progress.log and done.txt into handoff/evidence/w10c2/ and commit them after every dimension (the container can restart again). Budget ~260 tool steps.

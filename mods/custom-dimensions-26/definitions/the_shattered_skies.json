@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 2,
+  "description": "Floating garden islands — sakura and skylands adrift in a void slowly winning. The animals' paradise, where nothing was ever built to last and nothing needs to. Sky houses and castle ruins dot the islands like driftwood.",
+  "seed": -2068817936672598070,
+  "spawn": [0, 42, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "coverage": 0.2,
+      "spread": 40,
+      "size": 2.2,
+      "flatness": 0.3
+    }
+  },
+  "biomes": [
+    "minecraft:cherry_grove",
+    "adventure:magnolia_woodland",
+    "minecraft:flower_forest",
+    "minecraft:sunflower_plains",
+    "minecraft:meadow",
+    "minecraft:plains",
+    "adventure:alpine_meadow",
+    "adventure:lavender_fields",
+    "adventure:sky_highlands",
+    "minecraft:forest",
+    "minecraft:birch_forest",
+    "adventure:golden_skygrove",
+    "adventure:windswept_isles",
+    "minecraft:snowy_slopes",
+    "adventure:desert_oasis",
+    "adventure:hanging_gardens"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:cherry_grove": 20,
+      "adventure:magnolia_woodland": 6,
+      "minecraft:flower_forest": 12,
+      "minecraft:sunflower_plains": 7,
+      "minecraft:meadow": 11,
+      "minecraft:plains": 7,
+      "adventure:alpine_meadow": 4,
+      "adventure:lavender_fields": 10,
+      "adventure:sky_highlands": 8,
+      "minecraft:forest": 6,
+      "minecraft:birch_forest": 3,
+      "adventure:golden_skygrove": 3,
+      "adventure:windswept_isles": 3,
+      "minecraft:snowy_slopes": 2,
+      "adventure:desert_oasis": 2
+    },
+    "over": "land",
+    "roles": {
+      "adventure:hanging_gardens": "underside"
+    },
+    "places": {
+      "groups": {
+        "sakura": [
+          "minecraft:cherry_grove",
+          "adventure:magnolia_woodland"
+        ],
+        "blooming_valley": [
+          "minecraft:flower_forest",
+          "minecraft:sunflower_plains"
+        ],
+        "meadows": [
+          "minecraft:meadow",
+          "minecraft:plains",
+          "adventure:alpine_meadow"
+        ],
+        "lavender": [
+          "adventure:lavender_fields"
+        ],
+        "skylands": [
+          "adventure:sky_highlands",
+          "minecraft:forest",
+          "minecraft:birch_forest",
+          "adventure:golden_skygrove",
+          "adventure:windswept_isles",
+          "minecraft:snowy_slopes",
+          "adventure:desert_oasis"
+        ]
+      }
+    }
+  },
+  "liquids": {
+    "seaLevel": -64,
+    "defaultFluid": "minecraft:water"
+  },
+  "materials": {
+    "defaultBlock": "minecraft:stone"
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.5
+  },
+  "structures": {
+    "noise": {
+      "endgame": "sparse"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:quartz_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "B0D8F0",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "particleType": "minecraft:end_rod",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "natural"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "scenic",
+    "spawnFilter": [
+      "minecraft:cherry_grove",
+      "minecraft:flower_forest",
+      "adventure:sky_highlands",
+      "minecraft:plains",
+      "minecraft:meadow",
+      "minecraft:forest",
+      "minecraft:birch_forest"
+    ],
+    "wants": {
+      "sky_house": "near_spawn",
+      "sky_castle_ruin": "spread",
+      "sky_arena": "spread",
+      "sky_volcano": "near_border",
+      "sky_castle_tower": "near_border",
+      "mvs:small_oak_lantern": "near_spawn",
+      "minecraft:abandoned_camp_forest": "near_spawn"
+    },
+    "shuns": [
+      "ancient_city",
+      "trial_chambers",
+      "mansion",
+      "monument",
+      "mss:arena"
+    ],
+    "terrain": "islands"
+  }
+}

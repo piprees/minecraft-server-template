@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 2,
+  "description": "The piglin capital. Every portal drops you at the same ledge overlooking what remains: a bastion, a forge, a palace, a forbidden castle — gold in every wall, treasure in every ruin. Nothing within arm's reach of the landing. Greed pays and costs.",
+  "seed": -7161067373243224201,
+  "spawn": [0, 86, -540],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 84,
+      "floorRelief": 6,
+      "ceilingGap": 22,
+      "roughness": 0.2,
+      "pit": 0.02,
+      "pitDepth": 60,
+      "ledges": 0.7,
+      "ledgeStep": 10
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 0],
+      "radius": 470,
+      "falloff": 32,
+      "strength": 1,
+      "warp": {
+        "blocks": 12,
+        "wavelength": 256
+      }
+    },
+    "scales": {
+      "climate": 1.5
+    }
+  },
+  "biomes": [
+    "adventure:blackstone_basin",
+    "minecraft:nether_wastes",
+    "minecraft:basalt_deltas",
+    "adventure:gravel_desert",
+    "minecraft:crimson_forest",
+    "adventure:magma_land"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:blackstone_basin": 30,
+      "minecraft:nether_wastes": 54,
+      "minecraft:basalt_deltas": 4,
+      "adventure:gravel_desert": 5,
+      "minecraft:crimson_forest": 4,
+      "adventure:magma_land": 3
+    },
+    "places": {
+      "groups": {
+        "basalt": [
+          "minecraft:basalt_deltas",
+          "adventure:magma_land"
+        ],
+        "ruins": [
+          "adventure:gravel_desert",
+          "minecraft:crimson_forest"
+        ]
+      },
+      "arrangement": "core",
+      "warp": {
+        "blocks": 76,
+        "wavelength": 512
+      }
+    }
+  },
+  "liquids": {
+    "seaLevel": 20
+  },
+  "borders": {
+    "player": 683,
+    "generation": 683
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 3.0,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 64,
+      "endY": -10,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 1.6
+    }
+  },
+  "structures": {
+    "density": "dense",
+    "terrainAdaptation": {
+      "nova_structures:piglin_donjon": "beard_box",
+      "ati_structures:dark_keep": "platform_skirt"
+    },
+    "force": [
+      {
+        "structure": "minecraft:bastion_remnant",
+        "x": 278,
+        "z": 31
+      },
+      {
+        "structure": "mns:mega_fortress",
+        "x": -291,
+        "z": -47
+      },
+      {
+        "structure": "minecraft:trial_chambers",
+        "x": 237,
+        "z": 218
+      },
+      {
+        "structure": "nova_structures:piglin_donjon",
+        "x": -263,
+        "z": 229
+      },
+      {
+        "structure": "ati_structures:dark_keep",
+        "x": 372,
+        "z": 411
+      },
+      {
+        "structure": "nova_structures:undead_crypt",
+        "x": -389,
+        "z": 358
+      }
+    ],
+    "clearSpawnRadius": 120,
+    "mode": "allow",
+    "list": [
+      "minecraft:nether_complexes",
+      "nova_structures:nether_structures"
+    ],
+    "wants": {
+      "nova_structures:sealing_halls": {
+        "min": 450,
+        "max": 650
+      }
+    },
+    "shuns": {
+      "mns:large_blackstone_walls": {},
+      "mns:nether_tower": {},
+      "mns:crimson_forge": {},
+      "nova_structures:nether_keep": {}
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:gilded_blackstone",
+      "igniterItem": "minecraft:diamond",
+      "color": "D4A020",
+      "lightLevel": 11,
+      "scale": 12.0,
+      "cooldown": 40,
+      "shape": "doorway",
+      "anchor": {
+        "pos": "spawn",
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:gilded_blackstone",
+          "minecraft:blackstone",
+          "minecraft:gold_block"
+        ]
+      }
+    }
+  ],
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:nether_wastes",
+      "minecraft:basalt_deltas"
+    ],
+    "wants": {
+      "nova_structures:sealing_halls": "near_border"
+    }
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "atmosphere": {
+    "fogColor": "#5A3A16",
+    "ambientLight": 0.3,
+    "fogDistance": {
+      "start": 64,
+      "end": 384
+    }
+  },
+  "materials": {
+    "defaultBlock": "minecraft:blackstone",
+    "bands": [
+      {
+        "below": 76,
+        "filler": "minecraft:blackstone",
+        "cliffs": "minecraft:blackstone"
+      }
+    ]
+  },
+  "ores": {
+    "add": [
+      {
+        "id": "gilded_seams",
+        "block": "minecraft:gilded_blackstone",
+        "size": 14,
+        "count": 20,
+        "minY": 18,
+        "maxY": 100
+      },
+      {
+        "id": "gold_seams",
+        "block": "minecraft:nether_gold_ore",
+        "size": 10,
+        "count": 16,
+        "minY": 18,
+        "maxY": 100
+      }
+    ]
+  }
+}

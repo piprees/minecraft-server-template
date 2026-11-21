@@ -1,0 +1,10 @@
+the_abyssal_shrine-structure-monument
+the_bloodroot_wastes-structure-medium_crimson_fungus_2
+the_bloodroot_wastes-structure-piglin_camp
+the_gilded_pit-structure-dark_keep
+the_molten_flats-structure-piglin_outstation
+the_nether-structure-bridge_5
+the_sunken_temple-structure-small_conduit_ruin_warm
+the_wailing_narrows-structure-ancient_city
+the_wailing_narrows-structure-bridge_2
+the_wailing_narrows-structure-bridge_3

@@ -1,0 +1,238 @@
+# Server mods for Minecraft 26.3 - slug:versionId (Modrinth)
+# Re-pin: ./scripts/pin-mod-versions.sh --version 26.3
+# .minecraft-version selects this list (mc_mod_list in scripts/lib.sh). It holds
+# every server-side kept row of docs/design/rebuild-26/mod-register.csv and each
+# replaced row's Modrinth replacement; rows rebuilt by us live in our own mod.
+
+# === core / performance ===
+fabric-api:Zns5SSRA
+fabric-language-kotlin:SKW1BTL3
+lithium:Lal8mJGR
+ferrite-core:d5ddUdiB
+c2me-fabric:gKKkuSYc
+# carpet — server admin/testing tool: fake players for the headless
+# verification loop (ops-gated commands; no client counterpart).
+carpet:yt9oDFOj
+servercore:YNdFPSov
+chunky:86FKD9qx
+# chunkyborder - /mc border's `chunky border add`; requires chunky
+chunkyborder:IUB4hZvg
+spark:e3hsPc1o
+clumps:J4I1wxJZ
+packet-fixer:dTKbGYbb
+krypton:UugdIYJw
+
+# === distance ===
+distanthorizons:TGgEbP9A
+
+# === caves & underground ===
+cave-spider-spawn:pQaJLh9R
+underground-beacons:yLVoFQG4
+
+# === structures ===
+towns-and-towers:vHZIKy6e
+dungeons-and-taverns:SeFWyzVX
+# Each structure mod below starts with its structure sets switched off: the
+# worldgen firewall keeps only sets a reviewed bridge adopts
+# (mods/custom-dimensions-26/bridges/), and per-dimension curation turns
+# them on (RB-45). Mods that override minecraft: sets are live at once.
+# friends-and-foes - mob-vote mobs and 4 structures; friends-and-foes-polymer
+# shows its blocks, items and mobs to vanilla clients and is built against
+# 5.0.4, so the pair moves together. Its worldgen mixins are adopted by the
+# friendsandfoes bridge; the village and stronghold pool injections are off
+# in config/versions/26.3/friendsandfoes.json.
+friends-and-foes:RT5VU8LW
+friends-and-foes-polymer:2GKmK801
+explorify:oyrAnNG8
+# decubed-dungeons (slug dungeons+ until renamed) sets minecraft:monster_room
+# and monster_room_deep to count 0 everywhere; its bridge adopts its own
+# dungeon sets in their place.
+decubed-dungeons:iys4iiPH
+# hopo-better-mineshaft - its RemoveVanillaMineshaft folder is not a
+# registered overlay, so vanilla mineshafts stay.
+hopo-better-mineshaft:avIdkeZp
+cinchs-villager-statues:pfUTyZ5d
+# lush-cave-ruins - the structure mod only; its add-on mob pack needs a client
+lush-cave-ruins:m4ragooF
+piglin-outposts:Ouu0FeiA
+mmv-moogs-missing-villages:fjpmujqZ
+# dungeons-and-taverns-ancient-city-overhaul overrides minecraft:ancient_cities
+# (set, structure, pools and templates): every ancient city is its own.
+dungeons-and-taverns-ancient-city-overhaul:Zt3x0n1M
+# biome-strongholds overrides minecraft:strongholds with per-biome strongholds
+# on vanilla's rings (RB-48); config/datapacks/wordless-strongholds/ replaces
+# its one chat line with a sound (RB-43).
+biome-strongholds:XKRr7P4R
+# structure-layout-optimizer - faster jigsaw and template placement, layouts
+# unchanged while deduplicateShuffledTemplatePoolElementList stays off; its
+# mixins are adopted by its bridge; requires resourceful-config
+structure-layout-optimizer:TNDMLvM0
+# trek - a beta, accepted by the owner (RB-50; held in _holds). Its own sets
+# are off until curated; it overrides the minecraft: sets villages (adds its
+# villages, spacing 48), pillager_outposts (adds two outposts), end_cities
+# (vanilla's placement) and strongholds, which Biome Strongholds keeps through
+# config/datapacks/wordless-strongholds/; and the outpost, End city and
+# mansion templates.
+trek:v6y24ZlJ
+
+# === boss dungeons & extra structures ===
+deadly-deadly-dungeon:RBo0UYF5
+epic-structures-dungeons:NK6Uptyi
+# ATI structures, ruins, towers, camps (a Fabric mod on 26.3)
+ati-structures-fabricforge:vhuSIT7K
+moogs-structure-lib:SkD4H9XM
+moogs-voyager-structures:PiFoSPXI
+mes-moogs-end-structures:S7bUhX4n
+mns-moogs-nether-structures:OLTqXnsN
+mss-moogs-soaring-structures:O20bIWkj
+mtr-moogs-temples-reimagined:RvfqP9Zb
+# slashloot replaces lootr: per-player structure loot, server-side
+slashloot:fCGypkiQ
+
+# === mobs & animals ===
+datapack:clucking-ducks:YOMwWbSG
+
+# === villager overhaul ===
+villager-names-serilum:CbGDDrh8
+
+# === cosy village life ===
+# polydecorations replaces handcrafted, macaws-furniture and supplementaries
+# (Polymer: vanilla clients see vanilla blocks)
+polydecorations:sQwcggNm
+
+# === dependency libraries ===
+almanac:mSuvUaBg
+deimos:uCeK99wj
+architectury-api:Njpa4lhR
+# required by cristel-lib
+cloth-config:fg2uyxOW
+collective:27TLnjkk
+cristel-lib:rWxmPrGC
+forge-config-api-port:JpKvrr9J
+prickle:aPdekuq6
+puzzles-lib:TZ0hp2h3
+resourceful-lib:P6Jq77km
+yacl:s9SjoFu1
+# required by polydecorations
+polymer:pA7tHJZE
+# required by sit (its only 26.3 build is a beta, held in _holds)
+otterlib:EZmdLF7S
+# required by structure-layout-optimizer
+resourceful-config:t3odHyFJ
+
+# === variety ===
+farmers-delight-refabricated:dRScyUeE
+# farmers-delight-polymer — the register's server-side patch: vanilla clients
+# see Farmer's Delight blocks and items as vanilla ones (Polymer, above)
+farmers-delight-polymer:ZqkEEPvU
+appleskin:PHjDtQay
+
+# === quality of life ===
+bouncier-beds:SbFLlDE6
+carry-on:9UKSKr1K
+double-doors:KicqUZ57
+easy-elytra-takeoff:coFdxDjz
+fallingtree:8f8067Sq
+grabby-mobs:Gec9jPcz
+healing-campfire:cSdyeAve
+name-tag-tweaks:Tn5DLqVv
+no-animal-tempt-delay:m9DHzh44
+nutritious-milk:lSyNIuDI
+softer-hay-bales:fEpQZvli
+stack-refill:2ApxamAM
+# sswaystones - Polymer waystones (vanilla clients see vanilla blocks); village
+# injection off in config/versions/26.3/sswaystones.json; its mixins are
+# adopted by its bridge
+sswaystones:9bAijkyf
+# sit - sit on stairs and slabs, server-side; requires otterlib
+sit:9zKJaj9v
+ender-dragon-destroys-end-island:dDfhDdli
+# polydex replaces emi: recipes for every client, served by the server
+polydex:hUejnkI9
+# elytra-armor replaces elytra-slot: armour and elytra together, server-side
+elytra-armor:Oe6DS1BQ
+# gm4-double-doors replaces dramatic-doors and macaws-doors
+datapack:gm4-double-doors:wT7DJkGG
+
+# === archery ===
+fire-arrows-ignite-fire:3ox78EPh
+
+# === death & safety ===
+your-items-are-safe:7zZaTRpy
+# inventory-totem replaces charm-of-undying: a totem works from anywhere in the inventory
+inventory-totem:w3KKAn4J
+
+# === fire & griefing ===
+fire-spread-tweaks:Gsc5QZeR
+
+# === enchanting ===
+enchanting-commands:ITQXemvY
+
+# === chat ===
+hide-invis-msgs:pOE7WQ6g
+
+# === spawn & new player ===
+starter-kit:MAMRzlEH
+
+# === difficulty ===
+attributefix:zJLURVLx?
+
+# === server defaults ===
+configured-defaults:frAVVzBj
+
+# === admin / community ===
+luckperms:DzQPkkXY
+open-parties-and-claims:KBCCg0os
+simple-voice-chat:x9jLR94Q
+ledger:pxv5cN0d
+styled-chat:HQ91YnMY
+essential-commands:KANmt7ie
+lmd:a3ISt6Ob
+wits:DnN8S21H
+no-chat-reports:e3GIS0Ep
+
+# === bedrock ===
+# Bedrock clients join through Geyser (UDP BEDROCK_PORT) and authenticate
+# through Floodgate (RB-21); Geyser's 26.3 builds are Modrinth betas.
+geyser:Vx9RY5fp
+floodgate:m9eO07Zi
+
+# =============================================================================
+# Waiting (mod-register.csv "waiting", and abridged, which replaces
+# macaws-bridges): most for a 26.3 build, each joining when its author ships
+# one (RB-09); the rest for the reason beside them
+# =============================================================================
+# dcintegration                               # No 26
+# borrow-their-arrows                         # No 26
+# expanded-bow-enchanting                     # No 26
+# ground-clear                                # No 26
+# overstacked-enchantments                    # No 26
+# pause-day-cycle                             # No 26
+# yungs-api                                   # Library for travelers-titles, yungs-better-desert-temples, yungs-better-dungeons, yungs-better-end-island and 8 more
+# modernfix                                   # No 26
+# adventure-dungeons                          # Vanilla blocks only, so it is welcome; no 26
+# repurposed-structures-fabric               # Its trade maps point at structures that are off until SP5 curation
+# cinchs-abandoned-houses                    # Its 26.3 jar declares the mod id cinchsvillagerstatues, so Fabric drops it beside Villager Statues
+# midnightlib                                # Library for repurposed-structures-fabric
+# hellish-trials                              # Vanilla blocks only, so it is welcome; no 26
+# medieval-buildings-end-edition              # Vanilla blocks only, so it is welcome; no 26
+# simply-houses                               # Vanilla blocks only, so it is welcome; no 26
+# sky-villages                                # Vanilla blocks only, so it is welcome; no 26
+# stoneholm                                   # Vanilla blocks only, so it is welcome; no 26
+# subsurface                                  # Vanilla blocks only, so it is welcome; no 26
+# true-ending                                 # Vanilla blocks only, so it is welcome; no 26
+# underground-bunkers                         # Vanilla blocks only, so it is welcome; no 26
+# when-dungeons-arise                         # Vanilla blocks only, so it is welcome; no 26
+# when-dungeons-arise-seven-seas              # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-desert-temples                 # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-dungeons                       # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-end-island                     # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-jungle-temples                 # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-mineshafts                     # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-nether-fortresses              # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-ocean-monuments                # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-strongholds                    # Vanilla blocks only, so it is welcome; no 26
+# yungs-better-witch-huts                     # Vanilla blocks only, so it is welcome; no 26
+# yungs-bridges                               # Vanilla blocks only, so it is welcome; no 26
+# yungs-extras                                # Vanilla blocks only, so it is welcome; no 26
+# abridged                                    # Replaces macaws-bridges; no 26

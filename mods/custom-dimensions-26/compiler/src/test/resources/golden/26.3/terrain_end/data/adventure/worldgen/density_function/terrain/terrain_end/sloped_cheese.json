@@ -1,0 +1,5 @@
+{
+  "left": "adventure:terrain/terrain_end/islands",
+  "right": "minecraft:end/base_3d_noise",
+  "type": "minecraft:add"
+}

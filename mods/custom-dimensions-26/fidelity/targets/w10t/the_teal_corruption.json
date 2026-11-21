@@ -1,0 +1,59 @@
+{
+ "slug": "the_teal_corruption",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:warped_nylium + surface.groundBlocksPercent.minecraft:warped_wart_block + surface.topBlocksPercent.minecraft:warped_roots + surface.topBlocksPercent.minecraft:nether_sprouts + surface.topBlocksPercent.minecraft:twisting_vines + surface.topBlocksPercent.minecraft:warped_wart_block",
+   "op": ">=",
+   "value": 15,
+   "from": "\"teal fungus\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:terracotta + surface.groundBlocksPercent.minecraft:red_terracotta + surface.groundBlocksPercent.minecraft:orange_terracotta + surface.groundBlocksPercent.minecraft:brown_terracotta + surface.groundBlocksPercent.minecraft:yellow_terracotta + surface.groundBlocksPercent.minecraft:white_terracotta + surface.groundBlocksPercent.minecraft:light_gray_terracotta + surface.groundBlocksPercent.minecraft:red_sand + surface.groundBlocksPercent.minecraft:red_sandstone",
+   "op": ">=",
+   "value": 30,
+   "from": "\"over red rock\", \"a mesa world\""
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:grass_block",
+   "op": "<=",
+   "value": 10,
+   "from": "\"a mesa world\": red rock and fungus, not lawns"
+  },
+  {
+   "key": "vegetation.species.minecraft:warped_stem.perHectare?",
+   "op": ">=",
+   "value": 5,
+   "from": "\"teal fungus\": huge warped fungi stand"
+  },
+  {
+   "key": "landforms.sharesPercent.plateaus + landforms.sharesPercent.mountains",
+   "op": ">=",
+   "value": 15,
+   "from": "\"a mesa world\""
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:ocean + surface.biomesPercent.minecraft:warm_ocean + surface.biomesPercent.minecraft:lukewarm_ocean + surface.biomesPercent.minecraft:cold_ocean + surface.biomesPercent.minecraft:deep_ocean + surface.biomesPercent.minecraft:deep_lukewarm_ocean + surface.biomesPercent.minecraft:deep_cold_ocean + surface.biomesPercent.minecraft:frozen_ocean",
+   "op": "<=",
+   "value": 2,
+   "from": "1.21.1 seaLevel -55: no sea, so no ocean biome"
+  },
+  {
+   "key": "placeness.at.centre.biomeRegionPercent",
+   "op": ">=",
+   "value": 10,
+   "from": "\"It came through at the centre\""
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one mesa round the corruption): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

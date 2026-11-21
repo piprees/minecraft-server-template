@@ -1,0 +1,59 @@
+{
+ "slug": "the_blackstone_keep",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:polished_blackstone + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:smooth_basalt + surface.groundBlocksPercent.minecraft:gilded_blackstone",
+   "op": ">=",
+   "value": 30,
+   "from": "\"blackstone walls from spawn\"; 1.21.1 blackstone_basin"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:blackstone_basin",
+   "op": ">=",
+   "value": 15,
+   "from": "1.21.1 regions_unexplored:blackstone_basin"
+  },
+  {
+   "key": "surface.topBlocksPercent.minecraft:nether_wart_block",
+   "op": "<=",
+   "value": 10,
+   "from": "\"The piglin military frontier\": walls and stone, wart woods only in their regions"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.sky + vegetation.treesPerHectareByLayer.roof",
+   "op": "<=",
+   "value": 15,
+   "from": "\"military frontier\": no forest hung from the roof"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:nether_wastes.placementPercent.land?",
+   "op": ">=",
+   "value": 50,
+   "from": "\"from spawn\": the wastes are ground to stand on"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.12,
+   "from": "1.21.1 ambientLight 0.08"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 85,
+   "from": "1.21.1 type nether: a roof over the world"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one frontier): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

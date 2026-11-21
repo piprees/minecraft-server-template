@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 2,
+  "description": "Quiet wetland wilderness. Reed beds, drowned ruins, things half-sunk in the clay. Nobody settles here; the marsh keeps what it takes. Whatever civilisation these ruins belonged to, the swamp claimed it centuries ago.",
+  "seed": -375315198706708750,
+  "spawn": [-640, 66, 128],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    "adventure:orchid_marsh",
+    "minecraft:swamp",
+    "minecraft:mangrove_swamp",
+    "minecraft:bamboo_jungle",
+    "minecraft:river",
+    "minecraft:beach",
+    "minecraft:dark_forest",
+    "minecraft:old_growth_birch_forest",
+    "adventure:muddy_river",
+    "adventure:cypress_wetland",
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "adventure:bioshroom_caves",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:orchid_marsh": 25.4,
+      "minecraft:swamp": 5,
+      "minecraft:mangrove_swamp": 5,
+      "minecraft:bamboo_jungle": 2.8,
+      "minecraft:river": 4.1,
+      "minecraft:dark_forest": 3.8,
+      "minecraft:old_growth_birch_forest": 2.7,
+      "adventure:muddy_river": 2.3,
+      "adventure:cypress_wetland": 47.4,
+      "minecraft:beach": 1
+    }
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.3
+  },
+  "structures": {
+    "density": "sparse",
+    "clearSpawnRadius": 96
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:clay",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "9B8B7A",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "adventure:orchid_marsh"
+    ],
+    "water": "high",
+    "wants": {
+      "mvs:small_swamp_house": "spread",
+      "nova_structures:mangrove_witch_hut": "near_spawn",
+      "nova_structures:surface_dungeon_swamp": "near_border",
+      "nova_structures:remnant_graveyard": "spread",
+      "minecraft:abandoned_camp_forest": "spread",
+      "nova_structures:wild_ruin": "near_border"
+    },
+    "shuns": [
+      "village",
+      "mansion",
+      "trial_chambers",
+      "ancient_city"
+    ]
+  }
+}

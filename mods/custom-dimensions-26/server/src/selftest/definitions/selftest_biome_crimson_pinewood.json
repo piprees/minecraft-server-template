@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture and showcase: the biome library's crimson pinewood filling a whole level on Nether terrain, for the biomes section's per-biome checks, renders and screenshots.",
+  "seed": 4,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "single_biome",
+    "preset": "nether",
+    "biome": "adventure:crimson_pinewood"
+  },
+  "borders": {
+    "player": 512
+  }
+}

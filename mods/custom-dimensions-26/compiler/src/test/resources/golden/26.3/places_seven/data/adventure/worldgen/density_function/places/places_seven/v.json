@@ -1,0 +1,21 @@
+{
+  "input": {
+    "left": "adventure:places/places_seven/z",
+    "right": {
+      "left": "adventure:places/places_seven/window",
+      "right": {
+        "left": {
+          "noise": "adventure:terrain/warp_z",
+          "type": "minecraft:noise",
+          "xz_scale": 0.5,
+          "y_scale": 0.0
+        },
+        "right": 0.0908844662,
+        "type": "minecraft:mul"
+      },
+      "type": "minecraft:mul"
+    },
+    "type": "minecraft:add"
+  },
+  "type": "minecraft:cache"
+}

@@ -1,0 +1,179 @@
+{
+  "input": {
+    "left": {
+      "left": {
+        "left": {
+          "input": {
+            "left": {
+              "left": "adventure:terrain/terrain_spires_void/depth",
+              "right": {
+                "left": "adventure:terrain/terrain_spires_void/jaggedness",
+                "right": {
+                  "input": {
+                    "noise": "minecraft:jagged",
+                    "type": "minecraft:noise",
+                    "xz_scale": 1500.0,
+                    "y_scale": 0.0
+                  },
+                  "type": "minecraft:half_negative"
+                },
+                "type": "minecraft:mul"
+              },
+              "type": "minecraft:add"
+            },
+            "right": "adventure:terrain/terrain_spires_void/factor",
+            "type": "minecraft:mul"
+          },
+          "type": "minecraft:quarter_negative"
+        },
+        "right": 4.0,
+        "type": "minecraft:mul"
+      },
+      "right": {
+        "left": "minecraft:overworld/base_3d_noise",
+        "right": 0.34,
+        "type": "minecraft:mul"
+      },
+      "type": "minecraft:add"
+    },
+    "right": {
+      "left": {
+        "left": {
+          "left": {
+            "alpha": {
+              "input": {
+                "left": {
+                  "left": {
+                    "input": {
+                      "noise": "adventure:terrain/spires",
+                      "shift_x": "minecraft:shift_x",
+                      "shift_z": "minecraft:shift_z",
+                      "type": "minecraft:noise",
+                      "xz_scale": 1.0,
+                      "y_scale": 0.0
+                    },
+                    "type": "minecraft:cache"
+                  },
+                  "right": -0.394912493,
+                  "type": "minecraft:add"
+                },
+                "right": 196.850394,
+                "type": "minecraft:mul"
+              },
+              "max": 1.0,
+              "min": 0.0,
+              "type": "minecraft:clamp"
+            },
+            "first": -128.0,
+            "second": {
+              "left": {
+                "left": {
+                  "alpha": 0.5,
+                  "first": {
+                    "input": {
+                      "left": {
+                        "input": {
+                          "input": {
+                            "left": {
+                              "left": {
+                                "input": {
+                                  "noise": "adventure:terrain/spires",
+                                  "shift_x": "minecraft:shift_x",
+                                  "shift_z": "minecraft:shift_z",
+                                  "type": "minecraft:noise",
+                                  "xz_scale": 1.0,
+                                  "y_scale": 0.0
+                                },
+                                "type": "minecraft:cache"
+                              },
+                              "right": -0.394912493,
+                              "type": "minecraft:add"
+                            },
+                            "right": 6.56167979,
+                            "type": "minecraft:mul"
+                          },
+                          "max": 1.0,
+                          "min": 0.0,
+                          "type": "minecraft:clamp"
+                        },
+                        "type": "minecraft:cache"
+                      },
+                      "right": 6.0,
+                      "type": "minecraft:mul"
+                    },
+                    "max": 1.0,
+                    "min": 0.0,
+                    "type": "minecraft:clamp"
+                  },
+                  "second": {
+                    "input": {
+                      "input": {
+                        "left": {
+                          "left": {
+                            "input": {
+                              "noise": "adventure:terrain/spires",
+                              "shift_x": "minecraft:shift_x",
+                              "shift_z": "minecraft:shift_z",
+                              "type": "minecraft:noise",
+                              "xz_scale": 1.0,
+                              "y_scale": 0.0
+                            },
+                            "type": "minecraft:cache"
+                          },
+                          "right": -0.394912493,
+                          "type": "minecraft:add"
+                        },
+                        "right": 6.56167979,
+                        "type": "minecraft:mul"
+                      },
+                      "max": 1.0,
+                      "min": 0.0,
+                      "type": "minecraft:clamp"
+                    },
+                    "type": "minecraft:cache"
+                  },
+                  "type": "minecraft:lerp"
+                },
+                "right": 70.0,
+                "type": "minecraft:mul"
+              },
+              "right": 80.0,
+              "type": "minecraft:add"
+            },
+            "type": "minecraft:lerp"
+          },
+          "right": {
+            "axis": "y",
+            "from_coordinate": -64,
+            "from_value": 64.0,
+            "to_coordinate": 320,
+            "to_value": -320.0,
+            "type": "minecraft:gradient"
+          },
+          "type": "minecraft:add"
+        },
+        "right": {
+          "left": 0.0,
+          "right": {
+            "left": -128.0,
+            "right": {
+              "axis": "y",
+              "from_coordinate": -64,
+              "from_value": 64.0,
+              "to_coordinate": 320,
+              "to_value": -320.0,
+              "type": "minecraft:gradient"
+            },
+            "type": "minecraft:add"
+          },
+          "type": "minecraft:sub"
+        },
+        "type": "minecraft:min"
+      },
+      "right": 0.125,
+      "type": "minecraft:mul"
+    },
+    "type": "minecraft:max"
+  },
+  "type": "minecraft:cache"
+}

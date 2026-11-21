@@ -1,0 +1,84 @@
+{
+ "slug": "the_starwell",
+ "targets": [
+  {
+   "key": "surface.voidPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "\"a few silvered islands adrift\": mostly open void between islands"
+  },
+  {
+   "key": "surface.voidPercent",
+   "op": "<=",
+   "value": 90,
+   "from": "\"a few ... islands\": the islands are there"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:sand + surface.groundBlocksPercent.minecraft:red_sand + surface.groundBlocksPercent.minecraft:sandstone",
+   "op": "<=",
+   "value": 0.1,
+   "from": "1.21.1 biomes mirage_isles, skylands_winter, alpha_islands: no desert sand (restated per land column: the old form counted void columns, which a world over a void cannot fill)",
+   "per": "vertical.layerColumnsPercent.surface",
+   "was": {
+    "key": "surface.groundBlocksPercent.minecraft:sand + surface.groundBlocksPercent.minecraft:red_sand + surface.groundBlocksPercent.minecraft:sandstone",
+    "op": "<=",
+    "value": 10
+   }
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:snowy_plains + surface.biomesPercent.adventure:windswept_isles + surface.biomesPercent.adventure:alpha_grove",
+   "op": ">=",
+   "value": 0.6,
+   "from": "1.21.1 biomes: winter skylands and alpha islands carry the islands (restated per land column: the old form counted void columns, which a world over a void cannot fill)",
+   "per": "vertical.layerColumnsPercent.surface",
+   "was": {
+    "key": "surface.biomesPercent.minecraft:snowy_plains + surface.biomesPercent.adventure:windswept_isles + surface.biomesPercent.adventure:alpha_grove",
+    "op": ">=",
+    "value": 60
+   }
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.fixedTime?",
+   "op": "between",
+   "value": [
+    13000,
+    23000
+   ],
+   "from": "\"A well of night sky\"; 1.21.1 environment fixedTime 18000"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.3,
+   "from": "\"night sky\"; 1.21.1 ambientLight 0.15"
+  },
+  {
+   "key": "vegetation.treesPerHectareByLayer.surface + vegetation.treesPerHectareByLayer.sky",
+   "op": "<=",
+   "value": 15,
+   "from": "\"a few silvered islands\": sparse, quiet islands"
+  },
+  {
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind place: one well of sky with one island character (restated: on islands the largest region is the largest island; one place reads as each island in its one biome)",
+   "was": {
+    "key": "placeness.landBiomeRegions.largestPercent",
+    "op": ">=",
+    "value": 50
+   }
+  },
+  {
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 75,
+   "from": "restated: on islands every islet under 1 ha is a speck whatever its biome (kit gap: no speck measure inside islands); no scatter of biome specks reads as at most a quarter of each island outside its own biome",
+   "was": {
+    "key": "placeness.landBiomeRegions.specksPercent",
+    "op": "<=",
+    "value": 5
+   }
+  }
+ ]
+}

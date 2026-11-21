@@ -1,0 +1,22 @@
+subprojects {
+	group = project.maven_group
+	version = project.mod_version
+
+	repositories {
+		mavenCentral()
+	}
+
+	plugins.withType(JavaPlugin).configureEach {
+		java {
+			sourceCompatibility = JavaVersion.VERSION_25
+			targetCompatibility = JavaVersion.VERSION_25
+		}
+		tasks.withType(JavaCompile).configureEach {
+			it.options.release = 25
+			it.options.encoding = 'UTF-8'
+		}
+		tasks.withType(Test).configureEach {
+			useJUnitPlatform()
+		}
+	}
+}

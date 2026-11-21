@@ -1,0 +1,41 @@
+{
+  "reason": "Route 1-2 as a clone with terrain (G9): one large island (size 4, coverage 0.6) gathered at spawn by a radial layout, void at the 1024 border (G10); snowy weights over land with dying_forest for the autumnal tundra.",
+  "terrain": {
+    "base": "floating_islands",
+    "params": {
+      "size": 4,
+      "coverage": 0.6,
+      "altitude": 120
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [
+        0,
+        51
+      ],
+      "radius": 260,
+      "falloff": 320,
+      "strength": 1
+    }
+  },
+  "biomes": [
+    "minecraft:snowy_taiga",
+    "minecraft:snowy_plains",
+    "minecraft:snowy_slopes",
+    "adventure:windswept_isles",
+    "adventure:dying_forest",
+    "minecraft:cherry_grove"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:snowy_taiga": 35,
+      "minecraft:snowy_plains": 20,
+      "minecraft:snowy_slopes": 15,
+      "adventure:windswept_isles": 10,
+      "adventure:dying_forest": 5,
+      "minecraft:cherry_grove": 3
+    },
+    "over": "land"
+  }
+}

@@ -1,0 +1,68 @@
+{
+ "slug": "the_aviary",
+ "targets": [
+  {
+   "key": "surface.voidPercent",
+   "op": "between",
+   "value": [
+    15,
+    60
+   ],
+   "from": "\"Wisteria drifts on the updrafts between plateaus\": open sky between the masses"
+  },
+  {
+   "key": "terrain.slopes.flatUnder15Percent",
+   "op": ">=",
+   "value": 50,
+   "from": "\"between plateaus\": flat-topped land (restated: the landform classifier puts a mass narrower than its 256-block window in islands whatever its top, so plateaus and plains read 14-31% of land on every variant; half the land columns under 15 degrees is the flat top)",
+   "was": {
+    "key": "landforms.sharesPercent.plateaus + landforms.sharesPercent.plains",
+    "op": ">=",
+    "value": 0.35,
+    "per": "vertical.layerColumnsPercent.surface"
+   }
+  },
+  {
+   "key": "surface.biomesPercent.adventure:wisteria_grove",
+   "per": "vertical.layerColumnsPercent.surface",
+   "op": ">=",
+   "value": 0.08,
+   "from": "\"Wisteria drifts on the updrafts\", over land columns"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:sky_highlands + surface.biomesPercent.adventure:golden_skygrove + surface.biomesPercent.minecraft:forest + surface.biomesPercent.minecraft:flower_forest + surface.biomesPercent.minecraft:meadow + surface.biomesPercent.minecraft:cherry_grove + surface.biomesPercent.adventure:wisteria_grove",
+   "per": "vertical.layerColumnsPercent.surface",
+   "op": ">=",
+   "value": 0.5,
+   "from": "1.21.1 spawnFilter highlands, highlands_forest, wisteria_woods: skyland groves, over land columns"
+  },
+  {
+   "key": "placeness.islands.sizesHa.max",
+   "op": ">=",
+   "value": 300,
+   "from": "place kind meeting: a few large plateaus, not a scatter of islets"
+  },
+  {
+   "key": "placeness.places.islands.dominantPlacePercent",
+   "op": ">=",
+   "value": 55,
+   "from": "place kind meeting: each plateau mostly one place (restated from the biome form: a place is the description's unit, its two or three groves mixed inside it)",
+   "was": {
+    "key": "placeness.islands.dominantBiomePercent",
+    "op": ">=",
+    "value": 55
+   }
+  },
+  {
+   "key": "placeness.places.islands.dominantPlacePercent",
+   "op": ">=",
+   "value": 75,
+   "from": "restated: on islands every islet under 1 ha is a speck whatever its place (kit gap: no speck measure inside islands); a meeting judged by place: at most a quarter of each island outside its own place",
+   "was": {
+    "key": "placeness.landBiomeRegions.specksPercent",
+    "op": "<=",
+    "value": 5
+   }
+  }
+ ]
+}

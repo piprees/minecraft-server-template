@@ -1,0 +1,10 @@
+22:16 — f4 start; fast-forwarded worktree to branch head 327418f4
+22:17 — lead addition noted: coarse levels on roofed/sky worlds start column search below ceiling / top of topmost tier band (from settings + pre-scan), roof layers absent; finest keeps all runs; measure shortcut vs full column; core change additive
+22:23 — read brief/common rules/fast core/DH API (3.3.4-26.3, sha512 prefix 0b90b1b0 matches Modrinth; LGPL-3); copied vanilla 26.3 data
+22:31 — wrote LodColumn, LodSource, ColumnRuns clip/within/withFloor/sameAs, LevelMaths.lodReach, DhLodGenerator(s); stopped baseline build (would compile new files)
+22:35 — compiled server with DH compileOnly; LodColumnTest (13) + lodReach test pass
+22:42 — headless LodBench: overworld/aviary/end/nether/underdark shortcut 99.9-100% heights, runs kept 100%; fixed roof start measured (Nether: block 101 open in 8523/15520 floored cols = 55%) -> whole columns + roof dropped below 0.9 coverage; 0 malformed columns
+22:44 — cutover idle-tasks: DH pregen radius = max(player, generation) with defaults (lod_reach_for); shellcheck clean; fixture test matches LevelMaths.lodReach
+22:46 — README section, selfTestLod prop, lane script (shellcheck clean); quick gate exit 0
+22:55 — full build green (core 719, compiler 559, server 174 = 1452 tests, 0 failed; 14 new); committed README/lane/evidence
+22:56 — roofed flag kept for unroofed coarse columns; server tests + bench5 green (0 malformed); committed. Done; reporting.

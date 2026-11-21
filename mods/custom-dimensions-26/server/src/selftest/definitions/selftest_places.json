@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: seven weighted land places (one a group of two forests) with neighbour and apart hints, for the terrain section's places line.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    "minecraft:plains",
+    "minecraft:forest",
+    "minecraft:birch_forest",
+    "minecraft:taiga",
+    "minecraft:savanna",
+    "minecraft:desert",
+    "minecraft:swamp",
+    "minecraft:snowy_plains"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:plains": 2.5,
+      "minecraft:desert": 1.5,
+      "minecraft:forest": 1,
+      "minecraft:birch_forest": 0.5
+    },
+    "places": {
+      "groups": {
+        "woods": [
+          "minecraft:forest",
+          "minecraft:birch_forest"
+        ]
+      },
+      "neighbours": [
+        [
+          "minecraft:plains",
+          "minecraft:swamp"
+        ]
+      ],
+      "apart": [
+        [
+          "minecraft:desert",
+          "minecraft:snowy_plains"
+        ]
+      ]
+    }
+  },
+  "borders": {
+    "player": 1024
+  }
+}

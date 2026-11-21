@@ -1,0 +1,706 @@
+{
+  "$schema": "../../../../../../schema/biome.schema.json",
+  "realm": "overworld",
+  "inspiredBy": "Nature's Spirit's and Regions Unexplored's temperate rainforests: a cool coastal wood that is always wet.",
+  "differs": "Old growth taiga is dry needles and podzol; this is a cool wood that is always raining, its spruces and two-by-two giants green with vines up the trunks and moss carpets on every fallen log, moss and mud on the floor under a deep fern cover, mossy boulders, mushrooms, and a soft green-grey mist with water dripping through it.",
+  "climate": {
+    "temperature": [
+      -0.15,
+      0.2
+    ],
+    "humidity": [
+      0.6,
+      1.0
+    ],
+    "continentalness": [
+      0.0,
+      0.6
+    ]
+  },
+  "palette": {
+    "top": "minecraft:moss_block",
+    "filler": "minecraft:dirt"
+  },
+  "biome": {
+    "attributes": {
+      "minecraft:audio/background_music": {
+        "default": {
+          "max_delay": 24000,
+          "min_delay": 12000,
+          "sound": "minecraft:music.overworld.old_growth_taiga"
+        }
+      },
+      "minecraft:gameplay/natural_mob_spawns": {
+        "argument": {
+          "spawn_costs": {},
+          "spawns_by_category": {
+            "ambient": [
+              {
+                "type": "minecraft:bat",
+                "count": 8,
+                "weight": 10
+              }
+            ],
+            "creature": [
+              {
+                "type": "minecraft:frog",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 2
+                },
+                "weight": 6
+              },
+              {
+                "type": "minecraft:fox",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 3,
+                  "min_inclusive": 2
+                },
+                "weight": 6
+              },
+              {
+                "type": "minecraft:wolf",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 2
+                },
+                "weight": 4
+              },
+              {
+                "type": "minecraft:rabbit",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 3,
+                  "min_inclusive": 2
+                },
+                "weight": 4
+              }
+            ],
+            "monster": [
+              {
+                "type": "minecraft:spider",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:zombie",
+                "count": 4,
+                "weight": 95
+              },
+              {
+                "type": "minecraft:zombie_villager",
+                "count": 1,
+                "weight": 5
+              },
+              {
+                "type": "minecraft:skeleton",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:creeper",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:slime",
+                "count": 4,
+                "weight": 100
+              },
+              {
+                "type": "minecraft:enderman",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 4,
+                  "min_inclusive": 1
+                },
+                "weight": 10
+              },
+              {
+                "type": "minecraft:witch",
+                "count": 1,
+                "weight": 5
+              }
+            ],
+            "underground_water_creature": [
+              {
+                "type": "minecraft:glow_squid",
+                "count": {
+                  "type": "minecraft:uniform",
+                  "max_inclusive": 6,
+                  "min_inclusive": 4
+                },
+                "weight": 10
+              }
+            ]
+          }
+        },
+        "modifier": "overlay"
+      },
+      "minecraft:visual/ambient_particles": {
+        "argument": [
+          {
+            "particle": {
+              "type": "minecraft:dripping_water"
+            },
+            "probability": 0.004
+          },
+          {
+            "particle": {
+              "type": "minecraft:falling_water"
+            },
+            "probability": 0.002
+          }
+        ],
+        "modifier": "append"
+      },
+      "minecraft:visual/fog_color": "#8fa69a",
+      "minecraft:visual/sky_color": "#90a7a8",
+      "minecraft:visual/water_fog_color": "#2a4a3e",
+      "minecraft:visual/fog_start_distance": {
+        "argument": 0.0,
+        "modifier": "multiply"
+      },
+      "minecraft:visual/fog_end_distance": {
+        "argument": 0.6,
+        "modifier": "multiply"
+      }
+    },
+    "carvers": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ],
+    "downfall": 1.0,
+    "effects": {
+      "grass_color": "#4f8a45",
+      "foliage_color": "#3f7a3a",
+      "water_color": "#3a6a5a"
+    },
+    "features": [
+      [],
+      [
+        "minecraft:lake_lava_underground",
+        "minecraft:lake_lava_surface"
+      ],
+      [
+        "minecraft:amethyst_geode",
+        "minecraft:forest_rock"
+      ],
+      [
+        "minecraft:monster_room",
+        "minecraft:monster_room_deep"
+      ],
+      [],
+      [],
+      [
+        "minecraft:ore_dirt",
+        "minecraft:ore_gravel",
+        "minecraft:ore_granite_upper",
+        "minecraft:ore_granite_lower",
+        "minecraft:ore_diorite_upper",
+        "minecraft:ore_diorite_lower",
+        "minecraft:ore_andesite_upper",
+        "minecraft:ore_andesite_lower",
+        "minecraft:ore_tuff",
+        "minecraft:ore_coal_upper",
+        "minecraft:ore_coal_lower",
+        "minecraft:ore_iron_upper",
+        "minecraft:ore_iron_middle",
+        "minecraft:ore_iron_small",
+        "minecraft:ore_gold",
+        "minecraft:ore_gold_lower",
+        "minecraft:ore_redstone",
+        "minecraft:ore_redstone_lower",
+        "minecraft:ore_diamond",
+        "minecraft:ore_diamond_medium",
+        "minecraft:ore_diamond_large",
+        "minecraft:ore_diamond_buried",
+        "minecraft:ore_lapis",
+        "minecraft:ore_lapis_buried",
+        "minecraft:ore_copper",
+        "minecraft:underwater_magma",
+        "minecraft:disk_sand",
+        "minecraft:disk_clay",
+        "minecraft:disk_gravel",
+        "~mud_patches",
+        "~grass_patches"
+      ],
+      [],
+      [
+        "minecraft:spring_water",
+        "minecraft:spring_lava"
+      ],
+      [
+        "minecraft:glow_lichen",
+        "~rain_spruces",
+        "~rain_giants",
+        "~mossy_logs",
+        "~fern_cover",
+        "minecraft:brown_mushroom_old_growth",
+        "minecraft:red_mushroom_old_growth"
+      ],
+      [
+        "minecraft:freeze_top_layer"
+      ]
+    ],
+    "has_precipitation": true,
+    "temperature": 0.6
+  },
+  "features": {
+    "rain_spruces": {
+      "feature": {
+        "type": "minecraft:tree",
+        "below_trunk_provider": "minecraft:soil_beneath_tree",
+        "decorators": [
+          {
+            "type": "minecraft:trunk_vine"
+          },
+          {
+            "type": "minecraft:leave_vine",
+            "probability": 0.15
+          }
+        ],
+        "foliage_placer": {
+          "type": "minecraft:spruce_foliage_placer",
+          "offset": {
+            "type": "minecraft:uniform",
+            "min_inclusive": 0,
+            "max_inclusive": 2
+          },
+          "radius": {
+            "type": "minecraft:uniform",
+            "min_inclusive": 2,
+            "max_inclusive": 3
+          },
+          "trunk_height": {
+            "type": "minecraft:uniform",
+            "min_inclusive": 2,
+            "max_inclusive": 4
+          }
+        },
+        "foliage_provider": {
+          "id": "minecraft:spruce_leaves",
+          "properties": {
+            "distance": "7",
+            "persistent": "false",
+            "waterlogged": "false"
+          }
+        },
+        "ignore_vines": false,
+        "minimum_size": {
+          "type": "minecraft:two_layers_feature_size",
+          "limit": 2,
+          "upper_size": 2
+        },
+        "trunk_placer": {
+          "type": "minecraft:straight_trunk_placer",
+          "base_height": 10,
+          "height_rand_a": 5,
+          "height_rand_b": 2
+        },
+        "trunk_provider": {
+          "id": "minecraft:spruce_log",
+          "properties": {
+            "axis": "y"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": {
+            "type": "minecraft:weighted_list",
+            "distribution": [
+              {
+                "data": 4,
+                "weight": 2
+              },
+              {
+                "data": 6,
+                "weight": 2
+              },
+              {
+                "data": 7,
+                "weight": 1
+              }
+            ]
+          }
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_blocks",
+            "blocks": [
+              "minecraft:moss_block",
+              "minecraft:dirt",
+              "minecraft:grass_block",
+              "minecraft:mud",
+              "minecraft:podzol"
+            ],
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    "rain_giants": {
+      "feature": {
+        "type": "minecraft:tree",
+        "below_trunk_provider": "minecraft:soil_beneath_tree",
+        "decorators": [
+          {
+            "type": "minecraft:trunk_vine"
+          }
+        ],
+        "foliage_placer": {
+          "type": "minecraft:mega_pine_foliage_placer",
+          "crown_height": {
+            "type": "minecraft:uniform",
+            "min_inclusive": 10,
+            "max_inclusive": 14
+          },
+          "offset": 0,
+          "radius": 0
+        },
+        "foliage_provider": {
+          "id": "minecraft:spruce_leaves",
+          "properties": {
+            "distance": "7",
+            "persistent": "false",
+            "waterlogged": "false"
+          }
+        },
+        "ignore_vines": false,
+        "minimum_size": {
+          "type": "minecraft:two_layers_feature_size",
+          "lower_size": 1,
+          "upper_size": 2
+        },
+        "trunk_placer": {
+          "type": "minecraft:giant_trunk_placer",
+          "base_height": 18,
+          "height_rand_a": 4,
+          "height_rand_b": 4
+        },
+        "trunk_provider": {
+          "id": "minecraft:spruce_log",
+          "properties": {
+            "axis": "y"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:rarity_filter",
+          "chance": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_blocks",
+            "blocks": [
+              "minecraft:moss_block",
+              "minecraft:dirt",
+              "minecraft:grass_block",
+              "minecraft:mud",
+              "minecraft:podzol"
+            ],
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    "mossy_logs": {
+      "feature": {
+        "type": "minecraft:fallen_tree",
+        "log_decorators": [
+          {
+            "type": "minecraft:attached_to_logs",
+            "block_provider": {
+              "type": "minecraft:weighted",
+              "entries": [
+                {
+                  "data": "minecraft:moss_carpet",
+                  "weight": 5
+                },
+                {
+                  "data": "minecraft:brown_mushroom",
+                  "weight": 1
+                }
+              ]
+            },
+            "directions": [
+              "up"
+            ],
+            "probability": 0.7
+          }
+        ],
+        "log_length": {
+          "type": "minecraft:uniform",
+          "min_inclusive": 6,
+          "max_inclusive": 11
+        },
+        "stump_decorators": [
+          {
+            "type": "minecraft:trunk_vine"
+          }
+        ],
+        "trunk_provider": {
+          "id": "minecraft:spruce_wood",
+          "properties": {
+            "axis": "y"
+          }
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:rarity_filter",
+          "chance": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:surface_water_depth_filter",
+          "max_water_depth": 0
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "OCEAN_FLOOR"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:matching_blocks",
+            "blocks": [
+              "minecraft:moss_block",
+              "minecraft:dirt",
+              "minecraft:grass_block",
+              "minecraft:mud",
+              "minecraft:podzol"
+            ],
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      ]
+    },
+    "fern_cover": {
+      "feature": {
+        "type": "minecraft:simple_block",
+        "to_place": {
+          "type": "minecraft:weighted",
+          "entries": [
+            {
+              "data": "minecraft:fern",
+              "weight": 4
+            },
+            {
+              "data": {
+                "id": "minecraft:large_fern",
+                "properties": {
+                  "half": "lower"
+                }
+              },
+              "weight": 3
+            },
+            {
+              "data": "minecraft:short_grass",
+              "weight": 1
+            }
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 4
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "MOTION_BLOCKING"
+        },
+        {
+          "type": "minecraft:biome"
+        },
+        {
+          "type": "minecraft:count",
+          "count": 40
+        },
+        {
+          "type": "minecraft:offset",
+          "x": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          },
+          "y": {
+            "type": "minecraft:trapezoid",
+            "max": 2,
+            "min": -2,
+            "plateau": 0
+          },
+          "z": {
+            "type": "minecraft:trapezoid",
+            "max": 7,
+            "min": -7,
+            "plateau": 0
+          }
+        },
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_block_tag",
+                "tag": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": [
+                  "minecraft:moss_block",
+                  "minecraft:grass_block",
+                  "minecraft:dirt",
+                  "minecraft:mud",
+                  "minecraft:podzol"
+                ],
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "mud_patches": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "min_inclusive": 2,
+          "max_inclusive": 3
+        },
+        "state_provider": {
+          "id": "minecraft:mud"
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:moss_block",
+            "minecraft:dirt",
+            "minecraft:grass_block"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:rarity_filter",
+          "chance": 2
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    },
+    "grass_patches": {
+      "feature": {
+        "type": "minecraft:disk",
+        "half_height": 1,
+        "radius": {
+          "type": "minecraft:uniform",
+          "min_inclusive": 2,
+          "max_inclusive": 4
+        },
+        "state_provider": {
+          "id": "minecraft:grass_block",
+          "properties": {
+            "snowy": "false"
+          }
+        },
+        "target": {
+          "type": "minecraft:matching_blocks",
+          "blocks": [
+            "minecraft:moss_block"
+          ]
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:count",
+          "count": 1
+        },
+        {
+          "type": "minecraft:in_square"
+        },
+        {
+          "type": "minecraft:heightmap",
+          "heightmap": "WORLD_SURFACE_WG"
+        },
+        {
+          "type": "minecraft:biome"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: the overworld preset's own terrain held to 25% land over a 512-block border, an archipelago of the vanilla coast.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "landShare": 0.25
+  },
+  "borders": {
+    "player": 512,
+    "generation": 1024
+  }
+}

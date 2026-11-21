@@ -1,0 +1,13 @@
+{
+  "base": "minecraft:end",
+  "changed": {
+    "default_block": "minecraft:netherrack",
+    "default_fluid": "minecraft:lava",
+    "material_rule": "adventure:the_blighted_maw",
+    "noise_router": "sha1:8b0362a7de4c17ece9b883a846b6cd0def8a6bcb",
+    "sea_level": -60
+  },
+  "removed": [
+    "debug_functions"
+  ]
+}

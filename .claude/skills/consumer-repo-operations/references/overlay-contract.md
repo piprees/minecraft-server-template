@@ -54,7 +54,7 @@ Applied by `seed.sh` against `/defaults/modrinth-mods.txt` (the platform's `conf
 
 Format for both files: `slug:versionId` (Modrinth slug and version ID), one per line, `#` comments and blank lines ignored, trailing `?` marks a mod optional (boot doesn't fail if it can't resolve).
 
-Removing a mod's dependents is on you — `seed.sh` doesn't do dependency resolution, it's a flat text merge. See the mandatory dependency checklist in the template repo's `AGENTS.md#mods` before adding anything.
+Removing a mod's dependents is on you — `seed.sh` doesn't do dependency resolution, it's a flat text merge. See the mandatory dependency checklist in the template repo's [DEPENDENCIES.md § Adding a mod](https://github.com/piprees/minecraft-server-template/blob/main/DEPENDENCIES.md#adding-a-mod) before adding anything.
 
 ## `overlay/assets/`
 
@@ -66,7 +66,7 @@ Two independent pieces, both consumed by `docker/modpack-builder/entrypoint.sh` 
 
 ### `overlay/modpack/manifest.json` — a patch, not a file replacement
 
-Applied by `docker/modpack-builder/merge-manifest.py` (`merge(default, patch)`), deep-merging onto the platform's `modpack/adventure.mrpack.json`. **This is the actual, code-verified patch schema** — it does not match the worked example currently shown in `examples/consumer/overlay/modpack/README.md` (that README shows a nested `_clientMods.required: [{slug, versionId}]` object form, which `merge-manifest.py` does not read):
+Applied by `docker/modpack-builder/merge-manifest.py` (`merge(default, patch)`), deep-merging onto the platform's `modpack/adventure.mrpack.json`.:
 
 ```json
 {
@@ -80,13 +80,13 @@ Applied by `docker/modpack-builder/merge-manifest.py` (`merge(default, patch)`),
 }
 ```
 
-- `remove[]` — slugs dropped from **both** `_clientMods.required` and `_clientMods.optional` on the platform manifest.
-- `add.required[]` / `add.optional[]` — `slug:versionId` strings appended, duplicates skipped by slug.
+- `remove[]` — slugs dropped from **both** `_clientMods.required` and `_clientMods.optional` on the platform manifest. Entries match by slug, so `"sodium"` drops `sodium:QV48eyCs`.
+- `add.required[]` / `add.optional[]` — `slug:versionId` strings added; an entry already listed under the same slug, in either list, is replaced.
 - `name`, `versionId` — scalar overrides at the top level.
 - `_resourcePacks`, `_shaderPacks` — whole-section replacement (not merged) if present in the patch.
 - An empty `{}` (the default when the file doesn't exist) changes nothing.
 
-This means **adding or removing an existing-catalogue client mod from a consumer repo is genuinely possible** without a template PR — narrower than "not here" but real. What still requires a template PR: any mod that needs a `stableOnly`/`holds` entry, a brand-new manifest section, or coordination with a server-side removal via `overlay/mods-remove.txt` (the build's parity lint in `build-modpack.sh` only warns, it doesn't auto-sync the two lists — see the checklist in the consumer README's "Remove a default mod" section).
+Adding or removing an existing-catalogue client mod needs no template PR. What does: any mod that needs a `stableOnly` or `_holds` entry, or a new manifest section. A server-side removal in `overlay/mods-remove.txt` reaches the client pack on its own: `strip-removed-mods.py` drops the same slugs from `_clientMods` before the build.
 
 ### `overlay/modpack/overrides/` and `overlay/modpack/template/index.html`
 

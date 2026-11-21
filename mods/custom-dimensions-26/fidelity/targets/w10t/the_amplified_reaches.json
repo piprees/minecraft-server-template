@@ -1,0 +1,53 @@
+{
+ "slug": "the_amplified_reaches",
+ "targets": [
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 25,
+   "from": "\"The human frontier pushed vertical\": land, not sea"
+  },
+  {
+   "key": "terrain.surfaceHeight.p95",
+   "op": ">=",
+   "value": 220,
+   "from": "\"Cliffs beyond reason, keeps on the peaks\""
+  },
+  {
+   "key": "terrain.slopes.cliffPercent",
+   "op": ">=",
+   "value": 10,
+   "from": "\"Cliffs beyond reason\""
+  },
+  {
+   "key": "terrain.reliefMedian",
+   "op": ">=",
+   "value": 80,
+   "from": "\"pushed vertical\""
+  },
+  {
+   "key": "landforms.sharesPercent.mountains + landforms.sharesPercent.hills",
+   "op": ">=",
+   "value": 35,
+   "from": "\"keeps on the peaks\""
+  },
+  {
+   "key": "terrain.surfaceHeight.p5",
+   "op": "<=",
+   "value": 60,
+   "from": "\"The deeper valleys\""
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 25,
+   "from": "place kind noise (frontier): vanilla biomes in broad regions"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "no scatter of biome specks"
+  }
+ ]
+}

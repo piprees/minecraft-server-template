@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture and showcase: the biome library's cloud forest filling a whole level on the ridges terrain's mountain ranges, the high ground it grows on, for the biomes section's per-biome checks, renders and screenshots.",
+  "seed": 3,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "single_biome",
+    "biome": "adventure:cloud_forest"
+  },
+  "terrain": {
+    "base": "ridges"
+  },
+  "borders": {
+    "player": 512
+  }
+}

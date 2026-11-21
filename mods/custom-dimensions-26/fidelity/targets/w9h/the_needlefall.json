@@ -1,0 +1,71 @@
+{
+ "slug": "the_needlefall",
+ "targets": [
+  {
+   "key": "placeness.landformRegions.edgeKmPerKm2",
+   "op": ">=",
+   "value": 29.0,
+   "from": "broken: \"dramatic terrain punishes a careless step\" (measured 32.3)"
+  },
+  {
+   "key": "biomeExpression.biomes.adventure:lichen_caves.columns? + biomeExpression.biomes.adventure:lichen_caves.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "biomeExpression.biomes.adventure:magmatic_caves.columns? + biomeExpression.biomes.adventure:magmatic_caves.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:old_growth_pine_taiga",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:old_growth_spruce_taiga",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:snowy_taiga",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:taiga",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:windswept_forest",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomeRegions.largestPercent",
+   "op": ">=",
+   "value": 22.1,
+   "from": "broken: biome regions (W9f, measured 24.6)"
+  },
+  {
+   "key": "placeness.biomeRegions.specksPercent",
+   "op": "<=",
+   "value": 6.2,
+   "from": "broken: biome regions (W9f, measured 4.6)"
+  },
+  {
+   "key": "placeness.landformRegions.largestPercent",
+   "op": "<=",
+   "value": 53.6,
+   "from": "broken: the terrain stays broken (W9f, measured 48.6)"
+  }
+ ]
+}

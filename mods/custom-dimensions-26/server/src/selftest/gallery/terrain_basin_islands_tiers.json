@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: lake masses with a tier of floating islands 70 blocks over them.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "basin_islands",
+    "params": {
+      "altitude": 120,
+      "tiers": 2,
+      "tierSpacing": 70
+    }
+  },
+  "borders": {
+    "player": 2048
+  }
+}

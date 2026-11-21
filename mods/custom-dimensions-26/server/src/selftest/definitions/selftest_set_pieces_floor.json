@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: set pieces on a Nether floor under its roof. A floor piece forced near the centre (a nether fossil template, a chest, a blaze spawner), and a wart patch in the landmarks group, the only set that group pools, at most two copies.",
+  "seed": 20261032,
+  "spawn": [0, 64, 0],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "borders": {
+    "player": 512
+  },
+  "structures": {
+    "mode": "allow",
+    "list": ["adventure:set_piece/selftest_set_pieces_floor/wart_patch"],
+    "noise": {"landmarks": "dense"},
+    "force": [
+      {"structure": "adventure:set_piece/selftest_set_pieces_floor/fossil_floor", "x": 8, "z": 8, "radius": 48}
+    ]
+  },
+  "setPieces": {
+    "fossil_floor": {
+      "name": "The Fossil Floor",
+      "seat": "floor",
+      "support": 0.3,
+      "clear": 4,
+      "size": 12,
+      "age": "ancient",
+      "elements": [
+        {"kind": "template", "id": "minecraft:nether_fossils/fossil_1", "integrity": 1.0, "embed": 0},
+        {"kind": "chest", "loot": "minecraft:chests/nether_bridge", "offset": [5, 0, 0]},
+        {"kind": "spawner", "entity": "minecraft:blaze", "offset": [-5, 0, 0]}
+      ]
+    },
+    "wart_patch": {
+      "name": "The Wart Patch",
+      "seat": "floor",
+      "support": 0.3,
+      "clear": 3,
+      "size": 8,
+      "group": "landmarks",
+      "rarity": "common",
+      "repetition": 2,
+      "elements": [
+        {"kind": "scatter", "count": 6, "radius": 5, "items": [{"block": "minecraft:nether_wart_block"}, {"block": "minecraft:shroomlight"}]}
+      ]
+    }
+  }
+}

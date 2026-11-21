@@ -1,0 +1,9 @@
+{
+  "basins": {
+    "basin": "adventure:terrain/terrain_basin_places/basin",
+    "floor": "adventure:terrain/terrain_basin_places/basin_floor",
+    "fluid": "minecraft:water",
+    "level": 150
+  },
+  "level": "adventure:terrain_basin_places"
+}

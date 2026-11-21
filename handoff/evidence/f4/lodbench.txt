@@ -1,0 +1,48 @@
+overworld lod shape: SURFACE, window -64..178, pre-scan 16384 columns every 64 blocks (0 roofed, 0 floating) in 2590 ms; surface: searched from block 178, 16 over the highest surface, to -64, 32 under the lowest; ground at the floor carried down to the noise floor
+overworld lod request detail 0: 4096 columns, 4.69 segments and 2.52 solid segments per column, 0 columns malformed, 152 ms
+overworld lod shortcut detail 2 (SURFACE): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 1.87 whole / 1.87 shortcut, 1823 ms whole / 1318 ms shortcut
+overworld lod request detail 2: 4096 columns, 7.50 segments and 4.92 solid segments per column, 0 columns malformed, 452 ms
+overworld lod shortcut detail 4 (SURFACE): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 1.81 whole / 1.81 shortcut, 1862 ms whole / 1344 ms shortcut
+overworld lod request detail 4: 4096 columns, 6.73 segments and 4.58 solid segments per column, 0 columns malformed, 415 ms
+overworld lod shortcut detail 6 (SURFACE): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 1.79 whole / 1.79 shortcut, 1896 ms whole / 1373 ms shortcut
+overworld lod request detail 6: 4096 columns, 6.61 segments and 4.35 solid segments per column, 0 columns malformed, 414 ms
+overworld lod shortcut detail 8 (SURFACE): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 1.85 whole / 1.85 shortcut, 1832 ms whole / 1372 ms shortcut
+overworld lod request detail 8: 4096 columns, 6.90 segments and 4.53 solid segments per column, 0 columns malformed, 416 ms
+the_aviary lod shape: TIERS, window 0..255, pre-scan 16384 columns every 64 blocks (14 roofed, 7977 floating) in 2220 ms; floating runs in 7977 of 16384 pre-scan columns: searched from block 255, 16 over the topmost tier band, to 0, 16 under the lowest run
+the_aviary lod request detail 0: 4096 columns, 1.00 segments and 0.00 solid segments per column, 0 columns malformed, 84 ms
+the_aviary lod shortcut detail 2 (TIERS): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 0.60 whole / 0.60 shortcut, 1632 ms whole / 572 ms shortcut
+the_aviary lod request detail 2: 4096 columns, 1.88 segments and 0.66 solid segments per column, 0 columns malformed, 431 ms
+the_aviary lod shortcut detail 4 (TIERS): 16384 columns, heights within 1 0.9987, exact 0.9987, runs kept 1.0000, runs per column 0.60 whole / 0.60 shortcut, 1499 ms whole / 540 ms shortcut
+the_aviary lod request detail 4: 4096 columns, 2.64 segments and 1.23 solid segments per column, 0 columns malformed, 379 ms
+the_aviary lod shortcut detail 6 (TIERS): 16384 columns, heights within 1 0.9991, exact 0.9991, runs kept 1.0000, runs per column 0.67 whole / 0.67 shortcut, 1318 ms whole / 485 ms shortcut
+the_aviary lod request detail 6: 4096 columns, 3.63 segments and 1.97 solid segments per column, 0 columns malformed, 371 ms
+the_aviary lod shortcut detail 8 (TIERS): 16384 columns, heights within 1 0.9991, exact 0.9991, runs kept 1.0000, runs per column 0.68 whole / 0.68 shortcut, 1650 ms whole / 609 ms shortcut
+the_aviary lod request detail 8: 4096 columns, 3.70 segments and 2.02 solid segments per column, 0 columns malformed, 399 ms
+the_end lod shape: TIERS, window 0..83, pre-scan 16384 columns every 64 blocks (0 roofed, 7087 floating) in 828 ms; floating runs in 7087 of 16384 pre-scan columns: searched from block 83, 16 over the topmost tier band, to 0, 16 under the lowest run
+the_end lod request detail 0: 4096 columns, 4.67 segments and 2.74 solid segments per column, 0 columns malformed, 22 ms
+the_end lod shortcut detail 2 (TIERS): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 0.39 whole / 0.39 shortcut, 360 ms whole / 117 ms shortcut
+the_end lod request detail 2: 4096 columns, 1.29 segments and 0.21 solid segments per column, 0 columns malformed, 39 ms
+the_end lod shortcut detail 4 (TIERS): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 0.44 whole / 0.44 shortcut, 789 ms whole / 359 ms shortcut
+the_end lod request detail 4: 4096 columns, 1.56 segments and 0.42 solid segments per column, 0 columns malformed, 130 ms
+the_end lod shortcut detail 6 (TIERS): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 0.46 whole / 0.46 shortcut, 748 ms whole / 326 ms shortcut
+the_end lod request detail 6: 4096 columns, 2.85 segments and 1.38 solid segments per column, 0 columns malformed, 279 ms
+the_end lod shortcut detail 8 (TIERS): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 0.48 whole / 0.48 shortcut, 1074 ms whole / 466 ms shortcut
+the_end lod request detail 8: 4096 columns, 2.89 segments and 1.41 solid segments per column, 0 columns malformed, 240 ms
+the_nether lod shape: ROOFED, window 0..127, pre-scan 16384 columns every 64 blocks (16384 roofed, 0 floating) in 1454 ms; roofed in 16384 of 16384 pre-scan columns: whole columns, the roof left out; no fixed start, as block 101 is open between the ceiling and the floor under it in 8523 of 15520 roofed pre-scan columns with a floor, under 0.9
+the_nether lod shortcut detail 2 (ROOFED): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 1.73 whole / 1.73 shortcut, 441 ms whole / 471 ms shortcut
+the_nether lod request detail 2: 4096 columns, 7.27 segments and 4.79 solid segments per column, 0 columns malformed, 459 ms
+the_nether lod shortcut detail 4 (ROOFED): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 1.80 whole / 1.80 shortcut, 349 ms whole / 353 ms shortcut
+the_nether lod request detail 4: 4096 columns, 6.68 segments and 4.34 solid segments per column, 0 columns malformed, 202 ms
+the_nether lod shortcut detail 6 (ROOFED): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 1.83 whole / 1.83 shortcut, 347 ms whole / 337 ms shortcut
+the_nether lod request detail 6: 4096 columns, 6.67 segments and 4.37 solid segments per column, 0 columns malformed, 289 ms
+the_nether lod shortcut detail 8 (ROOFED): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 1.84 whole / 1.84 shortcut, 327 ms whole / 337 ms shortcut
+the_nether lod request detail 8: 4096 columns, 6.67 segments and 4.36 solid segments per column, 0 columns malformed, 109 ms
+the_underdark lod shape: ROOFED, window -64..127, pre-scan 4225 columns every 64 blocks (4225 roofed, 0 floating) in 348 ms; roofed in 4225 of 4225 pre-scan columns: whole columns, the roof left out; no fixed start, as block 101 is open between the ceiling and the floor under it in 2190 of 4163 roofed pre-scan columns with a floor, under 0.9
+the_underdark lod shortcut detail 2 (ROOFED): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 2.68 whole / 2.68 shortcut, 448 ms whole / 450 ms shortcut
+the_underdark lod request detail 2: 4096 columns, 10.90 segments and 7.47 solid segments per column, 0 columns malformed, 218 ms
+the_underdark lod shortcut detail 4 (ROOFED): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 2.78 whole / 2.78 shortcut, 436 ms whole / 434 ms shortcut
+the_underdark lod request detail 4: 4096 columns, 10.34 segments and 7.04 solid segments per column, 0 columns malformed, 154 ms
+the_underdark lod shortcut detail 6 (ROOFED): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 2.72 whole / 2.72 shortcut, 475 ms whole / 441 ms shortcut
+the_underdark lod request detail 6: 4096 columns, 10.21 segments and 6.98 solid segments per column, 0 columns malformed, 149 ms
+the_underdark lod shortcut detail 8 (ROOFED): 16384 columns, heights within 1 1.0000, exact 1.0000, runs kept 1.0000, runs per column 2.73 whole / 2.73 shortcut, 436 ms whole / 436 ms shortcut
+the_underdark lod request detail 8: 4096 columns, 10.22 segments and 6.98 solid segments per column, 0 columns malformed, 149 ms

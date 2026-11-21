@@ -1,0 +1,196 @@
+[
+ {
+  "slug": "the_violet_spire",
+  "terrain": "floating islands with flat-topped spires, three bands of places, night only",
+  "changed": "Night all the time. A crystal place (amethyst and calcite ground) joins the End-ward band; spires are flatter on top so growth stands on them; cherry is gone (nothing in the description asks for it); wisteria leads.",
+  "fidelity": 4,
+  "targets": {
+   "description": "6/10",
+   "placeness": "4/7"
+  },
+  "misses": [
+   "Wisteria and lavender together 23.9% of the surface (target 25).",
+   "Cliffs 3.6% of slopes (target 15): the spires are few and thick.",
+   "Land regions: the largest three 53.5% (target 60), 12 major regions (target 8), each island 42.4% one biome (target 60).",
+   "No birdcages: they wait on the places kit."
+  ],
+  "ownersEye": [
+   "Is the crystal place (amethyst ground) the crystals you meant, or should crystal clusters stand on the spire tops themselves?",
+   "The relic temple and palace ruin stand-ins (fortified temple, castle ruin) are overworld stone buildings: keep, or re-skin?"
+  ],
+  "why": "Night-only (fixed time 18000), amethyst 8.9% of the top blocks (3.5% before), wisteria grove 15.5% and lavender 8.4% of the surface, crystal hollows 6.7%, all six listed biomes expressed; cherry removed. Spires reach y 236 (`terrain.surfaceHeight.p95`). Misses: cliffs 3.6% (spires are few and thick), island dominance 42.4%."
+ },
+ {
+  "slug": "the_sunken_temple",
+  "terrain": "sky islands joined into drowned basins, a second tier of islands dipping to the water",
+  "changed": "The basins fill to their rims (water line 165, rim 16 high) and the upper islands hang 36 blocks up, low enough to touch the water. Temples are placed: two ocean temples, a sinking temple, a monument and an underwater dungeon.",
+  "fidelity": 4,
+  "targets": {
+   "description": "6/10",
+   "placeness": "4/6"
+  },
+  "misses": [
+   "Hanging gardens 10.5% of the surface (target 10 or less).",
+   "Land regions: the largest three 16.9% (target 60), 15.1% specks (target 5): the islands scatter the land.",
+   "The ocean temple shot shows no temple (it stands under water); half-drowned shore ruins wait on the places kit."
+  ],
+  "ownersEye": [
+   "The sinking temple stands on an island edge with its water volume over the void: does it fit, or is it a re-skin candidate?"
+  ],
+  "why": "Water 56.7% of the map (48.9% before) with the basin level at the rim (165); temples placed: ocean temple x2 (nearest 357 blocks), sinking temple 213, monument 936, underwater dungeon 833 (`structures.census`). Misses: land regions 16.9% in the top three (island scatter)."
+ },
+ {
+  "slug": "the_abyssal_shrine",
+  "terrain": "a ring of plateau land round one deep lake, void beyond",
+  "changed": "The lake is larger (ring radius 410) and its edge wanders; a rim shelf runs 40 blocks out from the lake to meet the plateau ring, so the lake no longer hangs in void inside the ring. A monument is forced in the lake; the cave-dungeon stand-in for the vault is dropped (it stood in the void).",
+  "fidelity": 4,
+  "targets": {
+   "description": "7/10",
+   "placeness": "5/6"
+  },
+  "misses": [
+   "Water 16.5% of the map (target 25-60) and deep oceans 18.0% (target 20).",
+   "Plateaus 4.5% of landforms (target 15).",
+   "Where the ring itself thins, the shelf still ends over void (far shot).",
+   "The shrine waits on the places kit."
+  ],
+  "ownersEye": [
+   "Is the shelf between lake and ring the right join, or should the ring land run straight to the water?"
+  ],
+  "why": "Void 29.6% (43.0% before), water 16.5%, largest region 56.2% (`placeness.landBiomeRegions.largestPercent`), five of five biomes expressed. The lake edge now joins the ring through a rim shelf; where the ring itself thins the shelf still ends over void (far shot)."
+ },
+ {
+  "slug": "the_molten_flats",
+  "terrain": "a flat crust at 35 under a high roof, lava pools in it",
+  "changed": "Flatter (90% of the floor between 28 and 41) with no fire or basalt rubble on the fields. Magma is boxed in: blackstone crust and obsidian cliffs, magma rings round the lava pools.",
+  "fidelity": 4,
+  "targets": {
+   "description": "7/9",
+   "placeness": "4/4"
+  },
+  "misses": [
+   "Lava 16.8% (target 20-45, set before the owner asked for pockets).",
+   "Trees 2.7 a hectare on the surface (target 2).",
+   "Pipelines, reactors, barracks, prison and labs wait on the places kit."
+  ],
+  "ownersEye": [
+   "Magma is now 3.6% of the top blocks: enough pockets, or too few?"
+  ],
+  "why": "Floor 35 from p25 to p75 and p95 41 (53 before), lava 16.8% in pools, blackstone 39.9% of the top, magma 3.6% (29.8%), no fire; all five biomes expressed. Misses: lava under the 20% target (the owner asked for pockets), trees 2.7/ha."
+ },
+ {
+  "slug": "the_forged_depths",
+  "terrain": "a craggy floor at 72 cut by chasms and pillars, a deep to the south with magma at its bottom",
+  "changed": "No trees: the pines and fungi are removed. The floor is far rougher (relief 18, roughness 0.6, chasms, pillars) and turns to magma and blackstone below y 40.",
+  "fidelity": 3,
+  "exception": "The two crimson forest biomes are judged unexpressed without their trees, and the craggy floor breaks the pinewood region (largest 39.7%, specks 6.9%). Needs the survey to judge a biome stripped of its trees by its ground (kit gap), and the city structures from the places kit.",
+  "targets": {
+   "description": "6/8",
+   "placeness": "2/4"
+  },
+  "misses": [
+   "Pinewood and crimson forest placed, not expressed (no trees, by the owner's ruling).",
+   "Largest land region 39.7% (target 50), specks 6.9% (target 5).",
+   "Structure shots failed (camera inside the roof): the forge and donjon are placed but not shown."
+  ],
+  "ownersEye": [
+   "Is the craggy crimson floor dead enough, or should the nylium give way to netherrack and ash?"
+  ],
+  "why": "Trees 0.1/ha (78.1), cliffs 16.1%, lava 18.5%, the deep keeps magma. Misses: pinewood and crimson forest are judged unexpressed without their trees (kit gap 2), the craggy floor breaks the pinewood region (largest 39.7%, specks 6.9%)."
+ },
+ {
+  "slug": "the_wailing_narrows",
+  "terrain": "a floor at 80 riddled with crevices down to 17, basalt and soul sand, violet fog",
+  "changed": "The quartz biome is gone; the crevices are wider and rougher, so half the floor lies in them (at 34 or lower). The violet fog holds everywhere.",
+  "fidelity": 4,
+  "targets": {
+   "description": "8/9",
+   "placeness": "4/4"
+  },
+  "misses": [
+   "The quartz-flats target is restated: the owner removed quartz.",
+   "Zombies need a spawn list per dimension (kit gap); bridges, giant skull and fortress are placed but their shots failed."
+  ],
+  "ownersEye": [
+   "Vile enough without the zombies, until the spawn list exists?"
+  ],
+  "why": "Quartz flats removed (owner); soul sand valley 52% and basalt deltas 48% of the surface, both expressed; half the floor in the chasms. Zombies need a dimension spawn list (kit gap 1)."
+ },
+ {
+  "slug": "the_gilded_pit",
+  "terrain": "a ledge country at 84 round a pit 470 across with its floor near 24",
+  "changed": "The pit is fixed at the centre with a small warp and spawn moved to the lip (16-21 blocks behind it on this seed), so the arrival is the ledge on any seed. The nine forced structures stay; sanctum, walls and towers are wanted near the border.",
+  "fidelity": 3,
+  "exception": "From the landing the pit is lost in the red fog, and the ledge is only as close as the warp allows. Needs a pinned landing (kit gap, or the places kit's platform) and a clearer view.",
+  "targets": {
+   "description": "8/9",
+   "placeness": "3/4"
+  },
+  "misses": [
+   "Spawn 48 blocks from the biome edge (target 64): restated, the landing belongs at the lip.",
+   "The pit is not visible from the landing in the fog."
+  ],
+  "ownersEye": [
+   "Should the fog thin over the pit so the capital shows from the ledge?"
+  ],
+  "why": "Spawn on the ledge 16-21 blocks behind the lip on this seed (render), pit p25 34, all six biomes expressed, nine forced structures kept. Misses: the pit is not visible from the landing in the fog; spawn is 48 blocks from the biome edge (target 64, restated: the landing belongs at the lip)."
+ },
+ {
+  "slug": "the_bloodroot_wastes",
+  "terrain": "the vanilla Nether caverns, crimson country",
+  "changed": "The map cause was its colours: the crimson kin all hashed to reds. Every library biome now has its own map colour (nether jungle olive, pinewood wine, inverted forest magenta). On the ground the biomes differ. Structures curated to forges, wells, fungus houses and piglin camps.",
+  "fidelity": 4,
+  "targets": {
+   "description": "7/7",
+   "placeness": "6/6"
+  },
+  "misses": [
+   "Structure shots failed (camera inside the roof)."
+  ],
+  "ownersEye": [],
+  "why": "Crimson forest 57.6%, nether jungle 22.2%, inverted forest 9.1%; the map now draws the crimson kin in distinct colours (nether jungle olive, pinewood wine, inverted magenta) where they were three reds."
+ },
+ {
+  "slug": "the_end",
+  "terrain": "vanilla End on its own seed",
+  "changed": "The central island is untouched. Twelve zones of six End biomes (chorus forest, glowing grasslands, foggy mushroomland, lantern woods, sulphur springs, megalake) lie on the outer islands from 1,000 to 2,050 blocks out.",
+  "fidelity": 4,
+  "targets": {
+   "description": "7/8",
+   "placeness": "4/4"
+  },
+  "misses": [
+   "The library biomes hold 21.2% of the map but none falls in the survey patches or the shots.",
+   "Largest land region 0.3% (target 20): the outer islands are many."
+  ],
+  "ownersEye": [
+   "Zones are fixed spots: should the variety follow the islands instead?"
+  ],
+  "why": "Central island unchanged; six library End biomes in twelve zones on the outer islands hold 21.2% of the r2048 render (3.4-3.7% each); end cities and phantom citadel wanted 900-1500 out. The shots do not show a library zone."
+ },
+ {
+  "slug": "the_nether",
+  "terrain": "vanilla Nether, six biomes as places",
+  "changed": "Quartz flats lowered from 8 to 5 of the weights; structures curated to fortresses, bastions, piglin villages, the sanctum near the rim, bridges and fossils.",
+  "fidelity": 4,
+  "targets": {
+   "description": "10/10",
+   "placeness": "5/5"
+  },
+  "misses": [],
+  "ownersEye": [],
+  "why": "Quartz flats weight 5 of 100 (8 before): 3.7% of the surveyed surface; the other five biomes as before, 10/10 description targets."
+ },
+ {
+  "slug": "overworld",
+  "terrain": "vanilla overworld, stretched",
+  "changed": "No change. The mountain in the first shot is a tall, thin stone peak with overhangs and a cave through it (three new shots from 140 blocks): vanilla's 3D noise on a narrow, high ridge, not a fault of the kit.",
+  "fidelity": 4,
+  "why": "Not re-measured; the terrain is unchanged.",
+  "targets": {},
+  "misses": [],
+  "ownersEye": [
+   "Keep the broken peak (it is how vanilla carves a narrow ridge), or lower the ridge stretch?"
+  ]
+ }
+]

@@ -1,0 +1,36 @@
+Mem:              15           1          12           0           2          14
+/dev/vda        252G   30G  9.0G  77% /
+Distant Horizons databases removed:
+booting; log in /tmp/claude-0/w10c2/f4lane/server.log
+runServer exit 0
+--- report
+PASS lod generator bound to overworld (reach 8192 blocks)
+PASS lod shortcut overworld detail 2 (SURFACE): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.88 whole / 1.88 shortcut, 4096 columns; surface: searched from block 210, 16 over the highest surface, to -64, 32 under the lowest; ground at the floor carried down to the noise floor
+PASS lod shortcut overworld detail 4 (SURFACE): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.86 whole / 1.86 shortcut, 4096 columns; surface: searched from block 210, 16 over the highest surface, to -64, 32 under the lowest; ground at the floor carried down to the noise floor
+PASS lod shortcut overworld detail 6 (SURFACE): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.78 whole / 1.78 shortcut, 4096 columns; surface: searched from block 210, 16 over the highest surface, to -64, 32 under the lowest; ground at the floor carried down to the noise floor
+PASS lod pregen overworld: 257 full-detail requests served by customdimensions, 0 failed, 1052672 columns in all; start: Starting pregen. Progress will be in the server console.; status: Pregen is not running
+FAIL lod vs chunks overworld: 32 columns, 32 without LOD data, heights within 1 0.0%, block under the surface 0.0%, biome 0.0% (bars 90/60/90%) -> /home/user/minecraft-server-template/mods/custom-dimensions-26/server/run/lod-check-overworld.tsv
+PASS lod generator bound to the_nether (reach 1024 blocks)
+PASS lod shortcut the_nether detail 2 (ROOFED): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.71 whole / 1.71 shortcut, 4096 columns; roofed in 1089 of 1089 pre-scan columns: whole columns, the roof left out; no fixed start, as block 104 is open between the ceiling and the floor under it in 557 of 998 roofed pre-scan columns with a floor, under 0.9
+PASS lod shortcut the_nether detail 4 (ROOFED): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.77 whole / 1.77 shortcut, 4096 columns; roofed in 1089 of 1089 pre-scan columns: whole columns, the roof left out; no fixed start, as block 104 is open between the ceiling and the floor under it in 557 of 998 roofed pre-scan columns with a floor, under 0.9
+PASS lod shortcut the_nether detail 6 (ROOFED): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.80 whole / 1.80 shortcut, 4096 columns; roofed in 1089 of 1089 pre-scan columns: whole columns, the roof left out; no fixed start, as block 104 is open between the ceiling and the floor under it in 557 of 998 roofed pre-scan columns with a floor, under 0.9
+PASS lod pregen the_nether: 257 full-detail requests served by customdimensions, 0 failed, 1052672 columns in all; start: Starting pregen. Progress will be in the server console.; status: Pregen is not running
+FAIL lod vs chunks the_nether: 32 columns, 32 without LOD data, heights within 1 0.0%, block under the surface 0.0%, biome 0.0% (bars 90/60/90%) -> /home/user/minecraft-server-template/mods/custom-dimensions-26/server/run/lod-check-the_nether.tsv
+PASS lod generator bound to the_aviary (reach 4096 blocks)
+PASS lod shortcut the_aviary detail 2 (TIERS): heights within 1 100.0%, exact 100.0%, runs kept 100.0%, runs per column 1.00 whole / 1.00 shortcut, 4096 columns; floating runs in 8567 of 16384 pre-scan columns: searched from block 255, 16 over the topmost tier band, to 0, 16 under the lowest run
+PASS lod shortcut the_aviary detail 4 (TIERS): heights within 1 99.9%, exact 99.9%, runs kept 100.0%, runs per column 0.73 whole / 0.73 shortcut, 4096 columns; floating runs in 8567 of 16384 pre-scan columns: searched from block 255, 16 over the topmost tier band, to 0, 16 under the lowest run
+PASS lod shortcut the_aviary detail 6 (TIERS): heights within 1 99.9%, exact 99.9%, runs kept 100.0%, runs per column 0.72 whole / 0.72 shortcut, 4096 columns; floating runs in 8567 of 16384 pre-scan columns: searched from block 255, 16 over the topmost tier band, to 0, 16 under the lowest run
+PASS lod pregen the_aviary: 257 full-detail requests served by customdimensions, 0 failed, 1052672 columns in all; start: Starting pregen. Progress will be in the server console.; status: Pregen is not running
+FAIL lod vs chunks the_aviary: 32 columns, 32 without LOD data, heights within 1 0.0%, block under the surface 0.0%, biome 0.0% (bars 90/60/90%) -> /home/user/minecraft-server-template/mods/custom-dimensions-26/server/run/lod-check-the_aviary.tsv
+--- counts
+PASS 55 FAIL 3 SKIP 0
+--- log
+10
+[00:29:11] [main/INFO] (customdimensions) Distant Horizons 3.3.4: LOD generation for every custom-dimensions level comes from its noise (no structures, features or carvers)
+[00:30:18] [DH-World Gen Thread[1]/INFO] (customdimensions) Distant Horizons LODs for minecraft:overworld come from customdimensions: first detail 0 request at 0,64 (2 requests so far)
+[00:30:38] [DH-World Gen Thread[1]/INFO] (customdimensions) Distant Horizons LODs for minecraft:the_nether come from customdimensions: first detail 0 request at 0,0 (2 requests so far)
+[00:30:45] [DH-World Gen Thread[1]/INFO] (customdimensions) Distant Horizons LODs for adventure:the_aviary come from customdimensions: first detail 0 request at 0,64 (1 requests so far)
+DH errors: 0
+-rw-r--r-- 1 root root 495 Nov 14 00:31 /tmp/claude-0/w10c2/f4lane/lod-check-overworld.tsv
+-rw-r--r-- 1 root root 495 Nov 14 00:31 /tmp/claude-0/w10c2/f4lane/lod-check-the_aviary.tsv
+-rw-r--r-- 1 root root 495 Nov 14 00:31 /tmp/claude-0/w10c2/f4lane/lod-check-the_nether.tsv

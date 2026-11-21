@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: the overworld preset with its sea under the land: the ocean floors are dry and the land biomes take them.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "liquids": {
+    "seaLevel": -55
+  },
+  "biomes": [
+    "minecraft:desert",
+    "minecraft:savanna",
+    "minecraft:badlands"
+  ],
+  "biomeLayout": {
+    "mode": "regions"
+  },
+  "borders": {
+    "player": 1024
+  }
+}

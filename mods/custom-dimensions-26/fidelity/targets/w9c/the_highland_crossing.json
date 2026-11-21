@@ -1,0 +1,62 @@
+{
+ "slug": "the_highland_crossing",
+ "targets": [
+  {
+   "key": "terrain.surfaceHeight.p95",
+   "op": ">=",
+   "value": 200,
+   "from": "owner: \"mountains need to be above cloud level\""
+  },
+  {
+   "key": "terrain.surfaceHeight.max",
+   "op": ">=",
+   "value": 230,
+   "from": "\"extremely ... tall mountains\""
+  },
+  {
+   "key": "terrain.aboveCloudsPercent",
+   "op": "between",
+   "value": [
+    3,
+    25
+   ],
+   "from": "\"above cloud level\" yet \"extremely thin\""
+  },
+  {
+   "key": "terrain.surfaceHeight.p25",
+   "op": "<=",
+   "value": 40,
+   "from": "\"the floor of the world should be extremely low down\""
+  },
+  {
+   "key": "terrain.slopes.flatUnder15Percent",
+   "op": ">=",
+   "value": 40,
+   "from": "\"deep flat zones in-between\""
+  },
+  {
+   "key": "terrain.slopes.over45Percent",
+   "op": ">=",
+   "value": 15,
+   "from": "\"a thin web of dangerous mountain paths\""
+  },
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "<=",
+   "value": 15,
+   "from": "1.21.1: \"the human-villager trade route\" over land"
+  },
+  {
+   "key": "terrain.surfaceHeight.p50",
+   "op": "<=",
+   "value": 90,
+   "from": "\"thin\" mountains: most of the world is floor"
+  },
+  {
+   "key": "landforms.highGround.upperThreeQuarters.top3Percent",
+   "op": ">=",
+   "value": 80,
+   "from": "\"endlessly connected\": the mountains (a quarter of the relief above the floor and up) are one or a few networks"
+  }
+ ]
+}

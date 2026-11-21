@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: end without the central island, a tight radial cluster of tall ridged islands at the centre.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "end",
+    "endIsland": false
+  },
+  "terrain": {
+    "base": "end",
+    "params": {
+      "coverage": 0.1,
+      "islandHeight": 24,
+      "peaks": 0.5
+    },
+    "layout": {
+      "type": "radial",
+      "radius": 300,
+      "falloff": 400,
+      "strength": 0.8
+    }
+  },
+  "borders": {
+    "player": 2048
+  }
+}

@@ -1,0 +1,21 @@
+01:01 — r1 started; brief read
+01:02 — vineflower 1.12.0 fetched, sha1 matches Maven Central (85570609…)
+01:02 — decompiled 3 jars into decompiled/
+01:02 — read SeedHeightSampler (DH 26.3): preliminary-surface estimate + cell-step descent + binary search on density>0
+01:02 — LodCaches: interpolation corners cached in per-sampler hash map (131072 cap), trilinear within cell; TerrainLayers probes 16x16 grid @181 blocks for floating layers
+01:02 — SeedWorldGenerator: IDhApiWorldGenerator returning API_DATA_SOURCES; one column per 2^detail blocks per 64-wide section; structures only detail<=3; per-thread samplers on DH pool; nether/end/overworld branches
+01:03 — buildColumn: column = few vertical runs (stone/filler/top/water/air), sky light written analytically, water flat at sea level, trees/ice/kelp/structures stamped from templates
+01:03 — BiomeSurfaces: material (surface) rule re-encoded to JSON and compiled per biome into a small interpreter (17 node types incl. terrablender:merged); vanilla biomes use hand tables unless rule rewritten
+01:03 — structures: vanilla sets hard-coded (spacing/separation/salt) + baked NBT (41 overworld, 8 end, 13 nether, 47 trees); mod sets read from level's ChunkGeneratorStructureState placements and Structure.generate pieces
+01:03 — stand-down: hasCeiling&&!nether skipped (SeedWorldGenBinding); non-NoiseBased generator, subclass whose getBaseHeight disagrees with plain NoiseBasedChunkGenerator at >1 of 12 points (tol 24), folded space, farlands. Nether = full bottom-up march at cellHeight step, all crossings binary-searched, lava<32 hard-coded
+01:03 — ExtendedLod: patches DH quadtree/mesh/shader to detail level 18 (262144 blocks per column) vs DH's own max 8; FastDistantTerrain marks distant sections SURFACE so DH refines on approach
+01:04 — gpu/: GL 4.3 compute shader replaces DH side-face meshing (client), not generation; sampling is CPU-only
+01:04 — 1.21.1 jar: LodRouterWrapper remaps router markers: flat_cache/cache_2d -> per-column cache, cache_once -> last value, interpolated -> corner-cached cell interpolator, cache_all_in_cell dropped; C2ME original-router accessor used
+01:04 — Voxy DensityCompiler/CompiledField: y-independence inference -> per-column memo; shared subtrees memoised; blend/beardifier -> constants; BlendedNoise evaluated progressively by octave with interval bounds; Min/Max short-circuit on known ranges; solid() decides sign once interval excludes 0; bit-exact self-check at 128 columns
+01:04 — Voxy SeedFill: 128-block tiles (8x8 chunks), finest level by view distance (levels 0..4 = stride 1..16), level 0 via VoxyChunkWriter, coarser via LadderWriter direct into Voxy mips; 'chunks' in its throughput = area covered, with '% of columns sampled' reported
+01:05 — Modrinth bodies: Voxy SeedGen 13.2M chunks/40 s/28 threads at 2048-chunk radius (N-sized), DH SeedGen 10.7x overworld/2.3x nether vs DH pre-3.3, 5.6x vs DH Hyperspeed; both ARR
+01:05 — web search: no public mention of 'Vulkanite' with SeedGen; seedlod README: MIT, Fabric 26.3, samples final density at 1..16 blocks per voxel
+01:05 — seedlod: MIT (c) 2026 Derped; TileGen samples finalDensity via 26.3 batch sampleVolume, scout pass every 16 blocks finds surface band, corner-only sampling at lvl<=1/2, vanilla material rule compiled (RuleEvaluator) over top 9 blocks, quart biome cache; Bench writes top-down PNG with timing+hash
+01:08 — our render (Sampler.sample via getBaseColumn, 2 threads): overworld 512x512 in 42-72 s (3.6-6.2k col/s), nether 35-60k col/s, sky worlds 7-15k col/s; survey (proto chunks) ~2k col/s (67k cols in 32-43 s); rig1 1601 s for 27 frames
+01:09 — fit findings: branch chosen by dimension KEY (WorldBasis.isEnd/isNether/isOverworld) so all custom dims take the single-surface overworld path; addGround fills stone from column bottom to surface (sky islands -> pillars, inferred); no Vector API; SeedGen 26.3 samples scalar via sampleVolumeNaive; trees = per-biome features grown once in memory into templates then hash-scattered
+01:11 — report drafted; Write of report.md refused by harness (subagent rule); returning report in handback

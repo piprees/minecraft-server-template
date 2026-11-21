@@ -1,0 +1,56 @@
+{
+  "discard_chance_on_air_exposure": 0.0,
+  "size": 6,
+  "targets": [
+    {
+      "state": "minecraft:budding_amethyst",
+      "target": {
+        "predicate_type": "minecraft:tag_match",
+        "tag": "minecraft:stone_ore_replaceables"
+      }
+    },
+    {
+      "state": "minecraft:budding_amethyst",
+      "target": {
+        "predicate_type": "minecraft:tag_match",
+        "tag": "minecraft:deepslate_ore_replaceables"
+      }
+    },
+    {
+      "state": "minecraft:budding_amethyst",
+      "target": {
+        "block": "minecraft:amethyst_block",
+        "predicate_type": "minecraft:block_match"
+      }
+    },
+    {
+      "state": "minecraft:budding_amethyst",
+      "target": {
+        "block": "minecraft:calcite",
+        "predicate_type": "minecraft:block_match"
+      }
+    },
+    {
+      "state": "minecraft:budding_amethyst",
+      "target": {
+        "block": "minecraft:end_stone",
+        "predicate_type": "minecraft:block_match"
+      }
+    },
+    {
+      "state": "minecraft:budding_amethyst",
+      "target": {
+        "block": "minecraft:end_stone_bricks",
+        "predicate_type": "minecraft:block_match"
+      }
+    },
+    {
+      "state": "minecraft:budding_amethyst",
+      "target": {
+        "block": "minecraft:purpur_block",
+        "predicate_type": "minecraft:block_match"
+      }
+    }
+  ],
+  "type": "minecraft:ore"
+}

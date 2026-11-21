@@ -1,0 +1,69 @@
+{
+ "slug": "the_pillared_void",
+ "targets": [
+  {
+   "key": "surface.voidPercent",
+   "op": ">=",
+   "value": 85,
+   "from": "\"Lonely pillars in the void ... nothing else\""
+  },
+  {
+   "key": "terrain.surfaceHeight.max",
+   "op": ">=",
+   "value": 140,
+   "from": "\"Spires\", \"The pillars ... rise\": columns far above the End's island height"
+  },
+  {
+   "key": "terrain.slopes.cliffPercent",
+   "op": ">=",
+   "value": 20,
+   "from": "\"pillars\": vertical sides on most of the little land there is"
+  },
+  {
+   "key": "surface.snowIcePercent",
+   "op": "<=",
+   "value": 2,
+   "from": "1.21.1 lists void_barrens, end_barrens, the_end, small_end_islands, end_highlands, crystal_peaks: no snowfield"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:end_stone + surface.groundBlocksPercent.minecraft:obsidian",
+   "op": ">=",
+   "value": 5,
+   "from": "\"the endermen's oldest construction\": end stone and obsidian pillars"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.1,
+   "from": "1.21.1 ambientLight 0.05"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": "<=",
+   "value": 0,
+   "from": "open sky"
+  },
+  {
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind place (one empty void): one region holds half the land (restated: on islands the largest region is the largest island; one place reads as each island in its one biome)",
+   "was": {
+    "key": "placeness.landBiomeRegions.largestPercent",
+    "op": ">=",
+    "value": 50
+   }
+  },
+  {
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 75,
+   "from": "restated: on islands every islet under 1 ha is a speck whatever its biome (kit gap: no speck measure inside islands); no scatter of biome specks reads as at most a quarter of each island outside its own biome",
+   "was": {
+    "key": "placeness.landBiomeRegions.specksPercent",
+    "op": "<=",
+    "value": 5
+   }
+  }
+ ]
+}

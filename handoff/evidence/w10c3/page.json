@@ -1,0 +1,193 @@
+[
+ {
+  "slug": "the_pale_reach",
+  "terrain": "floating islands: small calcite and snow crags over open white sky",
+  "changed": "The crags now float apart with sky between (void 59% instead of 13%), the chalk cliffs are topped with calcite, and every listed white biome is placed in large regions, so grass fell from 58% to 7% of the ground.",
+  "fidelity": 4,
+  "why": "White crags in white silence: 75 crags each 81% one biome, the white biomes 90% of the land, snow and calcite the commonest ground, 2.6 trees a hectare. All nine listed biomes show, the pale garden included.",
+  "ownersEye": [
+   "The crags are small (half under a tenth of a hectare). Should a few larger crags carry the remains and birdcages?"
+  ],
+  "targets": {
+   "description": "8/8",
+   "placeness": "3/3"
+  },
+  "misses": []
+ },
+ {
+  "slug": "the_starwell",
+  "terrain": "floating islands: a few small islands in a night-sky well",
+  "changed": "The desert is gone as the leading biome (from 68% of the land to 2%): sixteen small pale islands of snow, alpha grove and windswept isle float in an 83% void inside the small border.",
+  "fidelity": 4,
+  "why": "Void 83% with sixteen islands up to 1 ha, each 75% one biome; snowy plains, alpha grove and windswept isles are 95% of the land. All five listed biomes show.",
+  "ownersEye": [
+   "The islands are scattered rather than gathered round the monolith: a gathered cluster made one 7-hectare mass of three biomes. Which reads more like a well of night sky?",
+   "Spawn stands over the void on this seed."
+  ],
+  "targets": {
+   "description": "9/9",
+   "placeness": "3/3"
+  },
+  "misses": []
+ },
+ {
+  "slug": "the_shattered_skies",
+  "terrain": "floating islands: garden islands laid out as five places",
+  "changed": "Fifteen evenly weighted biomes became five garden places (sakura, blooming valley, meadows, lavender, skylands), the islands thinned so the void wins (70% instead of 9%), and the desert shrank from 12% to 2% of the land.",
+  "fidelity": 4,
+  "why": "Each island is 97% one garden place; cherry grove leads the land at 17%; sakura holds 26% of the area. Ten of fifteen listed biomes are confirmed; the five smallest (2-4% of the land each) are placed but too few of their columns were sampled to judge.",
+  "ownersEye": [
+   "Inside each place the two or three biomes mix in small blobs; should each place be one biome with a fringe?"
+  ],
+  "targets": {
+   "description": "7/8",
+   "placeness": "5/5"
+  },
+  "misses": [
+   "Five small biomes (birch forest, forest, windswept isles, snowy slopes, desert oasis) and alpine meadow are placed at 2-4% of the land but not confirmed by the sample.",
+   "Sakura in the patch sample: cherry grove and magnolia are 11% of the sampled land (wants 12); over the whole map they are 22% of the land."
+  ]
+ },
+ {
+  "slug": "the_glacial_drift",
+  "terrain": "floating islands: frozen islands breaking off into the void",
+  "changed": "The islands now break apart over the void (66% instead of 8%) and the tundra biomes cover 92% of the land; packed ice lines the cliffs and the oak groves fell to three trees a hectare or fewer.",
+  "fidelity": 4,
+  "why": "617 islands each 89% one frozen biome; snow or ice covers 81% of the land. Eight of nine listed biomes show; ice spikes carries packed ice and snow but the survey still reads it as a tree biome without trees.",
+  "ownersEye": [],
+  "targets": {
+   "description": "8/8",
+   "placeness": "3/3"
+  },
+  "misses": [
+   "Ice spikes: placed and carrying packed ice and snow, but flagged by the survey for having no trees on 1.6 hectares."
+  ]
+ },
+ {
+  "slug": "the_aviary",
+  "terrain": "floating islands in two tiers, flat-topped plateaus laid out as five skyland places",
+  "changed": "Islands are larger and flat-topped (57% of the land under 15 degrees instead of 45%), so each plateau keeps to one place (89% instead of 47%); dark forest, which the 1.21.1 aviary never listed, is removed.",
+  "fidelity": 4,
+  "why": "Five places, each island 89% one place, plateaus up to 409 hectares, wisteria grove the commonest land biome at 25%. All thirteen listed biomes show.",
+  "ownersEye": [
+   "Each place still mixes its two or three groves in blobs; should a place be one grove with a fringe?"
+  ],
+  "targets": {
+   "description": "9/9",
+   "placeness": "7/7"
+  },
+  "misses": []
+ },
+ {
+  "slug": "the_end_citadel",
+  "terrain": "End islands grown and raised, the central ring filled, regions over the islands",
+  "changed": "The End islands are taller (95th-percentile surface 91 instead of 66), the empty central ring is filled so spawn stands on highland ground, an End city is forced at spawn, and crystal peaks are shown by sheared highlands instead of an ice field.",
+  "fidelity": 4,
+  "why": "End highlands are 41% of the land and 226 End cities stand in the border, one 9 blocks from spawn. All six listed biomes show. Each island is 65% one biome; the highlands share their masses with midlands and barrens, and 58% of the highland biome lies on land (wants 60).",
+  "ownersEye": [],
+  "targets": {
+   "description": "7/9",
+   "placeness": "2/3"
+  },
+  "misses": [
+   "Island biome mix: 35% of each island lies outside its main biome (wants at most 25%).",
+   "End highlands on land: 58% of the biome's columns (wants 60)."
+  ]
+ },
+ {
+  "slug": "the_burning_archipelago",
+  "terrain": "End islands with the central ring filled, four Nether places",
+  "changed": "Nether ground now shows on the End islands (netherrack and nylium, no End stone in the top blocks), thirteen biomes form four places (crimson, warped, deltas, wastes) with crimson and warped across the strait, and the empty central ring is filled with islands.",
+  "fidelity": 4,
+  "why": "Each island is 98% one place; all thirteen listed biomes show; void 47%, lava, fire and magma smoulder on the islands.",
+  "ownersEye": [
+   "Spawn stands over the void on this seed, between filled islands."
+  ],
+  "targets": {
+   "description": "10/10",
+   "placeness": "6/6"
+  },
+  "misses": []
+ },
+ {
+  "slug": "the_blighted_maw",
+  "terrain": "End islands gathered in a tight cluster round spawn",
+  "changed": "The islands gather round spawn with empty void beyond (83% void), on Nether ground (soul sand, netherrack, moss and slime) instead of End stone, and every listed toxic biome shows.",
+  "fidelity": 4,
+  "why": "68 small islands each 90% one biome; the toxic heap, soul sand valley and withered forest are 76% of the land. All five listed biomes show.",
+  "ownersEye": [
+   "The description asks for red fog; from the island tops it reads dark. Should the fog be lighter?",
+   "Spawn stands over the void at the cluster's centre on this seed."
+  ],
+  "targets": {
+   "description": "8/8",
+   "placeness": "3/3"
+  },
+  "misses": []
+ },
+ {
+  "slug": "the_pillared_void",
+  "terrain": "spires: End-stone pillars on islands of their own over the void",
+  "changed": "Ordinary End islands became a field of tall End-stone pillars (up to 196 high instead of 80) standing on small islands in a 92% void, with no snow or ice.",
+  "fidelity": 4,
+  "why": "Void 92%, cliffs 26% of slopes, 4,203 pillars and islets each 99% one biome. All five listed biomes show.",
+  "ownersEye": [
+   "Spawn stands over the void on this seed; the void kills on contact here."
+  ],
+  "targets": {
+   "description": "9/9",
+   "placeness": "2/2"
+  },
+  "misses": []
+ },
+ {
+  "slug": "the_fractured_halls",
+  "terrain": "End islands with ridged tops, three bands west to east",
+  "changed": "Ridged painted-terracotta mountains, moonlit groves and dark shadowlands now lie in three bands west to east (the groves between the ridges), the islands are taller (95th-percentile surface 102 instead of 65), and the groves grow trees on grass (14 a hectare instead of none).",
+  "fidelity": 4,
+  "why": "Each island is 92% one band; amethyst shows on the crystal hollows; ten listed biomes show; end highlands and ice starfield (3-4% of the land) are placed but fell in no sampled patch.",
+  "ownersEye": [
+   "Spawn stands over the End's empty central ring."
+  ],
+  "targets": {
+   "description": "10/10",
+   "placeness": "4/4"
+  },
+  "misses": [
+   "End highlands and ice starfield are placed but not found in the sample."
+  ]
+ },
+ {
+  "slug": "the_crumbling_reaches",
+  "terrain": "End islands with peaked tops, the central ring filled",
+  "changed": "Shadowlands rubble and sheared peaks replace the even End islands: taller tops (95th-percentile surface 109 instead of 64), umbral wastes and sheared highlands lead, and the empty central ring is filled with islands.",
+  "fidelity": 3,
+  "why": "All ten listed biomes show and no region holds the reaches, as a broken world should; but the peaks shear only gently: cliffs are 8% of slopes where the description's shearing peaks want 10.",
+  "ownersEye": [],
+  "targets": {
+   "description": "7/8",
+   "placeness": "3/3"
+  },
+  "misses": [
+   "Cliffs 8.4% of slopes (wants 10): the End peak setting is at its maximum and still slopes rather than shears."
+  ],
+  "exception": "Shearing crystal peaks need End island tops that break as cliffs; the End terrain's peaks are ridges that slope (its strongest setting gives 8% cliffs). A sharper ridge or a shear term on the End terrain would close it."
+ },
+ {
+  "slug": "the_catalyst_maw",
+  "terrain": "End islands grown a little, sixteen realms bleeding in",
+  "changed": "Sculk now spreads over the islands (sculk and veins over 5% of the land instead of none), the dark forest, mangrove, pale garden and old birch stand on grass and mud with trees (41 a hectare instead of none), and all sixteen listed biomes are placed.",
+  "fidelity": 4,
+  "why": "Sixteen biomes over 493 islands, none over 15% of the land, as a chaotic world should; fifteen of sixteen show and ash barrens is too thinly sampled to judge.",
+  "ownersEye": [
+   "Spawn stands over the void beside the central island."
+  ],
+  "targets": {
+   "description": "7/7",
+   "placeness": "3/3"
+  },
+  "misses": [
+   "Ash barrens is placed but too few of its columns were sampled to judge."
+  ]
+ }
+]

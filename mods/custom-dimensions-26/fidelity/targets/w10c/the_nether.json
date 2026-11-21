@@ -1,0 +1,10 @@
+{
+ "slug": "the_nether",
+ "targets": [
+  {"key": "surface.groundBlocksPercent.minecraft:netherrack + surface.groundBlocksPercent.minecraft:crimson_nylium + surface.groundBlocksPercent.minecraft:warped_nylium + surface.groundBlocksPercent.minecraft:soul_sand + surface.groundBlocksPercent.minecraft:soul_soil + surface.groundBlocksPercent.minecraft:basalt + surface.groundBlocksPercent.minecraft:blackstone + surface.groundBlocksPercent.minecraft:magma_block + surface.groundBlocksPercent.minecraft:gravel + surface.groundBlocksPercent.minecraft:quartz_block", "op": ">=", "value": 85, "from": "\"The nether\": Nether ground throughout, quartz_flats' quartz included (1.21.1 spawnFilter names quartz_flats)"},
+  {"key": "placeness.landBiomeRegions.top3Percent", "op": ">=", "value": 60, "from": "place kind meeting of the Nether's biomes"},
+  {"key": "placeness.landBiomeRegions.major", "op": "<=", "value": 8, "from": "place kind meeting"},
+  {"key": "placeness.landBiomeRegions.specksPercent", "op": "<=", "value": 5, "from": "place kind meeting"},
+  {"key": "placeness.biomesPercent.minecraft:crimson_forest", "op": ">=", "value": 15, "from": "\"piglin heartland\": the crimson forest carries weight"}
+ ]
+}

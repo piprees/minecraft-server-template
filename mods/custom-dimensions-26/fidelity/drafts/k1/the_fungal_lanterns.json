@@ -1,0 +1,47 @@
+{
+  "reason": "Groves on ledges over the kept lava sea at 34: a floor at 44 \u00b1 16 shelved every 6 blocks, its hollows and a few chasms dropping to the lava, under a ceiling near 104; nylium is now the default ground (G6), so only the inverted forest's ceiling needs a palette (G1 ledges).",
+  "terrain": {
+    "base": "roofed",
+    "params": {
+      "floorHeight": 44,
+      "floorRelief": 16,
+      "ceilingGap": 60,
+      "roughness": 0.3,
+      "ledges": 0.7,
+      "ledgeStep": 6,
+      "chasms": 0.04,
+      "chasmDepth": 24
+    },
+    "scales": {
+      "climate": 1.5
+    }
+  },
+  "liquids": {
+    "seaLevel": 34,
+    "defaultFluid": "minecraft:lava"
+  },
+  "materials": {
+    "biomes": {
+      "adventure:upside_down_forest": {
+        "ceilings": "minecraft:nether_wart_block"
+      }
+    }
+  },
+  "biomes": [
+    "minecraft:crimson_forest",
+    "minecraft:warped_forest",
+    "adventure:upside_down_forest",
+    "adventure:bioshroom_caves",
+    "adventure:quartz_flats"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:crimson_forest": 30,
+      "minecraft:warped_forest": 25,
+      "adventure:upside_down_forest": 20,
+      "adventure:bioshroom_caves": 15,
+      "adventure:quartz_flats": 10
+    }
+  }
+}

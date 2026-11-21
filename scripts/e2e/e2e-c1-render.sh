@@ -27,6 +27,9 @@
 
 # shellcheck disable=SC2034  # lib.sh reads it to name the run dir
 SCRIPT_NAME="c1-render"
+# shellcheck source=mc-version.sh
+. "$(cd "$(dirname "$0")" && pwd)/mc-version.sh"
+e2e_refuse_on_26 "it reads the 1.21.1 renderer's projection-mesh markers; the 26.3 render proof is e2e-companion-portal.sh (/portals and /portal-census)"
 # shellcheck source=lib.sh
 . "$(cd "$(dirname "$0")" && pwd)/lib.sh"
 

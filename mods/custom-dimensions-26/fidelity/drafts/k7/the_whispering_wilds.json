@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 2,
+  "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay — the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut.",
+  "seed": 631749786967184250,
+  "spawn": [
+    704,
+    114,
+    64
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    "minecraft:river",
+    "adventure:aspen_forest",
+    "minecraft:taiga",
+    "adventure:redwood_grove",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:old_growth_pine_taiga",
+    "minecraft:birch_forest",
+    "minecraft:meadow",
+    "minecraft:mushroom_fields",
+    "minecraft:old_growth_birch_forest",
+    "minecraft:pale_garden",
+    "adventure:alpha_grove",
+    "minecraft:dark_forest",
+    "adventure:cloud_forest",
+    "adventure:sugi_forest",
+    "minecraft:sparse_jungle",
+    "minecraft:swamp",
+    "minecraft:mangrove_swamp",
+    "minecraft:jungle"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:aspen_forest": 4,
+      "minecraft:taiga": 4,
+      "adventure:redwood_grove": 18,
+      "minecraft:old_growth_spruce_taiga": 10,
+      "minecraft:old_growth_pine_taiga": 8,
+      "minecraft:birch_forest": 4,
+      "minecraft:meadow": 2,
+      "minecraft:mushroom_fields": 2,
+      "minecraft:old_growth_birch_forest": 8,
+      "minecraft:pale_garden": 4,
+      "adventure:alpha_grove": 3,
+      "minecraft:dark_forest": 10,
+      "adventure:cloud_forest": 3,
+      "adventure:sugi_forest": 8,
+      "minecraft:sparse_jungle": 2,
+      "minecraft:swamp": 3,
+      "minecraft:mangrove_swamp": 2,
+      "minecraft:jungle": 2,
+      "minecraft:river": 1.8
+    },
+    "places": {
+      "groups": {
+        "redwoods": [
+          "adventure:redwood_grove",
+          "adventure:sugi_forest"
+        ],
+        "old_taigas": [
+          "minecraft:old_growth_spruce_taiga",
+          "minecraft:old_growth_pine_taiga",
+          "minecraft:taiga"
+        ],
+        "dark_woods": [
+          "minecraft:dark_forest",
+          "minecraft:pale_garden",
+          "adventure:alpha_grove"
+        ],
+        "birchwoods": [
+          "minecraft:old_growth_birch_forest",
+          "minecraft:birch_forest",
+          "adventure:aspen_forest",
+          "minecraft:meadow"
+        ],
+        "wet_wilds": [
+          "minecraft:swamp",
+          "minecraft:mangrove_swamp",
+          "minecraft:jungle",
+          "minecraft:sparse_jungle",
+          "adventure:cloud_forest",
+          "minecraft:mushroom_fields"
+        ]
+      },
+      "at": {
+        "redwoods": [
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "atmosphere": {
+    "fogColor": "#2B4B2B"
+  },
+  "borders": {
+    "player": 4096,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 1.2,
+    "playerLuck": 1.5
+  },
+  "structures": {
+    "density": "sparse",
+    "clearSpawnRadius": 96,
+    "terrainAdaptation": {
+      "mvs:log_ruin": "bury",
+      "mvs:small_ruin": "bury",
+      "nova_structures:remnant_taiga_castle": "bury"
+    },
+    "force": [
+      {
+        "structure": "ati_structures:manor",
+        "x": 2800,
+        "z": -1200
+      },
+      {
+        "structure": "ati_structures:warden_monument",
+        "x": 2800,
+        "z": -1200
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:dark_oak_planks",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "2B4B2B",
+      "lightLevel": 11,
+      "scale": 2.0,
+      "cooldown": 40,
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "adventure:redwood_grove"
+    ],
+    "wants": {
+      "minecraft:abandoned_camp_forest": "near_spawn",
+      "mvs:log_ruin": "spread",
+      "nova_structures:firewatch_tower_taiga": "spread",
+      "mvs:campsite": "near_spawn",
+      "mvs:small_ruin": "spread",
+      "nova_structures:remnant_taiga_castle": "spread",
+      "ati_structures:overgrown_outpost": "near_spawn"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "mansion",
+      "mss:arena"
+    ]
+  },
+  "terrain": {
+    "scales": {
+      "climate": 3.0
+    },
+    "landShare": 0.92
+  }
+}

@@ -1,0 +1,56 @@
+{
+ "slug": "the_miredeep",
+ "targets": [
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "between",
+   "value": [
+    20,
+    50
+   ],
+   "from": "\"The empty deep mire\", \"Too wet for roads\""
+  },
+  {
+   "key": "surface.waterDepth.shallow1To4Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "\"mire\": shallow standing water, not open sea"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:ocean + surface.biomesPercent.minecraft:warm_ocean + surface.biomesPercent.minecraft:lukewarm_ocean + surface.biomesPercent.minecraft:cold_ocean + surface.biomesPercent.minecraft:deep_ocean + surface.biomesPercent.minecraft:deep_lukewarm_ocean + surface.biomesPercent.minecraft:deep_cold_ocean + surface.biomesPercent.minecraft:frozen_ocean",
+   "op": "<=",
+   "value": 5,
+   "from": "\"mire\": 1.21.1 lists no ocean"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:swamp + surface.biomesPercent.minecraft:mangrove_swamp + surface.biomesPercent.adventure:cypress_wetland + surface.biomesPercent.adventure:orchid_marsh",
+   "op": ">=",
+   "value": 65,
+   "from": "1.21.1 orchid_swamp, mangrove_swamp, marsh, swamp, bayou, old_growth_bayou"
+  },
+  {
+   "key": "terrain.slopes.flatUnder15Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "\"mire\": level wet ground"
+  },
+  {
+   "key": "surface.groundBlocksPercent.minecraft:mud + surface.groundBlocksPercent.minecraft:clay + surface.groundBlocksPercent.minecraft:mangrove_roots",
+   "op": ">=",
+   "value": 15,
+   "from": "\"in the murk\": mud ground"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one mire): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

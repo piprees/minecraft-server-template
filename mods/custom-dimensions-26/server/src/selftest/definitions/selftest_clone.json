@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture: a clone of the_aviary that takes nothing of its own but its seed.",
+  "seed": 2,
+  "spawn": [0, 160, 0],
+  "generator": {
+    "type": "clone",
+    "of": "adventure:the_aviary"
+  },
+  "borders": {
+    "player": 256
+  }
+}

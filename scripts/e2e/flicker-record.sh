@@ -33,6 +33,9 @@
 #          pixels or every box shifts by half a pixel.
 #          Video mode needs ffmpeg to become frames and there is none on this
 #          machine -- it records the .mov and says so rather than pretending.
+# shellcheck source=mc-version.sh
+. "$(cd "$(dirname "$0")" && pwd)/mc-version.sh"
+e2e_refuse_on_26 "it captures with macOS screencapture against the 1.21.1 bridge's /frames; the 26.3 client runs under Xvfb on Linux, where the bridge's /screenshot is the capture"
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"

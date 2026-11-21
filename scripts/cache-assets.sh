@@ -11,6 +11,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
 cd "$PROJECT_DIR"
 
 # --- load .env ----------------------------------------------------------------
@@ -21,7 +23,7 @@ if [[ -f .env ]]; then
   set +a
 fi
 
-MC_VERSION="${MC_VERSION:-1.21.1}"
+MC_VERSION="$(mc_version)"
 PACK_VERSION="$(git rev-parse --short HEAD 2> /dev/null || echo unknown)"
 PACK_NAME="${BRAND_SLUG:-adventure}-${MC_VERSION}-v${PACK_VERSION}"
 
@@ -38,7 +40,7 @@ COMPOSE_SRC="$SCRIPT_DIR/../docker-compose.yml"
 
 # Pack manifest: platform checkouts have it in modpack/; consumers extract
 # it from the modpack-builder image (where it is baked as the default).
-MANIFEST="$PROJECT_DIR/modpack/adventure.mrpack.json"
+MANIFEST="$(mc_manifest "$PROJECT_DIR" "$MC_VERSION")"
 if [[ ! -f "$MANIFEST" ]]; then
   MANIFEST="$CACHE_DIR/.manifest.json"
   mkdir -p "$CACHE_DIR"
@@ -77,32 +79,23 @@ if [[ $DO_IMAGES -eq 1 ]]; then
   echo "=== 1. Caching Docker images ==="
   mkdir -p "$IMAGE_CACHE"
 
-  # Extract pinned image tags from the compose file. No mapfile - this
-  # must run on macOS bash 3.2.
-  # Expand the compose file's ${IMAGE_REGISTRY:-...}/${IMAGE_TAG:-...}
-  # interpolations - grep returns them literally, and docker can't pull a
-  # literal "${...}" reference (those images silently never got cached).
+  # docker-compose.yml is the only list of images. Its ${IMAGE_REGISTRY:-…},
+  # ${IMAGE_TAG:-…} and ${MIRROR_REGISTRY:-…} interpolations are expanded here:
+  # grep returns them literally, and docker can't pull a literal "${...}".
+  # No mapfile - this must run on macOS bash 3.2.
   REG="${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}"
   TAG="${IMAGE_TAG:-latest}"
   IMAGES=()
   while IFS= read -r line; do
     [[ -n "$line" ]] && IMAGES+=("$line")
-  done < <(grep -E '^\s*image:' "$COMPOSE_SRC" 2> /dev/null \
+  done < <(grep -E '^[[:space:]]*image:' "$COMPOSE_SRC" 2> /dev/null \
     | sed -E 's/.*image:[[:space:]]*//' | tr -d '"' | tr -d "'" \
     | sed -e "s|\${IMAGE_REGISTRY:-[^}]*}|${REG}|" -e "s|\${IMAGE_TAG:-[^}]*}|${TAG}|" \
+      -e "s|\${MIRROR_REGISTRY:-\([^}]*\)}|${MIRROR_REGISTRY:-\1}|" \
     | sort -u)
 
-  # Fallback if grep found nothing
   if [[ ${#IMAGES[@]} -eq 0 ]]; then
-    IMAGES=(
-      "itzg/minecraft-server:2026.7.0-java21"
-      "itzg/mc-backup:2026.7.0"
-      "louislam/uptime-kuma:2.4.0"
-      "cloudflare/cloudflared:2026.6.1"
-      "nginx:1.30.3-alpine"
-      "python:3.14-alpine"
-      "alpine:3.24"
-    )
+    echo "  ⚠ No images found in $COMPOSE_SRC - nothing to cache"
   fi
 
   for img in "${IMAGES[@]}"; do
@@ -305,8 +298,7 @@ except:
     # Write a minimal modrinth.index.json (no download URLs needed -
     # the JARs are baked into the pack via overrides/)
     FABRIC_LOADER_VERSION=$(docker exec mc cat /data/fabric-loader-version 2> /dev/null \
-      || curl -s "https://meta.fabricmc.net/v2/versions/loader" | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['version'])" 2> /dev/null \
-      || echo "0.16.14")
+      || mc_version_field loader "$MC_VERSION")
 
     cat > "$WORK_DIR/modrinth.index.json" << EOF
 {

@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 2,
+  "description": "Warped groves stacked into ridges and gorges under a nether sky with no sun, dry to the bedrock. The piglins avoided this place; the fungus here is older than their civilisation. Only the marsh at the heart of it holds still water, and whoever cleared it left a greatsword behind.",
+  "seed": 7730707883975153929,
+  "spawn": [192, 36, -192],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "terrain": {
+    "base": "canyons",
+    "setting": "extreme",
+    "params": {
+      "grade": 0,
+      "coast": -0.6
+    },
+    "scales": {
+      "ridges": 1.5
+    }
+  },
+  "biomes": [
+    "adventure:withered_forest",
+    "adventure:mycotoxic_undergrowth",
+    "minecraft:soul_sand_valley",
+    "minecraft:warped_forest",
+    "adventure:upside_down_forest",
+    "adventure:orchid_marsh",
+    "adventure:ash_barrens",
+    {
+      "id": "adventure:bioshroom_caves",
+      "climate": {
+        "weirdness": [-2.0, -0.045],
+        "depth": [0.1, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "climate": {
+        "weirdness": [-0.045, 2.0],
+        "depth": [0.1, 2.0]
+      }
+    }
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:withered_forest": 20,
+      "adventure:mycotoxic_undergrowth": 10,
+      "minecraft:soul_sand_valley": 6,
+      "minecraft:warped_forest": 30,
+      "adventure:upside_down_forest": 8,
+      "adventure:orchid_marsh": 2,
+      "adventure:ash_barrens": 15
+    }
+  },
+  "liquids": {
+    "seaLevel": -60
+  },
+  "zones": [
+    {
+      "shape": "circle",
+      "centre": [0, 0],
+      "radius": 96,
+      "blend": 20,
+      "biomes": [
+        "adventure:orchid_marsh"
+      ]
+    }
+  ],
+  "dimensionType": {
+    "minY": 0,
+    "height": 320,
+    "logicalHeight": 320,
+    "hasSkylight": false
+  },
+  "atmosphere": {
+    "fogColor": "#1B4B44",
+    "ambientLight": 0.12,
+    "effects": "minecraft:the_nether"
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.6,
+    "playerLuck": 1.6
+  },
+  "structures": {
+    "density": "dense",
+    "clearSpawnRadius": 64,
+    "force": [
+      {
+        "structure": "mns:sword",
+        "x": 620,
+        "z": -470
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:warped_nylium",
+      "igniterItem": "minecraft:flint_and_steel",
+      "color": "1B8B7B",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "particleType": "minecraft:warped_spore",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      }
+    }
+  ],
+  "roll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "adventure:orchid_marsh"
+    ],
+    "wants": {
+      "mvs:large_warped_tower": "near_spawn",
+      "mns:warped_dome": "spread",
+      "crimson_fungus": "near_border"
+    },
+    "shuns": [
+      "bastion",
+      "mns:mega_fortress",
+      "nova_structures:sealing_halls"
+    ],
+    "terrain": "hilly",
+    "heightRange": [0, 260],
+    "water": "none"
+  },
+  "materials": {
+    "biomes": {
+      "minecraft:warped_forest": {
+        "top": "minecraft:warped_nylium",
+        "filler": "minecraft:netherrack"
+      },
+      "minecraft:soul_sand_valley": {
+        "top": "minecraft:soul_soil",
+        "filler": "minecraft:soul_sand"
+      },
+      "adventure:upside_down_forest": {
+        "top": "minecraft:netherrack",
+        "filler": "minecraft:netherrack"
+      }
+    }
+  }
+}

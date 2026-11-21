@@ -1,0 +1,9 @@
+{
+  "reason": "G8: landShare 0.92 for a meeting of old-growth forests (ocean 29.5%, water 38.9%); scales.climate 3 kept.",
+  "terrain": {
+    "scales": {
+      "climate": 3.0
+    },
+    "landShare": 0.92
+  }
+}

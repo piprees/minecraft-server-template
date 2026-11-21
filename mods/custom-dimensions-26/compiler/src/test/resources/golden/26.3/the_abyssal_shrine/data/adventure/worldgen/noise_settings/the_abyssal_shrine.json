@@ -1,0 +1,11 @@
+{
+  "base": "minecraft:floating_islands",
+  "changed": {
+    "material_rule": "adventure:the_abyssal_shrine",
+    "noise_router": "sha1:f79b29c11671ea0ce90deca4a66f72ed6e74e360",
+    "sea_level": 0
+  },
+  "removed": [
+    "debug_functions"
+  ]
+}

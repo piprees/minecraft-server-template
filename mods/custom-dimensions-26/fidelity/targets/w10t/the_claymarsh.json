@@ -1,0 +1,53 @@
+{
+ "slug": "the_claymarsh",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:clay + surface.groundBlocksPercent.minecraft:mud",
+   "op": ">=",
+   "value": 25,
+   "from": "\"things half-sunk in the clay\""
+  },
+  {
+   "key": "surface.topBlocksPercent.minecraft:sugar_cane + surface.topBlocksPercent.minecraft:tall_grass + surface.topBlocksPercent.minecraft:short_grass",
+   "op": ">=",
+   "value": 20,
+   "from": "\"Reed beds\""
+  },
+  {
+   "key": "surface.waterDepth.shallow1To4Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "\"wetland\": shallow water"
+  },
+  {
+   "key": "terrain.slopes.flatUnder15Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "\"Quiet wetland\": level ground"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:cypress_wetland + surface.biomesPercent.adventure:orchid_marsh + surface.biomesPercent.minecraft:swamp + surface.biomesPercent.minecraft:mangrove_swamp + surface.biomesPercent.adventure:muddy_river",
+   "op": ">=",
+   "value": 70,
+   "from": "1.21.1 marsh, swamp, mangrove_swamp, orchid_swamp, fen, muddy_river, cypress_wetlands"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:ocean + surface.biomesPercent.minecraft:warm_ocean + surface.biomesPercent.minecraft:lukewarm_ocean + surface.biomesPercent.minecraft:cold_ocean + surface.biomesPercent.minecraft:deep_ocean + surface.biomesPercent.minecraft:deep_lukewarm_ocean + surface.biomesPercent.minecraft:deep_cold_ocean + surface.biomesPercent.minecraft:frozen_ocean",
+   "op": "<=",
+   "value": 3,
+   "from": "1.21.1 lists no ocean"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (one wetland): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

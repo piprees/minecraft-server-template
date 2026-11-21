@@ -1,0 +1,20 @@
+{
+  "base": "minecraft:overworld_caves",
+  "changed": {
+    "ambient_light": 0.06,
+    "attributes": {
+      "changed": {
+        "minecraft:visual/fog_color": "#1b2b1b"
+      }
+    },
+    "default_clock": "adventure:day_length/54000_18000",
+    "has_skylight": false,
+    "timelines": [
+      "adventure:atmosphere/the_underdark",
+      "adventure:day_length/villager_schedule_54000_18000",
+      "adventure:day_length/day_54000_18000",
+      "adventure:day_length/moon_54000_18000",
+      "minecraft:early_game"
+    ]
+  }
+}

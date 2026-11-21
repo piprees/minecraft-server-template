@@ -1,0 +1,80 @@
+{
+  "clock": "adventure:day_length/54000_18000",
+  "period_ticks": 576000,
+  "tracks": {
+    "minecraft:gameplay/surface_slime_spawn_chance": {
+      "ease": "constant",
+      "keyframes": [
+        {
+          "ticks": 0,
+          "value": 0.5
+        },
+        {
+          "ticks": 72000,
+          "value": 0.375
+        },
+        {
+          "ticks": 144000,
+          "value": 0.25
+        },
+        {
+          "ticks": 216000,
+          "value": 0.125
+        },
+        {
+          "ticks": 288000,
+          "value": 0.0
+        },
+        {
+          "ticks": 360000,
+          "value": 0.125
+        },
+        {
+          "ticks": 432000,
+          "value": 0.25
+        },
+        {
+          "ticks": 504000,
+          "value": 0.375
+        }
+      ],
+      "modifier": "maximum"
+    },
+    "minecraft:visual/moon_phase": {
+      "keyframes": [
+        {
+          "ticks": 0,
+          "value": "full_moon"
+        },
+        {
+          "ticks": 72000,
+          "value": "waning_gibbous"
+        },
+        {
+          "ticks": 144000,
+          "value": "third_quarter"
+        },
+        {
+          "ticks": 216000,
+          "value": "waning_crescent"
+        },
+        {
+          "ticks": 288000,
+          "value": "new_moon"
+        },
+        {
+          "ticks": 360000,
+          "value": "waxing_crescent"
+        },
+        {
+          "ticks": 432000,
+          "value": "first_quarter"
+        },
+        {
+          "ticks": 504000,
+          "value": "waxing_gibbous"
+        }
+      ]
+    }
+  }
+}

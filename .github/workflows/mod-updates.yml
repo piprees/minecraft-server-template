@@ -1,9 +1,19 @@
 name: Mod Updates
 
-# Dependabot-style updates for Modrinth mods. Re-pins every mod in
-# config/modrinth-mods.txt to its latest Fabric build for MC_VERSION, then opens
-# (or refreshes) a PR with changelogs. Never touches production directly - this
-# only runs against a checkout in the Actions runner.
+# Dependabot-style updates for Modrinth mods, as two PRs. Re-pins every mod in
+# config/modrinth-mods.txt to its latest Fabric build for MC_VERSION, then
+# splits the result (scripts/dep_review/partition.py):
+#
+#   mod-updates/auto        regular updates; dep-review.yml may auto-merge it
+#   mod-updates/next-major  worldgen updates plus the regenerated presets and
+#                           structure census; reviewed and kept ready, merged
+#                           only by a human cutting the next major release
+#
+# Consumers pinned to a major take every minor release in it, and worldgen
+# changes cannot be undone on generated chunks (TROUBLESHOOTING.md#d2), so a
+# worldgen change ships only in a major. release.yml refuses a non-major
+# release over the next-major PR's breaking commit. Never touches production
+# directly - this only runs against a checkout in the Actions runner.
 on:
   schedule:
     - cron: '0 6 * * 1' # Monday 06:00 UTC, matches dependabot.yml cadence
@@ -15,17 +25,82 @@ concurrency:
   group: mod-updates
   cancel-in-progress: false
 
-env:
-  BRANCH: mod-updates/auto
-
 jobs:
-  update-mods:
-    name: Check for mod updates
+  pin:
+    name: Re-pin and split
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Carry holds from the open PRs
+        # dep-review.yml holds mods back (or releases them) by editing _holds on
+        # either PR branch; the re-pin below starts from main, so those edits
+        # come across first or the held versions would return.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for BRANCH in mod-updates/auto mod-updates/next-major; do
+            PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+            [[ -n "$PR_NUM" ]] || continue
+            git fetch --no-tags origin "$BRANCH"
+            git show FETCH_HEAD:modpack/adventure.mrpack.json > /tmp/holds-branch.json
+            git show "$(git merge-base HEAD FETCH_HEAD):modpack/adventure.mrpack.json" > /tmp/holds-base.json
+            python3 scripts/dep_review/carry_holds.py --manifest modpack/adventure.mrpack.json \
+              --branch /tmp/holds-branch.json --base /tmp/holds-base.json
+          done
+
+      - name: Resolve latest mod versions (server + client manifest)
+        run: ./scripts/pin-mod-versions.sh --apply
+
+      - name: Split regular and worldgen updates
+        run: |
+          mkdir -p variants
+          python3 scripts/dep_review/partition.py --old-ref HEAD --out-dir variants \
+            --cache "$RUNNER_TEMP/jar-cache" | tee variants/partition.log
+          mkdir -p variants/before/config variants/before/modpack
+          git show HEAD:config/modrinth-mods.txt > variants/before/config/modrinth-mods.txt
+          git show HEAD:modpack/adventure.mrpack.json > variants/before/modpack/adventure.mrpack.json
+
+      - name: Upload the variants
+        uses: actions/upload-artifact@v7
+        with:
+          name: mod-variants
+          path: variants/
+          retention-days: 7
+
+  pr:
+    name: ${{ matrix.branch }}
+    needs: pin
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: write
       pull-requests: write
+      actions: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: regular
+            branch: mod-updates/auto
+          - variant: worldgen
+            branch: mod-updates/next-major
+    env:
+      BRANCH: ${{ matrix.branch }}
+      VARIANT: ${{ matrix.variant }}
 
     steps:
       - name: Checkout
@@ -44,14 +119,19 @@ jobs:
         run: |
           gh label create dependencies --color B8EE55 --force
           gh label create minecraft --color 44BD32 --description "Minecraft server/mod content" --force
+          gh label create release:major --color 5319E7 --force \
+            --description "Ships only in the next major release"
 
-      - name: Snapshot current mod lists
+      - name: Download the variants
+        uses: actions/download-artifact@v8
+        with:
+          name: mod-variants
+          path: /tmp/variants
+
+      - name: Apply this PR's pins
         run: |
-          cp config/modrinth-mods.txt /tmp/modrinth-mods.before.txt
-          cp modpack/adventure.mrpack.json /tmp/adventure.mrpack.before.json
-
-      - name: Resolve latest mod versions (server + client manifest)
-        run: ./scripts/pin-mod-versions.sh --apply
+          cp "/tmp/variants/$VARIANT/config/modrinth-mods.txt" config/modrinth-mods.txt
+          cp "/tmp/variants/$VARIANT/modpack/adventure.mrpack.json" modpack/adventure.mrpack.json
 
       - name: Check for changes
         id: diff
@@ -65,11 +145,11 @@ jobs:
       - name: Regenerate worldgen presets from the new pins
         # The structure override datapacks are WHOLE-FILE copies of the pinned
         # jars' structure_set JSONs, and the adventure:wide/compressed noise
-        # presets are cloned from the pinned Tectonic jar — a pin bump makes
-        # them stale. Regenerate so the weekly PR carries the re-synced files;
-        # baseline-drift warnings from the generators land in the PR body for
-        # the reviewer.
-        if: steps.diff.outputs.changed == 'true'
+        # presets are cloned from the pinned Tectonic jar, so a worldgen pin
+        # bump makes them stale. Regular updates change no worldgen data
+        # (partition.py compares the jars), so only this PR regenerates them.
+        # Baseline-drift warnings land in the PR body.
+        if: matrix.variant == 'worldgen' && steps.diff.outputs.changed == 'true'
         run: |
           set -euo pipefail
           python3 scripts/gen-structure-presets.py 2>&1 | tee /tmp/gen-structures.log
@@ -90,18 +170,18 @@ jobs:
           } >> /tmp/gen-notes.md
 
       - name: Set up Java for in-house mods
-        # Unconditional, unlike the presets step above: the census depends on
-        # our own mod's structure sets (adventure:exit_shrines), not on a
-        # Modrinth pin, so gating it on the pin diff would miss the exact
-        # case it exists to catch. Build with the pinned toolchain
-        # (mods/mise.toml uses Java 21), same setup as mod-build.yml, or the
-        # runner's default JDK produces a broken jar.
+        # Runs whether or not a pin moved: the census depends on our own mod's
+        # structure sets (adventure:exit_shrines) as well as the pins. Build
+        # with the pinned toolchain (mods/mise.toml uses Java 21), same setup as
+        # mod-build.yml, or the runner's default JDK produces a broken jar.
+        if: matrix.variant == 'worldgen'
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Setup Gradle
+        if: matrix.variant == 'worldgen'
         uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: '8.13'
@@ -111,6 +191,7 @@ jobs:
         # build/libs/, never the -dev jar from build/devlibs/ — an
         # unremapped jar has no mixin refmap, and the census would silently
         # see a jar with no structure_set entries rather than fail.
+        if: matrix.variant == 'worldgen'
         run: |
           while IFS='|' read -r jar_name project refmap; do
             [[ "$jar_name" == \#* || -z "$jar_name" ]] && continue
@@ -132,15 +213,14 @@ jobs:
           done < mods/local-mods.manifest
 
       - name: Regenerate the structure census
-        # Unconditional, same reasoning as the Java/Gradle setup above: our
-        # own mod's structure sets can drift with no Modrinth pin moving at
-        # all. --check right after the write proves the regeneration is
-        # self-consistent (the cache it just warmed makes the second pass
-        # free of network calls) instead of trusting the write blindly; a
-        # --check failure here means the generator is non-deterministic, not
-        # that the census is merely stale, so it fails the job rather than
-        # folding into the PR. `changed` records whether the committed
-        # census actually moved, independent of the pin diff.
+        # Runs whether or not a pin moved, like the Java setup above. --check
+        # right after the write proves the regeneration is self-consistent (the
+        # cache it just warmed makes the second pass free of network calls); a
+        # --check failure means the generator is non-deterministic, not that
+        # the census is merely stale, so it fails the job rather than folding
+        # into the PR. `changed` records whether the committed census moved,
+        # independent of the pin diff.
+        if: matrix.variant == 'worldgen'
         id: census
         run: |
           set -euo pipefail
@@ -175,15 +255,14 @@ jobs:
             fi
           } >> /tmp/gen-notes.md
 
-      - name: Determine if the weekly PR needs updating
-        # The pin diff alone used to gate everything below, so a week where
-        # only the census moved (no pin changed) wrote fresh census files
-        # and then discarded them — the job went green while the drift it
-        # exists to catch persisted uncommitted. Anything below this step
-        # runs on the union of the two.
+      - name: Determine if the PR needs updating
+        # A census-only week (no pin moved) still updates the next-major PR.
         id: overall
+        env:
+          PINS_CHANGED: ${{ steps.diff.outputs.changed }}
+          CENSUS_CHANGED: ${{ steps.census.outputs.changed }}
         run: |
-          if [[ "${{ steps.diff.outputs.changed }}" == "true" || "${{ steps.census.outputs.changed }}" == "true" ]]; then
+          if [[ "$PINS_CHANGED" == "true" || "$CENSUS_CHANGED" == "true" ]]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -196,38 +275,63 @@ jobs:
         run: |
           PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
           if [[ -n "$PR_NUM" ]]; then
-            gh pr comment "$PR_NUM" --body "Mods and the structure census both match \`main\` - closing, nothing left to update."
+            gh pr comment "$PR_NUM" --body "Everything on this branch now matches \`main\` - closing, nothing left to update."
             gh pr close "$PR_NUM" --delete-branch
             echo "Closed stale PR #$PR_NUM"
           else
-            echo "No mod or structure census updates available."
+            echo "No $VARIANT updates available."
           fi
 
       - name: Build PR body with changelogs
         if: steps.overall.outputs.changed == 'true'
         id: body
         # count=0 on a census-only week (old and new pin snapshots are
-        # identical) — build-mod-update-report.py handles that already, it
-        # just writes "No mod version changes." Read count from the script's
-        # own stdout rather than steps.body.outputs.count, which isn't set
-        # until this step finishes.
+        # identical); build-mod-update-report.py writes "No mod version
+        # changes." Count is read from the script's own stdout, because
+        # steps.body.outputs.count isn't set until this step finishes.
         run: |
           set -euo pipefail
+          : > /tmp/pr-body.md
+          if [[ "$VARIANT" == "worldgen" ]]; then
+            {
+              echo "> **Next major release only.** These updates change world generation, which cannot"
+              echo "> be undone on chunks already generated. Consumers pinned to the current major must"
+              echo "> not receive them in a minor release. Merge this PR only when cutting the next major;"
+              echo "> \`release.yml\` refuses a minor release once it is merged. dep-review labels it"
+              echo "> \`dep-review:ready-for-major\` while it is reviewed and green."
+              echo ""
+            } >> /tmp/pr-body.md
+          fi
           python3 scripts/build-mod-update-report.py \
-            --old /tmp/modrinth-mods.before.txt \
+            --old /tmp/variants/before/config/modrinth-mods.txt \
             --new config/modrinth-mods.txt \
             --server-env .env.example \
-            --output /tmp/pr-body.md | tee /tmp/body-outputs.txt >> "$GITHUB_OUTPUT"
-          cat /tmp/gen-notes.md >> /tmp/pr-body.md
+            --output /tmp/report.md | tee /tmp/body-outputs.txt >> "$GITHUB_OUTPUT"
+          cat /tmp/report.md >> /tmp/pr-body.md
+          {
+            echo ""
+            echo "## How this week's updates were split"
+            echo ""
+            echo '```'
+            cat /tmp/variants/partition.log
+            echo '```'
+          } >> /tmp/pr-body.md
+          [[ -f /tmp/gen-notes.md ]] && cat /tmp/gen-notes.md >> /tmp/pr-body.md
           COUNT=$(grep '^count=' /tmp/body-outputs.txt | cut -d= -f2)
-          if [[ "$COUNT" -gt 0 ]]; then
-            echo "title=chore: update $COUNT mod version(s)" >> "$GITHUB_OUTPUT"
+          if [[ "$VARIANT" == "worldgen" ]]; then
+            if [[ "$COUNT" -gt 0 ]]; then
+              echo "title=feat(mods)!: worldgen updates for the next major ($COUNT mod version(s))" >> "$GITHUB_OUTPUT"
+            else
+              echo "title=feat(mods)!: regenerate the structure census for the next major" >> "$GITHUB_OUTPUT"
+            fi
           else
-            echo "title=chore: regenerate structure census" >> "$GITHUB_OUTPUT"
+            echo "title=chore: update $COUNT mod version(s)" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Commit and push
         if: steps.overall.outputs.changed == 'true'
+        env:
+          TITLE: ${{ steps.body.outputs.title }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -238,28 +342,39 @@ jobs:
             scripts/data/structure-sets-extracted.json \
             config/custom-dimensions/extractors/structures.json \
             config/custom-dimensions/structure-groups.json
-          git commit -m "${{ steps.body.outputs.title }}"
+          if [[ "$VARIANT" == "worldgen" ]]; then
+            git commit -m "$TITLE" \
+              -m "BREAKING CHANGE: world generation changes for newly generated chunks; ships only in a new major release."
+          else
+            git commit -m "$TITLE"
+          fi
           git push --force origin "$BRANCH"
 
       - name: Open or update PR
         if: steps.overall.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          TITLE: ${{ steps.body.outputs.title }}
         run: |
           PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
           if [[ -n "$PR_NUM" ]]; then
-            gh pr edit "$PR_NUM" \
-              --title "${{ steps.body.outputs.title }}" \
-              --body-file /tmp/pr-body.md
-            gh pr comment "$PR_NUM" --body "Refreshed with the latest available mod versions and structure census ($(date -u +%Y-%m-%d))."
+            gh pr edit "$PR_NUM" --title "$TITLE" --body-file /tmp/pr-body.md
+            gh pr comment "$PR_NUM" --body "Refreshed with the latest available mod versions ($(date -u +%Y-%m-%d))."
             echo "Updated PR #$PR_NUM"
           else
-            gh pr create \
-              --title "${{ steps.body.outputs.title }}" \
-              --body-file /tmp/pr-body.md \
-              --base main \
-              --head "$BRANCH" \
-              --label dependencies \
-              --label minecraft
+            LABELS=(--label dependencies --label minecraft)
+            [[ "$VARIANT" == "worldgen" ]] && LABELS+=(--label release:major)
+            gh pr create --title "$TITLE" --body-file /tmp/pr-body.md \
+              --base main --head "$BRANCH" "${LABELS[@]}"
             echo "Opened new PR"
           fi
+
+      - name: Request dependency review
+        # PRs opened or pushed with GITHUB_TOKEN trigger no pull_request
+        # workflows; dispatch is the exception.
+        if: steps.overall.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          gh workflow run dep-review.yml --ref main -f pr="$PR_NUM"

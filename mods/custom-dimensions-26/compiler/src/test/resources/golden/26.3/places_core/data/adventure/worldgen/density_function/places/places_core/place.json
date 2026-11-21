@@ -1,0 +1,24 @@
+{
+  "left": {
+    "left": {
+      "left": "adventure:places/places_core/least",
+      "right": {
+        "left": {
+          "input": {
+            "left": "adventure:places/places_core/least",
+            "right": 0.0625,
+            "type": "minecraft:mul"
+          },
+          "type": "minecraft:floor"
+        },
+        "right": 16.0,
+        "type": "minecraft:mul"
+      },
+      "type": "minecraft:sub"
+    },
+    "right": 0.5,
+    "type": "minecraft:mul"
+  },
+  "right": -0.75,
+  "type": "minecraft:add"
+}

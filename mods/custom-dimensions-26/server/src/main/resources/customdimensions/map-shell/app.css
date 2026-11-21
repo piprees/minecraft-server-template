@@ -1,0 +1,192 @@
+/* map.DOMAIN shell: sidebar and tiled map view. The site nav bar (44px, fixed) is
+   injected by nav-proxy; every fixed element below starts at top: 44px. */
+@view-transition { navigation: auto; }
+
+:root {
+  --nav-h: 44px;
+  --sidebar-w: 268px;
+  --bg-page: #0c1319;
+  --bg-panel: #080d12;
+  --border: #1c2835;
+  --text: #c5cdd8;
+  --text-muted: #7a8999;
+  --accent: #5a9a70;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg-page); color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif; font-size: .9rem;
+}
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* --- View transitions ------------------------------------------------------- */
+#view { view-transition-name: map-view; }
+#sidebar { view-transition-name: sidebar; }
+
+::view-transition-old(map-view) { animation: fade-out .2s ease-in; }
+::view-transition-new(map-view) { animation: fade-in .3s ease-out; }
+::view-transition-old(sidebar),
+::view-transition-new(sidebar) { animation: none; }
+
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes fade-in  { from { opacity: 0; } to { opacity: 1; } }
+
+/* --- Sidebar toggle ------------------------------------------------------ */
+#sidebar-toggle {
+  position: fixed; top: calc(var(--nav-h) + 8px); left: 8px; z-index: 1001;
+  font: inherit; font-size: 1rem; line-height: 1; padding: .45rem .6rem;
+  background: var(--bg-panel); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
+  view-transition-name: sidebar-toggle;
+}
+::view-transition-old(sidebar-toggle),
+::view-transition-new(sidebar-toggle) { animation: none; }
+#sidebar-toggle:hover { border-color: var(--accent); }
+#sidebar-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* --- Sidebar -------------------------------------------------------------- */
+#sidebar {
+  position: fixed; top: var(--nav-h); bottom: 0; left: 0; z-index: 1000;
+  width: var(--sidebar-w); overflow-y: auto;
+  background: var(--bg-panel); border-right: 1px solid var(--border);
+  padding: 3.2rem .6rem 1rem;
+  transition: transform .2s ease;
+}
+body.sidebar-closed #sidebar { transform: translateX(-100%); }
+#sidebar h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--text-muted); margin: 0 0 .4rem .4rem; }
+#sidebar-hint { font-size: .72rem; color: var(--text-muted); margin: 0 0 .6rem .4rem; }
+#dim-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+#dim-list li { margin: 0; }
+
+/* Preview cards: thumbnail frame on top, name + info line + status below.
+   The frame has a fixed aspect ratio so a missing/unrendered thumbnail never
+   shifts layout — .dim-thumb-empty (no image, or the image 404s) fills it
+   with a flat pattern instead of leaving a broken-image icon. */
+#dim-list a {
+  display: flex; flex-direction: column; gap: .35rem;
+  padding: .5rem; border-radius: 8px;
+  color: var(--text); text-decoration: none;
+  border: 1px solid transparent;
+}
+#dim-list a:hover { background: #10161d; }
+#dim-list a[aria-current="page"] { background: #14202b; border-color: var(--accent); }
+#dim-list a[aria-current="page"] .dim-name { color: #a8d8a0; }
+#dim-list a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.dim-thumb {
+  display: block; width: 100%; aspect-ratio: 16 / 10;
+  border-radius: 6px; overflow: hidden; flex-shrink: 0;
+  background: #0a0f14; border: 1px solid var(--border);
+}
+.dim-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.dim-thumb-empty {
+  background-image: repeating-linear-gradient(135deg,
+    #0a0f14, #0a0f14 8px, #0d141b 8px, #0d141b 16px);
+}
+
+.dim-body { display: flex; flex-direction: column; gap: .15rem; min-width: 0; }
+.dim-name {
+  font-size: .85rem; font-weight: 600; line-height: 1.3;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.dim-meta {
+  font-size: .68rem; color: var(--text-muted); line-height: 1.35;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#dim-list .dim-when { display: block; font-size: .64rem; color: var(--text-muted); }
+
+/* --- Map view -------------------------------------------------------------- */
+#view {
+  position: fixed; top: var(--nav-h); right: 0; bottom: 0;
+  left: var(--sidebar-w); transition: left .2s ease;
+}
+body.sidebar-closed #view { left: 0; }
+#map { position: absolute; inset: 0; }
+#map-empty[hidden] { display: none; }
+#map-empty {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center;
+  padding: 1rem;
+}
+#map-empty h1 { font-size: 1.3rem; margin: 0 0 .4rem; }
+#map-empty p { color: var(--text-muted); max-width: 30rem; margin: 0; }
+
+/* Tiles and markers: absolutely placed, moved by transform. */
+#map { overflow: hidden; touch-action: none; cursor: grab; outline: none; }
+#map:active { cursor: grabbing; }
+#map:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+.tiles, #markers { position: absolute; inset: 0; pointer-events: none; }
+.tiles img { position: absolute; left: 0; top: 0; transform-origin: 0 0; user-select: none; }
+.tiles.pixelated img { image-rendering: pixelated; }
+#markers { pointer-events: none; }
+.marker {
+  position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; padding: 0;
+  border-radius: 50%; border: 2px solid #fff; background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .7); cursor: pointer; pointer-events: auto;
+}
+.marker:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* Controls sit on the left under the sidebar toggle; the layer panel on the right. */
+#controls {
+  position: absolute; top: 3.6rem; left: .7rem; z-index: 10;
+  display: flex; flex-direction: column; gap: 1px;
+}
+#controls button, #layers-toggle {
+  font: inherit; font-size: 1.05rem; line-height: 1; min-width: 2.2rem; min-height: 2.2rem;
+  background: var(--bg-panel); color: var(--text); border: 1px solid var(--border); cursor: pointer;
+}
+#controls button:first-child { border-radius: 8px 8px 0 0; }
+#controls button:last-child { border-radius: 0 0 8px 8px; }
+#controls button:hover, #layers-toggle:hover { border-color: var(--accent); }
+#controls button:focus-visible, #layers-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#layers-toggle {
+  position: absolute; top: .7rem; right: .7rem; z-index: 11;
+  font-size: .8rem; padding: .45rem .7rem; border-radius: 8px;
+}
+#layers {
+  position: absolute; top: 3.4rem; right: .7rem; z-index: 11;
+  width: 15.5rem; max-height: calc(100% - 4.4rem); overflow-y: auto;
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px;
+  padding: .6rem .7rem; font-size: .8rem;
+}
+#layers[hidden], #controls[hidden], #layers-toggle[hidden] { display: none; }
+#layers fieldset { border: 0; margin: 0 0 .6rem; padding: 0; display: flex; flex-direction: column; gap: .3rem; }
+#layers legend, #legend h3 {
+  font-size: .68rem; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--text-muted); margin: 0 0 .3rem; padding: 0;
+}
+#layers label { display: flex; align-items: center; gap: .4rem; cursor: pointer; }
+#layers input { accent-color: var(--accent); margin: 0; }
+#layers input:disabled + * , #layers label:has(input:disabled) { color: var(--text-muted); cursor: default; }
+#legend[hidden] { display: none; }
+#legend ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .2rem; }
+#legend li { display: flex; align-items: center; gap: .45rem; font-size: .74rem; }
+.swatch { width: .8rem; height: .8rem; border-radius: 2px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .15); }
+
+#coords, #marker-label {
+  position: absolute; left: .7rem; margin: 0; z-index: 10; pointer-events: none;
+  color: #fff; font-size: .72rem; font-weight: 600; font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .95), 0 0 4px rgba(0, 0, 0, .8);
+}
+#coords { bottom: .7rem; }
+#marker-label { bottom: 2rem; }
+#marker-label[hidden] { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  #sidebar, #view { transition: none; }
+  ::view-transition-old(map-view),
+  ::view-transition-new(map-view) { animation: none; }
+}
+
+@media (max-width: 700px) {
+  #view { left: 0; }
+  #sidebar { box-shadow: 4px 0 24px rgba(0,0,0,.5); }
+  #layers { width: calc(100% - 1.4rem); }
+}

@@ -1,0 +1,68 @@
+{
+ "slug": "the_sunken_temple",
+ "targets": [
+  {
+   "key": "surface.fluidCoverPercent.water",
+   "op": "between",
+   "value": [
+    35,
+    70
+   ],
+   "from": "\"drowned skyland basins\", \"where the water pooled between paradise islands\""
+  },
+  {
+   "key": "surface.waterDepth.shallow1To4Percent + surface.waterDepth.over12Percent",
+   "op": ">=",
+   "value": 50,
+   "from": "\"half-submerged architecture\": basins with measured depth (shallow shelves and deep pools)"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:warm_ocean + surface.biomesPercent.minecraft:lukewarm_ocean + surface.biomesPercent.minecraft:deep_lukewarm_ocean + surface.biomesPercent.minecraft:beach",
+   "op": ">=",
+   "value": 30,
+   "from": "1.21.1 biomes warm_ocean, deep_warm_ocean, lukewarm_ocean, beach"
+  },
+  {
+   "key": "surface.biomesPercent.minecraft:jungle + surface.biomesPercent.adventure:sky_highlands",
+   "op": ">=",
+   "value": 20,
+   "from": "1.21.1 biomes jungle, highlands: the paradise islands"
+  },
+  {
+   "key": "surface.biomesPercent.adventure:hanging_gardens + surface.biomesPercent.adventure:desert_oasis",
+   "op": "<=",
+   "value": 10,
+   "from": "1.21.1 list has no underside garden or desert oasis"
+  },
+  {
+   "key": "surface.voidPercent",
+   "op": "<=",
+   "value": 15,
+   "from": "\"basins\": the water is held, not falling into the void"
+  },
+  {
+   "key": "surface.snowIcePercent",
+   "op": "<=",
+   "value": 1,
+   "from": "warm drowned basins"
+  },
+  {
+   "key": "placeness.landBiomeRegions.top3Percent",
+   "op": ">=",
+   "value": 60,
+   "from": "place kind meeting (islands and the water between): the largest three regions hold most of the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": "<=",
+   "value": 8,
+   "from": "place kind meeting: a few places, not many"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind meeting: no scatter of biome specks"
+  }
+ ]
+}

@@ -1,0 +1,46 @@
+{
+  "input": {
+    "left": {
+      "left": {
+        "left": {
+          "left": "adventure:terrain/terrain_roofed_chasms/floor",
+          "right": {
+            "axis": "y",
+            "from_coordinate": 0,
+            "from_value": 0.0,
+            "to_coordinate": 128,
+            "to_value": -128.0,
+            "type": "minecraft:gradient"
+          },
+          "type": "minecraft:add"
+        },
+        "right": {
+          "left": {
+            "left": "adventure:terrain/terrain_roofed_chasms/ceiling",
+            "right": {
+              "axis": "y",
+              "from_coordinate": 0,
+              "from_value": 0.0,
+              "to_coordinate": 128,
+              "to_value": -128.0,
+              "type": "minecraft:gradient"
+            },
+            "type": "minecraft:add"
+          },
+          "right": -1.0,
+          "type": "minecraft:mul"
+        },
+        "type": "minecraft:max"
+      },
+      "right": 0.125,
+      "type": "minecraft:mul"
+    },
+    "right": {
+      "left": "minecraft:nether/base_3d_noise",
+      "right": 1.05,
+      "type": "minecraft:mul"
+    },
+    "type": "minecraft:add"
+  },
+  "type": "minecraft:cache"
+}

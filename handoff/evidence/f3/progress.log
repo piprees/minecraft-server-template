@@ -1,0 +1,12 @@
+21:57 — f3 start; ff to 4fd7838b
+22:06 — paused by lead before writing code; nothing to commit; notes in done.txt
+22:18 — F3b brief read; ff to 327418f4
+22:19 — owner addition: cheap below-ceiling start for roofed/sky; measure ≥95% within 1
+22:22 — core WavePlan/SliceChoice/TinyFont/ContactSheet + WaveTest green
+22:29 — wave code compiles (FastWave, FastSlices, ScanWindow FLOOR, FastRender Options); bench b1 started
+22:32 — b1 underdark: pass1 7.1 s (slices from runs, +2.5 s thread), pass2 36 s, pass3 58 s, total 102.5 s; floor-first at q0.9 start 26 only 23% within 1 -> median start
+22:40 — b1 done: 2048 final too slow (ow 203 s, aviary 158 s); FINAL_SIDE 1024; prescan spacing 4x stride; batch experiment; roofedWorld gate; b2 started
+22:47 — b2: ow first wave 11.8 s (prescan 128 spacing), total to 1024 px 60.7 s; aviary 47 s; underdark 33 s; floor start sweep: 112 -> 98.7% (rest solid-through), 96 -> 87%; added floor agreement self-check, run-middle bands; tests green
+23:11 — full build green: core 733, server 163, compiler 559
+23:13 — committed 41423c15; cutover mkshas + clean-clone apply --no-network exit 0 (no drift); quick gate exit 0; b4 final bench started
+23:19 — committed 2c907816; reporting

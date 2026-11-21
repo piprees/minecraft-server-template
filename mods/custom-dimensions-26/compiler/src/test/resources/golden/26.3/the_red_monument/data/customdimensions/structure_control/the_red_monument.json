@@ -1,0 +1,63 @@
+{
+  "level": "adventure:the_red_monument",
+  "density": "none",
+  "noise": false,
+  "suppressedReason": "density none",
+  "radiusChunks": 32,
+  "spawnChunk": [24, -12],
+  "groups": {},
+  "mode": "none",
+  "list": [],
+  "exclude": [],
+  "include": [],
+  "rarity": {},
+  "spacing": {},
+  "force": [
+    {
+      "structure": "mes:monolith",
+      "x": 0,
+      "z": 0,
+      "y": 96,
+      "radius": 0,
+      "exclusive": true
+    },
+    {
+      "structure": "mes:manuscript_shrine",
+      "x": 168,
+      "z": 96,
+      "y": 88,
+      "radius": 0,
+      "exclusive": true
+    },
+    {
+      "structure": "mes:mythic_garden",
+      "x": -96,
+      "z": 168,
+      "y": 84,
+      "radius": 0,
+      "exclusive": true
+    },
+    {
+      "structure": "mes:manuscript_shrine",
+      "x": -168,
+      "z": -96,
+      "y": 88,
+      "radius": 0,
+      "exclusive": true
+    },
+    {
+      "structure": "mes:mystical_archway",
+      "x": 96,
+      "z": -168,
+      "y": 92,
+      "radius": 0,
+      "exclusive": true
+    }
+  ],
+  "wants": [],
+  "shuns": [],
+  "replace": {},
+  "terrainAdaptation": {
+    "mes:monolith": "beard_box"
+  }
+}

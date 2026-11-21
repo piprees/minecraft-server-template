@@ -1,0 +1,29 @@
+04:26 — kit: atmosphere.fogDistance {start,end} (Atmosphere, DefinitionReader, DatapackCompiler, schema, worldgen.md) + 2 compiler tests; gilded pit needs a view across the pit past the Nether's fog end 96
+04:28 — read brief, common rules, w10c/w10s briefs, owner notes, RB-39..45, placement § Fitting, all ten blind reviews
+04:28 — round-1 definition edits for ten (tools/edit1.py): shuns + list removals for every failing structure, wailing chasms 0.3/bone_reef floors/no quartz/fortress want, gilded fog+blackstone/gold seams, forged dead biomes+crags, molten dry blackstone flat + one fog, violet spire amethyst, abyssal jittered shore, sunken tierSpacing 28, end castle/props out + 3 zone swaps, nether bridges/village out, bloodroot jungle out
+04:29 — lane given; targeted tests green: DatapackCompilerTest 47/47 (2 new fogDistance), DefinitionReaderTest 14/14
+04:30 — boot b1 failed: forged ceilingGap 40 < 1.5*relief+8; forged 48, wailing 34; relaunched
+04:31 — b1 second fail: sunken tierSpacing min 32 -> 32 with tierShrink 0.8 (upper undersides to ~142, under the 165 water); b1 running
+04:39 — b1 reads: gilded portal anchor (-412,217) lies on the pit floor (h 25) -> anchor spawn, spawn z -512 on the 84 ledge over a 55-block drop; wailing heights bimodal 16-24 (50%) / 64-88: chasms 0.3 merge into wide floors -> variants b/c fewer, smaller-scale cuts; abyssal apron 16 lets void back between shore and ring -> variants apron 40/56; sky-world list structures do not start (violet only wizard_tower+castle_ruin; abyssal only monument)
+04:46 — b1 done (targets runs/b1/t-*.json); b2 launched: wailing b/c, abyssal b/c, forged (magma belowFloor, basin 50), bloodroot (wastes 10), gilded (spawn -540, anchor spawn), violet (enderwatch want)
+04:51 — wailing variant b (scale 0.5, chasms 0.1, relief 6, gap 30): mesa country cut by a network of narrow chasms, w10t 9/9 w10c 4/4 (p25 28, p75 82, cliff 15.5) -> applied; c (scale 0.4, chasms 0.06) narrower but p25 61 fails
+04:53 — b2: bloodroot 7/7 6/6, gilded 9/9 4/4, forged 5/8 (restated pinewood/crimson-forest targets per owner's no-trees note; basin weight 58 for largest region 46.6); abyssal b/c water 16 < 25 and void crescents -> b3 variants d/e
+04:55 — b3: abyssal e (apron 44, jitter 40, coverage 0.7) shelf meets the ring all round, no void; w10t 9/10 (plateaus 4.1), w10c 6/6 -> applied; d (apron 64) water 20.9 fails; the level shelf stays (kit gap)
+04:56 — rig s1 launched: 103 entries (20 claims, 43 structure starts, 40 terrain picks for 8 dims), render distance 32, structure mods
+04:57 — committed d064cc74 (fogDistance) and 2761cb31 (defs + forged target restatements); pack.py, changes.json, sources.json, kit-gaps.md written while rig s1 runs
+05:05 — s1 first claims read: gilded landing too dark (luma 12.8) and its walls netherrack (ores replace only palette blocks) -> defaultBlock blackstone, ambient 0.3, fog #5A3A16; pit-floor NV frame shows the capital; end/abyssal claims need pairs; wailing chasm camera inside terrain -> fixed in claims.py
+05:55 — blind r2 the_nether 3/5: no piglins/hoglins on frame, village gone, bastion in lava, fortress slab, mega fortress approach
+05:55 — nether r2 actions: s2 gets bastion 2-5, fortress 2-6, sealing halls outside, crimson forest and wastes held 40 s for mobs, basalt deltas; village and lava-sea bastion listed as waiting on SP2 site filters
+06:06 — rig s1 done (4233 s); server down
+06:07 — s1 terrain read: sunken islands still hang over the water (tierGap counts from the basin floor) -> basinDepth 26 so undersides reach under the 165 line; wailing crevice walls netherrack -> defaultBlock basalt ('soul sand and basalt walls'); both retaken in s2
+06:17 — rig s2 launched: 40 entries, fresh world
+06:41 — rig s2 done (1400 s), server down; packs built: end, violet, abyssal, bloodroot, molten
+06:42 — s2 read: sunken basinDepth 26 left islands over the water as before (tier gap counts over the basin) -> reverted, named kit gap; wailing crevices with basalt walls and lava floors read as crevices; nether re-packed (bastions 2-5, fortress 2-3, deltas, wastes); s3 list (16: End zones, nether crimson floor x3 held 45 s, gilded landing at eye height)
+06:44 — blind r2: bloodroot 2/5, molten 2/5 (lead: terrain only, places to SP5). molten floor 44 (lava sea no longer reaches the flat; lava only in obsidian-rimmed pools), patch_fire/soul_fire removed; bloodroot 4 nether-waste clearings (zones r56-64, jitter 24)
+06:44 — violet r2 3/5 read: End-ward band shows grass (End library biomes' features need end stone) -> chorus forest and umbrella jungle on end stone with purpur / end stone brick cliffs; lit amethyst clusters in the spire faces (light 5) for the night
+06:45 — abyssal r2 2/5: the leaning shards are umbral_wastes' obsidian spikes (48 obsidian clusters up to 291 blocks on surface and sky) and the End gateway feature it carries -> both removed; the level shelf stays a kit gap. violet: monster rooms removed
+07:01 — SP2 merged (b1dc4fd2): structures.sites; prepared edit3 (nether bastion height>=36 slope<=16, village_piglin back as want 150-700 with height 36-100 slope<=6)
+07:18 — main green: goldens regenerated (abyssal, end, nether, violet: only W10u's changes), ApplyIdMappingTest 743->744, full build 1604 tests 0 failed; nether sites (bastion height>=36 slope<=16; village_piglin back, height 36-100 slope<=6)
+07:18 — b4 survey boot launched: fast+full x8
+07:26 — b4: gilded 9/9 4/4, forged 8/8 4/4, wailing 9/9 4/4, molten 7/9 (lava 8.4 vs 20-45: the owner's pockets; trees 2.9), bloodroot 7/7 5/6 (wastes 11.4 > 10 with the clearings), violet 8/10, abyssal 9/10, nether 10/10 5/5. village_piglin with height.max 100 still starts at y 115-158 (the site filter reads the floor, the jigsaw seats on the roof) -> shunned again; rig s3 launched (22)
+07:43 — rig s3 done (940 s); final.sh launched (goldens, full build, fresh-world self-test)

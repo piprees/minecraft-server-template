@@ -1,0 +1,15 @@
+FAIL self-test: no roofed biomes line
+FAIL self-test: 0 PASS, 0 FAIL
+PASS the_buried_age: basalt deltas (the sea) 77.9% of its columns under lava (bar 50+)
+PASS the_buried_age: adventure:quartz_flats 9.7% under lava (bar 25 or less; 1.21.1-era layout drowned 46-90%), expressed
+PASS the_buried_age: adventure:upside_down_forest 2.5% under lava (bar 25 or less; 1.21.1-era layout drowned 46-90%), expressed
+PASS the_buried_age: minecraft:soul_sand_valley 5.5% under lava (bar 25 or less; 1.21.1-era layout drowned 46-90%), expressed
+PASS the_buried_age: minecraft:nether_wastes 11.6% under lava (bar 25 or less; 1.21.1-era layout drowned 46-90%), expressed
+PASS the_buried_age: adventure:ash_barrens 5.4% under lava (bar 25 or less; 1.21.1-era layout drowned 46-90%), expressed
+FAIL the_buried_age: minecraft:crimson_forest 57.6% under lava (bar 25 or less; 1.21.1-era layout drowned 46-90%), too few columns to judge
+PASS the_blackstone_keep: vista [232, 99, -872] far camera y 111 under the roof at 127 (the coarse map's highest land cell with 16 or more blocks open under the roof and the point 160 blocks off in the direction of its largest drop)
+PASS the_blackstone_keep: 18 surface cameras, 0 on or over the roof (bar 0)
+PASS the_obsidian_sanctum: registered timelines ['adventure:atmosphere/the_obsidian_sanctum', 'minecraft:villager_schedule'] (bar: the atmosphere timeline first)
+FAIL the_boneyard: deep dark on 2.6% of the surface columns (bar 1 or less)
+PASS the_boneyard: deep dark 14.2% of the cave biome samples (bar 5+)
+SOME FAIL

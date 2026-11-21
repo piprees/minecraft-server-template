@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 2,
+  "description": "Terrain gallery: basin islands round a ring of radius 300, the ring's hollow one lake 28 blocks deep and no other lake mass.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "floating_islands"
+  },
+  "terrain": {
+    "base": "basin_islands",
+    "params": {
+      "hollowDepth": 28,
+      "ringLakes": 0,
+      "gaps": 0.1
+    },
+    "layout": {
+      "type": "ring",
+      "radius": 300,
+      "falloff": 160,
+      "strength": 0.9
+    }
+  },
+  "liquids": {
+    "basins": {}
+  },
+  "borders": {
+    "player": 2048
+  }
+}

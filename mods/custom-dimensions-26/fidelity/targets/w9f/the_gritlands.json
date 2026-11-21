@@ -1,0 +1,59 @@
+{
+ "slug": "the_gritlands",
+ "targets": [
+  {
+   "key": "placeness.landformRegions.largestPercent",
+   "op": "<=",
+   "value": 50.8,
+   "from": "broken: \"nothing organised survives\" (measured 46.1)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:ash_barrens",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:gravel_desert",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:mineral_strata",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:basalt_deltas",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:dripstone_caves",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomeRegions.largestPercent",
+   "op": ">=",
+   "value": 35.1,
+   "from": "broken: biome regions (W9f, measured 39.0)"
+  },
+  {
+   "key": "placeness.biomeRegions.specksPercent",
+   "op": "<=",
+   "value": 1.5,
+   "from": "broken: biome regions (W9f, measured 0.8)"
+  },
+  {
+   "key": "placeness.landformRegions.largestPercent",
+   "op": "<=",
+   "value": 51.1,
+   "from": "broken: the terrain stays broken (W9f, measured 46.1)"
+  }
+ ]
+}

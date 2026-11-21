@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 2,
+  "description": "Rolling chalk downs in heather and carnation. Villager country — settlements in the hollows, nothing sinister for miles. The people here never went looking for ancient cities, and the ancient cities never found them.",
+  "seed": 2066632607198100573,
+  "spawn": [-192, 65, 320],
+  "generator": {
+    "type": "noise",
+    "preset": "overworld"
+  },
+  "biomes": [
+    {
+      "id": "adventure:lichen_caves",
+      "climate": {
+        "humidity": [-2.0, -0.031],
+        "depth": [0.2, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:lush_caves",
+      "climate": {
+        "humidity": [-0.031, 2.0],
+        "depth": [0.2, 2.0]
+      }
+    },
+    "minecraft:sunflower_plains",
+    "adventure:highland_fells",
+    "adventure:alpine_meadow",
+    "minecraft:flower_forest",
+    "minecraft:plains",
+    "minecraft:meadow",
+    "adventure:lavender_fields",
+    "adventure:chalk_cliffs",
+    "adventure:carnation_fields"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:sunflower_plains": 1,
+      "adventure:highland_fells": 4.1,
+      "adventure:alpine_meadow": 13.1,
+      "minecraft:flower_forest": 7.9,
+      "minecraft:plains": 17.2,
+      "minecraft:meadow": 33.3,
+      "adventure:lavender_fields": 4.8,
+      "adventure:chalk_cliffs": 11.2,
+      "adventure:carnation_fields": 8.2
+    }
+  },
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.2
+  },
+  "structures": {
+    "terrainAdaptation": {
+      "landmarks": "moat"
+    }
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:calcite",
+      "igniterItem": "minecraft:amethyst_shard",
+      "color": "C8D8C0",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "anchor": {
+        "pos": [571, 64, -314],
+        "exit": "bed"
+      },
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "orientation": "horizontal"
+    }
+  ],
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
+  },
+  "roll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "minecraft:meadow"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "nova_structures:remnant_ruin_farmer": "near_spawn",
+      "mvs:small_oak_lantern": "near_spawn",
+      "tavern": "spread",
+      "mvs:campsite": "near_spawn",
+      "ati_structures:haunted_ruin": "spread"
+    },
+    "shuns": [
+      "ancient_city",
+      "mansion",
+      "mss:arena"
+    ]
+  }
+}

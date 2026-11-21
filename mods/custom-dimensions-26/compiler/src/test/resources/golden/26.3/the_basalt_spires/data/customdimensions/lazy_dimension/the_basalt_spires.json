@@ -1,0 +1,117 @@
+{
+  "type": "adventure:the_basalt_spires",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "customdimensions:zoned",
+      "base": {
+        "type": "minecraft:multi_noise",
+        "biomes": [
+          {
+            "biome": "adventure:ash_barrens",
+            "parameters": {
+              "temperature": [-2.0, -0.1117],
+              "humidity": [-2.0, -0.1341],
+              "continentalness": [-0.11, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:soul_sand_valley",
+            "parameters": {
+              "temperature": [-2.0, -0.1117],
+              "humidity": [-0.1341, 0.4693],
+              "continentalness": [-0.11, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:blackstone_basin",
+            "parameters": {
+              "temperature": [-2.0, -0.1117],
+              "humidity": [0.4693, 2.0],
+              "continentalness": [-0.11, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:magma_land",
+            "parameters": {
+              "temperature": [-0.1117, 2.0],
+              "humidity": [-2.0, -0.2143],
+              "continentalness": [-0.11, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:nether_wastes",
+            "parameters": {
+              "temperature": [-0.1117, 2.0],
+              "humidity": [-0.2143, 0.5045],
+              "continentalness": [-0.11, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "adventure:quartz_flats",
+            "parameters": {
+              "temperature": [-0.1117, 2.0],
+              "humidity": [0.5045, 2.0],
+              "continentalness": [-0.11, 2.0],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          },
+          {
+            "biome": "minecraft:basalt_deltas",
+            "parameters": {
+              "temperature": [-2.0, 2.0],
+              "humidity": [-2.0, 2.0],
+              "continentalness": [-2.0, -0.11],
+              "erosion": [-2.0, 2.0],
+              "weirdness": [-2.0, 2.0],
+              "depth": [-2.0, 2.0],
+              "offset": 0.0
+            }
+          }
+        ]
+      },
+      "regions": {
+        "axes": [
+          "temperature",
+          "humidity"
+        ],
+        "areas": [
+          {
+            "role": "land",
+            "continentalness": [-0.11, 2.0],
+            "columns": [-0.1117]
+          },
+          {
+            "role": "ocean",
+            "continentalness": [-2.0, -0.11]
+          }
+        ],
+        "radius": 2048
+      }
+    },
+    "settings": "adventure:the_basalt_spires"
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 2,
+  "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone — only wreckage tells the story.",
+  "seed": -7079357783755633258,
+  "spawn": [0, 39, -102],
+  "generator": {
+    "type": "noise",
+    "preset": "end",
+    "endIsland": false
+  },
+  "terrain": {
+    "base": "end",
+    "params": {
+      "coverage": -0.06,
+      "peaks": 1.0,
+      "peakWidth": 0.05,
+      "islandHeight": 40
+    },
+    "scales": {
+      "climate": 2
+    },
+    "layout": {
+      "type": "radial",
+      "centre": [0, 0],
+      "radius": 8000,
+      "falloff": 16,
+      "strength": 1.0
+    }
+  },
+  "biomes": [
+    "adventure:umbral_wastes",
+    "adventure:sheared_highlands",
+    "minecraft:end_barrens",
+    "minecraft:small_end_islands",
+    "minecraft:end_highlands",
+    "minecraft:end_midlands",
+    "minecraft:basalt_deltas",
+    "minecraft:stony_peaks",
+    "adventure:painted_mountains",
+    "adventure:ice_starfield"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "adventure:umbral_wastes": 28,
+      "adventure:sheared_highlands": 18,
+      "minecraft:end_barrens": 10,
+      "minecraft:small_end_islands": 10,
+      "minecraft:end_highlands": 8,
+      "minecraft:end_midlands": 5,
+      "minecraft:basalt_deltas": 9,
+      "minecraft:stony_peaks": 8,
+      "adventure:painted_mountains": 6,
+      "adventure:ice_starfield": 4
+    },
+    "over": "land"
+  },
+  "atmosphere": {
+    "skyColor": "#0B0B14",
+    "fogColor": "#241C2E",
+    "ambientLight": 0.05,
+    "effects": "minecraft:the_end"
+  },
+  "borders": {
+    "player": 2048,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 2.2,
+    "playerLuck": 2.0
+  },
+  "structures": {
+    "density": "dense",
+    "rarity": {
+      "mes:mega_ship_crashed": "common"
+    },
+    "exclude": [
+      "minecraft:end_cities",
+      "mes:phantom_citadel"
+    ],
+    "force": [
+      {
+        "structure": "mes:mega_ship_deepslate",
+        "x": -330,
+        "z": -1010
+      },
+      {
+        "structure": "mns:giant_skull",
+        "x": -100,
+        "z": -900,
+        "exclusive": false
+      }
+    ]
+  },
+  "portals": [
+    {
+      "frameBlock": "minecraft:mud_bricks",
+      "igniterItem": "minecraft:ender_eye",
+      "color": "8B7050",
+      "lightLevel": 11,
+      "scale": 4.0,
+      "cooldown": 40,
+      "particleType": "minecraft:end_rod",
+      "shape": "end_gateway",
+      "sounds": {
+        "ignite": "block.portal.trigger",
+        "enter": "block.portal.travel",
+        "exit": "block.portal.travel"
+      },
+      "aura": {
+        "subsume": "everything",
+        "palette": [
+          "minecraft:end_stone",
+          "minecraft:purpur_block",
+          "minecraft:obsidian"
+        ]
+      }
+    }
+  ],
+  "roll": {
+    "mood": "hard",
+    "allowHazardousSpawn": true,
+    "spawnFilter": [
+      "minecraft:end_highlands"
+    ],
+    "wants": {
+      "mega_ship_deepslate": "near_spawn",
+      "mega_ship_crashed": "spread",
+      "ruined_pillar": "spread",
+      "mns:giant_skull": "near_spawn",
+      "mes:endscraps": "spread"
+    },
+    "shuns": [
+      "end_city",
+      "phantom_citadel",
+      "enderkeep"
+    ]
+  }
+}

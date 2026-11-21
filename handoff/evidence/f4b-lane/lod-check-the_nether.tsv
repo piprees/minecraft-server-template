@@ -1,0 +1,33 @@
+x	z	lodHeight	realHeight	lodBlock	realBlock	lodBiome	realBiome	chunkHeight	dug
+-440	-440	22	50	minecraft:netherrack	minecraft:polished_blackstone_bricks	minecraft:crimson_forest	minecraft:crimson_forest	114	120..114
+-440	-264	128	128	minecraft:bedrock	minecraft:bedrock	minecraft:crimson_forest	minecraft:crimson_forest	128	
+-440	-88	22	22	minecraft:netherrack	minecraft:netherrack	minecraft:crimson_forest	minecraft:crimson_forest	22	
+-440	88	49	49	minecraft:warped_nylium	minecraft:warped_nylium	minecraft:warped_forest	minecraft:warped_forest	49	
+-440	264	50	50	minecraft:warped_nylium	minecraft:warped_nylium	minecraft:warped_forest	minecraft:warped_forest	50	120..108
+-440	440	81	81	minecraft:warped_nylium	minecraft:warped_nylium	minecraft:warped_forest	minecraft:warped_forest	81	
+-264	-440	66	66	minecraft:crimson_nylium	minecraft:crimson_nylium	minecraft:crimson_forest	minecraft:crimson_forest	66	
+-264	-264	68	68	minecraft:crimson_nylium	minecraft:crimson_nylium	minecraft:crimson_forest	minecraft:crimson_forest	68	
+-264	-88	103	103	minecraft:crimson_nylium	minecraft:crimson_nylium	minecraft:crimson_forest	minecraft:crimson_forest	103	
+-264	88	93	93	minecraft:warped_nylium	minecraft:warped_nylium	minecraft:warped_forest	minecraft:warped_forest	93	
+-264	264	71	71	minecraft:warped_nylium	minecraft:warped_nylium	minecraft:warped_forest	minecraft:warped_forest	71	
+-264	440	53	53	minecraft:warped_nylium	minecraft:warped_nylium	minecraft:warped_forest	minecraft:warped_forest	53	
+-88	-440	74	74	minecraft:crimson_nylium	minecraft:crimson_nylium	minecraft:crimson_forest	minecraft:crimson_forest	74	
+-88	-264	100	100	minecraft:crimson_nylium	minecraft:crimson_nylium	minecraft:crimson_forest	minecraft:crimson_forest	100	
+-88	264	55	55	minecraft:soul_sand	minecraft:netherrack	minecraft:soul_sand_valley	minecraft:soul_sand_valley	53	54..53
+-88	440	79	79	minecraft:soul_sand	minecraft:soul_sand	minecraft:soul_sand_valley	minecraft:soul_sand_valley	79	
+88	-440	128	128	minecraft:bedrock	minecraft:bedrock	minecraft:nether_wastes	minecraft:nether_wastes	110	112..110
+88	-264	90	90	minecraft:netherrack	minecraft:netherrack	minecraft:nether_wastes	minecraft:nether_wastes	90	
+88	264	22	22	minecraft:soul_sand	minecraft:netherrack	minecraft:soul_sand_valley	minecraft:soul_sand_valley	22	
+88	440	38	38	minecraft:soul_soil	minecraft:soul_soil	minecraft:soul_sand_valley	minecraft:soul_sand_valley	38	
+264	-440	103	103	minecraft:netherrack	minecraft:netherrack	minecraft:nether_wastes	minecraft:nether_wastes	103	
+264	-264	90	90	minecraft:netherrack	minecraft:netherrack	minecraft:nether_wastes	minecraft:nether_wastes	90	
+264	-88	85	85	minecraft:netherrack	minecraft:netherrack	minecraft:nether_wastes	minecraft:nether_wastes	85	
+264	88	29	29	minecraft:netherrack	minecraft:netherrack	minecraft:nether_wastes	minecraft:nether_wastes	4	28..4
+264	264	128	128	minecraft:bedrock	minecraft:bedrock	minecraft:soul_sand_valley	minecraft:soul_sand_valley	128	
+264	440	24	24	minecraft:soul_soil	minecraft:soul_soil	minecraft:soul_sand_valley	minecraft:soul_sand_valley	24	79..78
+440	-440	21	21	minecraft:netherrack	minecraft:netherrack	minecraft:nether_wastes	minecraft:nether_wastes	21	
+440	-264	66	66	minecraft:netherrack	minecraft:netherrack	minecraft:nether_wastes	minecraft:nether_wastes	118	120..118
+440	-88	82	82	minecraft:netherrack	minecraft:netherrack	minecraft:nether_wastes	minecraft:nether_wastes	82	
+440	88	96	96	minecraft:netherrack	minecraft:netherrack	minecraft:nether_wastes	minecraft:nether_wastes	96	
+440	264	102	102	minecraft:soul_soil	minecraft:soul_soil	minecraft:soul_sand_valley	minecraft:soul_sand_valley	102	
+440	440	94	94	minecraft:soul_soil	minecraft:soul_soil	minecraft:soul_sand_valley	minecraft:soul_sand_valley	94	

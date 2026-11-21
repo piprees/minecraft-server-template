@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 2,
+  "description": "Self-test fixture and showcase: the biome library's sulphur springs filling a whole level on End terrain, spawn on the outer islands, for the biomes section's per-biome checks, renders and screenshots.",
+  "seed": 7,
+  "spawn": [
+    1408,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "single_biome",
+    "preset": "end",
+    "biome": "adventure:sulphur_springs"
+  },
+  "borders": {
+    "player": 2048
+  }
+}

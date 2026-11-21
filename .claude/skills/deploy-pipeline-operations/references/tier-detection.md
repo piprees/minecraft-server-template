@@ -20,7 +20,7 @@ Manual dispatch and GitHub `release` events always deploy full, unconditionally.
 
 ## Stage 1 — resolve the symbolic pin, compare against what's actually running
 
-`inputs.stack_version` is usually symbolic (`v5`, `latest`) — it resolves to a different concrete release over time. Comparing symbolic-to-symbolic never detects a new release (the historical bug that made every consumer push land in pull tier). The workflow resolves it exactly like `stack-pull.sh` does: highest semver release tag matching the pin.
+The pin comes from the manual-dispatch override, else the consumer's `.stack-version`, else the deprecated `stack_version` input, else `latest` (precedence and the major guard: the main SKILL.md § Which release a deploy installs). `.stack-version` is normally an exact `vX.Y.Z`; a symbolic pin (`v5`, `latest`) resolves to a different concrete release over time, and comparing symbolic-to-symbolic never detects a new release. The workflow resolves every pin exactly like `stack-pull.sh` does: highest stable semver release tag matching it.
 
 ```bash
 DEPLOYED=$($SSH "cat ~/server/.deployed 2>/dev/null" || echo "")
@@ -41,7 +41,7 @@ RUNNING_STACK=$($SSH 'basename "$(readlink ~/server/.stack/current)"')
 [[ "$RUNNING_STACK" != "$RESOLVED" ]] && tier=full   # <- this is what rolls a platform release out
 ```
 
-This is the check that matters most in practice: **a platform release becomes visible to a consumer the moment ANY consumer push runs after the release publishes**, regardless of what that push touches. The push is just the trigger; the payload is "the server isn't running the release yet".
+This is the check that matters most in practice: **a release reaches the server on the first deploy after `.stack-version` names it**, regardless of what that push touches. The push is just the trigger; the payload is "the server isn't running the pinned release yet".
 
 ## Stage 2 — diff consumer files since the last deploy (only reached if stage 1 found no stack change)
 

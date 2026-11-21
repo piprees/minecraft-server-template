@@ -1,0 +1,6 @@
+{
+  "reason": "G8 the other way round: landShare 0.35 sets the coast through the 256-block pocket for any seed, so it reads as a shoreline with shallows rather than open sea (water 90.4%, p50 25 below sea).",
+  "terrain": {
+    "landShare": 0.35
+  }
+}

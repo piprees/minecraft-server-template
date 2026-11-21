@@ -1,0 +1,166 @@
+package com.customdimensions.core.config;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class PortalDefinitionTest {
+
+    @Test
+    void constructorSetsFields() {
+        PortalDefinition def = new PortalDefinition("test_portal", "minecraft:obsidian", "minecraft:flint_and_steel", "minecraft:the_nether", "FF0000", 10);
+        assertEquals("test_portal", def.getId());
+        assertEquals("minecraft:obsidian", def.getFrameBlock());
+        assertEquals("minecraft:flint_and_steel", def.getIgniterItem());
+        assertEquals("minecraft:the_nether", def.getTargetDimension());
+        assertEquals("FF0000", def.getColor());
+        assertEquals(10, def.getLightLevel());
+    }
+
+    @Test
+    void defaultCooldownIs40() {
+        PortalDefinition def = new PortalDefinition("p", "b", "i", "t", "AA00FF", 0);
+        assertEquals(40, def.getCooldown());
+    }
+
+    @Test
+    void cooldownSetterWorks() {
+        PortalDefinition def = new PortalDefinition("p", "b", "i", "t", "AA00FF", 0);
+        def.setCooldown(100);
+        assertEquals(100, def.getCooldown());
+
+        def.setCooldown(0);
+        assertEquals(0, def.getCooldown());
+    }
+
+    @Test
+    void defaultScaleIs1() {
+        PortalDefinition def = new PortalDefinition("p", "b", "i", "t", "AA00FF", 0);
+        assertEquals(1.0, def.getScale());
+    }
+
+    @Test
+    void defaultSoundsAreVanillaPortalSounds() {
+        PortalDefinition def = new PortalDefinition("p", "b", "i", "t", "AA00FF", 0);
+        assertEquals("block.portal.trigger", def.getIgniteSound());
+        assertEquals("block.portal.travel", def.getEnterSound());
+        assertEquals("block.portal.travel", def.getExitSound());
+    }
+
+    @Test
+    void soundGettersHandleNullWithDefaults() {
+        PortalDefinition def = new PortalDefinition();
+        assertEquals("block.portal.trigger", def.getIgniteSound());
+        assertEquals("block.portal.travel", def.getEnterSound());
+        assertEquals("block.portal.travel", def.getExitSound());
+    }
+
+    @Test
+    void noArgConstructorDefaults() {
+        PortalDefinition def = new PortalDefinition();
+        assertNull(def.getId());
+        assertNull(def.getFrameBlock());
+        assertEquals(1.0, def.getScale());
+        assertEquals(40, def.getCooldown());
+    }
+
+    @Test
+    void frameAcceptsFallsBackToFrameBlock() {
+        PortalDefinition def = new PortalDefinition("p", "minecraft:clay", "i", "t", "AA00FF", 0);
+        assertEquals(java.util.List.of("minecraft:clay"), def.getFrameAccepts());
+        def.setFrameAccepts(java.util.List.of("#minecraft:logs", "minecraft:stone"));
+        assertEquals(java.util.List.of("#minecraft:logs", "minecraft:stone"), def.getFrameAccepts());
+        // empty list normalises back to the frameBlock fallback
+        def.setFrameAccepts(java.util.List.of());
+        assertEquals(java.util.List.of("minecraft:clay"), def.getFrameAccepts());
+    }
+
+    @Test
+    void framePlaceBlockFallsBackToPlainFrameBlockOnly() {
+        PortalDefinition plain = new PortalDefinition("p", "minecraft:clay", "i", "t", "AA00FF", 0);
+        assertEquals("minecraft:clay", plain.getFramePlaceBlock());
+        PortalDefinition tagged = new PortalDefinition("p", "#minecraft:logs", "i", "t", "AA00FF", 0);
+        assertNull(tagged.getFramePlaceBlock());          // accepting is not placing
+        tagged.setFramePlaceBlock("minecraft:oak_log");
+        assertEquals("minecraft:oak_log", tagged.getFramePlaceBlock());
+    }
+
+    @Test
+    void orientationDefaultsToAnyAndGatesAxes() {
+        com.customdimensions.core.Direction.Axis x = com.customdimensions.core.Direction.Axis.X;
+        com.customdimensions.core.Direction.Axis y = com.customdimensions.core.Direction.Axis.Y;
+        com.customdimensions.core.Direction.Axis z = com.customdimensions.core.Direction.Axis.Z;
+        PortalDefinition def = new PortalDefinition("p", "b", "i", "t", "AA00FF", 0);
+        assertEquals("any", def.getOrientation());        // today's behaviour
+        assertTrue(def.allowsAxis(x) && def.allowsAxis(y) && def.allowsAxis(z));
+        def.setOrientation("vertical");
+        assertTrue(def.allowsAxis(x) && def.allowsAxis(z));
+        assertFalse(def.allowsAxis(y));
+        def.setOrientation("horizontal");
+        assertTrue(def.allowsAxis(y));
+        assertFalse(def.allowsAxis(x) || def.allowsAxis(z));
+        def.setOrientation("vertical_x");
+        assertTrue(def.allowsAxis(x));
+        assertFalse(def.allowsAxis(z) || def.allowsAxis(y));
+        def.setOrientation("vertical_z");
+        assertTrue(def.allowsAxis(z));
+        assertFalse(def.allowsAxis(x) || def.allowsAxis(y));
+        // unknown values behave as "any" (validator warns, never crashes)
+        def.setOrientation("sideways");
+        assertTrue(def.allowsAxis(x) && def.allowsAxis(y) && def.allowsAxis(z));
+    }
+
+    @Test
+    void shapeImpliesOrientationButExplicitWins() {
+        com.customdimensions.core.Direction.Axis x = com.customdimensions.core.Direction.Axis.X;
+        com.customdimensions.core.Direction.Axis y = com.customdimensions.core.Direction.Axis.Y;
+        com.customdimensions.core.Direction.Axis z = com.customdimensions.core.Direction.Axis.Z;
+        PortalDefinition def = new PortalDefinition("p", "b", "i", "t", "AA00FF", 0);
+        assertEquals("standard", def.getShape());
+        def.setShape("door");
+        assertEquals("vertical", def.getOrientation());   // implied
+        assertTrue(def.allowsAxis(x) && def.allowsAxis(z));
+        assertFalse(def.allowsAxis(y));
+        def.setShape("end_exit");
+        assertEquals("horizontal", def.getOrientation());
+        assertTrue(def.allowsAxis(y));
+        assertFalse(def.allowsAxis(x) || def.allowsAxis(z));
+        // explicit orientation always wins over the shape's implication
+        def.setOrientation("vertical_x");
+        assertTrue(def.allowsAxis(x));
+        assertFalse(def.allowsAxis(y) || def.allowsAxis(z));
+    }
+
+    @Test
+    void partMatchersFallBackToUnionAndPlaceBlocksResolvePerPart() {
+        PortalDefinition def = new PortalDefinition("p", "minecraft:oak_planks", "i", "t", "AA00FF", 0);
+        assertFalse(def.hasPartMaterials());
+        def.setFramePartAccepts(java.util.Map.of(
+                "top", java.util.List.of("minecraft:oak_planks"),
+                "sides", java.util.List.of("#minecraft:logs")));
+        assertTrue(def.hasPartMaterials());
+        // parsing is registry-free: forms land in the right matcher buckets
+        assertEquals(java.util.List.of("minecraft:oak_planks"),
+                def.resolvePartForms("top").getBlockIds());
+        assertEquals(java.util.List.of("minecraft:logs"),
+                def.resolvePartForms("sides").getTagIds());
+        // an unspecified part falls back to the union (frameAccepts) matcher
+        def.setFrameAccepts(java.util.List.of("minecraft:oak_planks", "#minecraft:logs"));
+        assertEquals(def.resolveFrameForms(), def.resolvePartForms("bottom"));
+        // per-part placement: first plain id, else definition-wide fallback
+        assertEquals("minecraft:oak_planks", def.getPartPlaceBlock("top"));
+        assertEquals("minecraft:oak_planks", def.getPartPlaceBlock("sides")); // tag-only -> global
+        def.setFramePlaceBlock("minecraft:oak_log");
+        assertEquals("minecraft:oak_log", def.getPartPlaceBlock("sides"));
+    }
+
+    @Test
+    void centreBlockBlankNormalisesToNull() {
+        PortalDefinition def = new PortalDefinition();
+        assertNull(def.getCentreBlock());
+        def.setCentreBlock("  ");
+        assertNull(def.getCentreBlock());
+        def.setCentreBlock("minecraft:dragon_egg");
+        assertEquals("minecraft:dragon_egg", def.getCentreBlock());
+    }
+}

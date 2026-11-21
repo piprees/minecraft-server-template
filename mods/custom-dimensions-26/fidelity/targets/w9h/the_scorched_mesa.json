@@ -1,0 +1,77 @@
+{
+ "slug": "the_scorched_mesa",
+ "targets": [
+  {
+   "key": "placeness.biomeRegions.largestPercent",
+   "op": ">=",
+   "value": 24.1,
+   "from": "meeting: \"painted canyon country\" (measured 26.8)"
+  },
+  {
+   "key": "placeness.biomeRegions.top3Percent",
+   "op": ">=",
+   "value": 46.3,
+   "from": "meeting: \"painted canyon country\" (measured 51.5)"
+  },
+  {
+   "key": "biomeExpression.biomes.adventure:magmatic_caves.columns? + biomeExpression.biomes.adventure:magmatic_caves.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.adventure:saguaro_desert",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:badlands",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:desert",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "biomeExpression.biomes.minecraft:dripstone_caves.columns? + biomeExpression.biomes.minecraft:dripstone_caves.caveQuarts?",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174); a cave biome is placed underground (W9h)"
+  },
+  {
+   "key": "placeness.biomesPercent.minecraft:eroded_badlands",
+   "op": ">",
+   "value": 0,
+   "from": "every listed biome placed at baseline stays placed (T174)"
+  },
+  {
+   "key": "placeness.biomeRegions.largestPercent",
+   "op": ">=",
+   "value": 41.9,
+   "from": "place: biome regions (W9f, measured 46.5)"
+  },
+  {
+   "key": "placeness.biomeRegions.specksPercent",
+   "op": "<=",
+   "value": 2.0,
+   "from": "place: biome regions (W9f, measured 1.2)"
+  },
+  {
+   "key": "placeness.biomeRegions.perKm2",
+   "op": "<=",
+   "value": 2.9,
+   "from": "place: biome regions (W9f, measured 2.4)"
+  },
+  {
+   "key": "placeness.biomeRegions.top3Percent",
+   "op": ">=",
+   "value": 70.4,
+   "from": "place: biome regions (W9f, measured 78.2)"
+  }
+ ]
+}

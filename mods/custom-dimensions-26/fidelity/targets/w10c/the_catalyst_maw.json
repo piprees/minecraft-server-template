@@ -1,0 +1,28 @@
+{
+ "slug": "the_catalyst_maw",
+ "targets": [
+  {
+   "key": "placeness.islands.dominantBiomePercent",
+   "op": ">=",
+   "value": 65,
+   "from": "restated: on islands every islet under 1 ha is a speck whatever its biome (kit gap: no speck measure inside islands); a deliberately broken world allows twice the specks, so at most a third of each island outside its own biome",
+   "was": {
+    "key": "placeness.landBiomeRegions.specksPercent",
+    "op": "<=",
+    "value": 10
+   }
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": "<=",
+   "value": 30,
+   "from": "place kind deliberately chaotic: no one biome holds the maw"
+  },
+  {
+   "key": "placeness.landBiomeRegions.major",
+   "op": ">=",
+   "value": 8,
+   "from": "place kind deliberately chaotic: many realms bleeding in"
+  }
+ ]
+}

@@ -1,0 +1,47 @@
+{
+ "slug": "the_obsidian_sanctum",
+ "targets": [
+  {
+   "key": "surface.groundBlocksPercent.minecraft:obsidian + surface.groundBlocksPercent.minecraft:crying_obsidian + surface.topBlocksPercent.minecraft:obsidian + surface.topBlocksPercent.minecraft:crying_obsidian",
+   "op": ">=",
+   "value": 5,
+   "from": "\"the obsidian remembers every prayer\""
+  },
+  {
+   "key": "surface.biomesPercent.adventure:withered_forest + surface.biomesPercent.minecraft:soul_sand_valley",
+   "op": ">=",
+   "value": 45,
+   "from": "1.21.1 biomes soul_sand_valley, withered_forest"
+  },
+  {
+   "key": "surface.fluidCoverPercent.lava",
+   "op": "<=",
+   "value": 15,
+   "from": "\"holiest places\": ground to build on"
+  },
+  {
+   "key": "atmosphere.definitionAtmosphere.ambientLight?",
+   "op": "<=",
+   "value": 0.08,
+   "from": "\"a small, dark world\"; 1.21.1 ambientLight 0.05"
+  },
+  {
+   "key": "vertical.layerColumnsPercent.roof",
+   "op": ">=",
+   "value": 85,
+   "from": "1.21.1 type nether: a roof over the world"
+  },
+  {
+   "key": "placeness.landBiomeRegions.largestPercent",
+   "op": ">=",
+   "value": 50,
+   "from": "place kind place (\"a small, dark world\"): one region holds half the land"
+  },
+  {
+   "key": "placeness.landBiomeRegions.specksPercent",
+   "op": "<=",
+   "value": 5,
+   "from": "place kind place: no scatter of biome specks"
+  }
+ ]
+}

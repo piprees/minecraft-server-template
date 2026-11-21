@@ -1,0 +1,235 @@
+{
+  "sequence": [
+    "minecraft:overworld/copper_ore_vein",
+    "minecraft:overworld/iron_ore_vein",
+    {
+      "if_true": {
+        "biome_is": [
+          "adventure:sky_highlands"
+        ],
+        "type": "minecraft:biome"
+      },
+      "then_run": {
+        "sequence": [
+          {
+            "if_true": {
+              "type": "minecraft:steep"
+            },
+            "then_run": {
+              "if_true": "minecraft:under_floor",
+              "then_run": {
+                "result_state": "minecraft:calcite",
+                "type": "minecraft:block"
+              },
+              "type": "minecraft:condition"
+            },
+            "type": "minecraft:condition"
+          },
+          {
+            "if_true": "minecraft:on_floor",
+            "then_run": {
+              "if_true": "minecraft:not_underwater",
+              "then_run": {
+                "result_state": "minecraft:grass_block",
+                "type": "minecraft:block"
+              },
+              "type": "minecraft:condition"
+            },
+            "type": "minecraft:condition"
+          },
+          {
+            "if_true": "minecraft:under_floor",
+            "then_run": {
+              "result_state": "minecraft:dirt",
+              "type": "minecraft:block"
+            },
+            "type": "minecraft:condition"
+          }
+        ],
+        "type": "minecraft:sequence"
+      },
+      "type": "minecraft:condition"
+    },
+    {
+      "if_true": {
+        "biome_is": [
+          "adventure:golden_skygrove"
+        ],
+        "type": "minecraft:biome"
+      },
+      "then_run": {
+        "sequence": [
+          {
+            "if_true": {
+              "type": "minecraft:steep"
+            },
+            "then_run": {
+              "if_true": "minecraft:under_floor",
+              "then_run": {
+                "result_state": "minecraft:stone",
+                "type": "minecraft:block"
+              },
+              "type": "minecraft:condition"
+            },
+            "type": "minecraft:condition"
+          },
+          {
+            "if_true": "minecraft:on_floor",
+            "then_run": {
+              "if_true": "minecraft:not_underwater",
+              "then_run": {
+                "result_state": "minecraft:grass_block",
+                "type": "minecraft:block"
+              },
+              "type": "minecraft:condition"
+            },
+            "type": "minecraft:condition"
+          },
+          {
+            "if_true": "minecraft:under_floor",
+            "then_run": {
+              "result_state": "minecraft:dirt",
+              "type": "minecraft:block"
+            },
+            "type": "minecraft:condition"
+          }
+        ],
+        "type": "minecraft:sequence"
+      },
+      "type": "minecraft:condition"
+    },
+    {
+      "if_true": {
+        "biome_is": [
+          "adventure:cloud_reef"
+        ],
+        "type": "minecraft:biome"
+      },
+      "then_run": {
+        "sequence": [
+          {
+            "if_true": {
+              "type": "minecraft:steep"
+            },
+            "then_run": {
+              "if_true": "minecraft:under_floor",
+              "then_run": {
+                "result_state": "minecraft:calcite",
+                "type": "minecraft:block"
+              },
+              "type": "minecraft:condition"
+            },
+            "type": "minecraft:condition"
+          },
+          {
+            "if_true": "minecraft:on_floor",
+            "then_run": {
+              "if_true": "minecraft:not_underwater",
+              "then_run": {
+                "result_state": "minecraft:snow_block",
+                "type": "minecraft:block"
+              },
+              "type": "minecraft:condition"
+            },
+            "type": "minecraft:condition"
+          },
+          {
+            "if_true": "minecraft:under_floor",
+            "then_run": {
+              "result_state": "minecraft:calcite",
+              "type": "minecraft:block"
+            },
+            "type": "minecraft:condition"
+          }
+        ],
+        "type": "minecraft:sequence"
+      },
+      "type": "minecraft:condition"
+    },
+    {
+      "if_true": {
+        "biome_is": [
+          "adventure:windswept_isles"
+        ],
+        "type": "minecraft:biome"
+      },
+      "then_run": {
+        "sequence": [
+          {
+            "if_true": {
+              "type": "minecraft:steep"
+            },
+            "then_run": {
+              "if_true": "minecraft:under_floor",
+              "then_run": {
+                "result_state": "minecraft:calcite",
+                "type": "minecraft:block"
+              },
+              "type": "minecraft:condition"
+            },
+            "type": "minecraft:condition"
+          },
+          {
+            "if_true": "minecraft:on_floor",
+            "then_run": {
+              "if_true": "minecraft:not_underwater",
+              "then_run": {
+                "result_state": "minecraft:stone",
+                "type": "minecraft:block"
+              },
+              "type": "minecraft:condition"
+            },
+            "type": "minecraft:condition"
+          },
+          {
+            "if_true": "minecraft:under_floor",
+            "then_run": {
+              "result_state": "minecraft:stone",
+              "type": "minecraft:block"
+            },
+            "type": "minecraft:condition"
+          }
+        ],
+        "type": "minecraft:sequence"
+      },
+      "type": "minecraft:condition"
+    },
+    {
+      "if_true": {
+        "biome_is": [
+          "adventure:hanging_gardens"
+        ],
+        "type": "minecraft:biome"
+      },
+      "then_run": {
+        "sequence": [
+          {
+            "if_true": "minecraft:on_floor",
+            "then_run": {
+              "if_true": "minecraft:not_underwater",
+              "then_run": {
+                "result_state": "minecraft:grass_block",
+                "type": "minecraft:block"
+              },
+              "type": "minecraft:condition"
+            },
+            "type": "minecraft:condition"
+          },
+          {
+            "if_true": "minecraft:under_floor",
+            "then_run": {
+              "result_state": "minecraft:dirt",
+              "type": "minecraft:block"
+            },
+            "type": "minecraft:condition"
+          }
+        ],
+        "type": "minecraft:sequence"
+      },
+      "type": "minecraft:condition"
+    },
+    "minecraft:overworld/surface",
+    "minecraft:overworld/underground"
+  ],
+  "type": "minecraft:sequence"
+}

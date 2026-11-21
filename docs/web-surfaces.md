@@ -21,6 +21,8 @@ Restyling any cloud surface: use the `web-surface-branding` skill, which covers 
 
 **Footer version string** (`<PackName> · <pack>-<MC_VERSION>-v<git sha>`): `PACK_NAME` is computed by `build-modpack.sh` from `git rev-parse --short HEAD` and baked into the pack page. The mods page (`check-updates.sh`) and status page (`kuma-provision.py`) run in containers with no git checkout, so they read the _served_ pack build instead — `modpack/dist/packwiz/pack.toml` (`version = "<sha>"`), via the dist mount and `http://pack-web/packwiz/pack.toml` respectively. A status footer showing `vunknown` means pack-web was unreachable and no git checkout existed.
 
+**Server resource pack:** pack-web also serves `server-pack/portals.zip`, the 26.x mod's portal tint pack, staged into the dist directory by `scripts/server-pack.py` before mc starts. The game client fetches it at `pack.DOMAIN/server-pack/portals.zip?sha1=<sha1>`: the query is Cloudflare's cache key, and `pack-web.conf.template` serves the path with `no-cache` and a plain 404, so a missing pack is declined rather than redirected to HTML.
+
 **Fonts:** the placeholder uses system fonts throughout. To add a custom display font, place the woff2 in `modpack/template/fonts/` (copied to `dist/fonts/` by the build), update the CSS in each surface, and add a CORS header on `/fonts/` in `pack-web.conf` if Kuma's customCSS loads it cross-origin from pack.DOMAIN.
 
 OG/meta tags are injected per-domain by `nav-proxy.conf` (`sub_filter '<title>'`). Kuma's own markup can only be restyled via `customCSS` in `kuma-config.json` — its HTML is not editable.

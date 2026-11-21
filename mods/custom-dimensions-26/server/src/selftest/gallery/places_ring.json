@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 2,
+  "description": "Places gallery: the five Nether biomes round a ring in list order, the wastes first to the north, meeting near the centre.",
+  "seed": 20261025,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
+  "generator": {
+    "type": "noise",
+    "preset": "nether"
+  },
+  "biomes": [
+    "minecraft:nether_wastes",
+    "minecraft:crimson_forest",
+    "minecraft:warped_forest",
+    "minecraft:soul_sand_valley",
+    "minecraft:basalt_deltas"
+  ],
+  "biomeLayout": {
+    "mode": "regions",
+    "weights": {
+      "minecraft:nether_wastes": 2
+    },
+    "places": {
+      "arrangement": "ring"
+    }
+  },
+  "borders": {
+    "player": 1024
+  }
+}

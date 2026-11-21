@@ -1,0 +1,10 @@
+{
+ "pack": {
+  "pack_format": 48,
+  "supported_formats": [
+   48,
+   999
+  ],
+  "description": "Waystones are placed by admins only: no recipes and no recipe unlocks"
+ }
+}
