@@ -106,11 +106,11 @@ class SetPieceSpecTest {
     void otherBadValuesStopTheCompile() {
         assertTrue(message(BONE_PIT.replace("minecraft:skeleton\"", "minecraft:skeletor\"")).contains("entity `minecraft:skeletor`"));
         assertTrue(message(BONE_PIT.replace("chests/simple_dungeon", "gameplay/fishing")).contains("loot `minecraft:gameplay/fishing`"));
-        assertTrue(message(BONE_PIT.replace("\"seat\": \"ground\"", "\"seat\": \"roof\"")).contains("seat `roof`"));
+        assertTrue(message(BONE_PIT.replace("\"seat\": \"ground\"", "\"seat\": \"sky\"")).contains("seat `sky`"));
         assertTrue(message(BONE_PIT.replace("minecraft:skeleton_skull", "minecraft:unobtainium")).contains("`minecraft:unobtainium` is not a vanilla block"));
         assertTrue(message(BONE_PIT.replace("\"block\": \"bone\"", "\"block\": \"marrow\"")).contains("`marrow` is neither a palette name"));
         assertTrue(message(BONE_PIT.replace("\"age\": \"old\"", "\"age\": \"medieval\"")).contains("age `medieval`"));
-        assertTrue(message(BONE_PIT.replace("\"kind\": \"chest\"", "\"kind\": \"crater\"")).contains("kind `crater`"));
+        assertTrue(message(BONE_PIT.replace("\"kind\": \"chest\"", "\"kind\": \"meteor\"")).contains("kind `meteor`"));
         assertTrue(message("{\"elements\": [{\"kind\": \"chest\", \"loot\": \"minecraft:chests/x\"}]}").contains("size is required"));
     }
 

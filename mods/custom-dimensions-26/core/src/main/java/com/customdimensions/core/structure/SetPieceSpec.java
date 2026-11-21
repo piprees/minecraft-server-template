@@ -20,24 +20,34 @@ import java.util.Set;
  */
 public record SetPieceSpec(String key, String name, String seat, double support, SiteFilter site, Integer bandMin,
                            Integer bandMax, int clear, Map<String, List<Weighted>> palette, List<Element> elements,
-                           String group, String rarity, Integer repetition, String terrainAdaptation, int size, Age age) {
+                           String group, String rarity, Integer repetition, String terrainAdaptation, int size, Age age,
+                           SetPieceSetting setting) {
 
-    public static final Set<String> FIELDS = Set.of("name", "like", "seat", "support", "slope", "biomes", "site", "band", "clear",
-            "elements", "palette", "group", "rarity", "repetition", "terrainAdaptation", "size", "age");
-    public static final Set<String> SEATS = Set.of("ground", "floor", "pinned");
-    public static final Set<String> KINDS = union(Set.of("template", "scatter", "block", "chest", "spawner"), SetPieceKinds.ASSEMBLIES,
+    public static final Set<String> FIELDS = union(Set.of("name", "like", "seat", "support", "slope", "biomes", "site", "band", "clear",
+            "elements", "palette", "group", "rarity", "repetition", "terrainAdaptation", "size", "age"), SetPieceSetting.FIELDS);
+    public static final Set<String> SEATS = Set.of("ground", "floor", "pinned", "roof", "wall", "water");
+    public static final Set<String> KINDS = union(Set.of("template", "scatter", "block", "chest", "spawner"), SetPieceShapes.KINDS, SetPieceKinds.ASSEMBLIES,
             SetPieceKinds.THINGS);
     public static final Set<String> ELEMENT_FIELDS = union(Set.of("kind", "offset", "count", "chance", "around", "age", "weight",
             "id", "rotation", "mirror", "processors", "integrity", "embed",
-            "radius", "items", "spacing", "block", "loot", "entity", "delay", "range"), SetPieceKinds.FIELDS);
+            "radius", "items", "spacing", "block", "loot", "entity", "delay", "range", "name", "on", "at"), SetPieceShapes.FIELDS, SetPieceKinds.FIELDS);
+    /** Where an element seated {@code on} another stands: on its top, or inside its footprint at its own seat (lore/placement.md G7). */
+    public static final Set<String> ON = Set.of("top", "inside");
     public static final Set<String> ROTATIONS = Set.of("random", "none", "clockwise_90", "180", "counterclockwise_90");
     public static final Set<String> MIRRORS = Set.of("none", "left_right", "front_back", "random");
     public static final Set<String> CHEST_KINDS = Set.of("chest", "barrel", "trapped_chest", "decorated_pot");
-    public static final Set<String> ADAPTATIONS = Set.of("none", "beard_thin", "beard_box", "bury", "encapsulate");
+    public static final Set<String> ADAPTATIONS = Set.of("none", "beard_thin", "beard_box", "bury", "encapsulate", "footing", "terrace");
     public static final int MAX_SIZE = 64;
     public static final double DEFAULT_SUPPORT = 0.8;
     public static final int DEFAULT_CLEAR = 6;
     static final int MAX_LIKE_DEPTH = 8;
+
+    @SafeVarargs
+    static <T> Set<T> union(Set<T>... sets) {
+        java.util.Set<T> out = new java.util.HashSet<>();
+        for (Set<T> s : sets) out.addAll(s);
+        return Set.copyOf(out);
+    }
 
     /** One weighted entry of a palette: a block state string and its weight. */
     public record Weighted(String block, int weight) {}
@@ -60,6 +70,34 @@ public record SetPieceSpec(String key, String name, String seat, double support,
 
         public int integer(String key, int fallback) {
             return params.has(key) ? params.get(key).getAsInt() : fallback;
+        }
+
+        /** The index of the earlier element this one is seated on, or null. */
+        public Integer on() {
+            return params.has("on") && params.get("on").getAsJsonPrimitive().isNumber() ? params.get("on").getAsInt() : null;
+        }
+    }
+
+    /** Each element's {@code on} as the index of an earlier element, named or numbered; {@code at} checked. */
+    private static void layered(String where, List<Element> elements) {
+        Map<String, Integer> names = new java.util.HashMap<>();
+        for (int i = 0; i < elements.size(); i++) {
+            Element e = elements.get(i);
+            JsonObject p = e.params();
+            if (p.has("at") && !ON.contains(p.get("at").getAsString())) throw bad(where, "elements[" + i + "].at must be one of " + ON);
+            if (p.has("at") && !p.has("on")) throw bad(where, "elements[" + i + "].at needs on");
+            if (p.has("on")) {
+                JsonElement on = p.get("on");
+                Integer index = on.getAsJsonPrimitive().isNumber() ? Integer.valueOf(on.getAsInt()) : names.get(on.getAsString());
+                if (index == null || index < 0 || index >= i) {
+                    throw bad(where, "elements[" + i + "].on `" + on.getAsString() + "` is not an earlier element");
+                }
+                if ("scatter".equals(elements.get(index).kind())) throw bad(where, "elements[" + i + "].on cannot name a scatter");
+                p.addProperty("on", index);
+            }
+            if (p.has("name") && names.put(p.get("name").getAsString(), i) != null) {
+                throw bad(where, "two elements are named `" + p.get("name").getAsString() + "`");
+            }
         }
     }
 
@@ -90,13 +128,6 @@ public record SetPieceSpec(String key, String name, String seat, double support,
         default JsonObject portal(String slug) {
             return null;
         }
-    }
-
-    @SafeVarargs
-    static Set<String> union(Set<String>... sets) {
-        java.util.Set<String> out = new java.util.HashSet<>();
-        for (Set<String> s : sets) out.addAll(s);
-        return Set.copyOf(out);
     }
 
     /** Every check passes and every template measures 16 cubed: for tests of the shape alone. */
@@ -165,7 +196,7 @@ public record SetPieceSpec(String key, String name, String seat, double support,
             bandMax = b.get(1).getAsInt();
             if (bandMin > bandMax) throw bad(where, "band's minY is above its maxY");
         }
-        if (o.has("band") && !"floor".equals(seat)) throw bad(where, "band applies to the floor seat only");
+        if (o.has("band") && !Set.of("floor", "roof", "wall").contains(seat)) throw bad(where, "band applies to the floor, roof and wall seats only");
         int clear = o.has("clear") ? o.get("clear").getAsInt() : DEFAULT_CLEAR;
         Age age = o.has("age") ? age(where, o.get("age").getAsString()) : dimensionAge;
         Map<String, List<Weighted>> palette = palette(where, o, catalogue);
@@ -177,6 +208,8 @@ public record SetPieceSpec(String key, String name, String seat, double support,
         for (int i = 0; i < arr.size(); i++) {
             elements.add(element(where + ".elements[" + i + "]", arr.get(i), palette, catalogue, false));
         }
+        layered(where, elements);
+        SetPieceSetting setting = SetPieceSetting.read(where, o, seat, size);
         String group = o.has("group") ? o.get("group").getAsString() : null;
         String rarity = o.has("rarity") ? o.get("rarity").getAsString() : null;
         if (rarity != null && !StructureSpec.RARITIES.contains(rarity)) throw bad(where, "rarity must be one of " + StructureSpec.RARITIES);
@@ -185,12 +218,18 @@ public record SetPieceSpec(String key, String name, String seat, double support,
         if (repetition != null && repetition < 1) throw bad(where, "repetition must be 1 or more");
         if (repetition != null && group == null) throw bad(where, "repetition needs a group");
         String adaptation = o.has("terrainAdaptation") ? o.get("terrainAdaptation").getAsString()
+                : elements.stream().anyMatch(e -> SetPieceShapes.KINDS.contains(e.kind())) ? "none"
                 : age == Age.ANCIENT || age == Age.DEEP ? "bury" : "beard_thin";
         if (!ADAPTATIONS.contains(adaptation)) throw bad(where, "terrainAdaptation must be one of " + ADAPTATIONS);
         SetPieceSpec spec = new SetPieceSpec(slug + "/" + name, display, seat, support, site, bandMin, bandMax, clear, palette,
-                elements, group, rarity, repetition, adaptation, size, age);
+                elements, group, rarity, repetition, adaptation, size, age, setting);
         for (int i = 0; i < elements.size(); i++) {
             int[] r = reach(elements.get(i), catalogue);
+            Integer on = elements.get(i).on();
+            if (on != null) {
+                int[] base = reach(elements.get(on), catalogue);
+                r = new int[] {r[0] + base[0], r[1] + base[1]};
+            }
             if (r[0] > size || r[1] > size) {
                 throw bad(where, "elements[" + i + "] (" + elements.get(i).kind() + ") reaches " + r[0] + " blocks across and "
                         + r[1] + " up, past its size " + size);
@@ -321,8 +360,18 @@ public record SetPieceSpec(String key, String name, String seat, double support,
                     if (o.has(k) && o.get(k).getAsInt() < 1) throw bad(where, k + " must be 1 or more");
                 }
             }
-            default -> SetPieceKinds.check(where, kind, o, palette, catalogue);
+            default -> {
+                if (SetPieceShapes.KINDS.contains(kind)) {
+                    if (item) throw bad(where, "a scatter's items are blocks, templates, chests and spawners, not shapes");
+                    SetPieceShapes.validate(where, kind, o, b -> {
+                        if (!palette.containsKey(b)) checkBlock(where, b, catalogue);
+                    });
+                } else {
+                    SetPieceKinds.check(where, kind, o, palette, catalogue);
+                }
+            }
         }
+        if (o.has("on") && item) throw bad(where, "a scatter's items cannot be seated on an element");
         if ("spawner".equals(kind) || "cell".equals(kind)) count = 1;
         return new Element(kind, offset, count, chance, around, age, weight, o.deepCopy(), items);
     }
@@ -351,7 +400,7 @@ public record SetPieceSpec(String key, String name, String seat, double support,
             }
             case "block", "chest", "spawner" -> up += 1;
             default -> {
-                int[] r = SetPieceKinds.reach(e, catalogue);
+                int[] r = SetPieceShapes.KINDS.contains(e.kind()) ? SetPieceShapes.reach(e.kind(), e.params()) : SetPieceKinds.reach(e, catalogue);
                 across += r[0];
                 up += r[1];
             }
@@ -420,7 +469,15 @@ public record SetPieceSpec(String key, String name, String seat, double support,
         o.addProperty("terrainAdaptation", terrainAdaptation);
         o.addProperty("size", size);
         if (age != null) o.addProperty("age", age.id());
+        setting.write(o);
+        if (setting.bands() != null) o.add("bands", setting.bands().toJson());
         return o;
+    }
+
+    /** This spec with the dimension's age by distance, for a piece that names no age of its own. */
+    public SetPieceSpec withBands(SetPieceSetting.AgeBands bands) {
+        return new SetPieceSpec(key, name, seat, support, site, bandMin, bandMax, clear, palette, elements, group, rarity, repetition,
+                terrainAdaptation, size, age, setting.withBands(bands));
     }
 
     /** The spec as {@link #toJson} wrote it; trusted, so only the shape is read. */
@@ -437,10 +494,12 @@ public record SetPieceSpec(String key, String name, String seat, double support,
         raw.addProperty("clear", o.get("clear").getAsInt());
         raw.add("palette", o.getAsJsonObject("palette"));
         raw.add("elements", o.getAsJsonArray("elements"));
-        for (String k : List.of("group", "rarity", "repetition", "terrainAdaptation", "size", "age")) {
+        for (String k : List.of("group", "rarity", "repetition", "terrainAdaptation", "size", "age", "reach", "rise", "depth", "bed",
+                "approach", "lived")) {
             if (o.has(k)) raw.add(k, o.get(k));
         }
-        return resolve(slug, name, raw, Map.of(), null, TRUSTED);
+        SetPieceSpec spec = resolve(slug, name, raw, Map.of(), null, TRUSTED);
+        return o.has("bands") ? spec.withBands(SetPieceSetting.AgeBands.fromJson(o.getAsJsonObject("bands"))) : spec;
     }
 
     /** As {@link #ANY}, with template sizes unknown so the reach check measures templates as a block. */

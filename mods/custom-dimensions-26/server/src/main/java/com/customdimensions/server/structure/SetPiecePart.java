@@ -171,6 +171,26 @@ public final class SetPiecePart extends StructurePiece {
         return new SetPiecePart(data, BoundingBox.encapsulatingPositions(corners).orElseThrow(), null);
     }
 
+    /**
+     * One shape or approach ({@link com.customdimensions.core.structure.SetPieceShapes}), drawn column by column in each chunk it
+     * crosses; {@code scan} finds each column's ground near {@code originY} rather than at the surface.
+     */
+    static SetPiecePart shape(String key, int originY, com.customdimensions.core.structure.SetPieceShapes.Shape shape, boolean scan) {
+        JsonObject data = new JsonObject();
+        data.addProperty("kind", "shape");
+        data.addProperty("set", key);
+        data.addProperty("origin", originY);
+        data.addProperty("scan", scan);
+        data.add("shape", shape.toJson());
+        int[] b = com.customdimensions.core.structure.SetPieceShapes.box(shape);
+        return new SetPiecePart(data, new BoundingBox(b[0], b[1], b[2], b[3], b[4], b[5]), null);
+    }
+
+    /** Whether this part draws a shape or an approach, which the terrain round a structure never adapts to. */
+    public boolean drawsShape() {
+        return "shape".equals(data.get("kind").getAsString());
+    }
+
     /** The set piece's blocks, chests and spawners in one piece. */
     static SetPiecePart blocks(SetPieceSpec spec, BlockPos origin, List<Item> items) {
         JsonObject data = new JsonObject();
@@ -207,6 +227,10 @@ public final class SetPiecePart extends StructurePiece {
             placeTemplate(level, chunkBox);
         } else if ("things".equals(data.get("kind").getAsString())) {
             for (var e : data.getAsJsonArray("things")) SetPieceThings.place(level, chunkBox, e.getAsJsonObject());
+        } else if (drawsShape()) {
+            ShapeWorld world = new ShapeWorld(level, chunkBox, generator, data.get("scan").getAsBoolean(), data.get("origin").getAsInt());
+            com.customdimensions.core.structure.SetPieceShapes.draw(com.customdimensions.core.structure.SetPieceShapes.Shape.fromJson(
+                    data.getAsJsonObject("shape")), chunkBox.minX(), chunkBox.minZ(), chunkBox.maxX(), chunkBox.maxZ(), world);
         } else {
             for (var e : data.getAsJsonArray("items")) placeItem(level, chunkBox, Item.fromJson(e.getAsJsonObject()));
         }

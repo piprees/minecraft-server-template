@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -92,8 +93,10 @@ public final class SetPiecesCompiler {
         }
         JsonObject pieces = def.setPieces();
         if (pieces == null || pieces.isEmpty()) return Compiled.NONE;
-        Age dimensionAge = def.structures() != null && def.structures().has("age")
-                ? Age.parse(def.structures().get("age").getAsString()) : null;
+        com.google.gson.JsonElement ageField = def.structures() != null ? def.structures().get("age") : null;
+        com.customdimensions.core.structure.SetPieceSetting.AgeBands bands = com.customdimensions.core.structure.SetPieceSetting.AgeBands.read(
+                slug + ": structures.age", ageField, def.spawn() != null ? def.spawn().x() : 0, def.spawn() != null ? def.spawn().z() : 0);
+        Age dimensionAge = ageField != null && bands == null ? Age.parse(ageField.getAsString()) : null;
         SetPieceSpec.Catalogue catalogue = catalogue(vanilla, all);
         Map<String, JsonObject> files = new LinkedHashMap<>();
         JsonArray control = new JsonArray();
@@ -108,6 +111,7 @@ public final class SetPiecesCompiler {
             if (marker && !shrines) {
                 throw new IllegalArgumentException(slug + ": setPieces." + name + ": a gate with marker is a working exit, and needs exitShrines enabled");
             }
+            if (bands != null && spec.age() == null) spec = spec.withBands(bands);
             String id = structureId(namespace, slug, name);
             JsonObject structure = new JsonObject();
             structure.addProperty("type", TYPE);
@@ -130,9 +134,10 @@ public final class SetPiecesCompiler {
                 files.put(DatapackCompiler.dataPath(id, "tags/worldgen/biome"), tag);
                 structure.addProperty("biomes", "#" + id);
             }
-            structure.addProperty("step", "surface_structures");
+            structure.addProperty("step", spec.elements().stream().anyMatch(el -> com.customdimensions.core.structure.SetPieceShapes.KINDS.contains(el.kind()))
+                    ? "top_layer_modification" : "surface_structures");
             structure.add("spawn_overrides", new JsonObject());
-            structure.addProperty("terrain_adaptation", spec.terrainAdaptation());
+            structure.addProperty("terrain_adaptation", (Set.of("footing", "terrace").contains(spec.terrainAdaptation()) ? "none" : spec.terrainAdaptation()));
             structure.add("set_piece", spec.toJson());
             files.put(DatapackCompiler.dataPath(id, "worldgen/structure"), structure);
             JsonObject c = new JsonObject();
@@ -140,6 +145,7 @@ public final class SetPiecesCompiler {
             c.addProperty("name", spec.name());
             c.addProperty("seat", spec.seat());
             c.addProperty("size", spec.size());
+            if (spec.setting().lived() != null) c.addProperty("lived", true);
             if (spec.group() != null) {
                 JsonObject set = new JsonObject();
                 JsonArray entries = new JsonArray();
@@ -162,7 +168,10 @@ public final class SetPiecesCompiler {
             }
             control.add(c);
             entry.structure("set piece `" + id + "` (" + spec.name() + "): seat " + spec.seat() + ", " + spec.elements().size()
-                    + " element(s), size " + spec.size() + (spec.age() != null ? ", age " + spec.age().id() : "")
+                    + " element(s), size " + spec.size() + (spec.age() != null ? ", age " + spec.age().id()
+                            : spec.setting().bands() != null ? ", age by distance" : "")
+                    + (spec.setting().lived() != null ? ", lived-in at " + spec.setting().lived().density() + " per km²" : "")
+                    + (spec.setting().approaches().isEmpty() ? "" : ", " + spec.setting().approaches().size() + " approach(es)")
                     + (spec.group() != null ? ", group " + spec.group() : ", placed by force or wants only"));
         }
         return new Compiled(files, control);

@@ -28,13 +28,17 @@ A definition gains `setPieces`: name to spec. A spec either stands alone or exte
 | `support` | Share of the footprint's sample columns that must find a seat (0–1, default 0.8); below it the start declines. A sky world's set piece never starts over void |
 | `slope` | Largest height spread across the footprint's samples, in blocks; above it the start declines |
 | `biomes` | Biome ids or `#tags` the origin must be in; default every biome of the dimension |
-| `site` | Where it may stand ([../lore/placement.md](../lore/placement.md) G3), the fields of `structures.sites`: `height` `{min, max}`, `relative` (`summit`, `spur`, `valley`), `water` `{kind, min, max}`, `cliff` `{min, max, rise}`, `shelter` (`overhang`, `hollow`, `lee`, `canopy`); `slope` and `biomes` above join it, and its footprint radius is `size`. Forced starts and wants choose a chunk that passes; a group start that fails does not start |
-| `age` | `recent`, `old`, `ancient` or `deep` (placement.md § Age): integrity, burial, weathering swaps, cobwebs and vines; an element may carry its own, and `structures.age` is the dimension's default |
-| `band`, `clear` | Seat `floor`: the `[minY, maxY]` searched and the headroom in blocks |
-| `elements` | The parts, drawn in order (§ Elements); each has its own offset, rotation, count and chance |
+| `site` | Where it may stand ([../lore/placement.md](../lore/placement.md) G3), the fields of `structures.sites`: `height` `{min, max}`, `relative` (`summit`, `spur`, `valley`), `water` `{kind, min, max}`, `cliff` `{min, max, rise}`, `shelter` (`overhang`, `hollow`, `lee`, `canopy`); `slope` and `biomes` above join it, and its footprint radius is `size`. Forced starts and wants choose a chunk that passes; a group start that fails does not start. Under a roof (the surface heightmap within 8 of the top) a filtered start, ours or a mod's, seats on the floor (the first air over solid ground from sea level up with 4 blocks of headroom) wherever its own seating asks the generator for ground |
+| `age` | `recent`, `old`, `ancient` or `deep` (placement.md § Age): integrity, burial, weathering swaps, cobwebs and vines; an element may carry its own, and `structures.age` is the dimension's default: one age, or ages by distance from spawn (`{"recent": 0, "old": 1024, …}`, each from its inner radius, edges jittered by `jitter` blocks, default 96) |
+| `band`, `clear` | Seats `floor`, `roof` and `wall`: the `[minY, maxY]` searched and the headroom in blocks |
+| `reach`, `rise` | Seat `roof`: blocks above the floor a ceiling is looked for (default 48). Seat `wall`: blocks along the four axes a face is looked for (default 48), and how far its lip stands over its foot (default 6) |
+| `depth`, `bed` | Seat `water`: blocks of water it needs (default 1); `bed` seats on the bed rather than the surface |
+| `elements` | The parts, drawn in order (§ Elements); each has its own offset, rotation, count and chance, and may carry a `name` |
+| `approach` | How it is reached ([../lore/placement.md](../lore/placement.md) G8), one or a list: `kind` `path` (steps where the ground climbs two or more, a bridge over a drop of more than `gap`, default 4, that comes back within 32), `steps`, `bridge`, `ladder` or `chain` down the first face of four or more, or `debris` (`count` pieces along `direction`); `to` the nearest forced, wanted or lived-in site (default), `spawn` or `[dx, dz]`; `length` (default 48, at most 96), `width` (1–3), `block`, `stairs`, `deck`, `post`. `structures.approaches` gives the same to any structure by id or `#tag` |
+| `lived` | A tiny piece (`size` 8 or less) of the lived-in layer (G6): `density` per km², `radial` (ten factors spawn to border), `biomes` (id, `#tag` or `default` to a factor), `siting` (any of `path`, within `pathWidth` (default 24) of a line from spawn to a forced or wanted site or between neighbouring sites; `view`, four of eight sides 3 lower at 16 blocks and a cliff within 12; `water`, within 24; `hollow`). At most one per 128-block cell, so about 61 per km² at most; lived pieces are not in `places.named` |
 | `palette` | Named block lists the elements draw from (`ground`, `rubble`, `metal`, `bone`, `glow`…), each a weighted list of vanilla block states |
 | `group`, `rarity`, `repetition` | Join a structure-control group (`deco`, `landmarks`, `dungeons`, …) at that rarity share, at most `repetition` copies |
-| `terrainAdaptation` | Default adjustment (`none`, `beard_thin`, `beard_box`, `bury`, `encapsulate`); the definition's `structures.terrainAdaptation` overrides it |
+| `terrainAdaptation` | Default adjustment (`none`, `beard_thin`, `beard_box`, `bury`, `encapsulate`, or our `footing` and `terrace`, G9): `none` for a piece with shapes, `bury` for an ancient or deep one, else `beard_thin`; the definition's `structures.terrainAdaptation` overrides it. The beardifier never adapts terrain to a shape's or an approach's box |
 | `size` | Bounding half-extent in blocks, checked against what the elements can reach; the compiler refuses a spec whose elements can exceed it. At most 64 (a 9 by 9 chunk box) |
 
 Mod structures are re-skinned through `structures.reskin`: by structure id, #tag or group name, a `swap` of block ids or #block tags to a block or a `materials.<slot>` of the dimension, and an `age` whose weathering they wear, applied to every template block and every block a hard-coded piece places inside a matching start.
@@ -49,9 +53,9 @@ How the start finds its origin (`findGenerationPoint`) and what "ground" means. 
 | --- | --- | --- |
 | `ground` | The surface height (`WORLD_SURFACE_WG`) under the origin | Fewer than `support` samples find solid ground above the world's lowest 8 blocks (void), or the spread exceeds `slope` |
 | `floor` | The first air above solid ground scanning up from a band's bottom: a Nether or cave floor under a roof (`band: [minY, maxY]`, default the dimension's lava sea to its roof less 8) | No floor in the band with headroom `clear` (default 6) |
-| `roof` | The underside of the roof or a ceiling, scanning up from the floor; elements hang down | No ceiling within `reach` (default 48) |
-| `wall` | A face: from the floor seat, the nearest column within `reach` whose height rises by `rise` or more; the origin is on that face, rotated to face out | No face found; used for falls and things built into pit walls |
-| `water` | The water surface (`OCEAN_FLOOR_WG` for `bed`) | No water of `depth` or more |
+| `roof` | The lowest block of the ceiling over the floor seat's floor; elements hang down from it (`dy` below 0, a `column` of negative `height`) | No ceiling within `reach` (default 48) of the floor, as in a dimension without a roof |
+| `wall` | A face: along the four axes from the surface (the floor in `band`), the nearest column within `reach` standing `rise` or more over its neighbour; the origin moves onto that lip at its height, turned so the piece's local x points out over the drop | No face found; used for falls and things built into pit walls |
+| `water` | The water surface (the bed with `bed`) where it is `depth` or more deep; an element's ground is the water where there is enough, else the surface | No water of `depth` or more |
 | `pinned` | `y` given by the forced start, through `PinnedGround` | Never; for a ledge or overlook that must exist on every seed |
 
 ## Elements
@@ -62,16 +66,18 @@ Every element is drawn by one structure piece of ours (`customdimensions:set_pie
 
 | Kind | Parameters | Builds |
 | --- | --- | --- |
-| `crater` | `radius`, `depth`, `rim` (raise in blocks), `lining` palette, `scorch` (radius of ground re-skinned round it), `core` (an element at the bottom) | A bowl carved into the seat with a raised, broken rim; the meteorite, the bomb site, the pock mark |
+| `crater` | `radius`, `depth`, `rim` (raise in blocks), `lining` palette, `scorch` (radius of ground re-skinned round it, with the palette `scorch` or the lining), `core` (a ball of a palette or block at the bottom, `coreRadius`) | A bowl carved into the seat with a raised, broken rim; the meteorite, the bomb site, the pock mark |
 | `pit` | `radius` or `shape` (`round`, `rift`), `depth`, `fill` palette and `fillDepth`, `walls` palette, `ledges` | A shaft or bowl down from the seat, its floor filled (bones, soul sand, lava, gold), its walls dressed |
-| `fall` | `liquid` (`lava`, `water`), `drop`, `width`, `pool` (radius at the base) | A source at the top of a `wall` seat and a pool at its foot; the curtain is the liquid's own flow |
+| `fall` | `liquid` (`lava`, `water`), `drop`, `width`, `pool` (radius at the base) | A source two blocks below the anchor's ground, set in the face with a notch open in front, and a pool at its foot; it faces out of a `wall` seat, or towards the origin from an offset (a pit's wall); the curtain is the liquid's own flow, its tick scheduled as the chunk generates |
 | `wall` | `length`, `height`, `thickness`, `towers` (every n blocks), `breaches` (count), `palette` | A curtain wall that follows the ground between two ends, towers on it, gaps broken through |
 | `scatter` | `count`, `radius`, `items` (weighted elements), `spacing` | Many small elements over an area: skulls, bones, rubble, carts, small templates, graves |
-| `line` | `from`, `to` (offsets or `"ground"`/`"roof"`), `style` (`chain`, `pipe`, `bars`, `bridge`, `rail`), `sag` | A run of blocks between two anchors: hanging chains, pipelines on trestles, a rope bridge, a rail gallery |
-| `column` | `height`, `radius`, `taper`, `style` (`chimney`, `pillar`, `spire`, `stack`, `cage`), `top` (an element) | A vertical: a smoking chimney (campfire under it), a stack of pearls in an end-stone cradle, a ruined pillar, a birdcage of bars |
+| `line` | `from`, `to` (`[x, y, z]` from the anchor, `y` a number or `"ground"`/`"roof"` at that column), `style` (`chain`, `pipe`, `bars`, `bridge`, `rail`, `path`), `sag`, `width`, `post`, `deck` | A run of blocks between two anchors: hanging chains, pipelines on trestles every six blocks, a railed bridge, a rail on its bed, or a worn `path` of path, coarse dirt and gravel that follows the ground (G6) |
+| `column` | `height` (below 0 hangs down), `radius`, `taper`, `style` (`chimney`, `pillar`, `spire`, `stack`, `cage`), `top` (a palette or block), `footing` (default true) | A vertical: a smoking chimney (campfire under it), a stack of the palette's entries in turn, a ruined pillar, a birdcage of bars on a calcite foot; filled down to the ground in the dimension's own stone |
 | `field` | `radius`, `edge` (noise), `cover` palette (top block), `over` (block on top: fire, snow layer, sculk vein) | A surface treatment: soul-fire field, ash drift, sculk scar, petal carpet |
-| `crown` | `find` (`tops`: local maxima over `rise`), `radius`, `growth` palette | Growth on high points round the origin: amethyst and crystals on spire tops |
-| `platform` | `width`, `depth`, `rail`, `stairs` (down to the seat below), `palette` | A terrace, ledge or landing that always exists: an overlook above a pit |
+| `crown` | `find` (`tops`: columns highest within `window`, default 6, and `rise`, default 4, over its lowest), `radius`, `growth` palette | Growth on high points round the origin, found from the base heights on a two-block grid when the start is made: amethyst and crystals on spire tops |
+| `platform` | `width`, `depth`, `rail` (false or a block), `stairs` (true or a stairs block, down from the front to the ground, at most 16), `palette`, `footing` (default false) | A terrace, ledge or landing that always exists, over the void too: an overlook above a pit |
+
+A shape is drawn column by column: what a column receives follows from the anchor, the parameters, the points resolved when the start is made (a fall's axis, a line's ends, a crown's tops, an approach's path) and that column's own ground, and every random choice is a roll of the position, so a shape split across chunks is continuous. An element may stand `on` an earlier one (by `name` or index; G7): its offset from that element's, its height that element's top, or its seat with `at: inside`, each with its own `age`.
 
 ### Assemblies
 
