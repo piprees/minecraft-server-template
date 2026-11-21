@@ -194,3 +194,7 @@ Why: travel is where encounters happen; a network of waystones lets players skip
 **RB-50 — Trek joins, beta builds accepted; Biome Strongholds joins.**
 Trek's 26.3 beta is accepted, with its overrides of vanilla's End cities, villages, strongholds and pillager outposts. Where Trek and Biome Strongholds both claim strongholds, one owner is chosen and the other's override switched off, so a stronghold stays findable by eyes of ender and its portal lights with 12 eyes (RB-48). The End keeps about 57 cities with elytra at 8% a chest; the overworld keeps its rim mansion.
 Why: the owner reviewed Trek and wants its structures; a beta is acceptable before the switch, and the checks above keep the verified progression intact.
+
+**RB-51 — Where mods compete for the same structure, the pack blends them by weight.**
+When two or more installed mods override the same vanilla structure or structure set (Trek and Biome Strongholds both replace strongholds), custom-dimensions keeps every version instead of letting load order pick one: each mod's version is registered under its own id, and the contested set draws from all of them with weights set in config (strongholds: Biome Strongholds' variants 11 in 12, Trek's 1 in 12). The blend is listed and checkable: a command and the boot log name every contested entry, its versions and their weights.
+Why: the mod is a bridge between other mods, so a conflict becomes variety rather than a silent winner; the weights let the more interesting versions dominate.
