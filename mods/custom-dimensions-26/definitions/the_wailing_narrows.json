@@ -150,6 +150,7 @@
     "target": "bed"
   },
   "materials": {
+    "defaultBlock": "minecraft:basalt",
     "cliffs": "minecraft:blackstone"
   },
   "ores": {

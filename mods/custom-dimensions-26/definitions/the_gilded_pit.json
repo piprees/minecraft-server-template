@@ -190,14 +190,15 @@
     "target": "bed"
   },
   "atmosphere": {
-    "fogColor": "#3B2410",
-    "ambientLight": 0.1,
+    "fogColor": "#5A3A16",
+    "ambientLight": 0.3,
     "fogDistance": {
       "start": 64,
       "end": 384
     }
   },
   "materials": {
+    "defaultBlock": "minecraft:blackstone",
     "bands": [
       {
         "below": 76,
