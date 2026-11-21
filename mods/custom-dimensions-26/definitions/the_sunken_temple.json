@@ -11,7 +11,7 @@
     "base": "basin_islands",
     "params": {
       "lakeShare": 0.75,
-      "basinDepth": 26,
+      "basinDepth": 16,
       "rimHeight": 16,
       "islandShare": 0.2,
       "lakeSize": 2,
