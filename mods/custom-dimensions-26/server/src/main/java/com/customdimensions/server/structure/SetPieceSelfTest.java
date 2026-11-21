@@ -250,7 +250,7 @@ public final class SetPieceSelfTest {
         long named = NamedPlaces.named(level, 512).asList().stream().filter(e -> e.getAsJsonObject().get("kind").getAsString().equals("group")).count();
         var cap = StructureRuntime.cap(id, structure);
         Integer sites = applied.groupSites().get(piece.group());
-        boolean ok = census > 0 && named == census && cap != null && cap.size() <= piece.repetition() && !cap.isEmpty();
+        boolean ok = census > 0 && cap != null && !cap.isEmpty() && cap.size() <= piece.repetition() && named == cap.size();
         return (ok ? "PASS " : "FAIL ") + piece.name() + " in group " + piece.group() + ": " + sites + " group site(s), " + census
                 + " in the census, " + named + " in places.named, repetition " + piece.repetition() + " leaves it " + (cap == null ? "no" : cap.size())
                 + " site(s)";
